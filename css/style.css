@@ -23,6 +23,8 @@ body {
     font-family: var(--font-term);
     overflow: hidden;
     user-select: none;
+    font-size: clamp(14px, 2.4vw, 18px);
+    line-height: 1.5;
 }
 
 h1, h2, h3 {
@@ -92,6 +94,8 @@ h1, h2, h3 {
     color: var(--color-chlorine);
     position: relative;
     overflow: hidden;
+    min-height: 44px;
+    will-change: transform, box-shadow;
     /* Jagged edges */
     clip-path: polygon(
         2% 0, 100% 0, 100% 90%, 98% 100%, 0 100%, 0 10%
@@ -103,10 +107,15 @@ h1, h2, h3 {
     color: var(--color-dark);
     box-shadow: 0 0 10px var(--color-chlorine);
     transform: translate(-1px, -1px);
+    outline: none;
 }
 
 .horror-btn:active {
     transform: translate(1px, 1px);
+}
+
+.horror-btn:focus-visible {
+    box-shadow: 0 0 0 3px rgba(168, 213, 162, 0.5);
 }
 
 .horror-btn-primary {
@@ -169,6 +178,8 @@ h1, h2, h3 {
     opacity: 0.5;
     transition: all 0.3s;
     border-left: 3px solid transparent;
+    min-height: 48px;
+    will-change: transform, background;
 }
 
 .nav-btn:hover {
@@ -182,6 +193,11 @@ h1, h2, h3 {
     background: var(--color-chlorine);
     color: var(--color-dark);
     border-left-color: var(--color-chlorine-light);
+}
+
+.nav-btn:focus-visible {
+    outline: 2px solid var(--color-chlorine-light);
+    outline-offset: 2px;
 }
 
 /* Cards */
@@ -251,6 +267,9 @@ h1, h2, h3 {
         border-left: none;
         border-top: 1px solid var(--color-chlorine-dim);
     }
+    #npc-dialogue { font-size: 1rem; }
+    .horror-btn { padding: 12px; }
+    .horror-btn-tool { font-size: 1rem; }
 }
 
 /* Animations */
@@ -289,6 +308,16 @@ h1, h2, h3 {
     text-shadow: -1px 0 blue;
     clip: rect(85px, 550px, 140px, 0);
     animation: glitch-anim 2s infinite linear alternate-reverse;
+}
+
+/* Motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .animate__animated { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+    .vhs-target.vhs-active { animation: none; }
+    .vhs-target.vhs-active::before,
+    .vhs-target.vhs-active::after { display: none; }
+    .scanline { display: none; }
+    .horror-btn, .nav-btn { transition-duration: 0.01ms; }
 }
 
 /* Utility Overrides for Tailwind */
@@ -429,4 +458,42 @@ h1, h2, h3 {
 .dayafter-tests .slot.blocked {
     opacity: 0.4;
     cursor: not-allowed;
+}
+
+/* Responsive Navigation: bottom bar on mobile */
+@media (max-width: 640px) {
+    .game-container { width: 100%; height: auto; }
+    #sidebar-left {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 64px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+        gap: 4px;
+        background: #0a0a0a;
+        border-top: 1px solid var(--color-chlorine-dim);
+        border-right: none;
+        z-index: 30;
+    }
+    #sidebar-left .nav-btn { padding: 8px 10px; }
+    #sidebar-left .nav-btn span { font-size: 0.65rem; }
+    #nav-morgue-stats span { font-size: 0.55rem; }
+}
+
+/* Responsive grids */
+@media (max-width: 640px) {
+    #shelter-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+    #morgue-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+    #dayafter-list { grid-template-columns: repeat(1, minmax(220px, 1fr)); }
+    .grid-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+    #shelter-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    #morgue-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    #dayafter-list { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 }
