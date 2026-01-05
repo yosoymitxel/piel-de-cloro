@@ -719,11 +719,11 @@ export class UIManager {
                 panel.addClass('modal-blood-flash');
                 setTimeout(() => panel.removeClass('modal-blood-flash'), 700);
                 if (this.audio) {
-                    this.audio.playSFXByKey('purge_blood_flash', { volume: 0.6 });
-                    this.audio.playEvent('purge');
+                    this.audio.playSFXByKey('purge_blood_flash', { volume: 0.6, priority: 2, lockMs: 600 });
+                    this.audio.playSFXByKey('purge_confirm', { volume: 0.7, priority: 2, lockMs: 600 });
                 }
                 onPurgeConfirm(npc);
-                this.closeModal();
+                this.closeModal(true);
             });
         } else {
             this.elements.modalPurgeBtn.addClass('hidden');

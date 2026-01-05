@@ -220,20 +220,17 @@ export class AudioManager {
     playSFXByKey(key, opts = {}) {
         return this.playSFX(this.getUrl(key), opts);
     }
-    playEvent(name) {
-        // Built-in tonal SFX for events without files
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = name === 'purge' ? 'square' : 'sine';
-        osc.frequency.value = name === 'purge' ? 220 : 440;
-        gain.gain.value = 0.0;
-        osc.connect(gain).connect(ctx.destination);
-        osc.start();
-        const now = ctx.currentTime;
-        gain.gain.linearRampToValueAtTime(0.6 * this.master, now + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
-        osc.stop(now + 0.26);
+    playEvent(name, opts = {}) {
+        const map = {
+            purge: 'purge_confirm',
+            glitch: 'glitch_burst',
+            vhs: 'vhs_flicker',
+            intrusion: 'intrusion_detected',
+            alarm_on: 'alarm_activate',
+            alarm_off: 'alarm_deactivate'
+        };
+        const key = map[name] || name;
+        return this.playSFXByKey(key, opts);
     }
     fade(audio, target, ms, key, onDone) {
         if (!audio) return;

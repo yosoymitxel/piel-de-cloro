@@ -473,9 +473,9 @@ class Game {
                     if (target.it.type === 'alarma') target.it.active = false;
                     else target.it.secured = false;
                     State.securityItems[target.idx] = target.it;
-                    if (target.it.type === 'alarma') this.audio.playSFXByKey('alarm_deactivate', { volume: 0.6 });
-                    if (target.it.type === 'puerta') this.audio.playSFXByKey('door_unsecure', { volume: 0.6 });
-                    if (target.it.type === 'ventana') this.audio.playSFXByKey('window_unsecure', { volume: 0.6 });
+                    if (target.it.type === 'alarma') this.audio.playSFXByKey('alarm_deactivate', { volume: 0.6, priority: 1 });
+                    if (target.it.type === 'puerta') this.audio.playSFXByKey('door_unsecure', { volume: 0.6, priority: 1 });
+                    if (target.it.type === 'ventana') this.audio.playSFXByKey('window_unsecure', { volume: 0.6, priority: 1 });
                     if ($('#screen-room').is(':visible')) {
                         this.ui.renderSecurityRoom(State.securityItems, (idx, item) => { State.securityItems[idx] = item; });
                     }
@@ -497,8 +497,8 @@ class Game {
                     npc.history = npc.history || [];
                     npc.history.push(`Intrusión diurna por ${via.type}. Registro simulado.`);
                     State.addAdmitted(npc);
-                    this.audio.playSFXByKey('intrusion_detected', { volume: 0.6 });
-                    if (via.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4 });
+                    this.audio.playSFXByKey('intrusion_detected', { volume: 0.6, priority: 1 });
+                    if (via.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
                     const msg = alarm && alarm.active
                         ? "ALARMA ACTIVADA: Intrusión detectada durante el día."
                         : "";
