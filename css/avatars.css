@@ -35,6 +35,13 @@
     border: 1px solid #333;
 }
 
+@media (max-width: 640px) {
+    .pixel-avatar.lg {
+        width: min(52vw, 160px);
+        height: min(52vw, 160px);
+    }
+}
+
 /* BASE ANATOMY */
 .avatar-body {
     position: absolute;
