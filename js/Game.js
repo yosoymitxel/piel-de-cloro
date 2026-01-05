@@ -245,6 +245,7 @@ class Game {
         const admitted = State.admittedNPCs;
         const count = admitted.length;
         const infectedInShelter = admitted.filter(n => n.isInfected);
+        const civilians = admitted.filter(n => !n.isInfected);
         const allInfected = count > 0 && infectedInShelter.length === count;
 
         // Refugio vacío: >90% muerte
@@ -265,30 +266,16 @@ class Game {
             }
         }
 
-        // Condiciones de muerte del guardia
-        if (count === 1 || allInfected) {
-            State.lastNight.message = count === 1
-                ? "El guardia pasó la noche solo. Nadie respondió."
-                : "El refugio estaba tomado por el cloro. No hubo humanidad.";
-            State.lastNight.victims = 1;
-            this.ui.showLore('night_player_death', () => {
-                window.location.reload();
-            });
-            return;
-        }
-
-        // Posibilidad de muerte según paranoia (máx 10%)
-        const chance = Math.min(0.10, State.paranoia / 100);
-        const occurs = infectedInShelter.length > 0 && Math.random() < chance;
-
-        if (occurs) {
-            // Elegir víctima civil si existe, si no, muerte del guardia
-            const victimIndex = admitted.findIndex(n => !n.isInfected);
+        // Si hay al menos un infectado dentro: muerte garantizada
+        if (infectedInShelter.length > 0) {
+            const victimIndex = civilians.length > 0 
+                ? admitted.findIndex(n => !n.isInfected)
+                : -1;
             if (victimIndex > -1) {
                 const victim = admitted[victimIndex];
                 admitted.splice(victimIndex, 1);
                 victim.death = { reason: 'asesinado', cycle: State.cycle, revealed: false };
-                State.purgedNPCs.push(victim); 
+                State.purgedNPCs.push(victim);
                 State.lastNight.message = `Durante la noche, ${victim.name} fue asesinado. Se sospecha presencia de cloro.`;
                 State.lastNight.victims = 1;
                 this.ui.showLore('night_civil_death', () => {
@@ -302,6 +289,16 @@ class Game {
                     window.location.reload();
                 });
             }
+            return;
+        }
+
+        // Sin infectados dentro: leve posibilidad de muerte del guardia
+        if (Math.random() < (State.config.noInfectedGuardDeathChance || 0.05)) {
+            State.lastNight.message = "Aunque no había cloro dentro, algo te encontró en la oscuridad.";
+            State.lastNight.victims = 1;
+            this.ui.showLore('night_player_death', () => {
+                window.location.reload();
+            });
             return;
         }
 

@@ -21,7 +21,9 @@ export const State = {
         dayIntrusionInfectedChance: 0.65,
         dayDeactivationProbability: 0.9,
         // Jugador infectado
-        playerInfectedProbability: 0.15
+        playerInfectedProbability: 0.15,
+        // Noche sin infectados: prob de muerte del guardia
+        noInfectedGuardDeathChance: 0.05
     },
     admittedNPCs: [],
     purgedNPCs: [], // Shelter purges
