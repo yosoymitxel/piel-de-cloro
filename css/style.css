@@ -1,0 +1,432 @@
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=VT323&display=swap');
+
+:root {
+    --color-chlorine: #2d5a27;
+    --color-chlorine-light: #a8d5a2;
+    --color-chlorine-dim: #1a3a1a;
+    --color-blood: #4a0e0e;
+    --color-dark: #050505;
+    --color-black: #000000;
+    --color-alert: #ff3333;
+    --color-warning: #ccaa00;
+    
+    --font-head: 'Special Elite', cursive;
+    --font-term: 'VT323', monospace;
+    
+    --border-rough: 2px solid var(--color-chlorine);
+}
+
+/* Base & Typography */
+body {
+    background-color: var(--color-dark);
+    color: var(--color-chlorine-light);
+    font-family: var(--font-term);
+    overflow: hidden;
+    user-select: none;
+}
+
+h1, h2, h3 {
+    font-family: var(--font-head);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Textures & Effects */
+.crt-overlay {
+    background: 
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+    z-index: 50;
+}
+
+.dirty-lens {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    opacity: 0.4;
+    z-index: 40;
+}
+
+.text-glow {
+    text-shadow: 0 0 5px var(--color-chlorine), 0 0 10px var(--color-chlorine);
+}
+
+.text-alert-glow {
+    text-shadow: 0 0 5px var(--color-alert), 0 0 10px var(--color-alert);
+}
+
+/* UI Components */
+.horror-panel {
+    background-color: var(--color-dark);
+    border: var(--border-rough);
+    box-shadow: 0 0 15px rgba(45, 90, 39, 0.2);
+    position: relative;
+    /* Asymmetry */
+    clip-path: polygon(
+        0% 0%, 
+        100% 0%, 
+        100% 98%, 
+        98% 100%, 
+        2% 100%, 
+        0% 98%
+    );
+}
+
+.horror-panel-inner {
+    background-color: #080a08;
+    border: 1px solid var(--color-chlorine-dim);
+}
+
+/* Buttons */
+.horror-btn {
+    font-family: var(--font-head);
+    text-transform: uppercase;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid var(--color-chlorine);
+    background: var(--color-dark);
+    color: var(--color-chlorine);
+    position: relative;
+    overflow: hidden;
+    /* Jagged edges */
+    clip-path: polygon(
+        2% 0, 100% 0, 100% 90%, 98% 100%, 0 100%, 0 10%
+    );
+}
+
+.horror-btn:hover {
+    background: var(--color-chlorine);
+    color: var(--color-dark);
+    box-shadow: 0 0 10px var(--color-chlorine);
+    transform: translate(-1px, -1px);
+}
+
+.horror-btn:active {
+    transform: translate(1px, 1px);
+}
+
+.horror-btn-primary {
+    background: var(--color-chlorine);
+    color: var(--color-dark);
+    border-color: var(--color-chlorine-light);
+}
+
+.horror-btn-primary:hover {
+    background: var(--color-chlorine-light);
+    box-shadow: 0 0 15px var(--color-chlorine-light);
+}
+
+.horror-btn-warning {
+    border-color: var(--color-warning);
+    color: var(--color-warning);
+}
+
+.horror-btn-warning:hover {
+    background: var(--color-warning);
+    color: var(--color-dark);
+    box-shadow: 0 0 10px var(--color-warning);
+}
+
+.horror-btn-alert {
+    border-color: var(--color-alert);
+    color: var(--color-alert);
+}
+
+.horror-btn-alert:hover {
+    background: var(--color-alert);
+    color: var(--color-dark);
+    box-shadow: 0 0 10px var(--color-alert);
+}
+
+.horror-btn-tool {
+    font-family: var(--font-term);
+    font-size: 1.1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+}
+
+.horror-btn.btn-disabled {
+    opacity: 0.3;
+    pointer-events: none;
+    filter: grayscale(100%);
+    border-color: #333;
+}
+
+/* Sidebar */
+.horror-sidebar {
+    background: #020202;
+    border-right: 1px solid var(--color-chlorine-dim);
+}
+
+.nav-btn {
+    opacity: 0.5;
+    transition: all 0.3s;
+    border-left: 3px solid transparent;
+}
+
+.nav-btn:hover {
+    opacity: 1;
+    background: rgba(45, 90, 39, 0.1);
+    border-left-color: var(--color-chlorine);
+}
+
+.nav-btn.active {
+    opacity: 1;
+    background: var(--color-chlorine);
+    color: var(--color-dark);
+    border-left-color: var(--color-chlorine-light);
+}
+
+/* Cards */
+.horror-card {
+    background: #0a0a0a;
+    border: 1px solid #222;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.horror-card:hover {
+    border-color: var(--color-chlorine);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.horror-card.infected {
+    border-color: var(--color-alert);
+}
+
+/* Stats Panel */
+#stats-panel {
+    background: #060606;
+}
+.stat-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    border: 1px solid #1a1a1a;
+    background: #0b0b0b;
+}
+.stat-item .label {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+.stat-item .value {
+    font-family: var(--font-term);
+    font-size: 18px;
+    color: var(--color-chlorine-light);
+}
+.badge-rt {
+    background: rgba(0, 200, 255, 0.15);
+    color: #69e1ff;
+    border: 1px solid #176a83;
+}
+.badge-night {
+    background: rgba(255, 150, 0, 0.12);
+    color: #ffcc66;
+    border: 1px solid #7a5a1a;
+}
+.trend {
+    font-family: var(--font-term);
+}
+.trend-up {
+    color: #79ff79;
+}
+.trend-down {
+    color: var(--color-alert);
+}
+
+@media (max-width: 768px) {
+    #stats-panel {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid var(--color-chlorine-dim);
+    }
+}
+
+/* Animations */
+@keyframes glitch-anim {
+    0% { clip-path: inset(10% 0 80% 0); transform: translate(-2px, 1px); }
+    20% { clip-path: inset(80% 0 5% 0); transform: translate(2px, -1px); }
+    40% { clip-path: inset(20% 0 60% 0); transform: translate(-1px, 2px); }
+    60% { clip-path: inset(60% 0 10% 0); transform: translate(1px, -2px); }
+    80% { clip-path: inset(40% 0 30% 0); transform: translate(-2px, 1px); }
+    100% { clip-path: inset(10% 0 80% 0); transform: translate(2px, -1px); }
+}
+
+.glitch-effect {
+    position: relative;
+}
+
+.glitch-effect::before,
+.glitch-effect::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.glitch-effect::before {
+    left: 2px;
+    text-shadow: -1px 0 red;
+    clip: rect(24px, 550px, 90px, 0);
+    animation: glitch-anim 2s infinite linear alternate-reverse;
+}
+
+.glitch-effect::after {
+    left: -2px;
+    text-shadow: -1px 0 blue;
+    clip: rect(85px, 550px, 140px, 0);
+    animation: glitch-anim 2s infinite linear alternate-reverse;
+}
+
+/* Utility Overrides for Tailwind */
+.text-chlorine { color: var(--color-chlorine); }
+.text-chlorine-light { color: var(--color-chlorine-light); }
+.bg-chlorine { background-color: var(--color-chlorine); }
+.border-chlorine { border-color: var(--color-chlorine); }
+
+/* Inputs */
+.horror-input {
+    background: #000;
+    border: 1px solid var(--color-chlorine);
+    color: var(--color-chlorine-light);
+    font-family: var(--font-term);
+    text-align: center;
+}
+
+.horror-input:focus {
+    outline: none;
+    box-shadow: 0 0 10px var(--color-chlorine);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #000;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--color-chlorine-dim);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-chlorine);
+}
+
+.lore-panel {
+    border: 2px solid var(--color-chlorine-light);
+    box-shadow: 0 0 20px rgba(168, 213, 162, 0.2), inset 0 0 10px rgba(45, 90, 39, 0.2);
+    position: relative;
+}
+.lore-panel::before,
+.lore-panel::after {
+    content: "";
+    position: absolute;
+    border: 1px solid var(--color-chlorine);
+}
+.lore-panel::before {
+    inset: 10px;
+    opacity: 0.4;
+}
+.lore-panel::after {
+    width: 22px;
+    height: 22px;
+    top: 8px;
+    left: 8px;
+    box-shadow: 0 0 12px var(--color-chlorine);
+}
+
+.vhs-target {
+    --vhs-intensity: 0.6;
+    --vhs-duration: 1000ms;
+    position: relative;
+    overflow: hidden;
+}
+.vhs-target.vhs-active {
+    animation: vhs-flicker var(--vhs-duration) linear, vhs-jitter var(--vhs-duration) ease-in-out;
+}
+.vhs-target.vhs-active::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(transparent 75%, rgba(0,0,0,0.2)),
+        repeating-linear-gradient(180deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 2px, transparent 4px);
+    mix-blend-mode: overlay;
+    opacity: calc(var(--vhs-intensity) * 0.8);
+    animation: vhs-scan var(--vhs-duration) linear infinite;
+}
+.vhs-target.vhs-active::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(transparent, rgba(255,255,255,0.02) 2px, transparent 4px);
+    opacity: calc(var(--vhs-intensity) * 0.5);
+}
+
+@keyframes vhs-flicker {
+    0%, 100% { opacity: 1; }
+    20% { opacity: 0.9; }
+    40% { opacity: 0.7; }
+    60% { opacity: 0.85; }
+    80% { opacity: 0.95; }
+}
+@keyframes vhs-jitter {
+    0% { transform: translate(0,0); filter: contrast(1) saturate(1); }
+    25% { transform: translate(-1px, 0.5px) skewX(0.5deg); filter: contrast(1.1) saturate(1.05); }
+    50% { transform: translate(1px, -0.5px) skewX(-0.5deg); filter: contrast(1.15) saturate(1.1); }
+    75% { transform: translate(-0.5px, 1px) skewX(0.3deg); filter: contrast(1.08) saturate(1.05); }
+    100% { transform: translate(0,0); filter: contrast(1) saturate(1); }
+}
+@keyframes vhs-scan {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 100%; }
+}
+
+.dayafter-card {
+    background: #0a0a0a;
+    border: 1px solid #222;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.dayafter-card.validated {
+    border-color: var(--color-chlorine);
+    box-shadow: 0 0 10px rgba(45,90,39,0.25);
+}
+.dayafter-tests {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+.dayafter-tests .slot {
+    border: 1px solid var(--color-chlorine-dim);
+    padding: 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.dayafter-tests .slot.done {
+    background: var(--color-chlorine);
+    color: #000;
+    border-color: var(--color-chlorine-light);
+}
+.dayafter-tests .slot.blocked {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
