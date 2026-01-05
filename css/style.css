@@ -379,6 +379,15 @@ h1, h2, h3 {
     box-shadow: 0 0 12px var(--color-chlorine);
 }
 
+.lore-danger {
+    border-color: var(--color-alert);
+    box-shadow: 0 0 20px rgba(255, 51, 51, 0.25), inset 0 0 10px rgba(255, 51, 51, 0.15);
+}
+.lore-calm {
+    border-color: var(--color-chlorine-light);
+    box-shadow: 0 0 20px rgba(168, 213, 162, 0.25), inset 0 0 10px rgba(45, 90, 39, 0.15);
+}
+
 .vhs-target {
     --vhs-intensity: 0.6;
     --vhs-duration: 1000ms;
@@ -460,6 +469,16 @@ h1, h2, h3 {
 .dayafter-tests .slot.blocked {
     opacity: 0.4;
     cursor: not-allowed;
+}
+
+@keyframes bloodPulse {
+    0% { box-shadow: 0 0 0 rgba(255, 51, 51, 0.0); background: transparent; }
+    50% { box-shadow: 0 0 18px rgba(255, 51, 51, 0.35), inset 0 0 24px rgba(255, 51, 51, 0.25); background: rgba(74, 14, 14, 0.35); }
+    100% { box-shadow: 0 0 0 rgba(255, 51, 51, 0.0); background: transparent; }
+}
+.modal-blood-flash {
+    animation: bloodPulse 0.7s ease-out;
+    border-color: var(--color-alert) !important;
 }
 
 /* Responsive Navigation: bottom bar on mobile */

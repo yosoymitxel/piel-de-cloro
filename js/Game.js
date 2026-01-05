@@ -1,38 +1,64 @@
 import { NPC } from './NPC.js';
 import { State } from './State.js';
 import { UIManager, StatsManager } from './UIManager.js';
+import { AudioManager } from './AudioManager.js';
 
 class Game {
     constructor() {
-        this.ui = new UIManager();
+        this.audio = new AudioManager();
+        this.ui = new UIManager(this.audio);
         this.stats = new StatsManager();
         this.bindEvents();
+        this.audio.loadManifest('assets/audio/audio_manifest.json');
         this.initStats();
     }
 
     bindEvents() {
         // Start & Settings
-        $('#btn-start-game').on('click', () => this.startGame());
-        $('#btn-settings-toggle').on('click', () => this.ui.showScreen('settings'));
+        $('#btn-start-game').on('click', () => { this.audio.unlock(); this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.startGame(); });
+        $('#btn-settings-toggle').on('click', () => {
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            $('#config-volume-master').val(Math.round(this.audio.master * 100));
+            $('#config-volume-ambient').val(Math.round(this.audio.levels.ambient * 100));
+            $('#config-volume-lore').val(Math.round(this.audio.levels.lore * 100));
+            $('#config-volume-sfx').val(Math.round(this.audio.levels.sfx * 100));
+            this.ui.showScreen('settings');
+        });
         $('#btn-close-settings').on('click', () => {
              // Save config
              State.config.maxShelterCapacity = parseInt($('#config-max-shelter').val());
              State.config.dayLength = parseInt($('#config-day-length').val());
              State.config.dayAfterTestsDefault = parseInt($('#config-dayafter-tests').val());
+             const mv = Math.max(0, Math.min(100, parseInt($('#config-volume-master').val()))) / 100;
+             const av = Math.max(0, Math.min(100, parseInt($('#config-volume-ambient').val()))) / 100;
+             const lv = Math.max(0, Math.min(100, parseInt($('#config-volume-lore').val()))) / 100;
+             const sv = Math.max(0, Math.min(100, parseInt($('#config-volume-sfx').val()))) / 100;
+             this.audio.setMasterVolume(mv);
+             this.audio.setChannelLevel('ambient', av);
+             this.audio.setChannelLevel('lore', lv);
+             this.audio.setChannelLevel('sfx', sv);
              if (State.cycle === 1 && State.dayTime === 1) this.ui.showScreen('start');
              else this.ui.showScreen('game');
         });
 
         // Navigation
-        $('#nav-guard').on('click', () => this.ui.showScreen('game'));
-        $('#nav-room').on('click', () => this.openRoom());
-        $('#nav-shelter').on('click', () => this.openShelter());
-        $('#nav-morgue').on('click', () => this.openMorgue());
+        $('#nav-guard').on('click', () => { this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.ui.showScreen('game'); });
+        $('#nav-room').on('click', () => { this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openRoom(); });
+        $('#nav-shelter').on('click', () => { this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openShelter(); });
+        $('#nav-morgue').on('click', () => { this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openMorgue(); });
         $('#nav-morgue-stats').on('click', () => this.toggleMorgueStats());
+        $('#btn-audio-diagnostics').on('click', () => {
+            const logs = this.audio.getLogString();
+            this.ui.showMessage(logs, () => {});
+        });
+        $('#btn-audio-validate').on('click', async () => {
+            const report = await this.audio.validateManifest();
+            this.ui.showMessage(report, () => {});
+        });
 
         // Game Actions
-        $('#btn-admit').on('click', () => this.handleDecision('admit'));
-        $('#btn-ignore').on('click', () => this.handleDecision('ignore'));
+        $('#btn-admit').on('click', () => { this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.handleDecision('admit'); });
+        $('#btn-ignore').on('click', () => { this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.handleDecision('ignore'); });
         
         // Tools
         $('#tool-thermo').on('click', () => this.inspect('thermometer'));
@@ -63,11 +89,13 @@ class Game {
         const hidden = panel.hasClass('hidden');
         panel.toggleClass('hidden', !hidden);
         btn.toggleClass('active', hidden);
+        if (hidden) this.audio.playSFXByKey('stats_panel_open', { volume: 0.5 });
     }
 
     startGame() {
         this.ui.showLore('initial', () => {
             State.reset();
+            this.audio.playAmbientByKey('ambient_main_loop', { loop: true, volume: 0.28, fadeIn: 800 });
             this.generateInitialEntrants();
             this.nextTurn();
             this.ui.showScreen('game');
@@ -130,6 +158,7 @@ class Game {
                 if (npc.attributes.temperature < 35) color = '#aaffaa';
                 if (!npc.revealedStats.includes('temperature')) npc.revealedStats.push('temperature');
                 this.ui.applyVHS(0.4, 700);
+                this.audio.playSFXByKey('tool_thermometer_beep', { volume: 0.6 });
                 break;
             case 'flashlight':
                 result = `DERMIS: ${this.ui.translateValue('skinTexture', npc.attributes.skinTexture)}`;
@@ -138,16 +167,19 @@ class Game {
                 }
                 if (!npc.revealedStats.includes('skinTexture')) npc.revealedStats.push('skinTexture');
                 this.ui.applyVHS(0.7, 900);
+                this.audio.playSFXByKey('tool_uv_toggle', { volume: 0.6 });
                 break;
             case 'pupils':
                 result = `PUPILAS: ${this.ui.translateValue('pupils', npc.attributes.pupils)}`;
                 if (!npc.revealedStats.includes('pupils')) npc.revealedStats.push('pupils');
                 this.ui.applyVHS(0.6, 800);
+                this.audio.playSFXByKey('tool_pupils_lens', { volume: 0.6 });
                 break;
             case 'pulse':
                 result = `BPM: ${npc.attributes.pulse}`;
                 if (!npc.revealedStats.includes('pulse')) npc.revealedStats.push('pulse');
                 this.ui.applyVHS(0.5, 800);
+                this.audio.playSFXByKey('tool_pulse_beep', { volume: 0.6 });
                 break;
         }
 
@@ -237,6 +269,8 @@ class Game {
     startNightPhase() {
         State.isNight = true;
         State.dayClosed = true;
+        this.audio.playSFXByKey('night_transition', { volume: 0.5 });
+        this.audio.playAmbientByKey('ambient_night_loop', { loop: true, volume: this.audio.levels.ambient, fadeIn: 800 });
         this.processIntrusions();
         this.ui.showScreen('night');
     }
@@ -253,11 +287,13 @@ class Game {
             if (Math.random() < 0.92) {
                 State.lastNight.message = "Dormiste sin compañía. El refugio no te protegió.";
                 State.lastNight.victims = 1;
+                this.audio.playSFXByKey('sleep_begin', { volume: 0.5 });
                 this.ui.showLore('night_player_death', () => window.location.reload());
                 return;
             } else {
                 State.lastNight.message = "Te mantuviste en vela. Nadie llegó.";
                 State.lastNight.victims = 0;
+                this.audio.playSFXByKey('sleep_begin', { volume: 0.4 });
                 this.ui.showLore('night_tranquil', () => {
                     State.paranoia = Math.max(0, State.paranoia - 5);
                     this.continueDay();
@@ -278,6 +314,7 @@ class Game {
                 State.purgedNPCs.push(victim);
                 State.lastNight.message = `Durante la noche, ${victim.name} fue asesinado. Se sospecha presencia de cloro.`;
                 State.lastNight.victims = 1;
+                this.audio.playSFXByKey('lore_night_civil_death', { volume: 0.5 });
                 this.ui.showLore('night_civil_death', () => {
                     State.paranoia += 30;
                     this.continueDay();
@@ -285,6 +322,7 @@ class Game {
             } else {
                 State.lastNight.message = "No quedaban civiles. El guardia fue víctima del cloro.";
                 State.lastNight.victims = 1;
+                this.audio.playSFXByKey('lore_night_player_death', { volume: 0.5 });
                 this.ui.showLore('night_player_death', () => {
                     window.location.reload();
                 });
@@ -305,6 +343,7 @@ class Game {
         // Noche tranquila
         State.lastNight.message = "La noche pasó tranquila.";
         State.lastNight.victims = 0;
+        this.audio.playSFXByKey('lore_night_tranquil', { volume: 0.4 });
         this.ui.showLore('night_tranquil', () => {
             State.paranoia = Math.max(0, State.paranoia - 10);
             this.continueDay();
@@ -327,6 +366,7 @@ class Game {
         // Refugio vacío: >90% muerte al escapar
         if (count === 0) {
             if (Math.random() < 0.92) {
+                this.audio.playSFXByKey('escape_attempt', { volume: 0.6 });
                 this.ui.showLore('final_death_alone', () => window.location.reload());
                 return;
             }
@@ -335,12 +375,14 @@ class Game {
         // Chequeo de muerte por paranoia antes de escapar
         const chance = Math.min(0.10, State.paranoia / 100);
         if (Math.random() < chance) {
+            this.audio.playSFXByKey('escape_attempt', { volume: 0.6 });
             this.ui.showLore('final_death_paranoia', () => window.location.reload());
             return;
         }
 
         // Jugador infectado: final personalizado
         if (State.playerInfected) {
+            this.audio.playSFXByKey('escape_attempt', { volume: 0.6 });
             this.ui.showLore('final_player_infected_escape', () => window.location.reload());
             return;
         }
@@ -387,6 +429,8 @@ class Game {
         npc.history = npc.history || [];
         npc.history.push(`Intrusión nocturna por ${via.type}. Registro simulado.`);
         State.addAdmitted(npc);
+        this.audio.playSFXByKey('intrusion_detected', { volume: 0.6 });
+        if (via.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4 });
         if (alarm && alarm.active) {
             this.ui.showMessage("ALARMA ACTIVADA: Se detectó intrusión durante la noche.", () => {});
         }
@@ -429,6 +473,9 @@ class Game {
                     if (target.it.type === 'alarma') target.it.active = false;
                     else target.it.secured = false;
                     State.securityItems[target.idx] = target.it;
+                    if (target.it.type === 'alarma') this.audio.playSFXByKey('alarm_deactivate', { volume: 0.6 });
+                    if (target.it.type === 'puerta') this.audio.playSFXByKey('door_unsecure', { volume: 0.6 });
+                    if (target.it.type === 'ventana') this.audio.playSFXByKey('window_unsecure', { volume: 0.6 });
                     if ($('#screen-room').is(':visible')) {
                         this.ui.renderSecurityRoom(State.securityItems, (idx, item) => { State.securityItems[idx] = item; });
                     }
@@ -450,6 +497,8 @@ class Game {
                     npc.history = npc.history || [];
                     npc.history.push(`Intrusión diurna por ${via.type}. Registro simulado.`);
                     State.addAdmitted(npc);
+                    this.audio.playSFXByKey('intrusion_detected', { volume: 0.6 });
+                    if (via.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4 });
                     const msg = alarm && alarm.active
                         ? "ALARMA ACTIVADA: Intrusión detectada durante el día."
                         : "";

@@ -209,8 +209,34 @@
                         TESTS DISPONIBLES (Día después):
                         <input type="number" id="config-dayafter-tests" value="5" min="0" max="20" class="horror-input p-3 text-2xl">
                     </label>
+                    <div class="flex flex-col gap-6 text-left font-mono">
+                        <div class="flex flex-col gap-2">
+                            <span class="text-center text-xl">Volumen Maestro</span>
+                            <input id="config-volume-master" type="range" min="0" max="100" value="100" class="w-full">
+                        </div>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="flex flex-col gap-2">
+                                <span>Ambiente</span>
+                                <input id="config-volume-ambient" type="range" min="0" max="100" value="30" class="w-full">
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <span>Lore</span>
+                                <input id="config-volume-lore" type="range" min="0" max="100" value="25" class="w-full">
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <span>Efectos</span>
+                                <input id="config-volume-sfx" type="range" min="0" max="100" value="60" class="w-full">
+                            </div>
+                        </div>
+                    </div>
                     <button id="btn-close-settings" class="horror-btn horror-btn-primary mt-8 p-4 text-xl">
                         GUARDAR Y SALIR
+                    </button>
+                    <button id="btn-audio-diagnostics" class="horror-btn mt-2 p-3 text-sm">
+                        REGISTRO DE AUDIO
+                    </button>
+                    <button id="btn-audio-validate" class="horror-btn mt-2 p-3 text-sm">
+                        VALIDAR SONIDOS
                     </button>
                 </div>
             </section>

@@ -1,6 +1,6 @@
 import { State } from './State.js';
 export class UIManager {
-    constructor() {
+    constructor(audio = null) {
         this.screens = {
             start: $('#screen-start'),
             game: $('#screen-game'),
@@ -60,6 +60,7 @@ export class UIManager {
         };
         this.infectionEffectActive = false;
         this.typingTimer = null;
+        this.audio = audio;
     }
 
     showScreen(screenName) {
@@ -111,6 +112,7 @@ export class UIManager {
         target.css('--vhs-intensity', intensity);
         target.css('--vhs-duration', `${duration}ms`);
         target.addClass('vhs-active');
+        if (this.audio) this.audio.playSFXByKey('vhs_flicker', { volume: 0.5 });
         setTimeout(() => target.removeClass('vhs-active'), duration);
     }
 
@@ -265,6 +267,7 @@ export class UIManager {
             this.typingTimer = null;
         }
         el.text('');
+        if (this.audio) this.audio.playSFXByKey('ui_dialogue_type', { volume: 0.4 });
         let i = 0;
         this.typingTimer = setInterval(() => {
             el.text(el.text() + text.charAt(i));
@@ -297,6 +300,7 @@ export class UIManager {
     showValidationGate(npc) {
         const overlay = $('#validation-overlay');
         overlay.removeClass('hidden').addClass('flex');
+        if (this.audio) this.audio.playSFXByKey('validation_gate_open', { volume: 0.5 });
         $('#btn-do-test').off('click').on('click', () => {
             overlay.addClass('hidden').removeClass('flex');
         });
@@ -318,71 +322,124 @@ export class UIManager {
         const panel = $('#screen-lore .lore-panel');
         let t = '';
         let c = '';
-        // Reset styles
-        title.removeClass('text-alert');
-        panel.removeClass('animate__shakeX');
+        title.removeClass('text-alert glitch-effect');
+        panel.removeClass('animate__shakeX lore-danger lore-calm');
         if (type === 'initial') {
             t = 'Protocolo del Refugio';
-            c = 'Cada decisión altera el ciclo. Observa, verifica o confía en la palabra. La piel puede mentir, pero el silencio no.';
+            c = `
+                <p>Los piel de cloro son portadores. La piel se reseca, los ojos se dilatan y el pulso baja.</p>
+                <p>Herramientas: usa TERMÓMETRO, LINTERNA UV, PULSO y PUPILAS para revelar señales.</p>
+                <p>Decisiones: admitir aumenta riesgo; purgar reduce amenaza pero sube la paranoia si era civil.</p>
+                <p>Al caer la noche, si hay cloro dentro, alguien muere. Si no, descansas o afrontas un riesgo leve.</p>
+            `;
+            if (this.audio) this.audio.playLoreByKey('lore_intro_track', { loop: false, volume: 0.22, crossfade: 600 });
         } else if (type === 'intermediate') {
             const variants = [
-                'Alguien golpea la puerta tres veces. Dos cortas, una larga. Dicen que es una señal. Nadie abre.',
-                'La luz baja y todo huele a humedad. Una voz murmura una secuencia de números que nadie entiende.',
-                'La radio capta un mensaje: “No somos individuos”. Luego ruido. Luego nada.',
-                'Una sombra cruza el pasillo y la respiración se sincroniza. Por un instante, todos tienen el mismo pulso.'
+                { kind: 'radio', text: '“No somos individuos”. La señal se corta. Luego silencio.' },
+                { kind: 'oido', text: 'Golpes: dos cortos y uno largo. Alguien sabe el patrón.' },
+                { kind: 'vista', text: 'Una sombra cruzó el pasillo. Por un instante, todos respiramos igual.' },
+                { kind: 'registro', text: 'Anotación: la piel reseca aparece con luz UV y olor metálico.' },
+                { kind: 'radio', text: 'Se rumorea que se alimentan de humedad y agua estancada.' },
+                { kind: 'oido', text: 'Susurros a través de las tuberías. La casa tiene garganta.' },
+                { kind: 'vista', text: 'Los espejos del pasillo empañan cuando alguien miente sobre su piel.' },
+                { kind: 'radio', text: 'Transmisión interceptada: “El cloro recuerda quién abrió la puerta”.' },
+                { kind: 'oido', text: 'Un reloj de péndulo marca 7 latidos por segundo. No es el tiempo.' },
+                { kind: 'registro', text: 'Nota olvidada: “Si la sed despierta tras beber, no bebas más”.' },
+                { kind: 'vista', text: 'Las luces parpadean en código Morse: “AGUA NO”.' },
+                { kind: 'radio', text: 'Estática que murmura nombres que aún no has dicho en voz alta.' },
+                { kind: 'oido', text: 'Pasos sobre cristal mojado. Nadie lleva zapatos.' },
+                { kind: 'registro', text: 'Página arrancada: “La piel se desprende si miras de frente demasiado rato”.' },
+                { kind: 'vista', text: 'Una mancha verde en el techo crece cuando nadie la observa.' },
+                { kind: 'radio', text: 'Voz infantil: “El agua de la ducha sabe a cloro y a recuerdos ajenos”.' },
+                { kind: 'oido', text: 'Goteo que imita tu ritmo cardíaco hasta que cambias de ritmo.' },
+                { kind: 'registro', text: 'Aviso: “Sellad las grietas con sal; el cloro odia el mar”.' },
+                { kind: 'vista', text: 'Siluetas en la niebla interior que señalan puertas que no existen.' },
+                { kind: 'radio', text: 'Última frecuencia: “No duermas con la boca abierta; entran las ideas”.' }
             ];
             t = 'Interludio';
-            c = variants[Math.floor(Math.random() * variants.length)];
+            const pick = variants[Math.floor(Math.random() * variants.length)];
+            const icon = pick.kind === 'radio' ? 'fa-tower-broadcast' : pick.kind === 'vista' ? 'fa-eye' : pick.kind === 'oido' ? 'fa-ear-listen' : 'fa-book-open';
+            const label = pick.kind === 'radio' ? 'RADIO' : pick.kind === 'vista' ? 'VISTO' : pick.kind === 'oido' ? 'ESCUCHADO' : 'REGISTRO';
+            c = `<p class="mb-2"><i class="fa-solid ${icon} mr-2"></i><span class="font-bold">${label}</span></p><p>${pick.text}</p>`;
+            if (this.audio) {
+                if (pick.kind === 'radio') this.audio.playLoreByKey('lore_interlude_radio', { loop: false, volume: 0.22, crossfade: 500 });
+                else if (pick.kind === 'vista') this.audio.playLoreByKey('lore_interlude_seen', { loop: false, volume: 0.22, crossfade: 500 });
+                else if (pick.kind === 'oido') this.audio.playLoreByKey('lore_interlude_heard', { loop: false, volume: 0.22, crossfade: 500 });
+            }
         } else if (type === 'pre_final') {
             t = 'Umbral';
-            c = 'Estás a un paso de cerrar el ciclo. Lo que lleves contigo definirá el siguiente silencio.';
+            c = 'Antes de decidir, recuerda: sin pruebas, solo queda la palabra. El refugio no olvida.';
         } else if (type === 'post_final') {
             t = 'Resonancia';
             c = 'El refugio recuerda. Las decisiones dejan marcas invisibles que la noche ilumina.';
         } else if (type === 'night_tranquil') {
             t = 'Noche tranquila';
             c = 'El silencio fue real. Nadie habló y nadie cayó.';
+            panel.addClass('lore-calm');
         } else if (type === 'night_civil_death') {
             t = 'Noche de sangre';
             c = 'Alguien fue encontrado sin pulso. El cloro respiró entre nosotros.';
             title.addClass('text-alert');
-            panel.addClass('animate__shakeX');
+            panel.addClass('animate__shakeX lore-danger');
+            title.addClass('glitch-effect').attr('data-text', t);
+            if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
         } else if (type === 'night_player_death') {
             t = 'Última guardia';
             c = 'El refugio te consumió. El cloro no duerme. Tú tampoco.';
             title.addClass('text-alert');
-            panel.addClass('animate__shakeX');
+            panel.addClass('animate__shakeX lore-danger');
+            title.addClass('glitch-effect').attr('data-text', t);
+            if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
         } else if (type === 'final_clean') {
             t = 'Salida limpia';
             c = 'Escapaste con humanidad intacta. Por ahora, el ciclo descansa.';
+            panel.addClass('lore-calm');
+            if (this.audio) this.audio.playLoreByKey('lore_final_clean', { loop: false, volume: 0.22, crossfade: 600 });
         } else if (type === 'final_corrupted') {
             t = 'Salida contaminada';
             c = 'Escapaste, pero el agua os sigue. El ciclo no termina.';
+            title.addClass('text-alert');
+            panel.addClass('animate__shakeX lore-danger');
+            title.addClass('glitch-effect').attr('data-text', t);
+            if (this.audio) this.audio.playLoreByKey('lore_final_corrupted', { loop: false, volume: 0.22, crossfade: 600 });
         } else if (type === 'final_death_alone') {
             t = 'Soledad terminal';
             c = 'Nadie sobrevivió contigo. Nadie te escuchó. Fin.';
             title.addClass('text-alert');
-            panel.addClass('animate__shakeX');
+            panel.addClass('animate__shakeX lore-danger');
+            title.addClass('glitch-effect').attr('data-text', t);
+            if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
         } else if (type === 'final_death_all_infected') {
             t = 'Refugio tomado';
             c = 'Todos eran cloro. No hubo salida posible.';
             title.addClass('text-alert');
-            panel.addClass('animate__shakeX');
+            panel.addClass('animate__shakeX lore-danger');
+            title.addClass('glitch-effect').attr('data-text', t);
+            if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
         } else if (type === 'final_death_paranoia') {
             t = 'La paranoia te alcanzó';
             c = 'Al intentar huir, el ruido te encontró primero.';
             title.addClass('text-alert');
-            panel.addClass('animate__shakeX');
+            panel.addClass('animate__shakeX lore-danger');
+            title.addClass('glitch-effect').attr('data-text', t);
+            if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
         } else if (type === 'final_player_infected_escape') {
             t = 'Salida portadora';
             c = 'No era el refugio. Eras tú. Lo llevaste contigo.';
             title.addClass('text-alert');
-            panel.addClass('animate__shakeX');
+            panel.addClass('animate__shakeX lore-danger');
+            title.addClass('glitch-effect').attr('data-text', t);
+            if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
         }
         title.text(t);
-        content.text(c);
+        content.html(c);
         this.showScreen('lore');
+        if (this.audio) this.audio.duckAmbient(0.12);
         $('#btn-lore-continue-screen').off('click').on('click', () => {
+            if (this.audio) {
+                this.audio.stopLore({ fadeOut: 500 });
+                this.audio.unduckAmbient(300, 0.28);
+            }
             if (onClose) onClose();
             else this.showScreen('game');
         });
@@ -395,6 +452,7 @@ export class UIManager {
         step2.addClass('hidden');
         step1.removeClass('hidden');
         overlay.removeClass('hidden').addClass('flex');
+        if (this.audio) this.audio.playSFXByKey('preclose_overlay_open', { volume: 0.5 });
         // Hide sidebar while end-of-day flow is active
         this.elements.sidebar.addClass('hidden');
         $('#btn-preclose-open-shelter').off('click').on('click', () => {
@@ -510,8 +568,14 @@ export class UIManager {
             btn.on('click', () => {
                 if (it.type === 'alarma') {
                     if (!it.active) it.active = true;
+                    if (this.audio) this.audio.playSFXByKey('alarm_activate', { volume: 0.6, priority: 1 });
                 } else {
                     if (!it.secured) it.secured = true;
+                    if (this.audio) {
+                        if (it.type === 'puerta') this.audio.playSFXByKey('door_secure', { volume: 0.6, priority: 1 });
+                        if (it.type === 'ventana') this.audio.playSFXByKey('window_secure', { volume: 0.6, priority: 1 });
+                        if (it.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
+                    }
                 }
                 if (onToggle) onToggle(idx, it);
                 this.renderSecurityRoom(items, onToggle);
@@ -522,6 +586,7 @@ export class UIManager {
     }
     openModal(npc, allowPurge, onPurgeConfirm) {
         this.elements.modal.removeClass('hidden').addClass('flex');
+        if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
         this.elements.modalName.text(`SUJETO ${npc.name}`);
         // Visual in Modal
         const visualContainer = $('#modal-npc-visual');
@@ -650,6 +715,13 @@ export class UIManager {
             this.elements.modalPurgeBtn.removeClass('hidden');
             // Remove previous handlers to avoid multiple clicks
             this.elements.modalPurgeBtn.off('click').on('click', () => {
+                const panel = $('#modal-npc .horror-panel');
+                panel.addClass('modal-blood-flash');
+                setTimeout(() => panel.removeClass('modal-blood-flash'), 700);
+                if (this.audio) {
+                    this.audio.playSFXByKey('purge_blood_flash', { volume: 0.6 });
+                    this.audio.playEvent('purge');
+                }
                 onPurgeConfirm(npc);
                 this.closeModal();
             });
@@ -667,18 +739,21 @@ export class UIManager {
     clearModalError() {
         this.elements.modalError.text('').addClass('hidden');
     }
-    closeModal() {
+    closeModal(silent = false) {
         this.clearModalError();
         this.elements.modal.addClass('hidden').removeClass('flex');
         this.elements.msgModal.addClass('hidden').removeClass('flex');
+        if (!silent && this.audio) this.audio.playSFXByKey('ui_modal_close', { volume: 0.5, priority: 0 });
     }
 
     showMessage(text, onClose) {
         this.elements.msgContent.text(text);
         this.elements.msgModal.removeClass('hidden').addClass('flex');
+        if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
         
         this.elements.msgBtn.off('click').on('click', () => {
             this.elements.msgModal.addClass('hidden').removeClass('flex');
+            if (this.audio) this.audio.playSFXByKey('ui_modal_close', { volume: 0.5 });
             if (onClose) onClose();
         });
     }
@@ -713,6 +788,7 @@ export class UIManager {
         avatar.css({ filter: 'hue-rotate(90deg) contrast(130%)' });
         head.css('background-color', '#2d5a27');
         eyes.css('background-color', '#ff0000');
+        if (this.audio) this.audio.playSFXByKey('morgue_reveal_infected', { volume: 0.5 });
         setTimeout(() => {
             head.css('background-color', origHeadColor);
             eyes.css('background-color', origEyeColor);
