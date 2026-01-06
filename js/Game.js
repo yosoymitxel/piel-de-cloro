@@ -219,6 +219,7 @@ class Game {
 
         State.currentNPC = new NPC();
         State.generatorCheckedThisTurn = false; // Resetear para cada nuevo NPC
+        State.generator.emergencyEnergyGranted = false; // Resetear flag de energía gratis
         
         // Resetear límite de capacidad del generador según el modo actual al inicio del turno
         const currentMode = State.generator.mode;
@@ -294,7 +295,7 @@ class Game {
         let animDuration = 1000;
 
         switch(tool) {
-            case 'thermometer':
+            case 'thermo':
                 animDuration = 2200;
                 result = `TEMP: ${npc.attributes.temperature}°C`;
                 if (npc.attributes.temperature < 35) color = '#aaffaa';
@@ -471,10 +472,20 @@ class Game {
             // El generador solo se enciende manualmente
             this.audio.playSFXByKey('generator_start', { volume: 0.7 });
             
-            // Caso especial: si estaba apagado desde el turno anterior (scanCount alto), recuperar energía
-            if (State.currentNPC && State.currentNPC.scanCount >= 90) {
-                State.currentNPC.scanCount = 0;
-                this.ui.showFeedback("SISTEMA REINICIADO: ENERGÍA RECUPERADA", "green");
+            // LÓGICA DE ENERGÍA DE EMERGENCIA
+            // Si el jugador no ha hecho nada (scanCount=0 y no diálogo) y el generador estaba apagado
+            // O si estaba apagado por un fallo (scanCount >= 90)
+            const noActivity = State.currentNPC && State.currentNPC.scanCount === 0 && !State.dialogueStarted;
+            const hadFailure = State.currentNPC && State.currentNPC.scanCount >= 90;
+
+            if (State.currentNPC && !State.generator.emergencyEnergyGranted && (noActivity || hadFailure)) {
+                State.currentNPC.scanCount = 0; // Resetear para que tenga sus energías normales según el modo
+                State.generator.emergencyEnergyGranted = true; // Marcar como usado para este NPC
+                this.ui.showFeedback("ENERGÍA RESTAURADA: 1 TEST DISPONIBLE", "green");
+            } else if (State.currentNPC && State.currentNPC.scanCount >= 90) {
+                // Si ya se usó la energía de emergencia o hubo actividad, pero el generador falló,
+                // NO restauramos energías gratis. El jugador debe gestionar sus fallos.
+                this.ui.showFeedback("GENERADOR REINICIADO (SIN CARGAS EXTRAS)", "yellow");
             }
             
             if (State.generator.power <= 0) {

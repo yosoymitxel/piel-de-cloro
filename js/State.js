@@ -87,7 +87,8 @@ export const State = {
         blackoutUntil: 0, 
         overclockCooldown: false,
         overloadRiskTurns: 0,
-        maxModeCapacityReached: 2 // Por defecto Normal (2) al iniciar
+        maxModeCapacityReached: 2, // Por defecto Normal (2) al iniciar
+        emergencyEnergyGranted: false // Flag para evitar explotación de energía gratis
     },
     paused: false,
     dialogueStarted: false,
@@ -112,7 +113,7 @@ export const State = {
         this.dialogueStarted = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
-        this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false };
+        this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false, emergencyEnergyGranted: false };
         this.playerInfected = Math.random() < this.config.playerInfectedProbability;
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight = { occurred: false, victims: 0, message: '' };
@@ -188,7 +189,7 @@ export const State = {
         this.dayEnded = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
-        this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0 };
+        this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, emergencyEnergyGranted: false };
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight.occurred = true;
         this.purgedNPCs.forEach(n => {

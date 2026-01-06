@@ -88,14 +88,14 @@
             <section id="screen-game" class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
                 <header class="flex justify-between border-b border-chlorine pb-2 font-mono text-lg">
                     <div class="flex gap-6">
-                        <span>PARANOIA: <span id="paranoia-level" class="text-chlorine-light font-bold">0%</span></span>
-                        <span>ENERGÍA: <span id="scan-energy" class="text-cyan-400 text-glow">⚡⚡</span></span>
+                        <span title="Nivel de Paranoia"><i class="fa-solid fa-brain text-chlorine"></i> <span id="paranoia-level" class="text-chlorine-light font-bold">0%</span></span>
+                        <span title="Energía de Escaneo"><i class="fa-solid fa-bolt text-cyan-400"></i> <span id="scan-energy" class="text-cyan-400 text-glow">⚡⚡</span></span>
                     </div>
                     <div class="flex gap-6">
-                        <span>CICLO: <span id="cycle-count">1</span></span>
-                        <span>HORA: <span id="time-display">08:00</span></span>
-                        <button id="btn-pause" class="horror-btn p-2 text-sm" title="Pausa">
-                            <i class="fa-solid fa-pause"></i> PAUSA
+                        <span title="Ciclo Actual"><i class="fa-solid fa-rotate text-chlorine"></i> <span id="cycle-count">1</span></span>
+                        <span title="Hora del Turno"><i class="fa-solid fa-clock text-chlorine"></i> <span id="time-display">08:00</span></span>
+                        <button id="btn-pause" class="horror-btn px-2 py-1 text-xs" title="Pausa">
+                            <i class="fa-solid fa-pause"></i>
                         </button>
                     </div>
                 </header>
@@ -106,6 +106,15 @@
                     
                     <div id="npc-display" class="flex justify-center items-center relative transition-all duration-150 z-10">
                         <!-- JS renders visuals here -->
+                    </div>
+                    <!-- Overlay para test de pupilas -->
+                    <div id="pupil-overlay" class="absolute inset-0 z-30 pointer-events-none hidden items-center justify-center bg-black/40">
+                        <div class="pupil-eye-container relative scale-0 transition-transform duration-500">
+                             <div class="giant-eye border-4 border-white/20 rounded-full w-48 h-48 flex items-center justify-center overflow-hidden bg-black shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+                                 <div id="giant-pupil" class="w-24 h-24 bg-white rounded-full transition-all duration-700 shadow-[0_0_15px_rgba(255,255,255,0.8)]"></div>
+                             </div>
+                             <div class="absolute inset-0 border-2 border-chlorine/30 rounded-full animate-ping"></div>
+                        </div>
                     </div>
                     <div id="inspection-feedback" class="mt-4 font-bold text-shadow h-5 hidden z-20"></div>
                 </main>

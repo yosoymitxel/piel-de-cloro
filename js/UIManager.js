@@ -996,8 +996,63 @@ export class UIManager {
         }
 
         bar.empty();
-        const fill = $('<div>', { css: { width: `${power}%`, height: '100%', background: color, boxShadow: `0 0 10px ${color}` } });
-        bar.css({ background: '#111', border: '1px solid #555', position: 'relative' }).append(fill);
+        bar.css({ 
+            background: '#050505', 
+            border: '1px solid #333', 
+            position: 'relative', 
+            display: 'flex', 
+            gap: '2px', 
+            padding: '2px',
+            overflow: 'hidden'
+        });
+
+        const totalBlocks = 20;
+        const activeBlocks = Math.ceil((power / 100) * totalBlocks);
+        
+        for (let i = 0; i < totalBlocks; i++) {
+            const isPowerOn = State.generator.isOn;
+            const opacity = i < activeBlocks ? 1 : 0.1;
+            const blockColor = isPowerOn ? color : '#333';
+            
+            // Añadir un pequeño retraso aleatorio para la animación de entrada
+            const delay = i * 30;
+            
+            const block = $('<div>', {
+                css: {
+                    flex: '1',
+                    height: '100%',
+                    background: blockColor,
+                    opacity: 0, // Inicia invisible para la animación
+                    boxShadow: i < activeBlocks && isPowerOn ? `0 0 8px ${color}` : 'none',
+                    transition: 'all 0.3s ease',
+                    transform: 'scaleY(0.5)'
+                }
+            });
+
+            bar.append(block);
+
+            // Animación de entrada
+            setTimeout(() => {
+                block.css({
+                    opacity: opacity,
+                    transform: 'scaleY(1)'
+                });
+
+                // Efecto de parpadeo aleatorio sutil si está encendido
+                if (isPowerOn && i < activeBlocks) {
+                    const flicker = () => {
+                        if (!State.generator.isOn) return;
+                        const rand = Math.random();
+                        if (rand > 0.98) {
+                            block.css('opacity', 0.5);
+                            setTimeout(() => block.css('opacity', 1), 50 + Math.random() * 100);
+                        }
+                        setTimeout(flicker, 1000 + Math.random() * 3000);
+                    };
+                    flicker();
+                }
+            }, delay);
+        }
         
         modeLabel.text(State.generator.isOn ? State.generator.mode.toUpperCase() : 'APAGADO');
         modeLabel.css('color', color);
@@ -1303,6 +1358,45 @@ export class UIManager {
         }
         setTimeout(() => overlay.remove(), 2200);
     }
+
+    animateToolPupils(type = 'normal') {
+        const overlay = $('#pupil-overlay');
+        const container = overlay.find('.pupil-eye-container');
+        const pupil = $('#giant-pupil');
+        
+        overlay.removeClass('hidden').addClass('flex');
+        
+        // Reset pupila
+        pupil.css({ width: '24px', height: '24px' });
+
+        // Animación de aparición
+        setTimeout(() => {
+            container.removeClass('scale-0').addClass('scale-100');
+            
+            // Reacción de la pupila
+            setTimeout(() => {
+                const size = type === 'dilated' ? '64px' : '24px';
+                pupil.css({ width: size, height: size });
+                
+                // Efecto de parpadeo/reacción
+                if (type === 'dilated') {
+                    pupil.addClass('animate-pulse');
+                    pupil.css('background', 'radial-gradient(circle, #fff 0%, #00ff00 100%)');
+                } else {
+                    pupil.css('background', '#fff');
+                }
+            }, 600);
+        }, 50);
+
+        // Desvanecimiento
+        setTimeout(() => {
+            container.removeClass('scale-100').addClass('scale-0');
+            setTimeout(() => {
+                overlay.removeClass('flex').addClass('hidden');
+                pupil.removeClass('animate-pulse').css('background', '#fff');
+            }, 500);
+        }, 2200);
+    }
     
     animateToolFlashlight(skinTexture, skinColor) {
         const container = this.elements.npcDisplay;
@@ -1368,23 +1462,6 @@ export class UIManager {
         };
         requestAnimationFrame(step);
         setTimeout(() => overlay.remove(), 2600);
-    }
-    
-    animateToolPupils(pupils) {
-        const avatar = this.elements.npcDisplay.find('.pixel-avatar');
-        const eyes = avatar.find('.avatar-eyes');
-        const origTransform = eyes.css('transform');
-        const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-        const baseScale = pupils === 'dilated' ? 1.08 : 1.0;
-        const step = (now) => {
-            const t = Math.min(1, (now - start) / 2200);
-            const wobble = Math.sin(now / 600) * 0.01;
-            const scale = baseScale + wobble;
-            eyes.css('transform', `scale(${scale}) translateX(${Math.sin(now / 900) * 1.2}px)`);
-            if (t < 1) requestAnimationFrame(step);
-            else eyes.css('transform', origTransform || 'none');
-        };
-        requestAnimationFrame(step);
     }
 }
 
