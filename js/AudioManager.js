@@ -9,7 +9,7 @@ export class AudioManager {
         this.unlocked = false;
         this.fadeTimers = {};
         this.logs = [];
-        this.enableConsole = true;
+        this.enableConsole = false; // Desactivado temporalmente
         this.desiredPlay = { ambient: false, lore: false, sfx: false };
         this.ctx = null;
         this.manifest = {};

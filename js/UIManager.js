@@ -250,10 +250,10 @@ export class UIManager {
                         if (npc.death && npc.death.revealed) {
                             if (npc.death.reason === 'purga') {
                                 statusText = npc.isInfected ? 'PURGADO — CLORO' : 'PURGADO — CIVIL';
-                                color = npc.isInfected ? "#2d5a27" : "#cccccc";
+                                color = npc.isInfected ? self.colors.chlorine : "#cccccc";
                             } else if (npc.death.reason === 'asesinado') {
                                 statusText = npc.isInfected ? 'ASESINADO — CLORO' : 'ASESINADO — CIVIL';
-                                color = npc.isInfected ? "#2d5a27" : "#cccccc";
+                                color = npc.isInfected ? self.colors.chlorine : "#cccccc";
                             }
                         }
                         self.elements.modalStatus.text(statusText).css('color', color);
@@ -782,29 +782,61 @@ export class UIManager {
     }
     
     renderGeneratorRoom() {
+        State.generatorCheckedThisTurn = true;
         const panel = this.elements.generatorPanel;
         const bar = this.elements.generatorPowerBar;
         const modeLabel = this.elements.generatorModeLabel;
         const power = Math.max(0, Math.min(100, State.generator.power));
-        const color = State.generator.isOn ? '#00FF00' : '#7a1a1a';
+        
+        // Colores centralizados
+        let color = State.generator.isOn ? State.colors.energy : State.colors.off;
+        if (State.generator.isOn && State.generator.mode === 'overload') {
+            color = State.colors.overload;
+        }
+
         bar.empty();
-        const fill = $('<div>', { css: { width: `${power}%`, height: '100%', background: color } });
+        const fill = $('<div>', { css: { width: `${power}%`, height: '100%', background: color, boxShadow: `0 0 10px ${color}` } });
         bar.css({ background: '#111', border: '1px solid #555', position: 'relative' }).append(fill);
+        
         modeLabel.text(State.generator.isOn ? State.generator.mode.toUpperCase() : 'APAGADO');
+        modeLabel.css('color', color);
+
         const toggleBtn = $('#btn-gen-toggle');
+        // Verificar si está bloqueado por sobrecarga
+        const isLocked = State.generator.blackoutUntil > Date.now();
+        if (isLocked) {
+            toggleBtn.prop('disabled', true).addClass('opacity-50 grayscale cursor-wait');
+            toggleBtn.html('<i class="fa-solid fa-plug-circle-exclamation"></i> BLOQUEADO');
+            // Auto-refrescar cuando se desbloquee
+            setTimeout(() => this.renderGeneratorRoom(), State.generator.blackoutUntil - Date.now() + 100);
+        } else {
+            toggleBtn.prop('disabled', false).removeClass('opacity-50 grayscale cursor-wait');
+            toggleBtn.html(State.generator.isOn ? '<i class="fa-solid fa-power-off"></i> APAGAR' : '<i class="fa-solid fa-bolt"></i> ENCENDER');
+        }
+
         const setToggleVisuals = () => {
             toggleBtn.toggleClass('horror-btn-primary', State.generator.isOn);
             toggleBtn.removeClass('btn-off btn-on');
             if (State.generator.isOn) {
                 toggleBtn.addClass('btn-on');
-                toggleBtn.find('i').css('color', '#00FF00');
+                toggleBtn.find('i').css('color', State.colors.safe);
                 toggleBtn.text('').append($('<i>', { class: 'fa-solid fa-power-off' })).append($('<span>', { text: ' ON', class: 'ml-2' }));
             } else {
                 toggleBtn.addClass('btn-off');
-                toggleBtn.find('i').css('color', '#ff2b2b');
+                toggleBtn.find('i').css('color', State.colors.off);
                 toggleBtn.text('').append($('<i>', { class: 'fa-solid fa-power-off' })).append($('<span>', { text: ' OFF', class: 'ml-2' }));
             }
         };
+
+        setToggleVisuals();
+        toggleBtn.off('click').on('click', () => {
+            State.generator.isOn = !State.generator.isOn;
+            if (!State.generator.isOn) State.generator.mode = 'normal';
+            if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            toggleBtn.addClass('animate__animated animate__pulse');
+            setTimeout(() => toggleBtn.removeClass('animate__animated animate__pulse'), 300);
+            this.renderGeneratorRoom();
+        });
         setToggleVisuals();
         toggleBtn.off('click').on('click', () => {
             State.generator.isOn = !State.generator.isOn;
@@ -893,7 +925,7 @@ export class UIManager {
         const purgedInfected = state.purgedNPCs.filter(n => n.isInfected).length;
         const purgedCivil = state.purgedNPCs.filter(n => !n.isInfected).length;
         const civilesMuertos = state.purgedNPCs.filter(n => n.death && n.death.reason === 'asesinado' && !n.isInfected).length;
-        const clorosFuera = state.ignoredNPCs.filter(n => n.isInfected).length;
+        const clorosFuera = state.ignoredNPCs.filter(n => n.infected).length;
         const showSensitive = !!(state.lastNight && state.lastNight.occurred);
 
         $('#stat-run-dialogues').text(state.dialoguesCount);
@@ -908,6 +940,43 @@ export class UIManager {
         $('#stat-run-last-night').text(showSensitive ? (state.lastNight.message || '—') : '—');
     }
 
+    updateToolButtons(npc) {
+        if (!npc) return;
+        const toolMap = {
+            'thermometer': 'temperature',
+            'flashlight': 'skinTexture',
+            'pupils': 'pupils',
+            'pulse': 'pulse'
+        };
+
+        Object.entries(toolMap).forEach(([toolId, statKey]) => {
+            const btn = $(`#btn-tool-${toolId}`);
+            if (npc.revealedStats.includes(statKey)) {
+                // Estado inhabilitado (UX mejorada)
+                btn.prop('disabled', true)
+                   .addClass('opacity-20 grayscale pointer-events-none')
+                   .css({
+                       'cursor': 'not-allowed',
+                       'filter': 'grayscale(100%) brightness(0.5)',
+                       'border-color': '#444'
+                   });
+                
+                // El dot de estado lo ponemos en un color neutro/apagado
+                btn.find('.tool-status-dot').css('background-color', '#333');
+            } else {
+                // Estado habilitado
+                btn.prop('disabled', false)
+                   .removeClass('opacity-20 grayscale pointer-events-none')
+                   .css({
+                       'cursor': 'pointer',
+                       'filter': 'none',
+                       'border-color': '' // Vuelve al color del CSS
+                   });
+                btn.find('.tool-status-dot').css('background-color', State.colors.safe);
+            }
+        });
+    }
+
     flashInfectionEffect(avatar) {
         this.infectionEffectActive = true;
         const head = avatar.find('.avatar-head');
@@ -915,7 +984,7 @@ export class UIManager {
         const origHeadColor = head.css('background-color');
         const origEyeColor = eyes.css('background-color');
         avatar.css({ filter: 'hue-rotate(90deg) contrast(130%)' });
-        head.css('background-color', '#2d5a27');
+        head.css('background-color', State.colors.chlorine);
         eyes.css('background-color', '#ff0000');
         if (this.audio) this.audio.playSFXByKey('morgue_reveal_infected', { volume: 0.5 });
         setTimeout(() => {
@@ -932,7 +1001,14 @@ export class UIManager {
         container.find('.tool-thermo').remove();
         const overlay = $('<div>', { class: 'tool-thermo', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
         const tube = $('<div>', { css: { width: '20px', height: '120px', background: '#0a0a0a', border: '1px solid #555', position: 'relative', boxShadow: 'inset 0 0 8px #000' } });
-        const fill = $('<div>', { css: { position: 'absolute', bottom: '0px', left: 0, width: '100%', height: '0%', background: value < 35 ? '#00FF00' : '#a83232' } });
+        const isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
+        
+        // Colores dinámicos basados en infección (cloro)
+        const fillColor = value < 35 
+            ? (isInfected ? State.colors.chlorineSutil : State.colors.safe) 
+            : (isInfected ? State.colors.chlorineLight : '#a83232');
+            
+        const fill = $('<div>', { css: { position: 'absolute', bottom: '0px', left: 0, width: '100%', height: '0%', background: fillColor, filter: isInfected ? `drop-shadow(0 0 4px ${State.colors.chlorineSutil})` : 'none' } });
         const ticks = $('<div>', { css: { position: 'absolute', inset: 0 } });
         for (let i = 0; i <= 6; i++) {
             ticks.append($('<div>', { css: { position: 'absolute', left: '20px', bottom: `${i*20}px`, width: '10px', height: '1px', background: '#444' } }));
@@ -949,6 +1025,26 @@ export class UIManager {
             if (t < 1) requestAnimationFrame(step);
         };
         requestAnimationFrame(step);
+        if (isInfected) {
+            const bubbleLayer = $('<div>', { css: { position: 'absolute', inset: 0, overflow: 'hidden' } });
+            overlay.append(bubbleLayer);
+            const bubbles = [];
+            for (let i = 0; i < 6; i++) {
+                const b = $('<div>', { css: { position: 'absolute', bottom: '0', left: `${2 + Math.random()*14}px`, width: '3px', height: '3px', background: '#2d5a27', borderRadius: '50%', opacity: 0.0 } });
+                bubbles.push(b);
+                bubbleLayer.append(b);
+            }
+            const bStart = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+            const bStep = (now) => {
+                const elapsed = now - bStart;
+                bubbles.forEach((b, idx) => {
+                    const y = (elapsed/12 + idx*20) % 120;
+                    b.css({ bottom: `${y}px`, opacity: y > 20 ? 0.25 : 0.0 });
+                });
+                if (elapsed < 2000) requestAnimationFrame(bStep);
+            };
+            requestAnimationFrame(bStep);
+        }
         setTimeout(() => overlay.remove(), 2200);
     }
     
@@ -981,21 +1077,32 @@ export class UIManager {
         container.find('.tool-pulse').remove();
         const overlay = $('<div>', { class: 'tool-pulse', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
         const svg = $(document.createElementNS('http://www.w3.org/2000/svg', 'svg')).attr({ width: 220, height: 40 });
-        const path = $(document.createElementNS('http://www.w3.org/2000/svg', 'path')).attr({ d: 'M0 20 L20 20 L25 10 L30 30 L35 20 L220 20', stroke: '#00FF00', 'stroke-width': 2, fill: 'none' });
-        path.css({ filter: 'drop-shadow(0 0 4px #00FF00)' });
+        const isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
+        
+        // Color de pulso: verde sutil si es cloro
+        const strokeColor = isInfected ? State.colors.chlorineSutil : State.colors.safe;
+        
+        const path = $(document.createElementNS('http://www.w3.org/2000/svg', 'path')).attr({ d: 'M0 20 L20 20 L25 10 L30 30 L35 20 L220 20', stroke: strokeColor, 'stroke-width': 2, fill: 'none' });
+        path.css({ filter: `drop-shadow(0 0 4px ${strokeColor})`, transform: isInfected ? 'scaleY(1.08)' : 'none', transformOrigin: 'center' });
         svg.append(path);
+        if (isInfected) {
+            const pathGhost = $(document.createElementNS('http://www.w3.org/2000/svg', 'path')).attr({ d: 'M0 20 L20 20 L25 11 L30 29 L35 20 L220 20', stroke: '#79ff79', 'stroke-width': 1, fill: 'none', opacity: 0.3 });
+            svg.append(pathGhost);
+        }
         const dash = 260;
         path.attr({ 'stroke-dasharray': dash, 'stroke-dashoffset': dash });
         overlay.append(svg);
         container.append(overlay);
         const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-        const intervalMs = Math.max(280, Math.min(900, Math.round(60000 / Math.max(40, Math.min(160, bpm))))); 
+        const baseInterval = Math.max(280, Math.min(900, Math.round(60000 / Math.max(40, Math.min(160, bpm))))); 
         let lastBeat = start;
         const step = (now) => {
             const elapsedSinceBeat = now - lastBeat;
             const t = Math.min(1, (now - start) / 2400);
             const offset = dash * (1 - t);
             path.attr({ 'stroke-dashoffset': offset });
+            const variance = isInfected ? (Math.random() * 120 - 60) : 0;
+            const intervalMs = Math.max(240, baseInterval + variance);
             if (elapsedSinceBeat >= intervalMs) {
                 svg.css('opacity', 0.9);
                 setTimeout(() => svg.css('opacity', 1), 120);

@@ -23,7 +23,21 @@ export const State = {
         // Jugador infectado
         playerInfectedProbability: 0.15,
         // Noche sin infectados: prob de muerte del guardia
-        noInfectedGuardDeathChance: 0.05
+        noInfectedGuardDeathChance: 0.05,
+        // Generador
+        generator: {
+            consumption: {
+                save: 2,
+                normal: 5,
+                overload: 15
+            },
+            failureChance: {
+                save: 0.01,
+                normal: 0.05,
+                overload: 0.35 // 35% de fallo por turno en overclock
+            },
+            breakdownChance: 0.1 // Probabilidad de avería total si falla en overload
+        }
     },
     admittedNPCs: [],
     purgedNPCs: [], // Shelter purges
@@ -35,6 +49,21 @@ export const State = {
     infectedSeenCount: 0,
     interludesShown: 0,
     dayAfter: { testsAvailable: 5 },
+    
+    // Colores centralizados
+    colors: {
+        chlorine: '#2d5a27',
+        chlorineLight: '#a8d5a2',
+        chlorineSutil: '#3d7a36',
+        alert: '#ff3333',
+        safe: '#00FF00',
+        warning: '#ffcc66',
+        energy: '#00FF00',
+        energyLow: '#7a1a1a',
+        overload: '#ffaa00',
+        off: '#ff2b2b'
+    },
+
     // Seguridad por run
     securityItems: [],
     nextIntrusionAt: null,
@@ -44,6 +73,7 @@ export const State = {
     isNight: false,
     dayClosed: false,
     dayEnded: false,
+    generatorCheckedThisTurn: false, // Nuevo: obligar a revisar el generador
     lastNight: {
         occurred: false,
         victims: 0,
@@ -69,6 +99,7 @@ export const State = {
         this.isNight = false;
         this.dayClosed = false;
         this.dayEnded = false;
+        this.generatorCheckedThisTurn = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
         this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0 };

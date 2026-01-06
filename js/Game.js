@@ -8,6 +8,7 @@ class Game {
         this.audio = new AudioManager();
         this.ui = new UIManager(this.audio);
         this.stats = new StatsManager();
+        this.isAnimating = false; // Bloquear acciones durante animaciones
         this.bindEvents();
         this.audio.loadManifest('assets/audio/audio_manifest.json');
         this.initStats();
@@ -71,6 +72,19 @@ class Game {
             $('body').removeClass('paused');
             $('#screen-game').removeClass('is-paused');
         });
+
+        $('#btn-pause-restart-day').on('click', () => {
+            if (confirm('¿Reiniciar el día actual? Perderás el progreso de hoy.')) {
+                this.restartDay();
+            }
+        });
+
+        $('#btn-pause-restart-game').on('click', () => {
+            if (confirm('¿Nueva partida? Perderás TODO el progreso.')) {
+                this.restartGame();
+            }
+        });
+
         $('#toggle-mute-music').on('change', (e) => {
             const checked = $(e.target).is(':checked');
             if (checked) {
@@ -140,7 +154,44 @@ class Game {
         });
     }
 
+    restartDay() {
+        // Limpiar estado del día actual
+        State.dayTime = 1;
+        State.admittedNPCs = [];
+        State.purgedNPCs = [];
+        State.ignoredNPCs = [];
+        State.dayClosed = false;
+        State.dayEnded = false;
+        State.generatorCheckedThisTurn = false;
+        State.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0 };
+        
+        // Quitar pausa
+        State.paused = false;
+        $('body').removeClass('paused');
+        $('#screen-game').removeClass('is-paused');
+        $('#modal-pause').addClass('hidden').removeClass('flex');
+        
+        // Regenerar y reiniciar
+        this.generateInitialEntrants();
+        this.nextTurn();
+        this.ui.showScreen('game');
+        this.ui.updateRunStats(State);
+        this.ui.showFeedback("DÍA REINICIADO", "yellow");
+    }
+
+    restartGame() {
+        State.paused = false;
+        $('body').removeClass('paused');
+        $('#screen-game').removeClass('is-paused');
+        $('#modal-pause').addClass('hidden').removeClass('flex');
+        
+        this.startGame();
+    }
+
     nextTurn() {
+        // Actualizar estado del generador al pasar de turno
+        this.updateGenerator();
+
         // Check Day/Night Cycle
         if (State.isDayOver()) {
             this.ui.showPreCloseFlow((action) => {
@@ -156,8 +207,11 @@ class Game {
         }
 
         State.currentNPC = new NPC();
+        State.generatorCheckedThisTurn = false; // Resetear para cada nuevo NPC
         this.ui.hideFeedback();
         this.ui.renderNPC(State.currentNPC);
+        this.ui.updateToolButtons(State.currentNPC);
+        
         if (State.currentNPC.isInfected) {
             State.infectedSeenCount++;
         }
@@ -176,21 +230,38 @@ class Game {
     }
 
     inspect(tool) {
+        if (this.isAnimating) return; // Evitar superposición
         const npc = State.currentNPC;
         
+        // Verificar si el test ya se hizo para este NPC
+        const toolMap = {
+            'thermometer': 'temperature',
+            'flashlight': 'skinTexture',
+            'pupils': 'pupils',
+            'pulse': 'pulse'
+        };
+        const statKey = toolMap[tool];
+        if (npc.revealedStats.includes(statKey)) {
+            this.ui.showFeedback("TEST YA REALIZADO", "yellow");
+            return;
+        }
+
         // Limit checks
         if (npc.scanCount >= npc.maxScans) {
             this.ui.showFeedback("MÁXIMO DE ESCANEOS ALCANZADO", "red");
             return;
         }
 
+        this.isAnimating = true;
         State.verificationsCount++;
         npc.scanCount++;
         let result = "";
         let color = "yellow";
+        let animDuration = 1000;
 
         switch(tool) {
             case 'thermometer':
+                animDuration = 2200;
                 result = `TEMP: ${npc.attributes.temperature}°C`;
                 if (npc.attributes.temperature < 35) color = '#aaffaa';
                 if (!npc.revealedStats.includes('temperature')) npc.revealedStats.push('temperature');
@@ -199,16 +270,15 @@ class Game {
                 this.audio.playSFXByKey('tool_thermometer_beep', { volume: 0.6 });
                 break;
             case 'flashlight':
+                animDuration = 900;
                 result = `DERMIS: ${this.ui.translateValue('skinTexture', npc.attributes.skinTexture)}`;
-                if (npc.attributes.skinTexture === 'dry') {
-                    // Visual feedback now handled by avatar (maybe glitch or tint if I add it to avatar logic later)
-                }
                 if (!npc.revealedStats.includes('skinTexture')) npc.revealedStats.push('skinTexture');
                 this.ui.applyVHS(0.7, 900);
                 this.ui.animateToolFlashlight(npc.attributes.skinTexture, npc.visualFeatures.skinColor);
                 this.audio.playSFXByKey('tool_uv_toggle', { volume: 0.6 });
                 break;
             case 'pupils':
+                animDuration = 2200;
                 result = `PUPILAS: ${this.ui.translateValue('pupils', npc.attributes.pupils)}`;
                 if (!npc.revealedStats.includes('pupils')) npc.revealedStats.push('pupils');
                 this.ui.applyVHS(0.6, 800);
@@ -216,6 +286,7 @@ class Game {
                 this.audio.playSFXByKey('tool_pupils_lens', { volume: 0.6 });
                 break;
             case 'pulse':
+                animDuration = 2600;
                 result = `BPM: ${npc.attributes.pulse}`;
                 if (!npc.revealedStats.includes('pulse')) npc.revealedStats.push('pulse');
                 this.ui.applyVHS(0.5, 800);
@@ -223,6 +294,13 @@ class Game {
                 this.audio.playSFXByKey('tool_pulse_beep', { volume: 0.6 });
                 break;
         }
+
+        // Bloquear el botón específico
+        this.ui.updateToolButtons(npc);
+
+        setTimeout(() => {
+            this.isAnimating = false;
+        }, animDuration);
 
         // Feedback textual ocultado para que la evidencia no sea explícita en pantalla
         this.updateHUD(); // To update energy
@@ -299,6 +377,58 @@ class Game {
     openGenerator() {
         this.ui.renderGeneratorRoom();
         this.ui.showScreen('generator');
+    }
+
+    updateGenerator() {
+        if (!State.generator.isOn) {
+            // Si está apagado, quizás recupera un poco de energía muy lentamente
+            State.generator.power = Math.min(100, State.generator.power + 2);
+            return;
+        }
+
+        const config = State.config.generator;
+        const mode = State.generator.mode;
+        
+        // 1. Consumir energía
+        const consumption = config.consumption[mode] || 5;
+        State.generator.power = Math.max(0, State.generator.power - consumption);
+
+        // 2. Calcular probabilidad de fallo
+        let failChance = config.failureChance[mode] || 0.05;
+        
+        // Si la energía es baja, el fallo es más probable
+        if (State.generator.power < 20) failChance += 0.2;
+        if (State.generator.power <= 0) failChance = 1.0;
+
+        if (Math.random() < failChance) {
+            this.triggerGeneratorFailure();
+        }
+    }
+
+    triggerGeneratorFailure() {
+        State.generator.isOn = false;
+        
+        // Feedback inmediato
+        this.audio.playSFXByKey('glitch_low', { volume: 0.8 });
+        this.ui.applyVHS(1.0, 1000); // Glitch fuerte
+        
+        let msg = "¡FALLO DEL GENERADOR! SISTEMAS EN RESERVA.";
+        let color = "red";
+
+        if (State.generator.mode === 'overload') {
+            msg = "¡COLAPSO POR SOBRECARGA! EL GENERADOR SE HA BLOQUEADO.";
+            // En overload, el apagón dura más o es más crítico
+            State.generator.blackoutUntil = Date.now() + 5000; 
+        } else if (State.generator.power <= 0) {
+            msg = "GENERADOR AGOTADO. RECARGA NECESARIA.";
+        }
+
+        this.ui.showFeedback(msg, color);
+        
+        // Si el jugador está en la pantalla del generador, refrescarla
+        if ($('#screen-generator').is(':visible')) {
+            this.ui.renderGeneratorRoom();
+        }
     }
 
     calculatePurgeConsequences(npc) {

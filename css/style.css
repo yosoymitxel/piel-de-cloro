@@ -229,9 +229,54 @@ h1, h2, h3 {
     border-left-color: var(--color-chlorine-light);
 }
 
+/* Estilos para el Menú de Pausa Renovado */
+#modal-pause .horror-panel {
+    border-color: var(--color-chlorine);
+    box-shadow: 0 0 30px rgba(45, 90, 39, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8);
+    background: linear-gradient(135deg, #050505 0%, #0a140a 100%);
+}
+
+.scanline-overlay {
+    background: linear-gradient(
+        to bottom,
+        transparent 50%,
+        rgba(0, 255, 0, 0.02) 50%
+    );
+    background-size: 100% 4px;
+    z-index: 1;
+}
+
+#modal-pause .horror-btn {
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+#modal-pause .horror-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px currentColor;
+}
+
+#btn-pause-restart-day:hover {
+    color: #ffcc66;
+    border-color: #ffcc66;
+}
+
+#btn-pause-restart-game:hover {
+    color: #ff3333;
+    border-color: #ff3333;
+}
+
+/* Transición suave para el desenfoque */
+#modal-pause.flex {
+    backdrop-filter: blur(8px);
+    transition: backdrop-filter 0.5s ease;
+}
+
 /* Pause visual state */
 body.paused .game-container {
-    filter: grayscale(60%) brightness(0.8);
+    filter: grayscale(0.5) brightness(0.4);
+    /* Ya no bloqueamos pointer-events aquí porque el modal está fuera y captura los clics */
 }
 #screen-game.is-paused {
     pointer-events: none;
@@ -662,25 +707,44 @@ input[type=number].horror-input {
     #nav-morgue-stats span { font-size: 0.55rem; }
 }
 
+/* Distintivo para 'Puesto' (centro del juego) */
+#nav-guard {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 3px solid #00ff00 !important;
+    color: #8cff8c !important;
+}
+
+#nav-guard:hover {
+    background: rgba(45, 90, 39, 0.15);
+    border-left-color: #2d5a27;
+    transform: translateX(4px);
+}
+
+#nav-guard.active {
+    background: linear-gradient(90deg, rgba(22, 59, 28, 0.8) 0%, rgba(13, 27, 14, 0.4) 100%) !important;
+    border-left: 4px solid #00ff00 !important;
+    color: #8cff8c !important;
+    box-shadow: inset 4px 0 15px rgba(0, 255, 0, 0.1);
+}
+
+#nav-guard i {
+    transition: transform 0.3s ease;
+}
+
+#nav-guard:hover i {
+    transform: scale(1.2) rotate(5deg);
+    color: #00ff00;
+}
+
+#nav-guard.active i {
+    color: #00ff00;
+    filter: drop-shadow(0 0 5px rgba(0, 255, 0, 0.5));
+}
 /* Responsive grids */
 @media (max-width: 640px) {
 
 
-/* Distintivo para 'Puesto' (centro del juego) */
-#sidebar-left #nav-guard.active {
-    background: #163b1c !important;
-    border-color: #2d5a27 !important;
-    color: #d6ffd6 !important;
-}
-#sidebar-left #nav-guard {
-    opacity: 0.8;
-}
-#sidebar-left #nav-guard.active {
-    box-shadow: 0 0 14px rgba(0,255,0,0.2), inset 0 0 8px rgba(45,90,39,0.3);
-}
-#sidebar-left #nav-guard i {
-    color: #8cff8c;
-}
     #shelter-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
     #morgue-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
     #dayafter-list { grid-template-columns: repeat(1, minmax(220px, 1fr)); }
