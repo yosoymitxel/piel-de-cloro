@@ -10,7 +10,8 @@ export class UIManager {
             night: $('#screen-night'),
             lore: $('#screen-lore'),
             room: $('#screen-room'),
-            generator: $('#screen-generator')
+            generator: $('#screen-generator'),
+            finalStats: $('#screen-final-stats')
         };
         
         this.elements = {
@@ -54,6 +55,12 @@ export class UIManager {
             msgContent: $('#modal-message-content'),
             msgBtn: $('#btn-message-ok'),
 
+            // Confirm Modal
+            confirmModal: $('#modal-confirm'),
+            confirmContent: $('#modal-confirm-content'),
+            confirmYes: $('#btn-confirm-yes'),
+            confirmCancel: $('#btn-confirm-cancel'),
+
             // Tools
             tools: [
                 $('#tool-thermo'),
@@ -65,6 +72,7 @@ export class UIManager {
         this.infectionEffectActive = false;
         this.typingTimer = null;
         this.audio = audio;
+        console.log("DEBUG: UIManager instance created. renderFinalStats exists:", typeof this.renderFinalStats === 'function');
         this.timings = {
             vhsDuration: 1000,
             loreFadeOut: 500,
@@ -77,20 +85,20 @@ export class UIManager {
             lore: {
                 showLore(type, onClose) {
                     const title = $('#lore-screen-title');
-                    const content = $('#lore-screen-content');
-                    const panel = $('#screen-lore .lore-panel');
-                    let t = '';
-                    let c = '';
-                    title.removeClass('text-alert glitch-effect');
-                    panel.removeClass('animate__shakeX lore-danger lore-calm');
-                    if (type === 'initial') {
-                        t = 'Protocolo del Refugio';
-                        c = `
-                <p>Los piel de cloro son portadores. La piel se reseca, los ojos se dilatan y el pulso baja.</p>
-                <p>Herramientas: usa TERMÓMETRO, LINTERNA UV, PULSO y PUPILAS para revelar señales.</p>
-                <p>Decisiones: admitir aumenta riesgo; purgar reduce amenaza pero sube la paranoia si era civil.</p>
-                <p>Al caer la noche, si hay cloro dentro, alguien muere. Si no, descansas o afrontas un riesgo leve.</p>
-            `;
+                                const content = $('#lore-screen-content');
+                                const panel = $('#screen-lore .lore-panel');
+                                let t = '';
+                                let c = '';
+                                title.removeClass('text-alert glitch-effect');
+                                panel.removeClass('animate__shakeX lore-danger lore-calm');
+                                if (type === 'initial') {
+                                    t = 'Protocolo del Refugio';
+                                    c = `
+                            <p>Los piel de cloro son portadores. La piel se reseca, los ojos se dilatan y el pulso baja.</p>
+                            <p>Herramientas: usa TERMÓMETRO, LINTERNA UV, PULSO y PUPILAS para revelar señales.</p>
+                            <p>Decisiones: admitir aumenta riesgo; purgar reduce amenaza pero sube la paranoia si era civil.</p>
+                            <p>Al caer la noche, si hay cloro dentro, alguien muere. Si no, descansas o afrontas un riesgo leve.</p>
+                        `;
                         if (self.audio) self.audio.playLoreByKey('lore_intro_track', { loop: false, volume: 0.22, crossfade: 600 });
                     } else if (type === 'intermediate') {
                         const variants = [
@@ -360,6 +368,45 @@ export class UIManager {
                 }
             }
         };
+    }
+
+    renderFinalStats(state) {
+        console.log("DEBUG: renderFinalStats called with state:", state);
+        const totalProcesados = state.admittedNPCs.length + state.ignoredNPCs.length + state.purgedNPCs.length + state.departedNPCs.length;
+        const admitted = state.admittedNPCs.length;
+        const purged = state.purgedNPCs.length;
+        const infectedDetected = state.infectedSeenCount;
+        
+        const leaked = state.admittedNPCs.filter(n => n.isInfected).length + 
+                    state.departedNPCs.filter(n => n.isInfected).length;
+        
+        const deaths = state.purgedNPCs.filter(n => !n.isInfected).length;
+
+        $('#final-stat-total').text(totalProcesados);
+        $('#final-stat-admitted').text(admitted);
+        $('#final-stat-purged').text(purged);
+        $('#final-stat-infected').text(infectedDetected);
+        $('#final-stat-leaked').text(leaked);
+        $('#final-stat-deaths').text(deaths);
+
+        const notes = $('#final-stat-notes');
+        notes.empty();
+        const addNote = (txt) => notes.append(`<p>> ${txt}</p>`);
+        
+        if (leaked > 0) addNote(`ALERTA: Se han detectado ${leaked} brechas biológicas en el perímetro.`);
+        else addNote("PROTOCOLO DE CONTENCIÓN: ÉXITO TOTAL. No hay rastros de infección.");
+        
+        if (deaths > 0) addNote(`Bajas civiles confirmadas: ${deaths}. Daños colaterales dentro de los márgenes.`);
+        if (state.paranoia > 80) addNote("ADVERTENCIA: Niveles de estrés post-traumático críticos en el operador.");
+        
+        const outcome = $('#final-stat-outcome');
+        if (leaked > 2 || state.playerInfected) {
+            outcome.text("FALLIDO").addClass('text-alert').removeClass('text-chlorine');
+        } else {
+            outcome.text("COMPLETADO").addClass('text-chlorine').removeClass('text-alert');
+        }
+
+        this.showScreen('finalStats');
     }
 
     showScreen(screenName) {
@@ -837,15 +884,6 @@ export class UIManager {
             setTimeout(() => toggleBtn.removeClass('animate__animated animate__pulse'), 300);
             this.renderGeneratorRoom();
         });
-        setToggleVisuals();
-        toggleBtn.off('click').on('click', () => {
-            State.generator.isOn = !State.generator.isOn;
-            if (!State.generator.isOn) State.generator.mode = 'normal';
-            if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
-            toggleBtn.addClass('animate__animated animate__pulse');
-            setTimeout(() => toggleBtn.removeClass('animate__animated animate__pulse'), 300);
-            this.renderGeneratorRoom();
-        });
         $('#btn-gen-save').off('click').on('click', () => {
             State.generator.mode = 'save';
             if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
@@ -895,6 +933,30 @@ export class UIManager {
             modal.addClass('hidden').removeClass('flex');
             if (this.audio) this.audio.playSFXByKey('ui_modal_close', { volume: 0.5 });
             if (onClose) onClose();
+        });
+    }
+
+    showConfirm(text, onYes, onCancel) {
+        const modal = this.elements.confirmModal;
+        const content = this.elements.confirmContent;
+        const yesBtn = this.elements.confirmYes;
+        const cancelBtn = this.elements.confirmCancel;
+
+        modal.removeClass('hidden').addClass('flex');
+        content.text(text);
+        
+        if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
+
+        yesBtn.off('click').on('click', () => {
+            modal.addClass('hidden').removeClass('flex');
+            if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.6 });
+            if (onYes) onYes();
+        });
+
+        cancelBtn.off('click').on('click', () => {
+            modal.addClass('hidden').removeClass('flex');
+            if (this.audio) this.audio.playSFXByKey('ui_modal_close', { volume: 0.5 });
+            if (onCancel) onCancel();
         });
     }
     

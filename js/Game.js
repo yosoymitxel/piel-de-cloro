@@ -74,15 +74,21 @@ class Game {
         });
 
         $('#btn-pause-restart-day').on('click', () => {
-            if (confirm('¿Reiniciar el día actual? Perderás el progreso de hoy.')) {
+            this.ui.showConfirm('¿REINICIAR EL DÍA ACTUAL? SE PERDERÁ TODO EL PROGRESO DE HOY.', () => {
                 this.restartDay();
-            }
+            });
         });
 
         $('#btn-pause-restart-game').on('click', () => {
-            if (confirm('¿Nueva partida? Perderás TODO el progreso.')) {
+            this.ui.showConfirm('¿INICIAR NUEVA PARTIDA? SE PERDERÁ TODO EL PROGRESO ACTUAL.', () => {
                 this.restartGame();
-            }
+            });
+        });
+
+        // Final stats navigation
+        $('#btn-final-to-start').on('click', () => {
+            State.reset();
+            this.ui.showScreen('start');
         });
 
         $('#toggle-mute-music').on('change', (e) => {
@@ -451,6 +457,24 @@ class Game {
         this.ui.showScreen('night');
     }
 
+    endGame() {
+        console.log("DEBUG: Game.endGame called. this.ui is:", this.ui);
+        console.log("DEBUG: this.ui.renderFinalStats type:", typeof this.ui.renderFinalStats);
+        this.audio.stopAmbient({ fadeOut: 1000 });
+        if (typeof this.ui.renderFinalStats === 'function') {
+            this.ui.renderFinalStats(State);
+        } else {
+            console.error("CRITICAL: this.ui.renderFinalStats is NOT a function! Current keys on this.ui:", Object.keys(this.ui));
+            // Intentar encontrarlo en el prototipo si no está en la instancia
+            const proto = Object.getPrototypeOf(this.ui);
+            console.log("DEBUG: Keys on this.ui prototype:", Object.keys(proto));
+            if (typeof proto.renderFinalStats === 'function') {
+                console.log("DEBUG: Found renderFinalStats on prototype, calling it...");
+                proto.renderFinalStats.call(this.ui, State);
+            }
+        }
+    }
+
     sleep() {
         const admitted = State.admittedNPCs;
         const count = admitted.length;
@@ -464,7 +488,7 @@ class Game {
                 State.lastNight.message = "Dormiste sin compañía. El refugio no te protegió.";
                 State.lastNight.victims = 1;
                 this.audio.playSFXByKey('sleep_begin', { volume: 0.5 });
-                this.ui.showLore('night_player_death', () => window.location.reload());
+                this.ui.showLore('night_player_death', () => this.endGame());
                 return;
             } else {
                 State.lastNight.message = "Te mantuviste en vela. Nadie llegó.";
@@ -500,7 +524,7 @@ class Game {
                 State.lastNight.victims = 1;
                 this.audio.playSFXByKey('lore_night_player_death', { volume: 0.5 });
                 this.ui.showLore('night_player_death', () => {
-                    window.location.reload();
+                    this.endGame();
                 });
             }
             return;
@@ -511,7 +535,7 @@ class Game {
             State.lastNight.message = "Aunque no había cloro dentro, algo te encontró en la oscuridad.";
             State.lastNight.victims = 1;
             this.ui.showLore('night_player_death', () => {
-                window.location.reload();
+                this.endGame();
             });
             return;
         }
@@ -543,7 +567,7 @@ class Game {
         if (count === 0) {
             if (Math.random() < 0.92) {
                 this.audio.playSFXByKey('escape_attempt', { volume: 0.6 });
-                this.ui.showLore('final_death_alone', () => window.location.reload());
+                this.ui.showLore('final_death_alone', () => this.endGame());
                 return;
             }
         }
@@ -552,33 +576,33 @@ class Game {
         const chance = Math.min(0.10, State.paranoia / 100);
         if (Math.random() < chance) {
             this.audio.playSFXByKey('escape_attempt', { volume: 0.6 });
-            this.ui.showLore('final_death_paranoia', () => window.location.reload());
+            this.ui.showLore('final_death_paranoia', () => this.endGame());
             return;
         }
 
         // Jugador infectado: final personalizado
         if (State.playerInfected) {
             this.audio.playSFXByKey('escape_attempt', { volume: 0.6 });
-            this.ui.showLore('final_player_infected_escape', () => window.location.reload());
+            this.ui.showLore('final_player_infected_escape', () => this.endGame());
             return;
         }
 
         // Finales adicionales
         if (count <= 1) {
-            this.ui.showLore('final_death_alone', () => window.location.reload());
+            this.ui.showLore('final_death_alone', () => this.endGame());
             return;
         }
         if (allInfected) {
-            this.ui.showLore('final_death_all_infected', () => window.location.reload());
+            this.ui.showLore('final_death_all_infected', () => this.endGame());
             return;
         }
 
         // Finales originales
         this.ui.showLore('pre_final', () => {
             if (infectedCount === 0) {
-                this.ui.showLore('final_clean', () => window.location.reload());
+                this.ui.showLore('final_clean', () => this.endGame());
             } else {
-                this.ui.showLore('final_corrupted', () => window.location.reload());
+                this.ui.showLore('final_corrupted', () => this.endGame());
             }
         });
     }

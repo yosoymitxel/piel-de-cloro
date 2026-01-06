@@ -245,6 +245,51 @@
                 </div>
             </section>
 
+            <!-- SCREEN: FINAL STATS -->
+            <section id="screen-final-stats" class="h-full flex flex-col p-8 gap-6 animate__animated animate__fadeIn hidden bg-black/90">
+                <div class="text-center space-y-2">
+                    <h2 class="text-4xl font-bold text-chlorine tracking-tighter glitch-effect" data-text="INFORME DE MISIÓN">INFORME DE MISIÓN</h2>
+                    <p class="text-xs font-mono opacity-50">REGISTRO FINAL DE OPERACIONES - SECTOR RUTA-01</p>
+                </div>
+
+                <div class="flex-grow grid grid-cols-2 gap-6 items-center">
+                    <div class="space-y-4 font-mono">
+                        <div class="p-4 bg-chlorine/10 border border-chlorine-dim">
+                            <h3 class="text-chlorine-light border-b border-chlorine-dim mb-2 text-sm">RESUMEN DE POBLACIÓN</h3>
+                            <div class="space-y-1 text-sm">
+                                <div class="flex justify-between"><span>Sujetos procesados:</span> <span id="final-stat-total" class="text-white">0</span></div>
+                                <div class="flex justify-between"><span>Admitidos:</span> <span id="final-stat-admitted" class="text-white">0</span></div>
+                                <div class="flex justify-between"><span>Purgados:</span> <span id="final-stat-purged" class="text-white">0</span></div>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-alert/10 border border-alert/30">
+                            <h3 class="text-alert border-b border-alert/30 mb-2 text-sm">SEGURIDAD BIOLÓGICA</h3>
+                            <div class="space-y-1 text-sm">
+                                <div class="flex justify-between"><span>Infectados detectados:</span> <span id="final-stat-infected" class="text-white">0</span></div>
+                                <div class="flex justify-between"><span>Infectados filtrados:</span> <span id="final-stat-leaked" class="text-white">0</span></div>
+                                <div class="flex justify-between"><span>Civiles caídos:</span> <span id="final-stat-deaths" class="text-white">0</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-4 h-full">
+                        <div class="flex-grow p-4 bg-black/40 border border-chlorine-dim overflow-y-auto custom-scrollbar">
+                            <h3 class="text-xs font-mono opacity-50 mb-2">NOTAS DEL ARCHIVO</h3>
+                            <div id="final-stat-notes" class="text-[10px] font-mono space-y-2 text-gray-400 italic">
+                                <!-- Notas dinámicas -->
+                            </div>
+                        </div>
+                        <div class="p-4 bg-black border border-chlorine flex flex-col gap-2">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-mono">ESTADO FINAL:</span>
+                                <span id="final-stat-outcome" class="font-bold text-chlorine tracking-widest uppercase">COMPLETADO</span>
+                            </div>
+                            <button id="btn-final-to-start" class="horror-btn horror-btn-primary w-full py-3">VOLVER AL INICIO</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- SCREEN 5: SETTINGS -->
             <section id="screen-settings" class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
                 <header class="border-b border-chlorine pb-2"><h2 class="text-2xl">CONFIGURACIÓN DEL SISTEMA</h2></header>
@@ -510,17 +555,29 @@
         </div>
     </div>
 
-    <!-- MESSAGE MODAL (Generic) -->
-    <div id="modal-message" class="fixed inset-0 bg-black/90 flex justify-center items-center z-50 hidden backdrop-blur-sm">
-        <div class="horror-panel w-[90%] max-w-[400px] p-8 flex flex-col gap-6 text-center animate__animated animate__fadeInUp">
-            <div id="modal-message-content" class="text-xl font-head tracking-wider">
-                MENSAJE DEL SISTEMA
+    <!-- Modal de Mensaje -->
+    <div id="modal-message" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] hidden items-center justify-center p-4">
+        <div class="horror-panel max-w-sm w-full p-6 flex flex-col gap-4 animate__animated animate__zoomIn animate__faster">
+            <div id="modal-message-content" class="text-center font-mono text-sm leading-relaxed"></div>
+            <button id="btn-message-ok" class="horror-btn horror-btn-primary py-2 text-sm uppercase tracking-widest">ENTENDIDO</button>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div id="modal-confirm" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[210] hidden items-center justify-center p-4">
+        <div class="horror-panel max-w-sm w-full p-8 border-2 border-alert/50 flex flex-col gap-6 animate__animated animate__fadeInDown animate__faster">
+            <div class="flex flex-col gap-2 text-center">
+                <h3 class="text-alert font-bold tracking-[0.2em] text-xl glitch-effect" data-text="CONFIRMACIÓN">CONFIRMACIÓN</h3>
+                <div class="h-0.5 w-full bg-gradient-to-r from-transparent via-alert to-transparent opacity-50"></div>
             </div>
-            <div class="flex justify-center">
-                <button id="btn-message-ok" class="horror-btn horror-btn-primary px-10 py-3">
-                    ENTENDIDO
-                </button>
+            <div id="modal-confirm-content" class="text-center font-mono text-sm leading-relaxed text-gray-300">
+                ¿ESTÁ SEGURO DE REALIZAR ESTA ACCIÓN?
             </div>
+            <div class="grid grid-cols-2 gap-4">
+                <button id="btn-confirm-cancel" class="horror-btn border-gray-600 text-gray-400 py-3 text-xs uppercase tracking-widest hover:bg-white/5">CANCELAR</button>
+                <button id="btn-confirm-yes" class="horror-btn horror-btn-primary py-3 text-xs uppercase tracking-widest bg-alert/20 border-alert text-alert hover:bg-alert hover:text-black">CONFIRMAR</button>
+            </div>
+            <div class="text-[8px] font-mono opacity-30 text-center mt-2">SISTEMA DE SEGURIDAD RUTA-01 // PROTOCOLO DE AUTORIZACIÓN</div>
         </div>
     </div>
 
@@ -566,6 +623,6 @@
         </div>
     </div>
 
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/main.js?v=1.1"></script>
 </body>
 </html>
