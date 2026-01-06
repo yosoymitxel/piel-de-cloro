@@ -407,6 +407,19 @@ class Game {
         });
     }
     
+    createIntrusion(via, period) {
+        const npc = new NPC(State.config.dayIntrusionInfectedChance);
+        const stats = ['temperature', 'pulse', 'skinTexture', 'pupils'];
+        const s = stats[Math.floor(Math.random() * stats.length)];
+        npc.revealedStats.push(s);
+        npc.scanCount = 1;
+        npc.history = npc.history || [];
+        npc.history.push(`Intrusión ${period} por ${via.type}. Registro simulado.`);
+        State.addAdmitted(npc);
+        this.audio.playSFXByKey('intrusion_detected', { volume: 0.6, priority: 1 });
+        if (via.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
+    }
+    
     processIntrusions() {
         const items = State.securityItems;
         const prob = State.config.securityIntrusionProbability;
@@ -421,16 +434,7 @@ class Game {
             via = alarm;
         }
         if (!via) return;
-        const npc = new NPC(State.config.dayIntrusionInfectedChance);
-        const stats = ['temperature', 'pulse', 'skinTexture', 'pupils'];
-        const s = stats[Math.floor(Math.random() * stats.length)];
-        npc.revealedStats.push(s);
-        npc.scanCount = 1;
-        npc.history = npc.history || [];
-        npc.history.push(`Intrusión nocturna por ${via.type}. Registro simulado.`);
-        State.addAdmitted(npc);
-        this.audio.playSFXByKey('intrusion_detected', { volume: 0.6 });
-        if (via.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4 });
+        this.createIntrusion(via, 'nocturna');
         if (alarm && alarm.active) {
             this.ui.showMessage("ALARMA ACTIVADA: Se detectó intrusión durante la noche.", () => {});
         }
@@ -489,16 +493,7 @@ class Game {
                     via = alarm;
                 }
                 if (via) {
-                    const npc = new NPC(State.config.dayIntrusionInfectedChance);
-                    const stats = ['temperature', 'pulse', 'skinTexture', 'pupils'];
-                    const s = stats[Math.floor(Math.random() * stats.length)];
-                    npc.revealedStats.push(s);
-                    npc.scanCount = 1;
-                    npc.history = npc.history || [];
-                    npc.history.push(`Intrusión diurna por ${via.type}. Registro simulado.`);
-                    State.addAdmitted(npc);
-                    this.audio.playSFXByKey('intrusion_detected', { volume: 0.6, priority: 1 });
-                    if (via.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
+                    this.createIntrusion(via, 'diurna');
                     const msg = alarm && alarm.active
                         ? "ALARMA ACTIVADA: Intrusión detectada durante el día."
                         : "";

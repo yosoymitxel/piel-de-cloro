@@ -61,6 +61,13 @@ export class UIManager {
         this.infectionEffectActive = false;
         this.typingTimer = null;
         this.audio = audio;
+        this.timings = {
+            vhsDuration: 1000,
+            loreFadeOut: 500,
+            modalBloodFlash: 700,
+            validationOpen: 0,
+            precloseOpen: 0
+        };
     }
 
     showScreen(screenName) {
@@ -263,20 +270,28 @@ export class UIManager {
     
     typeText(el, text, speed = 20) {
         if (this.typingTimer) {
-            clearInterval(this.typingTimer);
+            cancelAnimationFrame(this.typingTimer);
             this.typingTimer = null;
         }
         el.text('');
         if (this.audio) this.audio.playSFXByKey('ui_dialogue_type', { volume: 0.4 });
         let i = 0;
-        this.typingTimer = setInterval(() => {
-            el.text(el.text() + text.charAt(i));
-            i++;
-            if (i >= text.length) {
-                clearInterval(this.typingTimer);
-                this.typingTimer = null;
+        const minStep = Math.max(5, speed);
+        const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        const step = (now) => {
+            const elapsed = now - start;
+            const shouldBe = Math.floor(elapsed / minStep);
+            while (i <= shouldBe && i < text.length) {
+                el.text(el.text() + text.charAt(i));
+                i++;
             }
-        }, Math.max(5, speed));
+            if (i >= text.length) {
+                this.typingTimer = null;
+                return;
+            }
+            this.typingTimer = requestAnimationFrame(step);
+        };
+        this.typingTimer = requestAnimationFrame(step);
     }
 
     hideOmitOption() {
@@ -437,7 +452,7 @@ export class UIManager {
         if (this.audio) this.audio.duckAmbient(0.12);
         $('#btn-lore-continue-screen').off('click').on('click', () => {
             if (this.audio) {
-                this.audio.stopLore({ fadeOut: 500 });
+                this.audio.stopLore({ fadeOut: this.timings.loreFadeOut });
                 this.audio.unduckAmbient(300, 0.28);
             }
             if (onClose) onClose();
@@ -502,6 +517,7 @@ export class UIManager {
         this.elements.shelterCount.text(`${npcs.length}/${max}`);
         this.elements.shelterGrid.empty();
         
+        const batch = [];
         npcs.forEach(npc => {
             const card = $('<div>', {
                 class: 'bg-[#080808] border border-[#333] p-2 flex flex-col items-center cursor-pointer hover:border-chlorine-light hover:bg-[#111] transition-all'
@@ -513,8 +529,9 @@ export class UIManager {
             card.append(avatar, name);
             card.on('click', () => onDetailClick(npc, true));
             
-            this.elements.shelterGrid.append(card);
+            batch.push(card[0]);
         });
+        if (batch.length) this.elements.shelterGrid.append(batch);
     }
 
     updateDayAfterSummary(npcs) {
@@ -527,6 +544,7 @@ export class UIManager {
     renderMorgueGrid(npcs, onDetailClick) {
         this.elements.morgueGrid.empty();
         
+        const batch = [];
         npcs.forEach(npc => {
             const statusColorClass = npc.death && npc.death.revealed && npc.isInfected ? 'infected' : '';
             
@@ -546,13 +564,15 @@ export class UIManager {
             card.append(avatar, name);
             card.on('click', () => onDetailClick(npc, false));
             
-            this.elements.morgueGrid.append(card);
+            batch.push(card[0]);
         });
+        if (batch.length) this.elements.morgueGrid.append(batch);
     }
 
     renderSecurityRoom(items, onToggle) {
         this.elements.securityGrid.empty();
         this.elements.securityCount.text(items.length);
+        const batch = [];
         items.forEach((it, idx) => {
             const icon = it.type === 'alarma' ? 'fa-bell' : it.type === 'puerta' ? 'fa-door-closed' : it.type === 'ventana' ? 'fa-window-maximize' : 'fa-water';
             const activeOrSecured = it.type === 'alarma' ? it.active : it.secured;
@@ -581,8 +601,9 @@ export class UIManager {
                 this.renderSecurityRoom(items, onToggle);
             });
             card.append(btn);
-            this.elements.securityGrid.append(card);
+            batch.push(card[0]);
         });
+        if (batch.length) this.elements.securityGrid.append(batch);
     }
     openModal(npc, allowPurge, onPurgeConfirm) {
         this.elements.modal.removeClass('hidden').addClass('flex');

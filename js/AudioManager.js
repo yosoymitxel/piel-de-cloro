@@ -235,20 +235,26 @@ export class AudioManager {
     fade(audio, target, ms, key, onDone) {
         if (!audio) return;
         target = Math.max(0, Math.min(1, target));
-        if (this.fadeTimers[key]) clearInterval(this.fadeTimers[key]);
         const start = audio.volume || 0;
         const delta = target - start;
-        const steps = Math.max(1, Math.floor(ms / 16));
-        let i = 0;
-        this.fadeTimers[key] = setInterval(() => {
-            i++;
-            audio.volume = start + (delta * (i / steps));
-            if (i >= steps) {
-                clearInterval(this.fadeTimers[key]);
-                this.fadeTimers[key] = null;
+        const token = { cancel: false, id: null };
+        if (this.fadeTimers[key] && this.fadeTimers[key].id != null) {
+            this.fadeTimers[key].cancel = true;
+        }
+        this.fadeTimers[key] = token;
+        const startTime = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        const step = (now) => {
+            if (token.cancel) return;
+            const t = Math.max(0, Math.min(1, (now - startTime) / Math.max(1, ms)));
+            audio.volume = start + delta * t;
+            if (t >= 1) {
                 audio.volume = target;
+                this.fadeTimers[key] = null;
                 if (onDone) onDone();
+                return;
             }
-        }, 16);
+            token.id = requestAnimationFrame(step);
+        };
+        token.id = requestAnimationFrame(step);
     }
 }
