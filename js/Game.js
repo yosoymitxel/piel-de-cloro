@@ -14,6 +14,7 @@ class Game {
     }
 
     bindEvents() {
+        $('#tool-thermo, #tool-flash, #tool-pulse, #tool-pupils, #btn-admit, #btn-ignore').addClass('btn-interactive');
         // Start & Settings
         $('#btn-start-game').on('click', () => { this.audio.unlock(); this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.startGame(); });
         $('#btn-settings-toggle').on('click', () => {
@@ -50,11 +51,11 @@ class Game {
         $('#nav-morgue-stats').on('click', () => this.toggleMorgueStats());
         $('#btn-audio-diagnostics').on('click', () => {
             const logs = this.audio.getLogString();
-            this.ui.showMessage(logs, () => {});
+            this.ui.showMessage(logs, () => {}, 'normal');
         });
         $('#btn-audio-validate').on('click', async () => {
             const report = await this.audio.validateManifest();
-            this.ui.showMessage(report, () => {});
+            this.ui.showMessage(report, () => {}, 'normal');
         });
         $('#btn-pause').on('click', () => {
             State.paused = true;
@@ -93,14 +94,14 @@ class Game {
         });
 
         // Game Actions
-        $('#btn-admit').on('click', () => { if (State.paused) return; this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.handleDecision('admit'); });
-        $('#btn-ignore').on('click', () => { if (State.paused) return; this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.handleDecision('ignore'); });
+        $('#btn-admit').on('click', () => { if (State.paused) return; $('#btn-admit').addClass('btn-click-flash'); setTimeout(()=>$('#btn-admit').removeClass('btn-click-flash'),220); this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.handleDecision('admit'); });
+        $('#btn-ignore').on('click', () => { if (State.paused) return; $('#btn-ignore').addClass('btn-click-flash'); setTimeout(()=>$('#btn-ignore').removeClass('btn-click-flash'),220); this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.handleDecision('ignore'); });
         
         // Tools
-        $('#tool-thermo').on('click', () => { if (State.paused) return; this.inspect('thermometer'); });
-        $('#tool-flash').on('click', () => { if (State.paused) return; this.inspect('flashlight'); });
-        $('#tool-pulse').on('click', () => { if (State.paused) return; this.inspect('pulse'); });
-        $('#tool-pupils').on('click', () => { if (State.paused) return; this.inspect('pupils'); });
+        $('#tool-thermo').on('click', () => { if (State.paused) return; $('#tool-thermo').addClass('btn-click-flash'); setTimeout(()=>$('#tool-thermo').removeClass('btn-click-flash'),220); this.inspect('thermometer'); });
+        $('#tool-flash').on('click', () => { if (State.paused) return; $('#tool-flash').addClass('btn-click-flash'); setTimeout(()=>$('#tool-flash').removeClass('btn-click-flash'),220); this.inspect('flashlight'); });
+        $('#tool-pulse').on('click', () => { if (State.paused) return; $('#tool-pulse').addClass('btn-click-flash'); setTimeout(()=>$('#tool-pulse').removeClass('btn-click-flash'),220); this.inspect('pulse'); });
+        $('#tool-pupils').on('click', () => { if (State.paused) return; $('#tool-pupils').addClass('btn-click-flash'); setTimeout(()=>$('#tool-pupils').removeClass('btn-click-flash'),220); this.inspect('pupils'); });
 
         // Night Actions
         $('#btn-sleep').on('click', () => this.sleep());
@@ -223,7 +224,7 @@ class Game {
                 break;
         }
 
-        this.ui.showFeedback(`[HERRAMIENTA] > ${result}`, color);
+        // Feedback textual ocultado para que la evidencia no sea explícita en pantalla
         this.updateHUD(); // To update energy
         if (npc.scanCount > 0) {
             this.ui.hideOmitOption();
@@ -239,7 +240,7 @@ class Game {
         }
         if (action === 'admit') {
             if (State.isShelterFull()) {
-                this.ui.showMessage("REFUGIO LLENO. Debes purgar a alguien desde la pantalla de Refugio.");
+                this.ui.showMessage("REFUGIO LLENO. Debes purgar a alguien desde la pantalla de Refugio.", null, 'warning');
                 return;
             }
             State.addAdmitted(npc);
@@ -303,10 +304,10 @@ class Game {
     calculatePurgeConsequences(npc) {
         if (!npc.isInfected) {
             State.paranoia += 20; 
-            this.ui.showMessage(`HAS PURGADO A UN HUMANO (${npc.name}). LA PARANOIA AUMENTA.`);
+            this.ui.showMessage(`HAS PURGADO A UN HUMANO (${npc.name}). LA PARANOIA AUMENTA.`, null, 'warning');
         } else {
             State.paranoia = Math.max(0, State.paranoia - 5); 
-            this.ui.showMessage(`AMENAZA ELIMINADA (${npc.name}). BIEN HECHO.`);
+            this.ui.showMessage(`AMENAZA ELIMINADA (${npc.name}). BIEN HECHO.`, null, 'normal');
         }
         this.updateHUD();
     }
@@ -459,7 +460,7 @@ class Game {
         npc.revealedStats.push(s);
         npc.scanCount = 1;
         npc.history = npc.history || [];
-        npc.history.push(`Intrusión ${period} por ${via.type}. Registro simulado.`);
+        npc.history.push(`Intrusión ${period} por ${via.type}.`);
         State.addAdmitted(npc);
         this.audio.playSFXByKey('intrusion_detected', { volume: 0.6, priority: 1 });
         if (via.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
@@ -481,7 +482,7 @@ class Game {
         if (!via) return;
         this.createIntrusion(via, 'nocturna');
         if (alarm && alarm.active) {
-            this.ui.showMessage("ALARMA ACTIVADA: Se detectó intrusión durante la noche.", () => {});
+            this.ui.showMessage("ALARMA ACTIVADA: Se detectó intrusión durante la noche.", () => {}, 'warning');
         }
     }
     
@@ -496,7 +497,7 @@ class Game {
                 npc.revealedStats.push(s);
                 npc.scanCount = 1;
                 npc.history = npc.history || [];
-                npc.history.push('Ingreso aleatorio inicial. Registro simulado.');
+                npc.history.push('Ingreso inicial por pertenencia al refugio.');
                 State.addAdmitted(npc);
             }
         }
@@ -542,7 +543,7 @@ class Game {
                     const msg = alarm && alarm.active
                         ? "ALARMA ACTIVADA: Intrusión detectada durante el día."
                         : "";
-                    if(msg) this.ui.showMessage(msg, () => {});
+                    if(msg) this.ui.showMessage(msg, () => {}, 'warning');
                 }
             }
             State.rescheduleIntrusion();

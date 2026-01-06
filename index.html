@@ -243,12 +243,18 @@
                     </header>
                     <div class="flex flex-col gap-4">
                         <label class="flex items-center gap-3 font-mono">
-                            <input type="checkbox" id="toggle-mute-music">
-                            Silenciar música (ambiente y lore)
+                            <input type="checkbox" id="toggle-mute-music" class="peer sr-only">
+                            <span class="inline-flex items-center">
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                            </span>
+                            <span>Silenciar música (ambiente y lore)</span>
                         </label>
                         <label class="flex items-center gap-3 font-mono">
-                            <input type="checkbox" id="toggle-mute-sfx">
-                            Silenciar efectos (SFX)
+                            <input type="checkbox" id="toggle-mute-sfx" class="peer sr-only">
+                            <span class="inline-flex items-center">
+                                <span class="switch-track"><span class="switch-thumb"></span></span>
+                            </span>
+                            <span>Silenciar efectos (SFX)</span>
                         </label>
                         <div class="flex justify-end">
                             <button id="btn-pause-close" class="horror-btn horror-btn-primary px-4 py-2">CONTINUAR</button>
@@ -286,20 +292,20 @@
                     <div class="flex flex-col gap-6 text-left font-mono">
                         <div class="flex flex-col gap-2">
                             <span class="text-center text-xl">Volumen Maestro</span>
-                            <input id="config-volume-master" type="range" min="0" max="100" value="100" class="w-full">
+                            <input id="config-volume-master" type="range" min="0" max="100" value="100" class="horror-range">
                         </div>
                         <div class="grid grid-cols-1 gap-4">
                             <div class="flex flex-col gap-2">
                                 <span>Ambiente</span>
-                                <input id="config-volume-ambient" type="range" min="0" max="100" value="30" class="w-full">
+                                <input id="config-volume-ambient" type="range" min="0" max="100" value="30" class="horror-range">
                             </div>
                             <div class="flex flex-col gap-2">
                                 <span>Lore</span>
-                                <input id="config-volume-lore" type="range" min="0" max="100" value="25" class="w-full">
+                                <input id="config-volume-lore" type="range" min="0" max="100" value="25" class="horror-range">
                             </div>
                             <div class="flex flex-col gap-2">
                                 <span>Efectos</span>
-                                <input id="config-volume-sfx" type="range" min="0" max="100" value="60" class="w-full">
+                                <input id="config-volume-sfx" type="range" min="0" max="100" value="60" class="horror-range">
                             </div>
                         </div>
                     </div>

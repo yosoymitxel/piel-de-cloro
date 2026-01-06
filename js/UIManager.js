@@ -94,26 +94,26 @@ export class UIManager {
                         if (self.audio) self.audio.playLoreByKey('lore_intro_track', { loop: false, volume: 0.22, crossfade: 600 });
                     } else if (type === 'intermediate') {
                         const variants = [
-                            { kind: 'radio', text: '“No somos individuos”. La señal se corta. Luego silencio.' },
-                            { kind: 'oido', text: 'Golpes: dos cortos y uno largo. Alguien sabe el patrón.' },
-                            { kind: 'vista', text: 'Una sombra cruzó el pasillo. Por un instante, todos respiramos igual.' },
-                            { kind: 'registro', text: 'Anotación: la piel reseca aparece con luz UV y olor metálico.' },
-                            { kind: 'radio', text: 'Se rumorea que se alimentan de humedad y agua estancada.' },
-                            { kind: 'oido', text: 'Susurros a través de las tuberías. La casa tiene garganta.' },
-                            { kind: 'vista', text: 'Los espejos del pasillo empañan cuando alguien miente sobre su piel.' },
-                            { kind: 'radio', text: 'Transmisión interceptada: “El cloro recuerda quién abrió la puerta”.' },
-                            { kind: 'oido', text: 'Un reloj de péndulo marca 7 latidos por segundo. No es el tiempo.' },
+                            { kind: 'radio', text: '“Realmente no son personas, purgarlos debería ser corr...”. La señal se corta. Luego silencio.' },
+                            { kind: 'oido', text: 'Golpes: dos cortos y uno largo. Afuera puede ser peligroso.' },
+                            { kind: 'vista', text: 'Una sombra cruzó el pasillo. Por un instante, se nos fue el aliento, debemos revisar si todo está asegurado.' },
+                            { kind: 'registro', text: 'Anotación: la piel reseca aparece con luz UV y olor metálico es percibido de forma sutil.' },
+                            { kind: 'radio', text: 'Se rumorea que se alimentan de humedad, moho y agua estancada, no se descarta que también de carne podrida.' },
+                            { kind: 'oido', text: 'Se escuchan gritos a través de las tuberías, quizá hay alguien ahí.' },
+                            { kind: 'vista', text: 'Los espejos del pasillo empañan cuando alguien piel de cloro pasa delante.' },
+                            { kind: 'radio', text: 'Transmisión interceptada: “El cloro recuerda quién abrió la puerta, normalmente lo deja vivir”.' },
+                            { kind: 'oido', text: 'Se ven restos de piel en el pasillo ¿De quién será?' },
                             { kind: 'registro', text: 'Nota olvidada: “Si la sed despierta tras beber, no bebas más”.' },
-                            { kind: 'vista', text: 'Las luces parpadean en código Morse: “AGUA NO”.' },
-                            { kind: 'radio', text: 'Estática que murmura nombres que aún no has dicho en voz alta.' },
-                            { kind: 'oido', text: 'Pasos sobre cristal mojado. Nadie lleva zapatos.' },
-                            { kind: 'registro', text: 'Página arrancada: “La piel se desprende si miras de frente demasiado rato”.' },
+                            { kind: 'vista', text: 'Parece que alguien ha estado quieto en el pasillo.' },
+                            { kind: 'radio', text: 'Estática hace horas, quizá días, no podemos saber mucho más de lo que pasa afuera.' },
+                            { kind: 'oido', text: 'Pasos fuera de la sala, hay agua por todos lados, se siente peligroso.' },
+                            { kind: 'registro', text: 'Página de anotaciones de un refugiado: “La piel se desprende si miras de frente demasiado rato”.' },
                             { kind: 'vista', text: 'Una mancha verde en el techo crece cuando nadie la observa.' },
-                            { kind: 'radio', text: 'Voz infantil: “El agua de la ducha sabe a cloro y a recuerdos ajenos”.' },
+                            { kind: 'radio', text: '“El agua sabe a cloro, parece que alguien ha infectado el tanque de agua”.' },
                             { kind: 'oido', text: 'Goteo que imita tu ritmo cardíaco hasta que cambias de ritmo.' },
-                            { kind: 'registro', text: 'Aviso: “Sellad las grietas con sal; el cloro odia el mar”.' },
-                            { kind: 'vista', text: 'Siluetas en la niebla interior que señalan puertas que no existen.' },
-                            { kind: 'radio', text: 'Última frecuencia: “No duermas con la boca abierta; entran las ideas”.' }
+                            { kind: 'registro', text: 'Aviso: “Sellen las grietas con sal; el cloro odia el mar”.' },
+                            { kind: 'vista', text: 'Siluetas en la niebla tratando de entrar por puertas que no existen.' },
+                            { kind: 'radio', text: '“No duermas con la boca abierta, aunque la posibilidad es baja puedes convertirte en uno de ellos”.' }
                         ];
                         t = 'Interludio';
                         const pick = variants[Math.floor(Math.random() * variants.length)];
@@ -217,12 +217,16 @@ export class UIManager {
                     self.elements.msgModal.addClass('hidden').removeClass('flex');
                     if (!silent && self.audio) self.audio.playSFXByKey('ui_modal_close', { volume: 0.5, priority: 0 });
                 },
-                showMessage(text, onClose) {
-                    self.elements.msgContent.text(text);
-                    self.elements.msgModal.removeClass('hidden').addClass('flex');
+                showMessage(text, onClose, type = 'normal') {
+                    const modal = self.elements.msgModal;
+                    const content = self.elements.msgContent;
+                    modal.removeClass('hidden').addClass('flex');
+                    modal.removeClass('modal-normal modal-lore modal-death modal-warning').addClass(`modal-${type}`);
+                    const iconClass = type === 'death' ? 'modal-death-icon' : type === 'warning' ? 'modal-warning-icon' : type === 'lore' ? 'modal-lore-icon' : 'modal-normal-icon';
+                    content.html(`<span class="${iconClass}"></span> <span>${text}</span>`);
                     if (self.audio) self.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
                     self.elements.msgBtn.off('click').on('click', () => {
-                        self.elements.msgModal.addClass('hidden').removeClass('flex');
+                        modal.addClass('hidden').removeClass('flex');
                         if (self.audio) self.audio.playSFXByKey('ui_modal_close', { volume: 0.5 });
                         if (onClose) onClose();
                     });
@@ -881,7 +885,7 @@ export class UIManager {
     clearModalError() { return this.modules.modal.clearModalError(); }
     closeModal(silent = false) { return this.modules.modal.closeModal(silent); }
 
-    showMessage(text, onClose) { return this.modules.modal.showMessage(text, onClose); }
+    showMessage(text, onClose, type = 'normal') { return this.modules.modal.showMessage(text, onClose, type); }
 
     updateRunStats(state) {
         const admitted = state.admittedNPCs.length;
@@ -927,31 +931,32 @@ export class UIManager {
         container.css('position', 'relative');
         container.find('.tool-thermo').remove();
         const overlay = $('<div>', { class: 'tool-thermo', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
-        const panel = $('<div>', { css: { background: 'rgba(0,0,0,0.6)', border: '1px solid #333', padding: '8px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' } });
-        const label = $('<div>', { text: `${value}°C`, css: { color: '#fff', fontFamily: 'monospace', fontSize: '14px' } });
-        const barBg = $('<div>', { css: { width: '160px', height: '8px', background: '#111', border: '1px solid #555', position: 'relative' } });
-        const bar = $('<div>', { css: { width: '0%', height: '100%', background: value < 35 ? '#2d5a27' : '#a83232' } });
-        barBg.append(bar);
-        panel.append(label, barBg);
-        overlay.append(panel);
+        const tube = $('<div>', { css: { width: '20px', height: '120px', background: '#0a0a0a', border: '1px solid #555', position: 'relative', boxShadow: 'inset 0 0 8px #000' } });
+        const fill = $('<div>', { css: { position: 'absolute', bottom: '0px', left: 0, width: '100%', height: '0%', background: value < 35 ? '#00FF00' : '#a83232' } });
+        const ticks = $('<div>', { css: { position: 'absolute', inset: 0 } });
+        for (let i = 0; i <= 6; i++) {
+            ticks.append($('<div>', { css: { position: 'absolute', left: '20px', bottom: `${i*20}px`, width: '10px', height: '1px', background: '#444' } }));
+        }
+        tube.append(fill, ticks);
+        overlay.append(tube);
         container.append(overlay);
         const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
         const target = Math.max(0, Math.min(100, Math.round((value / 45) * 100)));
         const step = (now) => {
-            const t = Math.min(1, (now - start) / 700);
-            const w = Math.floor(target * t);
-            bar.css('width', `${w}%`);
+            const t = Math.min(1, (now - start) / 1800);
+            const h = Math.floor(target * t);
+            fill.css('height', `${h}%`);
             if (t < 1) requestAnimationFrame(step);
         };
         requestAnimationFrame(step);
-        setTimeout(() => overlay.remove(), 1000);
+        setTimeout(() => overlay.remove(), 2200);
     }
     
     animateToolFlashlight(skinTexture, skinColor) {
         const container = this.elements.npcDisplay;
         container.css('position', 'relative');
         container.find('.tool-flash').remove();
-        const flash = $('<div>', { class: 'tool-flash', css: { position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.25)', mixBlendMode: 'screen', pointerEvents: 'none', zIndex: 10 } });
+        const flash = $('<div>', { class: 'tool-flash', css: { position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.18)', mixBlendMode: 'screen', pointerEvents: 'none', zIndex: 10 } });
         container.append(flash);
         const avatar = container.find('.pixel-avatar');
         const head = avatar.find('.avatar-head');
@@ -967,7 +972,7 @@ export class UIManager {
             avatar.css('filter', 'none');
             head.css('background-color', origHead);
             neck.css('background-color', origNeck);
-        }, 450);
+        }, 900);
     }
     
     animateToolPulse(bpm) {
@@ -975,31 +980,31 @@ export class UIManager {
         container.css('position', 'relative');
         container.find('.tool-pulse').remove();
         const overlay = $('<div>', { class: 'tool-pulse', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
-        const panel = $('<div>', { css: { background: 'rgba(0,0,0,0.6)', border: '1px solid #333', padding: '8px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' } });
-        const label = $('<div>', { text: `${bpm} BPM`, css: { color: '#fff', fontFamily: 'monospace', fontSize: '14px' } });
-        const scope = $('<div>', { css: { width: '180px', height: '24px', background: '#111', border: '1px solid #555', position: 'relative', overflow: 'hidden' } });
-        const line = $('<div>', { css: { position: 'absolute', left: '0px', top: '12px', width: '20px', height: '2px', background: '#2d5a27' } });
-        scope.append(line);
-        panel.append(label, scope);
-        overlay.append(panel);
+        const svg = $(document.createElementNS('http://www.w3.org/2000/svg', 'svg')).attr({ width: 220, height: 40 });
+        const path = $(document.createElementNS('http://www.w3.org/2000/svg', 'path')).attr({ d: 'M0 20 L20 20 L25 10 L30 30 L35 20 L220 20', stroke: '#00FF00', 'stroke-width': 2, fill: 'none' });
+        path.css({ filter: 'drop-shadow(0 0 4px #00FF00)' });
+        svg.append(path);
+        const dash = 260;
+        path.attr({ 'stroke-dasharray': dash, 'stroke-dashoffset': dash });
+        overlay.append(svg);
         container.append(overlay);
         const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-        const intervalMs = Math.max(300, Math.min(1200, Math.round(60000 / Math.max(40, Math.min(160, bpm))))); 
+        const intervalMs = Math.max(280, Math.min(900, Math.round(60000 / Math.max(40, Math.min(160, bpm))))); 
         let lastBeat = start;
         const step = (now) => {
             const elapsedSinceBeat = now - lastBeat;
-            const x = ((now - start) % 1000) / 1000;
-            const left = Math.floor(x * 180);
-            line.css('left', `${left}px`);
+            const t = Math.min(1, (now - start) / 2400);
+            const offset = dash * (1 - t);
+            path.attr({ 'stroke-dashoffset': offset });
             if (elapsedSinceBeat >= intervalMs) {
-                line.css('height', '8px');
-                setTimeout(() => line.css('height', '2px'), 100);
+                svg.css('opacity', 0.9);
+                setTimeout(() => svg.css('opacity', 1), 120);
                 lastBeat = now;
             }
-            if (now - start < 1200) requestAnimationFrame(step);
+            if (t < 1) requestAnimationFrame(step);
         };
         requestAnimationFrame(step);
-        setTimeout(() => overlay.remove(), 1300);
+        setTimeout(() => overlay.remove(), 2600);
     }
     
     animateToolPupils(pupils) {
