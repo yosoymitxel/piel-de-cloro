@@ -119,7 +119,7 @@
                     </div>
 
                     <!-- Tools grid: 4 cols on desktop, 2 on tablet, 1 on mobile -->
-                    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 grid-tools">
+                    <div id="inspection-tools-container" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 grid-tools">
                         <button id="tool-thermo" class="horror-btn horror-btn-tool">
                             <i class="fa-solid fa-temperature-half"></i> TERMÓMETRO
                         </button>
@@ -134,7 +134,10 @@
                         </button>
                     </div>
 
-                    <div class="flex gap-3 mt-1">
+                    <div id="generator-warning-game" class="hidden w-full mb-2 p-2 border border-alert bg-alert/10 text-alert animate-pulse text-center font-mono text-xs">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> SISTEMA INSTABLE: REVISIÓN DE GENERADOR REQUERIDA
+                    </div>
+                    <div id="game-actions-container" class="flex gap-3 mt-1">
                         <button id="btn-admit" class="horror-btn horror-btn-primary flex-grow p-4 text-xl">
                             <i class="fa-solid fa-check mr-2"></i> ADMITIR
                         </button>
@@ -151,6 +154,9 @@
                     <h2 class="text-2xl text-glow">HABITANTES DEL REFUGIO</h2>
                     <span class="font-mono text-xl">OCUPACIÓN: <span id="shelter-count">0/10</span></span>
                 </header>
+                <div id="generator-warning-shelter" class="hidden w-full p-2 border border-alert bg-alert/10 text-alert animate-pulse text-center font-mono text-xs mb-2">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> SISTEMA INSTABLE: REVISIÓN DE GENERADOR REQUERIDA
+                </div>
                 <div id="dayafter-panel" class="horror-panel p-3 bg-[#080808] border-chlorine-dim">
                     <div class="flex flex-wrap items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
@@ -197,6 +203,9 @@
                 </header>
                 <div class="flex-1 flex items-center justify-center">
                     <div id="generator-panel" class="horror-panel w-[520px] max-w-full p-6 flex flex-col gap-4 items-center">
+                        <div id="generator-warning-panel" class="hidden w-full p-2 border border-alert bg-alert/10 text-alert animate-pulse text-center font-mono text-xs">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> MANTENIMIENTO REQUERIDO: INTERRUPTOR PRINCIPAL
+                        </div>
                         <div id="generator-gauges" class="w-full flex gap-4 items-center justify-center">
                             <div class="flex flex-col items-center gap-2">
                                 <span class="font-mono text-xs">POTENCIA</span>
@@ -211,6 +220,7 @@
                             <button id="btn-gen-toggle" class="horror-btn p-3 font-mono flex items-center justify-center gap-2 col-span-2">
                                 <i class="fa-solid fa-power-off"></i> I/O
                             </button>
+                            <p class="gap-2 col-span-2"><span class="text-white ">RESTRICCIÓN:</span> Tras iniciar tests o diálogos, la potencia <span class="text-alert">SOLO PUEDE BAJAR</span>.</p>
                             <button id="btn-gen-save" class="horror-btn p-3 font-mono flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-leaf"></i> AHORRO
                             </button>
@@ -222,12 +232,18 @@
                             </button>
                         </div>
                         <div id="generator-extra" class="w-full flex flex-col items-center gap-2">
+                            <div id="generator-status-summary" class="w-full p-2 bg-black/40 border border-chlorine-dim text-[10px] font-mono flex justify-around">
+                                <!-- Se llena dinámicamente desde JS -->
+                            </div>
                             <button id="btn-gen-manual-toggle" class="horror-btn w-full p-2 font-mono">MANUAL DE OPERACIÓN</button>
-                            <div id="generator-manual" class="hidden w-full bg-black/60 border border-[#1a3317] p-3 text-sm font-mono">
-                                <p>- ON/OFF: Control principal de energía del refugio. ON se indica en verde brillante.</p>
-                                <p>- AHORRO: Reduce consumo y baja probabilidad de intrusión.</p>
-                                <p>- NORMAL: Operación estable sin efectos adicionales.</p>
-                                <p>- SOBRECARGA: Aumenta potencia a corto plazo, puede provocar apagones y glitches.</p>
+                            <div id="generator-manual" class="hidden w-full bg-black/60 border border-[#1a3317] p-3 text-xs font-mono space-y-3">
+                                <p class="text-chlorine-light border-b border-chlorine-dim pb-1 font-bold">PROTOCOLO DE ENERGÍA RUTA-01</p>
+                                <div class="space-y-1">
+                                    <p><span class="text-white">1. MODO NORMAL:</span> 2 cargas. Estándar.</p>
+                                    <p><span class="text-white">2. MODO AHORRO:</span> 1 carga. Sin fallos eléctricos. <span class="text-chlorine-light">Reduce intrusiones externas.</span></p>
+                                    <p><span class="text-white">3. OVERCLOCK:</span> 3 cargas. Alto riesgo de apagón súbito.</p>
+                                    <p class="pt-1 text-[10px] italic opacity-70 border-t border-chlorine-dim text-center">EL EXCESO DE CALOR EN OVERCLOCK CAUSA CORTES DE LUZ.</p>
+                                </div>
                             </div>
                             <span class="italic text-sm text-gray-400 text-center">La energía afecta herramientas, intrusiones y glitches.</span>
                         </div>

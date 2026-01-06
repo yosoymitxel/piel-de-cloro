@@ -117,11 +117,16 @@ class Game {
         $('#btn-admit').on('click', () => { if (State.paused) return; $('#btn-admit').addClass('btn-click-flash'); setTimeout(()=>$('#btn-admit').removeClass('btn-click-flash'),220); this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.handleDecision('admit'); });
         $('#btn-ignore').on('click', () => { if (State.paused) return; $('#btn-ignore').addClass('btn-click-flash'); setTimeout(()=>$('#btn-ignore').removeClass('btn-click-flash'),220); this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.handleDecision('ignore'); });
         
-        // Tools
-        $('#tool-thermo').on('click', () => { if (State.paused) return; $('#tool-thermo').addClass('btn-click-flash'); setTimeout(()=>$('#tool-thermo').removeClass('btn-click-flash'),220); this.inspect('thermometer'); });
-        $('#tool-flash').on('click', () => { if (State.paused) return; $('#tool-flash').addClass('btn-click-flash'); setTimeout(()=>$('#tool-flash').removeClass('btn-click-flash'),220); this.inspect('flashlight'); });
-        $('#tool-pulse').on('click', () => { if (State.paused) return; $('#tool-pulse').addClass('btn-click-flash'); setTimeout(()=>$('#tool-pulse').removeClass('btn-click-flash'),220); this.inspect('pulse'); });
-        $('#tool-pupils').on('click', () => { if (State.paused) return; $('#tool-pupils').addClass('btn-click-flash'); setTimeout(()=>$('#tool-pupils').removeClass('btn-click-flash'),220); this.inspect('pupils'); });
+        // Tools delegation
+        $('#inspection-tools-container').on('click', '#tool-thermo', () => { if (State.paused) return; this.inspect('thermometer'); });
+        $('#inspection-tools-container').on('click', '#tool-flash', () => { if (State.paused) return; this.inspect('flashlight'); });
+        $('#inspection-tools-container').on('click', '#tool-pulse', () => { if (State.paused) return; this.inspect('pulse'); });
+        $('#inspection-tools-container').on('click', '#tool-pupils', () => { if (State.paused) return; this.inspect('pupils'); });
+        
+        // El botón de ir al generador que aparece cuando está apagado
+        $('#inspection-tools-container').on('click', '#btn-goto-generator', () => {
+            $('#nav-generator').trigger('click');
+        });
 
         // Night Actions
         $('#btn-sleep').on('click', () => this.sleep());
@@ -214,6 +219,14 @@ class Game {
 
         State.currentNPC = new NPC();
         State.generatorCheckedThisTurn = false; // Resetear para cada nuevo NPC
+        
+        // Resetear límite de capacidad del generador según el modo actual al inicio del turno
+        const currentMode = State.generator.mode;
+        let initialCap = 2;
+        if (currentMode === 'save') initialCap = 1;
+        if (currentMode === 'overload') initialCap = 3;
+        State.generator.maxModeCapacityReached = initialCap;
+
         this.ui.hideFeedback();
         this.ui.renderNPC(State.currentNPC);
         this.ui.updateToolButtons(State.currentNPC);
@@ -236,31 +249,46 @@ class Game {
     }
 
     inspect(tool) {
-        if (this.isAnimating) return; // Evitar superposición
+        if (this.isAnimating) return;
         const npc = State.currentNPC;
-        
-        // Verificar si el test ya se hizo para este NPC
-        const toolMap = {
+        if (!npc) return;
+
+        // Validar estado del generador
+        if (!State.generator.isOn) {
+            this.ui.showFeedback("GENERADOR APAGADO: ACCIÓN IMPOSIBLE", "red");
+            this.updateHUD(); // Sincronizar contador de energía
+            return;
+        }
+
+        // Definir límite máximo de energías según el modo del generador
+        let maxEnergy = 2; // Normal y Activo ahora son iguales
+        if (State.generator.mode === 'save') maxEnergy = 1;
+        if (State.generator.mode === 'overload') maxEnergy = 3;
+
+        if (npc.scanCount >= maxEnergy) {
+            this.ui.showFeedback("ENERGÍA INSUFICIENTE PARA ESTE TURNO", "yellow");
+            this.ui.updateInspectionTools(); // Asegurar sincronización visual
+            return;
+        }
+
+        const statMap = {
             'thermometer': 'temperature',
             'flashlight': 'skinTexture',
             'pupils': 'pupils',
             'pulse': 'pulse'
         };
-        const statKey = toolMap[tool];
+        const statKey = statMap[tool];
+
         if (npc.revealedStats.includes(statKey)) {
             this.ui.showFeedback("TEST YA REALIZADO", "yellow");
-            return;
-        }
-
-        // Limit checks
-        if (npc.scanCount >= npc.maxScans) {
-            this.ui.showFeedback("MÁXIMO DE ESCANEOS ALCANZADO", "red");
+            this.ui.updateInspectionTools(); // Asegurar sincronización visual
             return;
         }
 
         this.isAnimating = true;
         State.verificationsCount++;
         npc.scanCount++;
+        this.updateHUD(); // Actualizar el HUD inmediatamente (refleja energía en el contador)
         let result = "";
         let color = "yellow";
         let animDuration = 1000;
@@ -301,8 +329,8 @@ class Game {
                 break;
         }
 
-        // Bloquear el botón específico
-        this.ui.updateToolButtons(npc);
+        // Bloquear el botón específico y actualizar estado de energías
+        this.ui.updateInspectionTools();
 
         setTimeout(() => {
             this.isAnimating = false;
@@ -318,7 +346,7 @@ class Game {
     handleDecision(action) {
         const npc = State.currentNPC;
 
-        if (npc.scanCount <= 0 && !npc.optOut) {
+        if (npc.scanCount <= 0 && !npc.optOut && !npc.dialogueStarted) {
             this.ui.showValidationGate(npc);
             return;
         }
@@ -387,54 +415,85 @@ class Game {
 
     updateGenerator() {
         if (!State.generator.isOn) {
-            // Si está apagado, quizás recupera un poco de energía muy lentamente
-            State.generator.power = Math.min(100, State.generator.power + 2);
+            // No hay energía disponible si el generador está apagado
+            if (State.currentNPC) {
+                State.currentNPC.scanCount = 99; // Valor alto para bloquear cualquier acción
+                this.updateHUD();
+            }
             return;
         }
 
-        const config = State.config.generator;
         const mode = State.generator.mode;
+        const chance = State.config.generator.failureChance[mode];
         
-        // 1. Consumir energía
-        const consumption = config.consumption[mode] || 5;
-        State.generator.power = Math.max(0, State.generator.power - consumption);
+        // Riesgo de Sobrecarga: probabilidad media de apagón en los próximos 2 turnos
+        if (State.generator.overloadRiskTurns > 0) {
+            if (Math.random() < 0.25) { // 25% de probabilidad de apagón repentino
+                this.triggerGeneratorFailure();
+                State.generator.overloadRiskTurns = 0;
+                return;
+            }
+            State.generator.overloadRiskTurns--;
+        }
 
-        // 2. Calcular probabilidad de fallo
-        let failChance = config.failureChance[mode] || 0.05;
-        
-        // Si la energía es baja, el fallo es más probable
-        if (State.generator.power < 20) failChance += 0.2;
-        if (State.generator.power <= 0) failChance = 1.0;
+        if (mode === 'overload') {
+            // Probabilidad de muerte por sobrecarga si hay pocos civiles
+            if (State.admittedNPCs.length < 3 && Math.random() < 0.1) {
+                this.gameOver("MUERTE POR SOBRECARGA: El sistema eléctrico colapsó violentamente. La falta de personal para estabilizar los núcleos provocó una explosión térmica.");
+                return;
+            }
+            State.generator.overloadRiskTurns = 2; // Activa el riesgo para los próximos 2 turnos
+        }
 
-        if (Math.random() < failChance) {
+        // Ahorro garantiza que no se apagará (chance es 0 en config)
+        if (Math.random() < chance) {
             this.triggerGeneratorFailure();
         }
     }
 
     triggerGeneratorFailure() {
         State.generator.isOn = false;
-        
-        // Feedback inmediato
+        if (State.currentNPC) {
+            State.currentNPC.scanCount = 99; // Disipar energías inmediatamente
+        }
         this.audio.playSFXByKey('glitch_low', { volume: 0.8 });
-        this.ui.applyVHS(1.0, 1000); // Glitch fuerte
-        
-        let msg = "¡FALLO DEL GENERADOR! SISTEMAS EN RESERVA.";
-        let color = "red";
+        this.ui.showFeedback("¡FALLO CRÍTICO DEL GENERADOR!", "red");
+        this.ui.renderGeneratorRoom();
+        this.updateHUD(); // Reflejar pérdida de energía en el contador superior
+        this.ui.updateInspectionTools();
+    }
 
-        if (State.generator.mode === 'overload') {
-            msg = "¡COLAPSO POR SOBRECARGA! EL GENERADOR SE HA BLOQUEADO.";
-            // En overload, el apagón dura más o es más crítico
-            State.generator.blackoutUntil = Date.now() + 5000; 
-        } else if (State.generator.power <= 0) {
-            msg = "GENERADOR AGOTADO. RECARGA NECESARIA.";
-        }
-
-        this.ui.showFeedback(msg, color);
+    toggleGenerator() {
+        const wasOff = !State.generator.isOn;
+        State.generator.isOn = !State.generator.isOn;
         
-        // Si el jugador está en la pantalla del generador, refrescarla
-        if ($('#screen-generator').is(':visible')) {
-            this.ui.renderGeneratorRoom();
+        if (State.generator.isOn && wasOff) {
+            // El generador solo se enciende manualmente
+            this.audio.playSFXByKey('generator_start', { volume: 0.7 });
+            
+            // Caso especial: si estaba apagado desde el turno anterior (scanCount alto), recuperar energía
+            if (State.currentNPC && State.currentNPC.scanCount >= 90) {
+                State.currentNPC.scanCount = 0;
+                this.ui.showFeedback("SISTEMA REINICIADO: ENERGÍA RECUPERADA", "green");
+            }
+            
+            if (State.generator.power <= 0) {
+                State.generator.power = 1;
+                State.generator.overclockCooldown = true;
+                this.ui.showFeedback("RECUPERACIÓN DE EMERGENCIA: 1 ENERGÍA. SOBRECARGA BLOQUEADA.", "yellow");
+            }
+        } else if (!State.generator.isOn) {
+            this.audio.playSFXByKey('generator_stop', { volume: 0.6 });
+            // Al apagar manualmente por error o voluntad: pierde energías
+            if (State.currentNPC) {
+                State.currentNPC.scanCount = 99;
+            }
+            this.ui.showFeedback("GENERADOR APAGADO: ENERGÍA DISIPADA", "red");
         }
+        
+        this.ui.renderGeneratorRoom();
+        this.updateHUD(); // Sincronizar contador de energía del puesto
+        this.ui.updateInspectionTools();
     }
 
     calculatePurgeConsequences(npc) {
@@ -458,18 +517,12 @@ class Game {
     }
 
     endGame() {
-        console.log("DEBUG: Game.endGame called. this.ui is:", this.ui);
-        console.log("DEBUG: this.ui.renderFinalStats type:", typeof this.ui.renderFinalStats);
         this.audio.stopAmbient({ fadeOut: 1000 });
         if (typeof this.ui.renderFinalStats === 'function') {
             this.ui.renderFinalStats(State);
         } else {
-            console.error("CRITICAL: this.ui.renderFinalStats is NOT a function! Current keys on this.ui:", Object.keys(this.ui));
-            // Intentar encontrarlo en el prototipo si no está en la instancia
             const proto = Object.getPrototypeOf(this.ui);
-            console.log("DEBUG: Keys on this.ui prototype:", Object.keys(proto));
             if (typeof proto.renderFinalStats === 'function') {
-                console.log("DEBUG: Found renderFinalStats on prototype, calling it...");
                 proto.renderFinalStats.call(this.ui, State);
             }
         }

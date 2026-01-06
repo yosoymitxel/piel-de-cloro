@@ -27,16 +27,16 @@ export const State = {
         // Generador
         generator: {
             consumption: {
-                save: 2,
-                normal: 5,
-                overload: 15
+                save: 1,    // Ahorro: 1 energía/turno
+                normal: 2,  // Normal: 2 energía/turno
+                overload: 3 // Sobrecarga: 3 energía/turno
             },
             failureChance: {
-                save: 0.01,
-                normal: 0.05,
-                overload: 0.35 // 35% de fallo por turno en overclock
+                save: 0.0,    // Ahorro: No se apaga
+                normal: 0.08, // Normal: Probabilidad estándar
+                overload: 0.2 // Sobrecarga: Alta probabilidad
             },
-            breakdownChance: 0.1 // Probabilidad de avería total si falla en overload
+            breakdownChance: 0.1
         }
     },
     admittedNPCs: [],
@@ -73,15 +73,24 @@ export const State = {
     isNight: false,
     dayClosed: false,
     dayEnded: false,
-    generatorCheckedThisTurn: false, // Nuevo: obligar a revisar el generador
+    generatorCheckedThisTurn: false,
     lastNight: {
         occurred: false,
         victims: 0,
         message: ''
     },
     
-    generator: { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0 },
+    generator: { 
+        isOn: true, 
+        mode: 'normal', 
+        power: 100, 
+        blackoutUntil: 0, 
+        overclockCooldown: false,
+        overloadRiskTurns: 0,
+        maxModeCapacityReached: 2 // Por defecto Normal (2) al iniciar
+    },
     paused: false,
+    dialogueStarted: false,
 
     reset() {
         this.paranoia = 0;
@@ -100,9 +109,10 @@ export const State = {
         this.dayClosed = false;
         this.dayEnded = false;
         this.generatorCheckedThisTurn = false;
+        this.dialogueStarted = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
-        this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0 };
+        this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false };
         this.playerInfected = Math.random() < this.config.playerInfectedProbability;
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight = { occurred: false, victims: 0, message: '' };
@@ -133,6 +143,11 @@ export const State = {
 
     nextSubject() {
         this.dayTime++;
+        this.generatorCheckedThisTurn = false;
+        this.dialogueStarted = false;
+        if (this.generator.overclockCooldown) {
+            this.generator.overclockCooldown = false;
+        }
     },
 
     randomIntrusionInterval() {

@@ -47,6 +47,13 @@ export class UIManager {
             modalPurgeBtn: $('#btn-modal-purge'),
             modalError: $('#modal-error'),
             
+            // Generator warnings
+            genWarningGame: $('#generator-warning-game'),
+            genWarningShelter: $('#generator-warning-shelter'),
+            genWarningPanel: $('#generator-warning-panel'),
+            gameActionsContainer: $('#game-actions-container'),
+            inspectionToolsContainer: $('#inspection-tools-container'),
+            
             // Shelter finalize button
             finalizeNoPurgeBtn: $('#btn-finalize-day-no-purge'),
 
@@ -72,7 +79,6 @@ export class UIManager {
         this.infectionEffectActive = false;
         this.typingTimer = null;
         this.audio = audio;
-        console.log("DEBUG: UIManager instance created. renderFinalStats exists:", typeof this.renderFinalStats === 'function');
         this.timings = {
             vhsDuration: 1000,
             loreFadeOut: 500,
@@ -371,7 +377,6 @@ export class UIManager {
     }
 
     renderFinalStats(state) {
-        console.log("DEBUG: renderFinalStats called with state:", state);
         const totalProcesados = state.admittedNPCs.length + state.ignoredNPCs.length + state.purgedNPCs.length + state.departedNPCs.length;
         const admitted = state.admittedNPCs.length;
         const purged = state.purgedNPCs.length;
@@ -467,6 +472,13 @@ export class UIManager {
         this.elements.paranoia.text(`${paranoia}%`);
         this.elements.cycle.text(cycle);
         this.elements.time.text(`${dayTime}/${dayLength}`);
+
+        // La revisión solo es "obligatoria" si no hay energía o está apagado
+        const generatorOk = State.generator && State.generator.isOn;
+        const needsCheck = !generatorOk; 
+        
+        if (this.elements.genWarningGame) this.elements.genWarningGame.toggleClass('hidden', !needsCheck);
+        if (this.elements.genWarningShelter) this.elements.genWarningShelter.toggleClass('hidden', !needsCheck);
         
         if (paranoia > 70) {
             this.elements.paranoia.removeClass('text-chlorine-light').addClass('text-alert');
@@ -477,19 +489,22 @@ export class UIManager {
         // Update Energy
         const energySpan = $('#scan-energy');
         if (currentNPC) {
-            const scansLeft = currentNPC.maxScans - currentNPC.scanCount;
-            let bolts = '';
-            for(let i=0; i<scansLeft; i++) bolts += '⚡';
-            energySpan.text(bolts);
+            // Definir límite máximo según modo
+            const mode = State.generator.mode;
+            const maxEnergy = State.config.generator.consumption[mode] || 2;
+
+            // Calcular energía actual (0 si está apagado o fallo)
+            const currentEnergy = (!State.generator.isOn || currentNPC.scanCount >= 90) ? 0 : Math.max(0, maxEnergy - currentNPC.scanCount);
             
-            if (scansLeft > 0) {
-                energySpan.removeClass('text-gray-500').addClass('text-cyan-400');
+            energySpan.text(`${currentEnergy}/${maxEnergy}`);
+            
+            if (currentEnergy > 0) {
+                energySpan.removeClass('text-alert animate-pulse').addClass('text-cyan-400');
             } else {
-                energySpan.removeClass('text-cyan-400').addClass('text-gray-500');
+                energySpan.removeClass('text-cyan-400').addClass('text-alert animate-pulse');
             }
 
-            const generatorOk = State.generator && State.generator.isOn && (State.generator.power > 10);
-            if (scansLeft <= 0 || !generatorOk) {
+            if (currentEnergy <= 0) {
                 this.elements.tools.forEach(btn => btn.addClass('btn-disabled'));
             } else {
                 this.elements.tools.forEach(btn => btn.removeClass('btn-disabled'));
@@ -546,7 +561,103 @@ export class UIManager {
         return (value ?? '').toString();
     }
 
+    updateGameActions() {
+        if (!this.elements.gameActionsContainer) return;
+
+        // La revisión solo es "obligatoria" visualmente si no hay energía o está apagado
+        const generatorOk = State.generator && State.generator.isOn && (State.generator.power > 10);
+        const needsCheck = !generatorOk;
+        
+        if (this.elements.genWarningGame) this.elements.genWarningGame.toggleClass('hidden', !needsCheck);
+        
+        // Los botones de admitir/ignorar ya no se reemplazan aquí.
+        // Se asume que el HTML inicial de index.html es el correcto.
+    }
+
+    updateInspectionTools() {
+        if (!this.elements.inspectionToolsContainer) return;
+
+        const npc = State.currentNPC;
+        
+        if (!State.generator.isOn) {
+            // Caso 1: Generador apagado
+            this.elements.inspectionToolsContainer.removeClass('grid-cols-2 sm:grid-cols-2 lg:grid-cols-4').addClass('grid-cols-1');
+            this.elements.inspectionToolsContainer.html(`
+                <button id="btn-goto-generator" class="horror-btn horror-btn-alert w-full p-6 text-xl flex items-center justify-center gap-3 animate-pulse">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>SISTEMA ELÉCTRICO INESTABLE: REVISAR GENERADOR</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            `);
+            
+            // Simplemente vinculamos al botón del nav para no complicarnos
+            $('#btn-goto-generator').off('click').on('click', () => {
+                $('#nav-generator').trigger('click');
+            });
+            
+            return;
+        }
+
+        // Determinar el límite de energía actual según el modo
+        const currentMode = State.generator.mode;
+        const maxEnergy = State.config.generator.consumption[currentMode] || 2;
+
+        if (npc && npc.scanCount >= maxEnergy) {
+            // Caso 3: Sin energías por el límite del modo actual
+            this.elements.inspectionToolsContainer.removeClass('grid-cols-2 sm:grid-cols-2 lg:grid-cols-4').addClass('grid-cols-1');
+            this.elements.inspectionToolsContainer.html(`
+                <div class="horror-btn horror-btn-disabled w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed">
+                    <i class="fa-solid fa-battery-empty mr-2"></i>
+                    BATERÍAS AGOTADAS: SOLO DIÁLOGO O DECISIÓN
+                </div>
+            `);
+        } else {
+            // Caso Normal con energía disponible
+            this.elements.inspectionToolsContainer.removeClass('grid-cols-1').addClass('grid-cols-2 sm:grid-cols-2 lg:grid-cols-4');
+            
+            const modeMap = {
+                'save': 'Ahorro: Máx 1',
+                'normal': 'Normal: Máx 2',
+                'overload': 'Overclock: Máx 3'
+            };
+            const modeLabel = modeMap[currentMode] || `Modo ${currentMode}`;
+
+            let extraLabel = `<div class="col-span-full text-center text-[10px] text-chlorine-light mb-1 opacity-80 uppercase tracking-widest">
+                <i class="fa-solid fa-bolt mr-1"></i> ${modeLabel}
+            </div>`;
+
+            this.elements.inspectionToolsContainer.html(`
+                ${extraLabel}
+                <button id="tool-thermo" class="horror-btn horror-btn-tool ${npc && npc.revealedStats.includes('temperature') ? 'btn-disabled opacity-20 grayscale' : ''}">
+                    <i class="fa-solid fa-temperature-half"></i> TERMÓMETRO
+                </button>
+                <button id="tool-flash" class="horror-btn horror-btn-tool ${npc && npc.revealedStats.includes('skinTexture') ? 'btn-disabled opacity-20 grayscale' : ''}">
+                    <i class="fa-solid fa-lightbulb"></i> LINTERNA UV
+                </button>
+                <button id="tool-pulse" class="horror-btn horror-btn-tool ${npc && npc.revealedStats.includes('pulse') ? 'btn-disabled opacity-20 grayscale' : ''}">
+                    <i class="fa-solid fa-heart-pulse"></i> PULSO
+                </button>
+                <button id="tool-pupils" class="horror-btn horror-btn-tool ${npc && npc.revealedStats.includes('pupils') ? 'btn-disabled opacity-20 grayscale' : ''}">
+                    <i class="fa-solid fa-eye"></i> PUPILAS
+                </button>
+            `);
+            
+            // Vincular eventos
+            if (window.game) {
+                $('#tool-thermo').on('click', () => !$(this).hasClass('btn-disabled') && window.game.inspect('thermo'));
+                $('#tool-flash').on('click', () => !$(this).hasClass('btn-disabled') && window.game.inspect('flashlight'));
+                $('#tool-pulse').on('click', () => !$(this).hasClass('btn-disabled') && window.game.inspect('pulse'));
+                $('#tool-pupils').on('click', () => !$(this).hasClass('btn-disabled') && window.game.inspect('pupils'));
+                $('#tool-thermo, #tool-flash, #tool-pulse, #tool-pupils').addClass('btn-interactive');
+            }
+        }
+    }
+
     renderNPC(npc) {
+        // Update action buttons and tools based on generator status
+        this.updateGameActions();
+        this.updateInspectionTools();
+
         // Reset Visuals
         this.elements.npcDisplay.css({ transform: 'none', filter: 'none' });
         this.elements.npcDisplay.empty();
@@ -580,30 +691,39 @@ export class UIManager {
             
             btn.on('click', () => {
                 if (npc.dialogueTree[opt.next]) {
+                    // Al seleccionar cualquier diálogo, el botón de omitir desaparece permanentemente
+                    npc.dialogueStarted = true;
+                    this.hideOmitOption(); // Asegurar que se oculta inmediatamente
+                    
                     this.updateDialogueBox(npc.dialogueTree[opt.next], npc);
                     if (!npc.history) npc.history = [];
                     npc.history.push(`Q: ${opt.label} | A: ${npc.dialogueTree[opt.next].text}`);
                     State.dialoguesCount++;
-                    if (opt.next === 'end') this.hideOmitOption();
+                    
+                    this.updateInspectionTools(); // Asegurar que las herramientas reflejen que ya hubo interacción
                 }
             });
             
             this.elements.dialogueOptions.append(btn);
         });
-        if (!npc.optOut && npc.scanCount === 0) {
+
+        // Solo mostrar botón omitir si no se ha interactuado de ninguna forma (ni diálogo ni tests)
+        const hasInteracted = npc.dialogueStarted || npc.scanCount > 0;
+
+        if (!npc.optOut && !hasInteracted) {
             const omitBtn = $('<button>', {
                 class: 'option-btn option-omit border border-[#7a5a1a] text-[#ffcc66] px-2 py-1 hover:bg-[#7a5a1a] hover:text-black transition-colors text-left text-sm',
-                text: '> Omitir test'
+                text: '> Omitir por diálogo'
             });
             omitBtn.on('click', () => {
                 npc.optOut = true;
                 npc.scanCount = npc.maxScans;
+                npc.dialogueStarted = true; // También cuenta como interacción
                 if (!npc.history) npc.history = [];
-                npc.history.push('Se eligió omitir el test.');
-                State.dialoguesCount++;
+                npc.history.push('Protocolo de omisión por diálogo activado.');
                 this.showFeedback('TEST OMITIDO POR DIÁLOGO', 'yellow');
-                this.updateStats(State.paranoia, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
-                omitBtn.remove();
+                this.updateInspectionTools();
+                this.updateDialogueBox(npc.dialogueTree['end'] || {text: "Entendido. Puede continuar.", options: []}, npc);
             });
             this.elements.dialogueOptions.append(omitBtn);
         }
@@ -753,6 +873,29 @@ export class UIManager {
         this.elements.dayafterTestsLeft.text(testsLeft);
         const validatedCount = npcs.filter(n => n.dayAfter && n.dayAfter.validated).length;
         this.elements.dayafterValidatedCount.text(validatedCount);
+
+        // La revisión solo es "obligatoria" si no hay energía o está apagado
+        const generatorOk = State.generator && State.generator.isOn && (State.generator.power > 10);
+        const needsCheck = !generatorOk;
+
+        if (this.elements.genWarningShelter) this.elements.genWarningShelter.toggleClass('hidden', !needsCheck);
+        
+        // Si necesita revisión, podemos añadir un botón temporal en el panel de tests
+        const testsPanel = this.elements.dayafterPanel.find('.flex.flex-wrap');
+        if (needsCheck) {
+            if ($('#btn-shelter-goto-gen').length === 0) {
+                const btn = $('<button>', {
+                    id: 'btn-shelter-goto-gen',
+                    class: 'horror-btn horror-btn-alert px-3 py-1 text-xs flex items-center gap-2 animate-pulse',
+                    html: '<i class="fa-solid fa-bolt"></i> IR AL GENERADOR'
+                }).on('click', () => {
+                    if (window.game) window.game.openGenerator();
+                });
+                testsPanel.append(btn);
+            }
+        } else {
+            $('#btn-shelter-goto-gen').remove();
+        }
     }
 
     renderMorgueGrid(npcs, onDetailClick) {
@@ -830,6 +973,17 @@ export class UIManager {
     
     renderGeneratorRoom() {
         State.generatorCheckedThisTurn = true;
+        
+        // Update warnings immediately
+        if (this.elements.genWarningGame) this.elements.genWarningGame.addClass('hidden');
+        if (this.elements.genWarningShelter) this.elements.genWarningShelter.addClass('hidden');
+        if (this.elements.genWarningPanel) this.elements.genWarningPanel.removeClass('hidden'); // Show maintenance info in panel
+        
+        // Refresh game actions to restore normal buttons
+        this.updateGameActions();
+        this.updateInspectionTools();
+        this.updateStats(State.paranoia, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
+
         const panel = this.elements.generatorPanel;
         const bar = this.elements.generatorPowerBar;
         const modeLabel = this.elements.generatorModeLabel;
@@ -876,48 +1030,88 @@ export class UIManager {
         };
 
         setToggleVisuals();
+
+        // Actualizar resumen de estado (Fuera del manual)
+        const statusSummary = $('#generator-status-summary');
+        if (statusSummary.length) {
+            const statusHtml = `
+                <span>ESTADO: <span class="${State.generator.isOn ? 'text-chlorine-light' : 'text-alert'}">${State.generator.isOn ? 'OPERATIVO' : 'OFF'}</span></span>
+                <span>MODO: <span class="text-white">${State.generator.isOn ? State.generator.mode.toUpperCase() : 'N/A'}</span></span>
+            `;
+            statusSummary.html(statusHtml);
+        }
+
         toggleBtn.off('click').on('click', () => {
-            State.generator.isOn = !State.generator.isOn;
-            if (!State.generator.isOn) State.generator.mode = 'normal';
+            if (window.game) window.game.toggleGenerator();
+            else {
+                State.generator.isOn = !State.generator.isOn;
+                if (!State.generator.isOn) State.generator.mode = 'normal';
+                this.renderGeneratorRoom();
+            }
             if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
             toggleBtn.addClass('animate__animated animate__pulse');
             setTimeout(() => toggleBtn.removeClass('animate__animated animate__pulse'), 300);
-            this.renderGeneratorRoom();
         });
-        $('#btn-gen-save').off('click').on('click', () => {
-            State.generator.mode = 'save';
-            if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
-            this.renderGeneratorRoom();
-        });
-        $('#btn-gen-normal').off('click').on('click', () => {
-            State.generator.mode = 'normal';
-            if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
-            this.renderGeneratorRoom();
-        });
-        $('#btn-gen-over').off('click').on('click', () => {
-            State.generator.mode = 'overload';
-            if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
-            if (Math.random() < 0.35) {
-                const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-                State.generator.blackoutUntil = now + 1200;
-                this.applyBlackout(1200);
+
+        // Configurar botones de modo con restricción de potencia
+        const btnSave = $('#btn-gen-save');
+        const btnNormal = $('#btn-gen-normal');
+        const btnOver = $('#btn-gen-over');
+
+        const handleModeSwitch = (newMode, newCap) => {
+            const currentMax = State.generator.maxModeCapacityReached;
+            const npc = State.currentNPC;
+            
+            // Si hay un NPC y ya se ha realizado alguna acción (scan o diálogo), aplicamos la restricción
+            const actionTaken = (npc && npc.scanCount > 0) || State.dialogueStarted;
+
+            if (actionTaken && newCap > currentMax) {
+                this.showFeedback(`SISTEMA BLOQUEADO: No puedes subir la potencia tras interactuar con el civil.`, "yellow");
+                if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
+                return false;
             }
+
+            State.generator.mode = newMode;
+            // Actualizamos el techo de capacidad (solo si hay acciones se vuelve restrictivo para el futuro)
+            State.generator.maxModeCapacityReached = newCap; 
+            
+            if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.showFeedback(`MODO ${newMode.toUpperCase()} ACTIVADO`, "green");
             this.renderGeneratorRoom();
+            return true;
+        };
+
+        btnSave.off('click').on('click', () => handleModeSwitch('save', 1));
+        btnNormal.off('click').on('click', () => handleModeSwitch('normal', 2));
+        
+        // El botón Overload se bloquea si hay enfriamiento
+        if (State.generator.overclockCooldown) {
+            btnOver.prop('disabled', true).addClass('opacity-50 grayscale cursor-not-allowed');
+            btnOver.attr('title', 'BLOQUEADO: Espera al siguiente turno');
+        } else {
+            btnOver.prop('disabled', false).removeClass('opacity-50 grayscale cursor-not-allowed');
+            btnOver.attr('title', 'Sobrecarga el sistema (Overclock)');
+        }
+
+        btnOver.off('click').on('click', () => {
+            if (State.generator.overclockCooldown) return;
+            
+            if (handleModeSwitch('overload', 3)) {
+                if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
+                if (Math.random() < 0.35) {
+                    const now = Date.now();
+                    State.generator.blackoutUntil = now + 1200;
+                    this.applyBlackout(1200);
+                }
+            }
         });
-        $('#btn-gen-save').toggleClass('horror-btn-primary', State.generator.mode === 'save');
-        $('#btn-gen-normal').toggleClass('horror-btn-primary', State.generator.mode === 'normal');
-        $('#btn-gen-over').toggleClass('horror-btn-primary', State.generator.mode === 'overload');
+
+        btnSave.toggleClass('horror-btn-primary', State.generator.mode === 'save');
+        btnNormal.toggleClass('horror-btn-primary', State.generator.mode === 'normal');
+        btnOver.toggleClass('horror-btn-primary', State.generator.mode === 'overload');
+        
         $('#btn-gen-manual-toggle').off('click').on('click', () => {
-            const manual = $('#generator-manual');
-            manual.toggleClass('hidden');
-            if (!manual.hasClass('hidden')) {
-                const lines = [
-                    `- Estado: ${State.generator.isOn ? 'ON' : 'OFF'} (${State.generator.isOn ? 'verde brillante' : 'rojo'})`,
-                    `- Modo actual: ${State.generator.isOn ? State.generator.mode.toUpperCase() : 'APAGADO'}`,
-                    `- Consejos: AHORRO reduce intrusiones; SOBRECARGA puede causar apagones.`
-                ];
-                manual.html(`<p>${lines[0]}</p><p>${lines[1]}</p><p>${lines[2]}</p>`);
-            }
+            $('#generator-manual').toggleClass('hidden');
         });
     }
     
