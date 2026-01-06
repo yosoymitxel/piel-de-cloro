@@ -28,6 +28,7 @@ export const State = {
     admittedNPCs: [],
     purgedNPCs: [], // Shelter purges
     ignoredNPCs: [], // Just for stats
+    departedNPCs: [],
     currentNPC: null,
     dialoguesCount: 0,
     verificationsCount: 0,
@@ -48,6 +49,9 @@ export const State = {
         victims: 0,
         message: ''
     },
+    
+    generator: { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0 },
+    paused: false,
 
     reset() {
         this.paranoia = 0;
@@ -56,6 +60,7 @@ export const State = {
         this.admittedNPCs = [];
         this.purgedNPCs = [];
         this.ignoredNPCs = [];
+        this.departedNPCs = [];
         this.currentNPC = null;
         this.dialoguesCount = 0;
         this.verificationsCount = 0;
@@ -66,6 +71,7 @@ export const State = {
         this.dayEnded = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
+        this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0 };
         this.playerInfected = Math.random() < this.config.playerInfectedProbability;
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight = { occurred: false, victims: 0, message: '' };
@@ -120,6 +126,13 @@ export const State = {
         }
         return items;
     },
+    
+    ensureGeneratorItem() {
+        const exists = this.securityItems.some(i => i.type === 'generador');
+        if (!exists) {
+            this.securityItems.unshift({ type: 'generador', isOn: true, mode: 'normal', power: 100 });
+        }
+    },
 
     startNextDay() {
         this.cycle++;
@@ -129,10 +142,46 @@ export const State = {
         this.dayEnded = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
+        this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0 };
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight.occurred = true;
         this.purgedNPCs.forEach(n => {
             if (n.death) n.death.revealed = true;
         });
+        const canLeave = this.admittedNPCs.length;
+        if (canLeave > 0) {
+            const leaveCount = Math.max(1, Math.min(3, Math.floor(1 + Math.random() * 3)));
+            const actual = Math.min(leaveCount, canLeave);
+            const leftNames = [];
+            for (let i = 0; i < actual; i++) {
+                const idx = Math.floor(Math.random() * this.admittedNPCs.length);
+                const npc = this.admittedNPCs.splice(idx, 1)[0];
+                if (npc) {
+                    npc.left = { cycle: this.cycle };
+                    this.departedNPCs.push(npc);
+                    leftNames.push(npc.name);
+                }
+            }
+            const msg = actual === 1 ? `Durante la noche, ${leftNames[0]} abandonó la comuna.` : `Durante la noche, ${actual} integrantes abandonaron la comuna.`;
+            this.lastNight.message = this.lastNight.message ? `${this.lastNight.message} ${msg}` : msg;
+        }
+    },
+    
+    getIntrusionModifier() {
+        let m = 1.0;
+        if (!this.generator.isOn) m *= 1.35;
+        if (this.generator.mode === 'save') m *= 0.9;
+        if (this.generator.mode === 'overload') m *= 1.2;
+        if (this.generator.blackoutUntil && ((typeof performance !== 'undefined' ? performance.now() : Date.now()) < this.generator.blackoutUntil)) {
+            m *= 1.5;
+        }
+        return m;
+    },
+    
+    getGlitchModifier() {
+        let g = 1.0;
+        if (!this.generator.isOn) g *= 1.2;
+        if (this.generator.mode === 'overload') g *= 1.4;
+        return g;
     }
 };

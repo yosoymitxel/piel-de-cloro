@@ -126,6 +126,20 @@ h1, h2, h3 {
     border-color: var(--color-chlorine-light);
 }
 
+/* Generator toggle states */
+.btn-on {
+    background: #00FF00 !important;
+    color: #000 !important;
+    border-color: #aaffaa !important;
+    box-shadow: 0 0 12px #00FF00aa;
+}
+.btn-off {
+    background: #ff2b2b !important;
+    color: #000 !important;
+    border-color: #ff6666 !important;
+    box-shadow: 0 0 12px #ff2b2baa;
+}
+
 .horror-btn-primary:hover {
     background: var(--color-chlorine-light);
     box-shadow: 0 0 15px var(--color-chlorine-light);
@@ -195,6 +209,14 @@ h1, h2, h3 {
     background: var(--color-chlorine);
     color: var(--color-dark);
     border-left-color: var(--color-chlorine-light);
+}
+
+/* Pause visual state */
+body.paused .game-container {
+    filter: grayscale(60%) brightness(0.8);
+}
+#screen-game.is-paused {
+    pointer-events: none;
 }
 
 .nav-btn:focus-visible {
@@ -379,6 +401,22 @@ h1, h2, h3 {
     box-shadow: 0 0 12px var(--color-chlorine);
 }
 
+/* Modal types */
+.modal-normal .horror-panel { background: #0a0f0a; border-color: var(--color-chlorine-light); }
+.modal-lore .horror-panel { background: #0b0f0b; border-color: #88dd88; }
+.modal-death .horror-panel { background: #120101; border-color: var(--color-alert); }
+.modal-warning .horror-panel { background: #130f00; border-color: #ffcc66; }
+.modal-death #modal-message-content { color: var(--color-alert); text-shadow: 0 0 10px var(--color-alert); }
+.modal-warning #modal-message-content { color: #ffcc66; text-shadow: 0 0 10px #ffcc66; }
+.modal-normal #modal-message-content { color: var(--color-chlorine-light); }
+.modal-lore #modal-message-content { color: #a8d5a2; }
+
+/* Modal icons */
+.modal-death-icon { width: 14px; height: 14px; display: inline-block; background: var(--color-alert); border: 1px solid #ff6666; box-shadow: 0 0 8px var(--color-alert); }
+.modal-warning-icon { width: 0; height: 0; display: inline-block; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 14px solid #ffcc66; margin-right: 6px; }
+.modal-lore-icon { width: 14px; height: 14px; display: inline-block; border: 1px solid #88dd88; box-shadow: 0 0 8px #88dd88; }
+.modal-normal-icon { width: 14px; height: 14px; display: inline-block; border: 1px solid var(--color-chlorine-light); }
+
 .lore-danger {
     border-color: var(--color-alert);
     box-shadow: 0 0 20px rgba(255, 51, 51, 0.25), inset 0 0 10px rgba(255, 51, 51, 0.15);
@@ -508,6 +546,14 @@ h1, h2, h3 {
 
 /* Responsive grids */
 @media (max-width: 640px) {
+
+
+/* Distintivo para 'Puesto' (centro del juego) */
+#sidebar-left #nav-guard.active {
+    background: #163b1c !important;
+    border-color: #2d5a27 !important;
+    color: #d6ffd6 !important;
+}
     #shelter-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
     #morgue-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
     #dayafter-list { grid-template-columns: repeat(1, minmax(220px, 1fr)); }

@@ -57,6 +57,10 @@
                 <i class="fa-solid fa-shield-halved text-2xl"></i>
                 <span class="font-bold">PUESTO</span>
             </button>
+            <button id="nav-generator" class="nav-btn group flex flex-col items-center gap-1 p-4 w-full">
+                <i class="fa-solid fa-bolt text-2xl"></i>
+                <span class="font-bold">GENERADOR</span>
+            </button>
             <div class="mt-auto pb-3 ">
                 <button id="nav-morgue-stats" class="nav-btn group flex flex-col items-center gap-1 p-3 w-full" title="Estadísticas de partida (Morgue)">
                     <i class="fa-solid fa-chart-line text-2xl"></i>
@@ -90,6 +94,9 @@
                     <div class="flex gap-6">
                         <span>CICLO: <span id="cycle-count">1</span></span>
                         <span>HORA: <span id="time-display">08:00</span></span>
+                        <button id="btn-pause" class="horror-btn p-2 text-sm" title="Pausa">
+                            <i class="fa-solid fa-pause"></i> PAUSA
+                        </button>
                     </div>
                 </header>
 
@@ -182,6 +189,73 @@
                     <!-- Items -->
                 </div>
             </section>
+            
+            <!-- SCREEN: GENERATOR ROOM -->
+            <section id="screen-generator" class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
+                <header class="flex justify-center items-center border-b border-chlorine pb-2">
+                    <h2 class="text-2xl text-glow">SALA DE GENERADOR</h2>
+                </header>
+                <div class="flex-1 flex items-center justify-center">
+                    <div id="generator-panel" class="horror-panel w-[520px] max-w-full p-6 flex flex-col gap-4 items-center">
+                        <div id="generator-gauges" class="w-full flex gap-4 items-center justify-center">
+                            <div class="flex flex-col items-center gap-2">
+                                <span class="font-mono text-xs">POTENCIA</span>
+                                <div id="generator-power-bar" class="w-[220px] h-[10px]"></div>
+                            </div>
+                            <div class="flex flex-col items-center gap-2">
+                                <span class="font-mono text-xs">MODO</span>
+                                <span id="generator-mode-label" class="font-mono text-sm"></span>
+                            </div>
+                        </div>
+                        <div id="generator-knobs" class="grid grid-cols-2 gap-4 w-full">
+                            <button id="btn-gen-toggle" class="horror-btn p-3 font-mono flex items-center justify-center gap-2 col-span-2">
+                                <i class="fa-solid fa-power-off"></i> I/O
+                            </button>
+                            <button id="btn-gen-save" class="horror-btn p-3 font-mono flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-leaf"></i> AHORRO
+                            </button>
+                            <button id="btn-gen-over" class="horror-btn p-3 font-mono flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-bolt"></i> SOBRECARGA
+                            </button>
+                            <button id="btn-gen-normal" class="horror-btn p-3 font-mono flex items-center justify-center gap-2 col-span-2">
+                                <i class="fa-solid fa-equals"></i> NORMAL
+                            </button>
+                        </div>
+                        <div id="generator-extra" class="w-full flex flex-col items-center gap-2">
+                            <button id="btn-gen-manual-toggle" class="horror-btn w-full p-2 font-mono">MANUAL DE OPERACIÓN</button>
+                            <div id="generator-manual" class="hidden w-full bg-black/60 border border-[#1a3317] p-3 text-sm font-mono">
+                                <p>- ON/OFF: Control principal de energía del refugio. ON se indica en verde brillante.</p>
+                                <p>- AHORRO: Reduce consumo y baja probabilidad de intrusión.</p>
+                                <p>- NORMAL: Operación estable sin efectos adicionales.</p>
+                                <p>- SOBRECARGA: Aumenta potencia a corto plazo, puede provocar apagones y glitches.</p>
+                            </div>
+                            <span class="italic text-sm text-gray-400 text-center">La energía afecta herramientas, intrusiones y glitches.</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- MODAL: PAUSA -->
+            <div id="modal-pause" class="fixed inset-0 hidden items-center justify-center z-50">
+                <div class="horror-panel p-6 w-[420px] max-w-full">
+                    <header class="border-b border-chlorine pb-2 mb-3">
+                        <h3 class="text-xl font-mono">PAUSA</h3>
+                    </header>
+                    <div class="flex flex-col gap-4">
+                        <label class="flex items-center gap-3 font-mono">
+                            <input type="checkbox" id="toggle-mute-music">
+                            Silenciar música (ambiente y lore)
+                        </label>
+                        <label class="flex items-center gap-3 font-mono">
+                            <input type="checkbox" id="toggle-mute-sfx">
+                            Silenciar efectos (SFX)
+                        </label>
+                        <div class="flex justify-end">
+                            <button id="btn-pause-close" class="horror-btn horror-btn-primary px-4 py-2">CONTINUAR</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- SCREEN 4: MORGUE GRID -->
             <section id="screen-morgue" class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">

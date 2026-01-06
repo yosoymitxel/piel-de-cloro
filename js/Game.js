@@ -46,6 +46,7 @@ class Game {
         $('#nav-room').on('click', () => { this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openRoom(); });
         $('#nav-shelter').on('click', () => { this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openShelter(); });
         $('#nav-morgue').on('click', () => { this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openMorgue(); });
+        $('#nav-generator').on('click', () => { this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openGenerator(); });
         $('#nav-morgue-stats').on('click', () => this.toggleMorgueStats());
         $('#btn-audio-diagnostics').on('click', () => {
             const logs = this.audio.getLogString();
@@ -55,16 +56,51 @@ class Game {
             const report = await this.audio.validateManifest();
             this.ui.showMessage(report, () => {});
         });
+        $('#btn-pause').on('click', () => {
+            State.paused = true;
+            $('body').addClass('paused');
+            $('#screen-game').addClass('is-paused');
+            $('#modal-pause').removeClass('hidden').addClass('flex');
+            $('#toggle-mute-music').prop('checked', (this.audio.levels.ambient === 0 && this.audio.levels.lore === 0));
+            $('#toggle-mute-sfx').prop('checked', (this.audio.levels.sfx === 0));
+        });
+        $('#btn-pause-close').on('click', () => {
+            $('#modal-pause').addClass('hidden').removeClass('flex');
+            State.paused = false;
+            $('body').removeClass('paused');
+            $('#screen-game').removeClass('is-paused');
+        });
+        $('#toggle-mute-music').on('change', (e) => {
+            const checked = $(e.target).is(':checked');
+            if (checked) {
+                this.prevMusicLevels = { ambient: this.audio.levels.ambient, lore: this.audio.levels.lore };
+                this.audio.setChannelLevel('ambient', 0);
+                this.audio.setChannelLevel('lore', 0);
+            } else {
+                const prev = this.prevMusicLevels || { ambient: 0.28, lore: 0.5 };
+                this.audio.setChannelLevel('ambient', prev.ambient);
+                this.audio.setChannelLevel('lore', prev.lore);
+            }
+        });
+        $('#toggle-mute-sfx').on('change', (e) => {
+            const checked = $(e.target).is(':checked');
+            if (checked) {
+                this.prevSfxLevel = this.audio.levels.sfx;
+                this.audio.setChannelLevel('sfx', 0);
+            } else {
+                this.audio.setChannelLevel('sfx', this.prevSfxLevel ?? 1.0);
+            }
+        });
 
         // Game Actions
-        $('#btn-admit').on('click', () => { this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.handleDecision('admit'); });
-        $('#btn-ignore').on('click', () => { this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.handleDecision('ignore'); });
+        $('#btn-admit').on('click', () => { if (State.paused) return; this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.handleDecision('admit'); });
+        $('#btn-ignore').on('click', () => { if (State.paused) return; this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.handleDecision('ignore'); });
         
         // Tools
-        $('#tool-thermo').on('click', () => this.inspect('thermometer'));
-        $('#tool-flash').on('click', () => this.inspect('flashlight'));
-        $('#tool-pulse').on('click', () => this.inspect('pulse'));
-        $('#tool-pupils').on('click', () => this.inspect('pupils'));
+        $('#tool-thermo').on('click', () => { if (State.paused) return; this.inspect('thermometer'); });
+        $('#tool-flash').on('click', () => { if (State.paused) return; this.inspect('flashlight'); });
+        $('#tool-pulse').on('click', () => { if (State.paused) return; this.inspect('pulse'); });
+        $('#tool-pupils').on('click', () => { if (State.paused) return; this.inspect('pupils'); });
 
         // Night Actions
         $('#btn-sleep').on('click', () => this.sleep());
@@ -158,6 +194,7 @@ class Game {
                 if (npc.attributes.temperature < 35) color = '#aaffaa';
                 if (!npc.revealedStats.includes('temperature')) npc.revealedStats.push('temperature');
                 this.ui.applyVHS(0.4, 700);
+                this.ui.animateToolThermometer(npc.attributes.temperature);
                 this.audio.playSFXByKey('tool_thermometer_beep', { volume: 0.6 });
                 break;
             case 'flashlight':
@@ -167,18 +204,21 @@ class Game {
                 }
                 if (!npc.revealedStats.includes('skinTexture')) npc.revealedStats.push('skinTexture');
                 this.ui.applyVHS(0.7, 900);
+                this.ui.animateToolFlashlight(npc.attributes.skinTexture, npc.visualFeatures.skinColor);
                 this.audio.playSFXByKey('tool_uv_toggle', { volume: 0.6 });
                 break;
             case 'pupils':
                 result = `PUPILAS: ${this.ui.translateValue('pupils', npc.attributes.pupils)}`;
                 if (!npc.revealedStats.includes('pupils')) npc.revealedStats.push('pupils');
                 this.ui.applyVHS(0.6, 800);
+                this.ui.animateToolPupils(npc.attributes.pupils);
                 this.audio.playSFXByKey('tool_pupils_lens', { volume: 0.6 });
                 break;
             case 'pulse':
                 result = `BPM: ${npc.attributes.pulse}`;
                 if (!npc.revealedStats.includes('pulse')) npc.revealedStats.push('pulse');
                 this.ui.applyVHS(0.5, 800);
+                this.ui.animateToolPulse(npc.attributes.pulse);
                 this.audio.playSFXByKey('tool_pulse_beep', { volume: 0.6 });
                 break;
         }
@@ -253,6 +293,11 @@ class Game {
         });
         this.ui.showScreen('morgue');
         this.ui.updateRunStats(State);
+    }
+    
+    openGenerator() {
+        this.ui.renderGeneratorRoom();
+        this.ui.showScreen('generator');
     }
 
     calculatePurgeConsequences(npc) {
@@ -422,7 +467,7 @@ class Game {
     
     processIntrusions() {
         const items = State.securityItems;
-        const prob = State.config.securityIntrusionProbability;
+        const prob = State.config.securityIntrusionProbability * State.getIntrusionModifier();
         if (State.isShelterFull()) return;
         if (Math.random() >= prob) return;
         const alarm = items.find(i => i.type === 'alarma');
@@ -463,7 +508,7 @@ class Game {
             const items = State.securityItems;
             const alarm = items.find(i => i.type === 'alarma');
             const channels = items.filter(i => i.type !== 'alarma' && !i.secured);
-            const prob = State.config.dayIntrusionProbability;
+            const prob = State.config.dayIntrusionProbability * State.getIntrusionModifier();
             if (Math.random() < State.config.dayDeactivationProbability) {
                 const securedChannels = items.map((it, idx) => ({ it, idx })).filter(x => x.it.type !== 'alarma' && x.it.secured);
                 const activeAlarm = items.map((it, idx) => ({ it, idx })).find(x => x.it.type === 'alarma' && x.it.active);

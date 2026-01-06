@@ -9,7 +9,8 @@ export class UIManager {
             settings: $('#screen-settings'),
             night: $('#screen-night'),
             lore: $('#screen-lore'),
-            room: $('#screen-room')
+            room: $('#screen-room'),
+            generator: $('#screen-generator')
         };
         
         this.elements = {
@@ -25,6 +26,9 @@ export class UIManager {
             securityGrid: $('#security-grid'),
             securityCount: $('#security-count'),
             shelterCount: $('#shelter-count'),
+            generatorPanel: $('#generator-panel'),
+            generatorPowerBar: $('#generator-power-bar'),
+            generatorModeLabel: $('#generator-mode-label'),
             sidebar: $('#sidebar-left'),
             settingsBtn: $('#btn-settings-toggle'),
             dayafterPanel: $('#dayafter-panel'),
@@ -68,6 +72,290 @@ export class UIManager {
             validationOpen: 0,
             precloseOpen: 0
         };
+        const self = this;
+        this.modules = {
+            lore: {
+                showLore(type, onClose) {
+                    const title = $('#lore-screen-title');
+                    const content = $('#lore-screen-content');
+                    const panel = $('#screen-lore .lore-panel');
+                    let t = '';
+                    let c = '';
+                    title.removeClass('text-alert glitch-effect');
+                    panel.removeClass('animate__shakeX lore-danger lore-calm');
+                    if (type === 'initial') {
+                        t = 'Protocolo del Refugio';
+                        c = `
+                <p>Los piel de cloro son portadores. La piel se reseca, los ojos se dilatan y el pulso baja.</p>
+                <p>Herramientas: usa TERMÓMETRO, LINTERNA UV, PULSO y PUPILAS para revelar señales.</p>
+                <p>Decisiones: admitir aumenta riesgo; purgar reduce amenaza pero sube la paranoia si era civil.</p>
+                <p>Al caer la noche, si hay cloro dentro, alguien muere. Si no, descansas o afrontas un riesgo leve.</p>
+            `;
+                        if (self.audio) self.audio.playLoreByKey('lore_intro_track', { loop: false, volume: 0.22, crossfade: 600 });
+                    } else if (type === 'intermediate') {
+                        const variants = [
+                            { kind: 'radio', text: '“No somos individuos”. La señal se corta. Luego silencio.' },
+                            { kind: 'oido', text: 'Golpes: dos cortos y uno largo. Alguien sabe el patrón.' },
+                            { kind: 'vista', text: 'Una sombra cruzó el pasillo. Por un instante, todos respiramos igual.' },
+                            { kind: 'registro', text: 'Anotación: la piel reseca aparece con luz UV y olor metálico.' },
+                            { kind: 'radio', text: 'Se rumorea que se alimentan de humedad y agua estancada.' },
+                            { kind: 'oido', text: 'Susurros a través de las tuberías. La casa tiene garganta.' },
+                            { kind: 'vista', text: 'Los espejos del pasillo empañan cuando alguien miente sobre su piel.' },
+                            { kind: 'radio', text: 'Transmisión interceptada: “El cloro recuerda quién abrió la puerta”.' },
+                            { kind: 'oido', text: 'Un reloj de péndulo marca 7 latidos por segundo. No es el tiempo.' },
+                            { kind: 'registro', text: 'Nota olvidada: “Si la sed despierta tras beber, no bebas más”.' },
+                            { kind: 'vista', text: 'Las luces parpadean en código Morse: “AGUA NO”.' },
+                            { kind: 'radio', text: 'Estática que murmura nombres que aún no has dicho en voz alta.' },
+                            { kind: 'oido', text: 'Pasos sobre cristal mojado. Nadie lleva zapatos.' },
+                            { kind: 'registro', text: 'Página arrancada: “La piel se desprende si miras de frente demasiado rato”.' },
+                            { kind: 'vista', text: 'Una mancha verde en el techo crece cuando nadie la observa.' },
+                            { kind: 'radio', text: 'Voz infantil: “El agua de la ducha sabe a cloro y a recuerdos ajenos”.' },
+                            { kind: 'oido', text: 'Goteo que imita tu ritmo cardíaco hasta que cambias de ritmo.' },
+                            { kind: 'registro', text: 'Aviso: “Sellad las grietas con sal; el cloro odia el mar”.' },
+                            { kind: 'vista', text: 'Siluetas en la niebla interior que señalan puertas que no existen.' },
+                            { kind: 'radio', text: 'Última frecuencia: “No duermas con la boca abierta; entran las ideas”.' }
+                        ];
+                        t = 'Interludio';
+                        const pick = variants[Math.floor(Math.random() * variants.length)];
+                        const icon = pick.kind === 'radio' ? 'fa-tower-broadcast' : pick.kind === 'vista' ? 'fa-eye' : pick.kind === 'oido' ? 'fa-ear-listen' : 'fa-book-open';
+                        const label = pick.kind === 'radio' ? 'RADIO' : pick.kind === 'vista' ? 'VISTO' : pick.kind === 'oido' ? 'ESCUCHADO' : 'REGISTRO';
+                        c = `<p class="mb-2"><i class="fa-solid ${icon} mr-2"></i><span class="font-bold">${label}</span></p><p>${pick.text}</p>`;
+                        if (self.audio) {
+                            if (pick.kind === 'radio') self.audio.playLoreByKey('lore_interlude_radio', { loop: false, volume: 0.22, crossfade: 500 });
+                            else if (pick.kind === 'vista') self.audio.playLoreByKey('lore_interlude_seen', { loop: false, volume: 0.22, crossfade: 500 });
+                            else if (pick.kind === 'oido') self.audio.playLoreByKey('lore_interlude_heard', { loop: false, volume: 0.22, crossfade: 500 });
+                        }
+                    } else if (type === 'pre_final') {
+                        t = 'Umbral';
+                        c = 'Antes de decidir, recuerda: sin pruebas, solo queda la palabra. El refugio no olvida.';
+                    } else if (type === 'post_final') {
+                        t = 'Resonancia';
+                        c = 'El refugio recuerda. Las decisiones dejan marcas invisibles que la noche ilumina.';
+                    } else if (type === 'night_tranquil') {
+                        t = 'Noche tranquila';
+                        c = 'El silencio fue real. Nadie habló y nadie cayó.';
+                        panel.addClass('lore-calm');
+                    } else if (type === 'night_civil_death') {
+                        t = 'Noche de sangre';
+                        c = 'Alguien fue encontrado sin pulso. El cloro respiró entre nosotros.';
+                        title.addClass('text-alert');
+                        panel.addClass('animate__shakeX lore-danger');
+                        title.addClass('glitch-effect').attr('data-text', t);
+                        if (self.audio) self.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
+                    } else if (type === 'night_player_death') {
+                        t = 'Última guardia';
+                        c = 'El refugio te consumió. El cloro no duerme. Tú tampoco.';
+                        title.addClass('text-alert');
+                        panel.addClass('animate__shakeX lore-danger');
+                        title.addClass('glitch-effect').attr('data-text', t);
+                        if (self.audio) self.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
+                    } else if (type === 'final_clean') {
+                        t = 'Salida limpia';
+                        c = 'Escapaste con humanidad intacta. Por ahora, el ciclo descansa.';
+                        panel.addClass('lore-calm');
+                        if (self.audio) self.audio.playLoreByKey('lore_final_clean', { loop: false, volume: 0.22, crossfade: 600 });
+                    } else if (type === 'final_corrupted') {
+                        t = 'Salida contaminada';
+                        c = 'Escapaste, pero el agua os sigue. El ciclo no termina.';
+                        title.addClass('text-alert');
+                        panel.addClass('animate__shakeX lore-danger');
+                        title.addClass('glitch-effect').attr('data-text', t);
+                        if (self.audio) self.audio.playLoreByKey('lore_final_corrupted', { loop: false, volume: 0.22, crossfade: 600 });
+                    } else if (type === 'final_death_alone') {
+                        t = 'Soledad terminal';
+                        c = 'Nadie sobrevivió contigo. Nadie te escuchó. Fin.';
+                        title.addClass('text-alert');
+                        panel.addClass('animate__shakeX lore-danger');
+                        title.addClass('glitch-effect').attr('data-text', t);
+                        if (self.audio) self.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
+                    } else if (type === 'final_death_all_infected') {
+                        t = 'Refugio tomado';
+                        c = 'Todos eran cloro. No hubo salida posible.';
+                        title.addClass('text-alert');
+                        panel.addClass('animate__shakeX lore-danger');
+                        title.addClass('glitch-effect').attr('data-text', t);
+                        if (self.audio) self.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
+                    } else if (type === 'final_death_paranoia') {
+                        t = 'La paranoia te alcanzó';
+                        c = 'Al intentar huir, el ruido te encontró primero.';
+                        title.addClass('text-alert');
+                        panel.addClass('animate__shakeX lore-danger');
+                        title.addClass('glitch-effect').attr('data-text', t);
+                        if (self.audio) self.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
+                    } else if (type === 'final_player_infected_escape') {
+                        t = 'Salida portadora';
+                        c = 'No era el refugio. Eras tú. Lo llevaste contigo.';
+                        title.addClass('text-alert');
+                        panel.addClass('animate__shakeX lore-danger');
+                        title.addClass('glitch-effect').attr('data-text', t);
+                        if (self.audio) self.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
+                    }
+                    title.text(t);
+                    content.html(c);
+                    self.showScreen('lore');
+                    if (self.audio) self.audio.duckAmbient(0.12);
+                    $('#btn-lore-continue-screen').off('click').on('click', () => {
+                        if (self.audio) {
+                            self.audio.stopLore({ fadeOut: self.timings.loreFadeOut });
+                            self.audio.unduckAmbient(300, 0.28);
+                        }
+                        if (onClose) onClose();
+                        else self.showScreen('game');
+                    });
+                }
+            },
+            modal: {
+                showModalError(text) {
+                    self.elements.modalError.text(text).removeClass('hidden');
+                },
+                clearModalError() {
+                    self.elements.modalError.text('').addClass('hidden');
+                },
+                closeModal(silent = false) {
+                    this.clearModalError();
+                    self.elements.modal.addClass('hidden').removeClass('flex');
+                    self.elements.msgModal.addClass('hidden').removeClass('flex');
+                    if (!silent && self.audio) self.audio.playSFXByKey('ui_modal_close', { volume: 0.5, priority: 0 });
+                },
+                showMessage(text, onClose) {
+                    self.elements.msgContent.text(text);
+                    self.elements.msgModal.removeClass('hidden').addClass('flex');
+                    if (self.audio) self.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
+                    self.elements.msgBtn.off('click').on('click', () => {
+                        self.elements.msgModal.addClass('hidden').removeClass('flex');
+                        if (self.audio) self.audio.playSFXByKey('ui_modal_close', { volume: 0.5 });
+                        if (onClose) onClose();
+                    });
+                },
+                openModal(npc, allowPurge, onPurgeConfirm) {
+                    self.elements.modal.removeClass('hidden').addClass('flex');
+                    if (self.audio) self.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
+                    self.elements.modalName.text(`SUJETO ${npc.name}`);
+                    const visualContainer = $('#modal-npc-visual');
+                    visualContainer.empty().append(self.renderAvatar(npc, 'sm'));
+                    visualContainer.css('background', 'transparent');
+                    const avatarEl = visualContainer.find('.pixel-avatar');
+                    if (npc.death && npc.death.revealed && npc.isInfected) {
+                        avatarEl.addClass('infected');
+                    }
+                    if (allowPurge) {
+                        self.elements.modalStatus.text("EN REFUGIO").css('color', '#fff');
+                    } else {
+                        let statusText = 'POR DETERMINAR';
+                        let color = '#cccccc';
+                        if (npc.death && npc.death.revealed) {
+                            if (npc.death.reason === 'purga') {
+                                statusText = npc.isInfected ? 'PURGADO — CLORO' : 'PURGADO — CIVIL';
+                                color = npc.isInfected ? "#2d5a27" : "#cccccc";
+                            } else if (npc.death.reason === 'asesinado') {
+                                statusText = npc.isInfected ? 'ASESINADO — CLORO' : 'ASESINADO — CIVIL';
+                                color = npc.isInfected ? "#2d5a27" : "#cccccc";
+                            }
+                        }
+                        self.elements.modalStatus.text(statusText).css('color', color);
+                    }
+                    if (!npc.dayAfter) {
+                        npc.dayAfter = { dermis: false, pupils: false, temperature: false, pulse: false, usedNightTests: 0, validated: false };
+                    }
+                    const showStat = (key, label, value) => {
+                        const knownByDay = npc.revealedStats && npc.revealedStats.includes(key);
+                        const knownByNight = npc.dayAfter && npc.dayAfter[key];
+                        if (knownByDay || knownByNight) {
+                            return `<p>${label}: <span class="text-white">${value}</span></p>`;
+                        }
+                        return `<p>${label}: <span class="text-gray-600">???</span></p>`;
+                    };
+                    const dermisTxt = self.translateValue('skinTexture', npc.attributes.skinTexture);
+                    const pupilsTxt = self.translateValue('pupils', npc.attributes.pupils);
+                    const stayCycles = npc.enterCycle != null && npc.death ? Math.max(0, npc.death.cycle - npc.enterCycle) : (npc.enterCycle != null ? Math.max(0, State.cycle - npc.enterCycle) : 0);
+                    const extraDeathInfo = npc.death ? `<p>MUERTE: <span class="text-white">CICLO ${npc.death.cycle}</span></p><p>TIEMPO EN REFUGIO: <span class="text-white">${stayCycles} ciclos</span></p>` : '';
+                    self.elements.modalStats.html(`
+            ${showStat('temperature', 'TEMP', `${npc.attributes.temperature}°C`)}
+            ${showStat('pulse', 'PULSO', `${npc.attributes.pulse} BPM`)}
+            ${showStat('skinTexture', 'DERMIS', dermisTxt)}
+            ${showStat('pupils', 'PUPILAS', pupilsTxt)}
+            ${extraDeathInfo}
+        `);
+                    self.elements.modal.find('.dayafter-tests').remove();
+                    if (allowPurge) {
+                        const testsGrid = $('<div>', { class: 'dayafter-tests mt-3' });
+                        const handleAfterClick = () => {
+                            const complete = npc.dayAfter.dermis && npc.dayAfter.pupils && npc.dayAfter.temperature && npc.dayAfter.pulse;
+                            npc.dayAfter.validated = complete;
+                            self.updateDayAfterSummary(State.admittedNPCs);
+                            const dermisTxt2 = self.translateValue('skinTexture', npc.attributes.skinTexture);
+                            const pupilsTxt2 = self.translateValue('pupils', npc.attributes.pupils);
+                            const stayCycles2 = npc.enterCycle != null && npc.death ? Math.max(0, npc.death.cycle - npc.enterCycle) : (npc.enterCycle != null ? Math.max(0, State.cycle - npc.enterCycle) : 0);
+                            const extraDeathInfo2 = npc.death ? `<p>MUERTE: <span class="text-white">CICLO ${npc.death.cycle}</span></p><p>TIEMPO EN REFUGIO: <span class="text-white">${stayCycles2} ciclos</span></p>` : '';
+                            self.elements.modalStats.html(`
+                    ${showStat('temperature', 'TEMP', `${npc.attributes.temperature}°C`)}
+                    ${showStat('pulse', 'PULSO', `${npc.attributes.pulse} BPM`)}
+                    ${showStat('skinTexture', 'DERMIS', dermisTxt2)}
+                    ${showStat('pupils', 'PUPILAS', pupilsTxt2)}
+                    ${extraDeathInfo2}
+                `);
+                        };
+                        const makeSlot = (key, label) => {
+                            const knownByDay = npc.revealedStats && npc.revealedStats.includes(key);
+                            const doneNight = npc.dayAfter[key];
+                            const slot = $('<div>', { class: `slot ${knownByDay || doneNight ? 'done blocked' : ''}`, text: label });
+                            slot.on('click', () => {
+                                if (knownByDay || npc.dayAfter[key]) return;
+                                if (npc.dayAfter.usedNightTests >= 1) {
+                                    self.showModalError('SOLO 1 TEST NOCTURNO POR SUJETO');
+                                    return;
+                                }
+                                if (State.dayAfter.testsAvailable <= 0) {
+                                    self.showModalError('SIN TESTS DISPONIBLES');
+                                    return;
+                                }
+                                State.dayAfter.testsAvailable--;
+                                npc.dayAfter[key] = true;
+                                npc.dayAfter.usedNightTests++;
+                                slot.addClass('done');
+                                testsGrid.find('.slot').addClass('blocked');
+                                self.elements.dayafterTestsLeft.text(State.dayAfter.testsAvailable);
+                                handleAfterClick();
+                                self.clearModalError();
+                            });
+                            return slot;
+                        };
+                        testsGrid.append(
+                            makeSlot('skinTexture', 'DERMIS'),
+                            makeSlot('pupils', 'PUPILAS'),
+                            makeSlot('temperature', 'TEMP'),
+                            makeSlot('pulse', 'PULSO')
+                        );
+                        self.elements.modalStats.after(testsGrid);
+                    }
+                    self.elements.modalLog.empty();
+                    if (npc.history && npc.history.length > 0) {
+                        npc.history.forEach(entry => {
+                            self.elements.modalLog.append($('<div>', { class: 'mb-1 border-b border-gray-900 pb-1', text: entry }));
+                        });
+                    } else {
+                        self.elements.modalLog.text("Sin registro de diálogo.");
+                    }
+                    if (allowPurge) {
+                        self.elements.modalPurgeBtn.removeClass('hidden');
+                        self.elements.modalPurgeBtn.off('click').on('click', () => {
+                            const panel = $('#modal-npc .horror-panel');
+                            panel.addClass('modal-blood-flash');
+                            setTimeout(() => panel.removeClass('modal-blood-flash'), 700);
+                            if (self.audio) {
+                                self.audio.playSFXByKey('purge_blood_flash', { volume: 0.6, priority: 2, lockMs: 600 });
+                                self.audio.playSFXByKey('purge_confirm', { volume: 0.7, priority: 2, lockMs: 600 });
+                            }
+                            onPurgeConfirm(npc);
+                            self.closeModal(true);
+                        });
+                    } else {
+                        self.elements.modalPurgeBtn.addClass('hidden');
+                    }
+                    $('.close-modal').off('click').on('click', () => self.closeModal());
+                }
+            }
+        };
     }
 
     showScreen(screenName) {
@@ -83,8 +371,8 @@ export class UIManager {
             this.elements.settingsBtn.addClass('hidden');
         }
 
-        // Logic 2: Sidebar only on Game, Shelter, Morgue, Room (unless day end overlay is active)
-        if (['game', 'shelter', 'morgue', 'room'].includes(screenName)) {
+        // Logic 2: Sidebar only on Game, Shelter, Morgue, Room, Generator
+        if (['game', 'shelter', 'morgue', 'room', 'generator'].includes(screenName)) {
             this.elements.sidebar.removeClass('hidden');
         } else {
             this.elements.sidebar.addClass('hidden');
@@ -110,6 +398,7 @@ export class UIManager {
         if (screenName === 'shelter') $('#nav-shelter').addClass(activeClass).removeClass(inactiveClass);
         if (screenName === 'morgue') $('#nav-morgue').addClass(activeClass).removeClass(inactiveClass);
         if (screenName === 'room') $('#nav-room').addClass(activeClass).removeClass(inactiveClass);
+        if (screenName === 'generator') $('#nav-generator').addClass(activeClass).removeClass(inactiveClass);
         // Toggle visibility of morgue stats nav button
         $('#nav-morgue-stats').removeClass('hidden');
     }
@@ -148,8 +437,8 @@ export class UIManager {
                 energySpan.removeClass('text-cyan-400').addClass('text-gray-500');
             }
 
-            // Update Tools State
-            if (scansLeft <= 0) {
+            const generatorOk = State.generator && State.generator.isOn && (State.generator.power > 10);
+            if (scansLeft <= 0 || !generatorOk) {
                 this.elements.tools.forEach(btn => btn.addClass('btn-disabled'));
             } else {
                 this.elements.tools.forEach(btn => btn.removeClass('btn-disabled'));
@@ -219,7 +508,8 @@ export class UIManager {
         this.updateDialogueBox(npc.dialogueTree.root, npc);
         
         // Glitch
-        if (Math.random() < npc.visualFeatures.glitchChance) {
+        const glitchChance = Math.min(0.9, (npc.visualFeatures.glitchChance || 0) * (State.getGlitchModifier ? State.getGlitchModifier() : 1));
+        if (Math.random() < glitchChance) {
             this.triggerGlitch();
             this.applyVHS(0.8, 1000);
         }
@@ -331,134 +621,7 @@ export class UIManager {
         });
     }
 
-    showLore(type, onClose) {
-        const title = $('#lore-screen-title');
-        const content = $('#lore-screen-content');
-        const panel = $('#screen-lore .lore-panel');
-        let t = '';
-        let c = '';
-        title.removeClass('text-alert glitch-effect');
-        panel.removeClass('animate__shakeX lore-danger lore-calm');
-        if (type === 'initial') {
-            t = 'Protocolo del Refugio';
-            c = `
-                <p>Los piel de cloro son portadores. La piel se reseca, los ojos se dilatan y el pulso baja.</p>
-                <p>Herramientas: usa TERMÓMETRO, LINTERNA UV, PULSO y PUPILAS para revelar señales.</p>
-                <p>Decisiones: admitir aumenta riesgo; purgar reduce amenaza pero sube la paranoia si era civil.</p>
-                <p>Al caer la noche, si hay cloro dentro, alguien muere. Si no, descansas o afrontas un riesgo leve.</p>
-            `;
-            if (this.audio) this.audio.playLoreByKey('lore_intro_track', { loop: false, volume: 0.22, crossfade: 600 });
-        } else if (type === 'intermediate') {
-            const variants = [
-                { kind: 'radio', text: '“No somos individuos”. La señal se corta. Luego silencio.' },
-                { kind: 'oido', text: 'Golpes: dos cortos y uno largo. Alguien sabe el patrón.' },
-                { kind: 'vista', text: 'Una sombra cruzó el pasillo. Por un instante, todos respiramos igual.' },
-                { kind: 'registro', text: 'Anotación: la piel reseca aparece con luz UV y olor metálico.' },
-                { kind: 'radio', text: 'Se rumorea que se alimentan de humedad y agua estancada.' },
-                { kind: 'oido', text: 'Susurros a través de las tuberías. La casa tiene garganta.' },
-                { kind: 'vista', text: 'Los espejos del pasillo empañan cuando alguien miente sobre su piel.' },
-                { kind: 'radio', text: 'Transmisión interceptada: “El cloro recuerda quién abrió la puerta”.' },
-                { kind: 'oido', text: 'Un reloj de péndulo marca 7 latidos por segundo. No es el tiempo.' },
-                { kind: 'registro', text: 'Nota olvidada: “Si la sed despierta tras beber, no bebas más”.' },
-                { kind: 'vista', text: 'Las luces parpadean en código Morse: “AGUA NO”.' },
-                { kind: 'radio', text: 'Estática que murmura nombres que aún no has dicho en voz alta.' },
-                { kind: 'oido', text: 'Pasos sobre cristal mojado. Nadie lleva zapatos.' },
-                { kind: 'registro', text: 'Página arrancada: “La piel se desprende si miras de frente demasiado rato”.' },
-                { kind: 'vista', text: 'Una mancha verde en el techo crece cuando nadie la observa.' },
-                { kind: 'radio', text: 'Voz infantil: “El agua de la ducha sabe a cloro y a recuerdos ajenos”.' },
-                { kind: 'oido', text: 'Goteo que imita tu ritmo cardíaco hasta que cambias de ritmo.' },
-                { kind: 'registro', text: 'Aviso: “Sellad las grietas con sal; el cloro odia el mar”.' },
-                { kind: 'vista', text: 'Siluetas en la niebla interior que señalan puertas que no existen.' },
-                { kind: 'radio', text: 'Última frecuencia: “No duermas con la boca abierta; entran las ideas”.' }
-            ];
-            t = 'Interludio';
-            const pick = variants[Math.floor(Math.random() * variants.length)];
-            const icon = pick.kind === 'radio' ? 'fa-tower-broadcast' : pick.kind === 'vista' ? 'fa-eye' : pick.kind === 'oido' ? 'fa-ear-listen' : 'fa-book-open';
-            const label = pick.kind === 'radio' ? 'RADIO' : pick.kind === 'vista' ? 'VISTO' : pick.kind === 'oido' ? 'ESCUCHADO' : 'REGISTRO';
-            c = `<p class="mb-2"><i class="fa-solid ${icon} mr-2"></i><span class="font-bold">${label}</span></p><p>${pick.text}</p>`;
-            if (this.audio) {
-                if (pick.kind === 'radio') this.audio.playLoreByKey('lore_interlude_radio', { loop: false, volume: 0.22, crossfade: 500 });
-                else if (pick.kind === 'vista') this.audio.playLoreByKey('lore_interlude_seen', { loop: false, volume: 0.22, crossfade: 500 });
-                else if (pick.kind === 'oido') this.audio.playLoreByKey('lore_interlude_heard', { loop: false, volume: 0.22, crossfade: 500 });
-            }
-        } else if (type === 'pre_final') {
-            t = 'Umbral';
-            c = 'Antes de decidir, recuerda: sin pruebas, solo queda la palabra. El refugio no olvida.';
-        } else if (type === 'post_final') {
-            t = 'Resonancia';
-            c = 'El refugio recuerda. Las decisiones dejan marcas invisibles que la noche ilumina.';
-        } else if (type === 'night_tranquil') {
-            t = 'Noche tranquila';
-            c = 'El silencio fue real. Nadie habló y nadie cayó.';
-            panel.addClass('lore-calm');
-        } else if (type === 'night_civil_death') {
-            t = 'Noche de sangre';
-            c = 'Alguien fue encontrado sin pulso. El cloro respiró entre nosotros.';
-            title.addClass('text-alert');
-            panel.addClass('animate__shakeX lore-danger');
-            title.addClass('glitch-effect').attr('data-text', t);
-            if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
-        } else if (type === 'night_player_death') {
-            t = 'Última guardia';
-            c = 'El refugio te consumió. El cloro no duerme. Tú tampoco.';
-            title.addClass('text-alert');
-            panel.addClass('animate__shakeX lore-danger');
-            title.addClass('glitch-effect').attr('data-text', t);
-            if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
-        } else if (type === 'final_clean') {
-            t = 'Salida limpia';
-            c = 'Escapaste con humanidad intacta. Por ahora, el ciclo descansa.';
-            panel.addClass('lore-calm');
-            if (this.audio) this.audio.playLoreByKey('lore_final_clean', { loop: false, volume: 0.22, crossfade: 600 });
-        } else if (type === 'final_corrupted') {
-            t = 'Salida contaminada';
-            c = 'Escapaste, pero el agua os sigue. El ciclo no termina.';
-            title.addClass('text-alert');
-            panel.addClass('animate__shakeX lore-danger');
-            title.addClass('glitch-effect').attr('data-text', t);
-            if (this.audio) this.audio.playLoreByKey('lore_final_corrupted', { loop: false, volume: 0.22, crossfade: 600 });
-        } else if (type === 'final_death_alone') {
-            t = 'Soledad terminal';
-            c = 'Nadie sobrevivió contigo. Nadie te escuchó. Fin.';
-            title.addClass('text-alert');
-            panel.addClass('animate__shakeX lore-danger');
-            title.addClass('glitch-effect').attr('data-text', t);
-            if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
-        } else if (type === 'final_death_all_infected') {
-            t = 'Refugio tomado';
-            c = 'Todos eran cloro. No hubo salida posible.';
-            title.addClass('text-alert');
-            panel.addClass('animate__shakeX lore-danger');
-            title.addClass('glitch-effect').attr('data-text', t);
-            if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
-        } else if (type === 'final_death_paranoia') {
-            t = 'La paranoia te alcanzó';
-            c = 'Al intentar huir, el ruido te encontró primero.';
-            title.addClass('text-alert');
-            panel.addClass('animate__shakeX lore-danger');
-            title.addClass('glitch-effect').attr('data-text', t);
-            if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
-        } else if (type === 'final_player_infected_escape') {
-            t = 'Salida portadora';
-            c = 'No era el refugio. Eras tú. Lo llevaste contigo.';
-            title.addClass('text-alert');
-            panel.addClass('animate__shakeX lore-danger');
-            title.addClass('glitch-effect').attr('data-text', t);
-            if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
-        }
-        title.text(t);
-        content.html(c);
-        this.showScreen('lore');
-        if (this.audio) this.audio.duckAmbient(0.12);
-        $('#btn-lore-continue-screen').off('click').on('click', () => {
-            if (this.audio) {
-                this.audio.stopLore({ fadeOut: this.timings.loreFadeOut });
-                this.audio.unduckAmbient(300, 0.28);
-            }
-            if (onClose) onClose();
-            else this.showScreen('game');
-        });
-    }
+    showLore(type, onClose) { return this.modules.lore.showLore(type, onClose); }
 
     showPreCloseFlow(onAction) {
         const overlay = $('#preclose-overlay');
@@ -571,213 +734,154 @@ export class UIManager {
 
     renderSecurityRoom(items, onToggle) {
         this.elements.securityGrid.empty();
-        this.elements.securityCount.text(items.length);
+        const filtered = items.filter(i => i.type !== 'generador');
+        this.elements.securityCount.text(filtered.length);
         const batch = [];
-        items.forEach((it, idx) => {
-            const icon = it.type === 'alarma' ? 'fa-bell' : it.type === 'puerta' ? 'fa-door-closed' : it.type === 'ventana' ? 'fa-window-maximize' : 'fa-water';
+        filtered.forEach((it, idx) => {
+            const icon = it.type === 'alarma' ? 'fa-bell' : it.type === 'puerta' ? 'fa-door-closed' : it.type === 'ventana' ? 'fa-window-maximize' : it.type === 'tuberias' ? 'fa-water' : it.type === 'generador' ? 'fa-bolt' : 'fa-question';
             const activeOrSecured = it.type === 'alarma' ? it.active : it.secured;
+            const activeColor = '#00FF00';
+            const inactiveColor = '#ff2b2b';
+            const borderColor = activeOrSecured ? activeColor : inactiveColor;
+            const iconColor = activeOrSecured ? activeColor : inactiveColor;
             const card = $('<div>', {
-                class: `bg-[#080808] border ${activeOrSecured ? 'border-chlorine' : 'border-[#333]'} p-3 flex flex-col gap-2 items-center hover:border-chlorine-light hover:bg-[#111] transition-all`
+                class: `bg-[#080808] p-3 flex flex-col gap-2 items-center hover:bg-[#111] transition-all`,
+                css: { border: `1px solid ${borderColor}` }
             });
-            card.append($('<i>', { class: `fa-solid ${icon} text-3xl ${activeOrSecured ? 'text-chlorine' : 'text-chlorine-light'}` }));
-            const label = it.type === 'alarma' ? 'ALARMA' : (it.type === 'tuberias' ? 'TUBERÍAS' : it.type.toUpperCase());
+            card.append($('<i>', { class: `fa-solid ${icon} text-3xl`, css: { color: iconColor } }));
+            const label = it.type === 'alarma' ? 'ALARMA' : (it.type === 'tuberias' ? 'TUBERÍAS' : it.type === 'generador' ? 'GENERADOR' : it.type.toUpperCase());
             card.append($('<span>', { text: label, class: 'text-xs font-mono' }));
-            const btnText = it.type === 'alarma' ? (it.active ? 'ACTIVADA' : 'ACTIVAR') : (activeOrSecured ? 'ASEGURADO' : 'ASEGURAR');
-            const btn = $('<button>', { class: 'horror-btn horror-btn-primary w-full py-1 text-xs', text: btnText });
-            if (activeOrSecured) btn.addClass('opacity-60');
-            btn.on('click', () => {
-                if (it.type === 'alarma') {
-                    if (!it.active) it.active = true;
-                    if (this.audio) this.audio.playSFXByKey('alarm_activate', { volume: 0.6, priority: 1 });
-                } else {
-                    if (!it.secured) it.secured = true;
-                    if (this.audio) {
-                        if (it.type === 'puerta') this.audio.playSFXByKey('door_secure', { volume: 0.6, priority: 1 });
-                        if (it.type === 'ventana') this.audio.playSFXByKey('window_secure', { volume: 0.6, priority: 1 });
-                        if (it.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
+            {
+                const btnText = it.type === 'alarma' ? (it.active ? 'ACTIVADA' : 'ACTIVAR') : (activeOrSecured ? 'ASEGURADO' : 'ASEGURAR');
+                const btn = $('<button>', { class: 'horror-btn horror-btn-primary w-full py-1 text-xs', text: btnText });
+                if (activeOrSecured) btn.addClass('opacity-60');
+                btn.on('click', () => {
+                    if (it.type === 'alarma') {
+                        if (!it.active) it.active = true;
+                        if (this.audio) this.audio.playSFXByKey('alarm_activate', { volume: 0.6, priority: 1 });
+                    } else {
+                        if (!it.secured) it.secured = true;
+                        if (this.audio) {
+                            if (it.type === 'puerta') this.audio.playSFXByKey('door_secure', { volume: 0.6, priority: 1 });
+                            if (it.type === 'ventana') this.audio.playSFXByKey('window_secure', { volume: 0.6, priority: 1 });
+                            if (it.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
+                        }
                     }
-                }
-                if (onToggle) onToggle(idx, it);
-                this.renderSecurityRoom(items, onToggle);
-            });
-            card.append(btn);
+                    if (onToggle) onToggle(idx, it);
+                    this.renderSecurityRoom(items, onToggle);
+                });
+                card.append(btn);
+            }
             batch.push(card[0]);
         });
         if (batch.length) this.elements.securityGrid.append(batch);
     }
-    openModal(npc, allowPurge, onPurgeConfirm) {
-        this.elements.modal.removeClass('hidden').addClass('flex');
-        if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
-        this.elements.modalName.text(`SUJETO ${npc.name}`);
-        // Visual in Modal
-        const visualContainer = $('#modal-npc-visual');
-        visualContainer.empty().append(this.renderAvatar(npc, 'sm'));
-        // Fix styles for mini visual in modal since we are appending 'sm' avatar
-        visualContainer.css('background', 'transparent');
-        // Diferenciar infectados en modal
-        const avatarEl = visualContainer.find('.pixel-avatar');
-        if (npc.death && npc.death.revealed && npc.isInfected) {
-            avatarEl.addClass('infected');
-        }
-
-        if (allowPurge) {
-            this.elements.modalStatus.text("EN REFUGIO").css('color', '#fff');
-        } else {
-            let statusText = 'POR DETERMINAR';
-            let color = '#cccccc';
-            if (npc.death && npc.death.revealed) {
-                if (npc.death.reason === 'purga') {
-                    statusText = npc.isInfected ? 'PURGADO — CLORO' : 'PURGADO — CIVIL';
-                    color = npc.isInfected ? "#2d5a27" : "#ff3333";
-                } else if (npc.death.reason === 'asesinado') {
-                    statusText = npc.isInfected ? 'ASESINADO — CLORO' : 'ASESINADO — CIVIL';
-                    color = npc.isInfected ? "#2d5a27" : "#ff3333";
-                }
+    
+    renderGeneratorRoom() {
+        const panel = this.elements.generatorPanel;
+        const bar = this.elements.generatorPowerBar;
+        const modeLabel = this.elements.generatorModeLabel;
+        const power = Math.max(0, Math.min(100, State.generator.power));
+        const color = State.generator.isOn ? '#00FF00' : '#7a1a1a';
+        bar.empty();
+        const fill = $('<div>', { css: { width: `${power}%`, height: '100%', background: color } });
+        bar.css({ background: '#111', border: '1px solid #555', position: 'relative' }).append(fill);
+        modeLabel.text(State.generator.isOn ? State.generator.mode.toUpperCase() : 'APAGADO');
+        const toggleBtn = $('#btn-gen-toggle');
+        const setToggleVisuals = () => {
+            toggleBtn.toggleClass('horror-btn-primary', State.generator.isOn);
+            toggleBtn.removeClass('btn-off btn-on');
+            if (State.generator.isOn) {
+                toggleBtn.addClass('btn-on');
+                toggleBtn.find('i').css('color', '#00FF00');
+                toggleBtn.text('').append($('<i>', { class: 'fa-solid fa-power-off' })).append($('<span>', { text: ' ON', class: 'ml-2' }));
+            } else {
+                toggleBtn.addClass('btn-off');
+                toggleBtn.find('i').css('color', '#ff2b2b');
+                toggleBtn.text('').append($('<i>', { class: 'fa-solid fa-power-off' })).append($('<span>', { text: ' OFF', class: 'ml-2' }));
             }
-            this.elements.modalStatus.text(statusText).css('color', color);
-        }
-
-        // Ensure day-after state
-        if (!npc.dayAfter) {
-            npc.dayAfter = { dermis: false, pupils: false, temperature: false, pulse: false, usedNightTests: 0, validated: false };
-        }
-
-        // Show data if known from admission OR learned at night
-        const showStat = (key, label, value) => {
-            const knownByDay = npc.revealedStats && npc.revealedStats.includes(key);
-            const knownByNight = npc.dayAfter && npc.dayAfter[key];
-            if (knownByDay || knownByNight) {
-                return `<p>${label}: <span class="text-white">${value}</span></p>`;
-            }
-            return `<p>${label}: <span class="text-gray-600">???</span></p>`;
         };
-
-        const dermisTxt = this.translateValue('skinTexture', npc.attributes.skinTexture);
-        const pupilsTxt = this.translateValue('pupils', npc.attributes.pupils);
-        const stayCycles = npc.enterCycle != null && npc.death ? Math.max(0, npc.death.cycle - npc.enterCycle) : (npc.enterCycle != null ? Math.max(0, State.cycle - npc.enterCycle) : 0);
-        const extraDeathInfo = npc.death ? `<p>MUERTE: <span class="text-white">CICLO ${npc.death.cycle}</span></p><p>TIEMPO EN REFUGIO: <span class="text-white">${stayCycles} ciclos</span></p>` : '';
-        this.elements.modalStats.html(`
-            ${showStat('temperature', 'TEMP', `${npc.attributes.temperature}°C`)}
-            ${showStat('pulse', 'PULSO', `${npc.attributes.pulse} BPM`)}
-            ${showStat('skinTexture', 'DERMIS', dermisTxt)}
-            ${showStat('pupils', 'PUPILAS', pupilsTxt)}
-            ${extraDeathInfo}
-        `);
-        
-        // Remove old tests grid if present to avoid duplication
-        this.elements.modal.find('.dayafter-tests').remove();
-        // Inject tests UI when in shelter
-        if (allowPurge) {
-            const testsGrid = $('<div>', { class: 'dayafter-tests mt-3' });
-            const purgeBtnRef = this.elements.modalPurgeBtn;
-            const handleAfterClick = () => {
-                const complete = npc.dayAfter.dermis && npc.dayAfter.pupils && npc.dayAfter.temperature && npc.dayAfter.pulse;
-                npc.dayAfter.validated = complete;
-                this.updateDayAfterSummary(State.admittedNPCs);
-                const dermisTxt2 = this.translateValue('skinTexture', npc.attributes.skinTexture);
-                const pupilsTxt2 = this.translateValue('pupils', npc.attributes.pupils);
-                const stayCycles2 = npc.enterCycle != null && npc.death ? Math.max(0, npc.death.cycle - npc.enterCycle) : (npc.enterCycle != null ? Math.max(0, State.cycle - npc.enterCycle) : 0);
-                const extraDeathInfo2 = npc.death ? `<p>MUERTE: <span class="text-white">CICLO ${npc.death.cycle}</span></p><p>TIEMPO EN REFUGIO: <span class="text-white">${stayCycles2} ciclos</span></p>` : '';
-                this.elements.modalStats.html(`
-                    ${showStat('temperature', 'TEMP', `${npc.attributes.temperature}°C`)}
-                    ${showStat('pulse', 'PULSO', `${npc.attributes.pulse} BPM`)}
-                    ${showStat('skinTexture', 'DERMIS', dermisTxt2)}
-                    ${showStat('pupils', 'PUPILAS', pupilsTxt2)}
-                    ${extraDeathInfo2}
-                `);
-            };
-            const makeSlot = (key, label) => {
-                const knownByDay = npc.revealedStats && npc.revealedStats.includes(key);
-                const doneNight = npc.dayAfter[key];
-                const slot = $('<div>', { class: `slot ${knownByDay || doneNight ? 'done blocked' : ''}`, text: label });
-                slot.on('click', () => {
-                    if (knownByDay || npc.dayAfter[key]) return;
-                    if (npc.dayAfter.usedNightTests >= 1) {
-                        this.showModalError('SOLO 1 TEST NOCTURNO POR SUJETO');
-                        return;
-                    }
-                    if (State.dayAfter.testsAvailable <= 0) {
-                        this.showModalError('SIN TESTS DISPONIBLES');
-                        return;
-                    }
-                    State.dayAfter.testsAvailable--;
-                    npc.dayAfter[key] = true;
-                    npc.dayAfter.usedNightTests++;
-                    slot.addClass('done');
-                    // Bloquear el resto de slots para este sujeto
-                    testsGrid.find('.slot').addClass('blocked');
-                    this.elements.dayafterTestsLeft.text(State.dayAfter.testsAvailable);
-                    handleAfterClick();
-                    this.clearModalError();
-                });
-                return slot;
-            };
-            testsGrid.append(
-                makeSlot('skinTexture', 'DERMIS'),
-                makeSlot('pupils', 'PUPILAS'),
-                makeSlot('temperature', 'TEMP'),
-                makeSlot('pulse', 'PULSO')
-            );
-            this.elements.modalStats.after(testsGrid);
-        }
-        
-        // Logs
-        this.elements.modalLog.empty();
-        if (npc.history && npc.history.length > 0) {
-            npc.history.forEach(entry => {
-                this.elements.modalLog.append($('<div>', { class: 'mb-1 border-b border-gray-900 pb-1', text: entry }));
-            });
-        } else {
-            this.elements.modalLog.text("Sin registro de diálogo.");
-        }
-
-        // Action
-        if (allowPurge) {
-            this.elements.modalPurgeBtn.removeClass('hidden');
-            // Remove previous handlers to avoid multiple clicks
-            this.elements.modalPurgeBtn.off('click').on('click', () => {
-                const panel = $('#modal-npc .horror-panel');
-                panel.addClass('modal-blood-flash');
-                setTimeout(() => panel.removeClass('modal-blood-flash'), 700);
-                if (this.audio) {
-                    this.audio.playSFXByKey('purge_blood_flash', { volume: 0.6, priority: 2, lockMs: 600 });
-                    this.audio.playSFXByKey('purge_confirm', { volume: 0.7, priority: 2, lockMs: 600 });
-                }
-                onPurgeConfirm(npc);
-                this.closeModal(true);
-            });
-        } else {
-            this.elements.modalPurgeBtn.addClass('hidden');
-        }
-
-        // Close logic
-        $('.close-modal').off('click').on('click', () => this.closeModal());
+        setToggleVisuals();
+        toggleBtn.off('click').on('click', () => {
+            State.generator.isOn = !State.generator.isOn;
+            if (!State.generator.isOn) State.generator.mode = 'normal';
+            if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            toggleBtn.addClass('animate__animated animate__pulse');
+            setTimeout(() => toggleBtn.removeClass('animate__animated animate__pulse'), 300);
+            this.renderGeneratorRoom();
+        });
+        $('#btn-gen-save').off('click').on('click', () => {
+            State.generator.mode = 'save';
+            if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.renderGeneratorRoom();
+        });
+        $('#btn-gen-normal').off('click').on('click', () => {
+            State.generator.mode = 'normal';
+            if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.renderGeneratorRoom();
+        });
+        $('#btn-gen-over').off('click').on('click', () => {
+            State.generator.mode = 'overload';
+            if (this.audio) this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
+            if (Math.random() < 0.35) {
+                const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+                State.generator.blackoutUntil = now + 1200;
+                this.applyBlackout(1200);
+            }
+            this.renderGeneratorRoom();
+        });
+        $('#btn-gen-save').toggleClass('horror-btn-primary', State.generator.mode === 'save');
+        $('#btn-gen-normal').toggleClass('horror-btn-primary', State.generator.mode === 'normal');
+        $('#btn-gen-over').toggleClass('horror-btn-primary', State.generator.mode === 'overload');
+        $('#btn-gen-manual-toggle').off('click').on('click', () => {
+            const manual = $('#generator-manual');
+            manual.toggleClass('hidden');
+            if (!manual.hasClass('hidden')) {
+                const lines = [
+                    `- Estado: ${State.generator.isOn ? 'ON' : 'OFF'} (${State.generator.isOn ? 'verde brillante' : 'rojo'})`,
+                    `- Modo actual: ${State.generator.isOn ? State.generator.mode.toUpperCase() : 'APAGADO'}`,
+                    `- Consejos: AHORRO reduce intrusiones; SOBRECARGA puede causar apagones.`
+                ];
+                manual.html(`<p>${lines[0]}</p><p>${lines[1]}</p><p>${lines[2]}</p>`);
+            }
+        });
     }
-
-    showModalError(text) {
-        this.elements.modalError.text(text).removeClass('hidden');
-    }
-    clearModalError() {
-        this.elements.modalError.text('').addClass('hidden');
-    }
-    closeModal(silent = false) {
-        this.clearModalError();
-        this.elements.modal.addClass('hidden').removeClass('flex');
-        this.elements.msgModal.addClass('hidden').removeClass('flex');
-        if (!silent && this.audio) this.audio.playSFXByKey('ui_modal_close', { volume: 0.5, priority: 0 });
-    }
-
-    showMessage(text, onClose) {
-        this.elements.msgContent.text(text);
-        this.elements.msgModal.removeClass('hidden').addClass('flex');
+    
+    showTypedModal(type = 'normal', title = '', body = '', onClose) {
+        const modal = this.elements.msgModal;
+        const content = this.elements.msgContent;
+        const btn = this.elements.msgBtn;
+        modal.removeClass('hidden').addClass('flex');
+        content.html(`<div class="modal-${type}-icon mr-2 inline-block"></div><span>${title ? title + '<br>' : ''}${body}</span>`);
+        modal.removeClass('modal-normal modal-lore modal-death modal-warning').addClass(`modal-${type}`);
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
-        
-        this.elements.msgBtn.off('click').on('click', () => {
-            this.elements.msgModal.addClass('hidden').removeClass('flex');
+        btn.off('click').on('click', () => {
+            modal.addClass('hidden').removeClass('flex');
             if (this.audio) this.audio.playSFXByKey('ui_modal_close', { volume: 0.5 });
             if (onClose) onClose();
         });
     }
+    
+    applyBlackout(ms = 1200) {
+        const target = $('#screen-game').find('main.vhs-target');
+        const overlay = $('<div>', { class: 'blackout', css: { position: 'fixed', inset: 0, background: '#000', opacity: 0.0, pointerEvents: 'none', zIndex: 9999 } });
+        $('body').append(overlay);
+        const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        const step = (now) => {
+            const t = Math.min(1, (now - start) / ms);
+            overlay.css('opacity', t < 0.5 ? t * 0.8 : (1 - t) * 1.6);
+            if (t < 1) requestAnimationFrame(step);
+            else overlay.remove();
+        };
+        requestAnimationFrame(step);
+    }
+    openModal(npc, allowPurge, onPurgeConfirm) { return this.modules.modal.openModal(npc, allowPurge, onPurgeConfirm); }
+
+    showModalError(text) { return this.modules.modal.showModalError(text); }
+    clearModalError() { return this.modules.modal.clearModalError(); }
+    closeModal(silent = false) { return this.modules.modal.closeModal(silent); }
+
+    showMessage(text, onClose) { return this.modules.modal.showMessage(text, onClose); }
 
     updateRunStats(state) {
         const admitted = state.admittedNPCs.length;
@@ -816,6 +920,103 @@ export class UIManager {
             avatar.css({ filter: 'none' });
             this.infectionEffectActive = false;
         }, 120);
+    }
+    
+    animateToolThermometer(value) {
+        const container = this.elements.npcDisplay;
+        container.css('position', 'relative');
+        container.find('.tool-thermo').remove();
+        const overlay = $('<div>', { class: 'tool-thermo', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
+        const panel = $('<div>', { css: { background: 'rgba(0,0,0,0.6)', border: '1px solid #333', padding: '8px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' } });
+        const label = $('<div>', { text: `${value}°C`, css: { color: '#fff', fontFamily: 'monospace', fontSize: '14px' } });
+        const barBg = $('<div>', { css: { width: '160px', height: '8px', background: '#111', border: '1px solid #555', position: 'relative' } });
+        const bar = $('<div>', { css: { width: '0%', height: '100%', background: value < 35 ? '#2d5a27' : '#a83232' } });
+        barBg.append(bar);
+        panel.append(label, barBg);
+        overlay.append(panel);
+        container.append(overlay);
+        const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        const target = Math.max(0, Math.min(100, Math.round((value / 45) * 100)));
+        const step = (now) => {
+            const t = Math.min(1, (now - start) / 700);
+            const w = Math.floor(target * t);
+            bar.css('width', `${w}%`);
+            if (t < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+        setTimeout(() => overlay.remove(), 1000);
+    }
+    
+    animateToolFlashlight(skinTexture, skinColor) {
+        const container = this.elements.npcDisplay;
+        container.css('position', 'relative');
+        container.find('.tool-flash').remove();
+        const flash = $('<div>', { class: 'tool-flash', css: { position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.25)', mixBlendMode: 'screen', pointerEvents: 'none', zIndex: 10 } });
+        container.append(flash);
+        const avatar = container.find('.pixel-avatar');
+        const head = avatar.find('.avatar-head');
+        const neck = avatar.find('.avatar-neck');
+        const origHead = head.css('background-color');
+        const origNeck = neck.css('background-color');
+        if (skinTexture === 'dry') {
+            const tint = 'hue-rotate(90deg) contrast(115%) saturate(110%)';
+            avatar.css('filter', tint);
+        }
+        setTimeout(() => {
+            flash.remove();
+            avatar.css('filter', 'none');
+            head.css('background-color', origHead);
+            neck.css('background-color', origNeck);
+        }, 450);
+    }
+    
+    animateToolPulse(bpm) {
+        const container = this.elements.npcDisplay;
+        container.css('position', 'relative');
+        container.find('.tool-pulse').remove();
+        const overlay = $('<div>', { class: 'tool-pulse', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
+        const panel = $('<div>', { css: { background: 'rgba(0,0,0,0.6)', border: '1px solid #333', padding: '8px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' } });
+        const label = $('<div>', { text: `${bpm} BPM`, css: { color: '#fff', fontFamily: 'monospace', fontSize: '14px' } });
+        const scope = $('<div>', { css: { width: '180px', height: '24px', background: '#111', border: '1px solid #555', position: 'relative', overflow: 'hidden' } });
+        const line = $('<div>', { css: { position: 'absolute', left: '0px', top: '12px', width: '20px', height: '2px', background: '#2d5a27' } });
+        scope.append(line);
+        panel.append(label, scope);
+        overlay.append(panel);
+        container.append(overlay);
+        const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        const intervalMs = Math.max(300, Math.min(1200, Math.round(60000 / Math.max(40, Math.min(160, bpm))))); 
+        let lastBeat = start;
+        const step = (now) => {
+            const elapsedSinceBeat = now - lastBeat;
+            const x = ((now - start) % 1000) / 1000;
+            const left = Math.floor(x * 180);
+            line.css('left', `${left}px`);
+            if (elapsedSinceBeat >= intervalMs) {
+                line.css('height', '8px');
+                setTimeout(() => line.css('height', '2px'), 100);
+                lastBeat = now;
+            }
+            if (now - start < 1200) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+        setTimeout(() => overlay.remove(), 1300);
+    }
+    
+    animateToolPupils(pupils) {
+        const avatar = this.elements.npcDisplay.find('.pixel-avatar');
+        const eyes = avatar.find('.avatar-eyes');
+        const origTransform = eyes.css('transform');
+        const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        const baseScale = pupils === 'dilated' ? 1.08 : 1.0;
+        const step = (now) => {
+            const t = Math.min(1, (now - start) / 2200);
+            const wobble = Math.sin(now / 600) * 0.01;
+            const scale = baseScale + wobble;
+            eyes.css('transform', `scale(${scale}) translateX(${Math.sin(now / 900) * 1.2}px)`);
+            if (t < 1) requestAnimationFrame(step);
+            else eyes.css('transform', origTransform || 'none');
+        };
+        requestAnimationFrame(step);
     }
 }
 
