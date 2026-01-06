@@ -1,6 +1,7 @@
 import { NPC } from './NPC.js';
 import { State } from './State.js';
-import { UIManager, StatsManager } from './UIManager.js';
+import { UIManager } from './UIManager.js';
+import { StatsManager } from './StatsManager.js';
 import { AudioManager } from './AudioManager.js';
 
 class Game {
@@ -113,15 +114,34 @@ class Game {
             }
         });
 
-        // Game Actions
-        $('#btn-admit').on('click', () => { if (State.paused) return; $('#btn-admit').addClass('btn-click-flash'); setTimeout(()=>$('#btn-admit').removeClass('btn-click-flash'),220); this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.handleDecision('admit'); });
-        $('#btn-ignore').on('click', () => { if (State.paused) return; $('#btn-ignore').addClass('btn-click-flash'); setTimeout(()=>$('#btn-ignore').removeClass('btn-click-flash'),220); this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.handleDecision('ignore'); });
+        // Game Actions (Delegated to handle dynamic updates if any)
+        $(document).on('click', '#btn-admit', () => { 
+            if (State.paused) return; 
+            $('#btn-admit').addClass('btn-click-flash'); 
+            setTimeout(()=>$('#btn-admit').removeClass('btn-click-flash'),220); 
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); 
+            this.handleDecision('admit'); 
+        });
+        
+        $(document).on('click', '#btn-ignore', () => { 
+            if (State.paused) return; 
+            $('#btn-ignore').addClass('btn-click-flash'); 
+            setTimeout(()=>$('#btn-ignore').removeClass('btn-click-flash'),220); 
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); 
+            this.handleDecision('ignore'); 
+        });
         
         // Tools delegation
         $('#inspection-tools-container').on('click', '#tool-thermo', () => { if (State.paused) return; this.inspect('thermometer'); });
         $('#inspection-tools-container').on('click', '#tool-flash', () => { if (State.paused) return; this.inspect('flashlight'); });
         $('#inspection-tools-container').on('click', '#tool-pulse', () => { if (State.paused) return; this.inspect('pulse'); });
         $('#inspection-tools-container').on('click', '#tool-pupils', () => { if (State.paused) return; this.inspect('pupils'); });
+        
+        // Generador toggle (Delegated)
+        $(document).on('click', '#btn-gen-toggle', () => {
+            // El evento ya se maneja en GeneratorManager, pero aseguramos que Game esté al tanto si fuera necesario
+            // En este caso, GeneratorManager ya hace el re-render.
+        });
         
         // El botón de ir al generador que aparece cuando está apagado
         $('#inspection-tools-container').on('click', '#btn-goto-generator', () => {
@@ -230,7 +250,6 @@ class Game {
 
         this.ui.hideFeedback();
         this.ui.renderNPC(State.currentNPC);
-        this.ui.updateToolButtons(State.currentNPC);
         
         if (State.currentNPC.isInfected) {
             State.infectedSeenCount++;
@@ -295,7 +314,7 @@ class Game {
         let animDuration = 1000;
 
         switch(tool) {
-            case 'thermo':
+            case 'thermometer':
                 animDuration = 2200;
                 result = `TEMP: ${npc.attributes.temperature}°C`;
                 if (npc.attributes.temperature < 35) color = '#aaffaa';
