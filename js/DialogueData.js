@@ -1,5 +1,12 @@
 export const DialogueData = {
-    personalities: ['nervous', 'aggressive', 'stoic', 'confused', 'fanatic', 'broken', 'body_horror'],
+    personalities: [
+        'nervous', 
+        'aggressive', 
+        'stoic', 
+        'confused', 
+        'fanatic', 
+        'broken', 
+        'body_horror'],
     // Pools of dialogues (each pool is an independent tree of nodes)
     pools: {
         // 1. THE SCRATCHER (El que se rasca)
@@ -11,7 +18,7 @@ export const DialogueData = {
             nodes: {
                 'gs_n1': {
                     id: 'gs_n1',
-                    text: "*Se rasca el antebrazo con uñas negras hasta sangrar.* \"Hay algo debajo... caminando bajo mi dermis.\" *El olor a cobre es intenso en el aire.*",
+                    text: "*Se frota el antebrazo compulsivamente.* \"El agua de las duchas... pica hoy. ¿No lo sientes?\" *Su piel está enrojecida.*",
                     options: [
                         { id: 'gs_o1', label: 'Examinar brazo', next: 'gs_n2a' },
                         { id: 'gs_o2', label: 'Ofrecer vendaje', next: 'gs_n2b' }
@@ -19,33 +26,33 @@ export const DialogueData = {
                 },
                 'gs_n2a': {
                     id: 'gs_n2a',
-                    text: "*La piel se ondula visiblemente; algo se mueve contra la corriente sanguínea.* \"No es una vena... las venas no tienen dientes.\" *Dicen que el agua del nivel 3 trajo los parásitos.*",
+                    text: "*La piel parece irritada, quizás es sarna o algo peor.* \"A veces siento que se mueve... pero debe ser el frío, ¿verdad?\" *Evita mirar la herida.*",
                     options: [
-                        { id: 'gs_o2a', label: 'Sajadura de emergencia', next: 'gs_n3a', sets: ['performed_surgery'] },
+                        { id: 'gs_o2a', label: 'Inspeccionar más de cerca', next: 'gs_n3a' },
                         { id: 'gs_o2b', label: 'Retroceder asqueado', next: 'gs_n3b' }
                     ]
                 },
                 'gs_n2b': {
                     id: 'gs_n2b',
-                    text: "*Rechaza la venda violentamente, arañando la tela.* \"¡Lo asfixias! ¡Necesita respirar!\" *Sus ojos están inyectados en ictericia.*",
+                    text: "*Acepta la venda con manos temblorosas.* \"Gracias... aunque taparlo no hace que pare. Nada hace que pare.\"",
                     options: [
-                        { id: 'gs_o2c', label: 'Someter', next: 'gs_n3b' },
+                        { id: 'gs_o2c', label: 'Preguntar desde cuándo', next: 'gs_n3b' },
                         { id: 'gs_o2d', label: 'Observar', next: 'gs_n3a' }
                     ]
                 },
                 'gs_n3a': {
                     id: 'gs_n3a',
-                    text: "*Al abrir la piel, brota un líquido gris y espeso que sisea al tocar el suelo.* \"¡Lo liberaste! ¡Ahora está en el aire!\" *El vapor huele a amoníaco.*",
-                    options: [{ id: 'gs_o3a', label: 'Expulsar del sector', next: null, resultText: "*Huye hacia la oscuridad convulsionando, mientras el líquido gris gotea tras él.* \"Volveré... cuando duermas...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gs_o3b', label: 'Testear fluido', next: 'gs_n4b' }]
+                    text: "*Al presionar, la piel cede de forma extraña, como si hubiera aire o líquido debajo.* \"¡Ay! ¡Cuidado! No lo despiertes...\"",
+                    options: [{ id: 'gs_o3a', label: 'Expulsar por precaución', next: null, resultText: "*Se marcha rascándose furiosamente.* \"Solo es alergia... ¡solo es alergia!\"", cssClass: 'horror-btn-dismiss' }, { id: 'gs_o3b', label: 'Realizar tests completos', next: 'gs_n4b' }]
                 },
                 'gs_n3b': {
                     id: 'gs_n3b',
-                    text: "*Se arranca una tira de piel, revelando músculo palpitante.* \"Mira... es hermoso...\" *Se ríe con burbujas de sangre.*",
-                    options: [{ id: 'gs_o3b', label: 'Ahuyentar', next: null, resultText: "*Huye hacia la oscuridad convulsionando, mientras el líquido gris gotea tras él.* \"Volveré... cuando duermas...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gs_o3c', label: 'Testear y admitir', next: 'gs_n4b' }]
+                    text: "*Se rasca hasta que brota una gota de sangre oscura.* \"Es el metal... el óxido del aire nos está cambiando.\"",
+                    options: [{ id: 'gs_o3b', label: 'Rechazar entrada', next: null, resultText: "*Se va murmurando y rascándose.*", cssClass: 'horror-btn-dismiss' }, { id: 'gs_o3c', label: 'Proceder a tests', next: 'gs_n4b' }]
                 },
                 'gs_n4b': {
                     id: 'gs_n4b',
-                    text: "*El análisis confirma parásitos activos, pero aislables.*",
+                    text: "*Requiere análisis clínico para descartar infección parasitaria.*",
                     options: [{ id: 'gs_o4b1', label: 'Admitir (Riesgo)', next: null, sets: ['admitted'] }, { id: 'gs_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
             }
@@ -59,40 +66,40 @@ export const DialogueData = {
             nodes: {
                 'gl_n1': {
                     id: 'gl_n1',
-                    text: "*Líquido negro gotea de su lagrimal, manchando su camisa.* \"Lloro aceite... la máquina me acepta como su hijo.\" *El generador zumba en aprobación.*",
+                    text: "*Se limpia los ojos constantemente con un pañuelo sucio.* \"Hay mucho humo en los túneles hoy. Me arden los ojos.\" *Sus ojos están muy llorosos.*",
                     options: [
-                        { id: 'gl_o1', label: 'Analizar fluido', next: 'gl_n2a' },
-                        { id: 'gl_o2', label: 'Cuestionar cordura', next: 'gl_n2b' }
+                        { id: 'gl_o1', label: 'Examinar ojos', next: 'gl_n2a' },
+                        { id: 'gl_o2', label: 'Ofrecer agua', next: 'gl_n2b' }
                     ]
                 },
                 'gl_n2a': {
                     id: 'gl_n2a',
-                    text: "*Tose una flema viscosa en tu mano si te acercas.* \"Es el bautismo... ¿no hueles la santidad del óxido?\" *Rumores dicen que beben del cárter.*",
+                    text: "*El lagrimal segrega un fluido ligeramente más denso y oscuro de lo normal.* \"Es solo irritación... o quizás conjuntivitis. No es nada grave.\"",
                     options: [
-                        { id: 'gl_o2a', label: 'Limpiarse y amenazar', next: 'gl_n3a' },
-                        { id: 'gl_o2b', label: 'Preguntar por el rito', next: 'gl_n3b' }
+                        { id: 'gl_o2a', label: 'Sospechar infección', next: 'gl_n3a' },
+                        { id: 'gl_o2b', label: 'Preguntar si ve bien', next: 'gl_n3b' }
                     ]
                 },
                 'gl_n2b': {
                     id: 'gl_n2b',
-                    text: "*Se frota el fluido por la cara como pintura de guerra.* \"¿Locura? Es evolución. Tú eres el obsoleto.\" *Su piel brilla, grasienta.*",
+                    text: "*Bebe con avidez, pero el agua se le escapa por la comisura, mezclada con saliva oscura.* \"Gracias... tenía la garganta seca como lija.\"",
                     options: [
-                        { id: 'gl_o2c', label: 'Declarar contaminado', next: 'gl_n3a' }
+                        { id: 'gl_o2c', label: 'Observar fluido', next: 'gl_n3a' }
                     ]
                 },
                 'gl_n3a': {
                     id: 'gl_n3a',
-                    text: "*Se lanza hacia ti intentando mancharte con sus secreciones.* \"¡Deja que te unja! ¡Sé uno con el engranaje!\"",
-                    options: [{ id: 'gl_o3a', label: 'Echar a patadas', next: null, resultText: "*Se aleja ahogándose en sus propios fluidos, buscando otra entrada.* \"El tanque... se desborda...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gl_o3b', label: 'Testear', next: 'gl_n4b' }]
+                    text: "*Se frota la cara, extendiendo una mancha grisácea.* \"¿Por qué me miras así? ¿Tengo algo en la cara?\"",
+                    options: [{ id: 'gl_o3a', label: 'Expulsar', next: null, resultText: "*Se va cubriéndose la cara.* \"Solo necesito colirio...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gl_o3b', label: 'Testear', next: 'gl_n4b' }]
                 },
                 'gl_n3b': {
                     id: 'gl_n3b',
-                    text: "*Sonríe, mostrando dientes negros.* \"La Gran Válvula se abrirá... y todos nos ahogaremos en su gracia.\"",
-                    options: [{ id: 'gl_o3c', label: 'Cerrar puerta', next: null, resultText: "*Se aleja ahogándose en sus propios fluidos, buscando otra entrada.* \"El tanque... se desborda...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gl_o3d', label: 'Testear', next: 'gl_n4b' }]
+                    text: "*Parpadea lentamente.* \"Veo... manchas. Como aceite flotando en agua. ¿Tú no las ves?\"",
+                    options: [{ id: 'gl_o3c', label: 'Rechazar', next: null, resultText: "*Se aleja tropezando.*", cssClass: 'horror-btn-dismiss' }, { id: 'gl_o3d', label: 'Testear', next: 'gl_n4b' }]
                 },
                 'gl_n4b': {
                     id: 'gl_n4b',
-                    text: "*El fluido es aceite industrial mezclado con sangre. Tóxico pero no contagioso.*",
+                    text: "*Secreción ocular anómala. Posible síntoma temprano.*",
                     options: [{ id: 'gl_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'gl_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
             }
@@ -106,40 +113,40 @@ export const DialogueData = {
             nodes: {
                 'gw_n1': {
                     id: 'gw_n1',
-                    text: "*Pega la oreja a la tubería caliente, ignorando la quemadura.* \"Shhh... están cantando la lista de nombres.\" *La tubería vibra levemente.*",
+                    text: "*Inclina la cabeza hacia un lado, como escuchando algo lejano.* \"¿Oyes eso? Parece... agua corriendo. O gente susurrando.\"",
                     options: [
                         { id: 'gw_o1', label: 'Escuchar también', next: 'gw_n2a' },
-                        { id: 'gw_o2', label: 'Alejarlo', next: 'gw_n2b' }
+                        { id: 'gw_o2', label: '¿Qué dicen?', next: 'gw_n2b' }
                     ]
                 },
                 'gw_n2a': {
                     id: 'gw_n2a',
-                    text: "*Solo oyes vapor, pero él asiente frenéticamente.* \"Dicen tu nombre... dicen que estás vacío por dentro.\" *Una vieja superstición de los mineros.*",
+                    text: "*Se pone tenso.* \"Están en las tuberías. Siempre empiezan bajito. Quizás es el eco del generador... o quizás no.\"",
                     options: [
-                        { id: 'gw_o2a', label: 'Negar', next: 'gw_n3a' },
-                        { id: 'gw_o2b', label: 'Preguntar qué más dicen', next: 'gw_n3b' }
+                        { id: 'gw_o2a', label: 'Es el viento', next: 'gw_n3a' },
+                        { id: 'gw_o2b', label: 'Pedir silencio', next: 'gw_n3b' }
                     ]
                 },
                 'gw_n2b': {
                     id: 'gw_n2b',
-                    text: "*Se golpea la cabeza contra el metal.* \"¡No puedo dejar de oírlo si me alejas! ¡Gritan!\" *Sangre mancha el óxido.*",
+                    text: "*Cierra los ojos.* \"Nombres. Repiten nombres. Espero que no digan el mío... ni el tuyo.\"",
                     options: [
-                        { id: 'gw_o2c', label: 'Sedar', next: 'gw_n4a' }
+                        { id: 'gw_o2c', label: 'Inquietante...', next: 'gw_n4b' }
                     ]
                 },
                 'gw_n3a': {
                     id: 'gw_n3a',
-                    text: "*Grita a la pared, desgarrándose la garganta.* \"¡Cállense! ¡No le diré nada! ¡Él no sabe!\"",
-                    options: [{ id: 'gw_o3a', label: 'Gritar para que se vaya', next: null, resultText: "*Huye tapándose los oídos, perdiéndose en el pasillo.* \"El ruido... me ha encontrado...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gw_o3b', label: 'Testear', next: 'gw_n4b' }]
+                    text: "*Sacude la cabeza.* \"Ojalá fuera el viento. El viento no tiene ritmo.\"",
+                    options: [{ id: 'gw_o3a', label: 'Rechazar por inestabilidad', next: null, resultText: "*Se va tapándose los oídos.*", cssClass: 'horror-btn-dismiss' }, { id: 'gw_o3b', label: 'Testear', next: 'gw_n4b' }]
                 },
                 'gw_n3b': {
                     id: 'gw_n3b',
-                    text: "*Susurra con voz que no es la suya.* \"La purga no limpia... solo alimenta al suelo.\" *Sientes un escalofrío.*",
-                    options: [{ id: 'gw_o3c', label: 'Ignorar y cerrar', next: null, resultText: "*Huye tapándose los oídos, perdiéndose en el pasillo.* \"El ruido... me ha encontrado...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gw_o3d', label: 'Testear', next: 'gw_n4b' }]
+                    text: "*Se queda quieto.* \"Shhh... si hacemos ruido, nos encontrarán.\"",
+                    options: [{ id: 'gw_o3c', label: 'Expulsar', next: null, resultText: "*Se aleja de puntillas.*", cssClass: 'horror-btn-dismiss' }, { id: 'gw_o3d', label: 'Testear', next: 'gw_n4b' }]
                 },
                 'gw_n4b': {
                     id: 'gw_n4b',
-                    text: "*No muestra signos físicos de infección, solo psicosis auditiva.*",
+                    text: "*Paranoia auditiva. Común en aislamiento prolongado.*",
                     options: [{ id: 'gw_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'gw_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
             }
@@ -153,38 +160,38 @@ export const DialogueData = {
             nodes: {
                 'gm_n1': {
                     id: 'gm_n1',
-                    text: "*Esporas caen de su cabello cuando se mueve.* \"El aire aquí... es fértil, ¿verdad?\" *Huele a tierra mojada y podredumbre.*",
+                    text: "*Huele intensamente a humedad y tierra mojada.* \"Perdón por el olor... mi refugio anterior tenía goteras. Todo se pudrió.\"",
                     options: [
-                        { id: 'gm_o1', label: 'Examinar piel', next: 'gm_n2a' },
-                        { id: 'gm_o2', label: 'Ofrecer máscara', next: 'gm_n2b' }
+                        { id: 'gm_o1', label: 'Examinar ropa', next: 'gm_n2a' },
+                        { id: 'gm_o2', label: 'Mantener distancia', next: 'gm_n2b' }
                     ]
                 },
                 'gm_n2a': {
                     id: 'gm_n2a',
-                    text: "*Muestra un parche verde aterciopelado en el cuello.* \"Mi jardín... florece en la oscuridad. No duele, solo... conecta.\" *La infección parece sistémica.*",
+                    text: "*La ropa está manchada de moho, pero su piel también tiene un tono verdoso en el cuello.* \"Es difícil lavarse sin agua limpia...\"",
                     options: [
-                        { id: 'gm_o2a', label: 'Quemar esporas', next: 'gm_n3a' },
-                        { id: 'gm_o2b', label: 'Tomar muestra', next: 'gm_n3b' }
+                        { id: 'gm_o2a', label: '¿Eso es piel o moho?', next: 'gm_n3a' },
+                        { id: 'gm_o2b', label: 'Parece contagioso', next: 'gm_n3b' }
                     ]
                 },
                 'gm_n2b': {
                     id: 'gm_n2b',
-                    text: "*Toma la máscara y la llena de una sustancia negra antes de ponérsela.* \"Filtro... para que ellos no escapen.\" *Su respiración es gorgoteante.*",
-                    options: [{ id: 'gm_o2c', label: 'Purgar', next: 'gm_n4a' }]
+                    text: "*Tose, y suena húmedo.* \"Solo necesito un lugar seco. Unos días al calor y estaré bien.\"",
+                    options: [{ id: 'gm_o2c', label: 'Dudar', next: 'gm_n3b' }]
                 },
                 'gm_n3a': {
                     id: 'gm_n3a',
-                    text: "*Intenta soplar una nube de polvo amarillo hacia ti.* \"¡Respira! ¡Sé tierra para ellos!\" *La alarma de toxicidad se dispara.*",
-                    options: [{ id: 'gm_o3a', label: 'Activar ventilación (Echar)', next: null, resultText: "*Se retira arrastrándose, buscando un lugar húmedo donde echar raíces.* \"Raíces... profundas...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gm_o3b', label: 'Testear', next: 'gm_n4b' }]
+                    text: "*Se toca el cuello.* \"Es... una erupción. Pica un poco. Nada que un poco de alcohol no cure.\"",
+                    options: [{ id: 'gm_o3a', label: 'Rechazar', next: null, resultText: "*Se va dejando un rastro de olor a podrido.*", cssClass: 'horror-btn-dismiss' }, { id: 'gm_o3b', label: 'Testear', next: 'gm_n4b' }]
                 },
                 'gm_n3b': {
                     id: 'gm_n3b',
-                    text: "*Se arranca el parche, dejando un hueco fibroso.* \"Toma... plántalo en tus pulmones.\" *Te ofrece el trozo de carne.*",
-                    options: [{ id: 'gm_o3c', label: 'Cerrar compuerta', next: null, resultText: "*Se retira arrastrándose, buscando un lugar húmedo donde echar raíces.* \"Raíces... profundas...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gm_o3d', label: 'Testear', next: 'gm_n4b' }]
+                    text: "*Te mira suplicante.* \"No me dejes fuera. La humedad me está comiendo vivo.\"",
+                    options: [{ id: 'gm_o3c', label: 'Cerrar compuerta', next: null, resultText: "*Se va tosiendo.*", cssClass: 'horror-btn-dismiss' }, { id: 'gm_o3d', label: 'Testear', next: 'gm_n4b' }]
                 },
                 'gm_n4b': {
                     id: 'gm_n4b',
-                    text: "*Esporas altamente contagiosas detectadas. Peligro biológico.*",
+                    text: "*Presencia de esporas fúngicas en dermis. Riesgo de propagación.*",
                     options: [{ id: 'gm_o4b1', label: 'Admitir (Peligro)', next: null, sets: ['admitted_infected'] }, { id: 'gm_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
             }
@@ -198,38 +205,38 @@ export const DialogueData = {
             nodes: {
                 'gt_n1': {
                     id: 'gt_n1',
-                    text: "*Juega obsesivamente con un diente flojo.* \"Vibran... reciben señales del exterior. No me dejan dormir.\" *Su boca es un desastre de sangre seca.*",
+                    text: "*Se lleva la mano a la mandíbula con gesto de dolor.* \"Me duele... creo que tengo una infección en la muela. ¿Tenéis antibióticos?\"",
                     options: [
-                        { id: 'gt_o1', label: 'Detenerlo', next: 'gt_n2a' },
-                        { id: 'gt_o2', label: 'Preguntar por la señal', next: 'gt_n2b' }
+                        { id: 'gt_o1', label: 'Mostrar boca', next: 'gt_n2a' },
+                        { id: 'gt_o2', label: 'No somos hospital', next: 'gt_n2b' }
                     ]
                 },
                 'gt_n2a': {
                     id: 'gt_n2a',
-                    text: "*Escupe un molar en su mano y te lo muestra.* \"La transmisión se corta si los saco. ¿Ves el cable?\" *No hay cable, solo nervio.*",
+                    text: "*Abre la boca. Sus encías están negras y retraídas.* \"Se mueven... siento que los dientes me bailan.\"",
                     options: [
-                        { id: 'gt_o2a', label: 'Confiscar diente', next: 'gt_n3a' },
-                        { id: 'gt_o2b', label: 'Ignorar delirio', next: 'gt_n3b' }
+                        { id: 'gt_o2a', label: 'Eso no es caries', next: 'gt_n3a' },
+                        { id: 'gt_o2b', label: 'Retroceder', next: 'gt_n3b' }
                     ]
                 },
                 'gt_n2b': {
                     id: 'gt_n2b',
-                    text: "*Sonríe con encías sangrantes.* \"Dicen que la purga es una mentira. Que nos reciclan.\" *Rumor peligroso.*",
-                    options: [{ id: 'gt_o2c', label: 'Reportar herejía', next: 'gt_n4a' }]
+                    text: "*Escupe un poco de sangre.* \"Por favor... solo algo para el dolor. No puedo comer, no puedo dormir.\"",
+                    options: [{ id: 'gt_o2c', label: 'Proceder', next: 'gt_n4b' }]
                 },
                 'gt_n3a': {
                     id: 'gt_n3a',
-                    text: "*Se lanza a morderte con las encías.* \"¡Devuélveme mi receptor! ¡No oigo al Amo!\"",
-                    options: [{ id: 'gt_o3a', label: 'Empujar fuera', next: null, resultText: "*Se aleja tosiendo sangre y dientes, buscando silencio en otro lado.* \"Glug... silencio...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gt_o3b', label: 'Testear', next: 'gt_n4b' }]
+                    text: "*Se toca un diente y este cae en su mano sin esfuerzo.* \"Oh no... otro más. Se me están cayendo solos.\"",
+                    options: [{ id: 'gt_o3a', label: 'Expulsar', next: null, resultText: "*Se va llorando con el diente en la mano.*", cssClass: 'horror-btn-dismiss' }, { id: 'gt_o3b', label: 'Testear', next: 'gt_n4b' }]
                 },
                 'gt_n3b': {
                     id: 'gt_n3b',
-                    text: "*Empieza a arrancarse otro diente.* \"Uno por uno... silencio... por fin silencio.\"",
-                    options: [{ id: 'gt_o3c', label: 'Ignorar', next: null, resultText: "*Se aleja tosiendo sangre y dientes, buscando silencio en otro lado.* \"Glug... silencio...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gt_o3d', label: 'Testear', next: 'gt_n4b' }]
+                    text: "*Te mira con desesperación.* \"¿Crees que es por el agua? He bebido de los charcos... no tenía opción.\"",
+                    options: [{ id: 'gt_o3c', label: 'Rechazar', next: null, resultText: "*Se aleja escupiendo sangre.*", cssClass: 'horror-btn-dismiss' }, { id: 'gt_o3d', label: 'Testear', next: 'gt_n4b' }]
                 },
                 'gt_n4b': {
                     id: 'gt_n4b',
-                    text: "*Sujeto estable, aunque automutilado. Sin patógenos.*",
+                    text: "*Necrosis gingival avanzada. Posible intoxicación o infección.*",
                     options: [{ id: 'gt_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'gt_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
             }
@@ -243,38 +250,38 @@ export const DialogueData = {
             nodes: {
                 'gsh_n1': {
                     id: 'gsh_n1',
-                    text: "*Mira su sombra con terror absoluto.* \"No se mueve cuando yo me muevo. Mírala.\" *La luz parpadea.*",
+                    text: "*Mira constantemente a sus espaldas.* \"La luz aquí parpadea mucho, ¿verdad? Crea... formas raras.\"",
                     options: [
-                        { id: 'gsh_o1', label: 'Mirar sombra', next: 'gsh_n2a' },
-                        { id: 'gsh_o2', label: 'Iluminar cara', next: 'gsh_n2b' }
+                        { id: 'gsh_o1', label: 'Es el generador', next: 'gsh_n2a' },
+                        { id: 'gsh_o2', label: '¿Qué formas?', next: 'gsh_n2b' }
                     ]
                 },
                 'gsh_n2a': {
                     id: 'gsh_n2a',
-                    text: "*La sombra parece estirarse hacia ti independientemente de la luz.* \"Quiere cambiar de dueño. Tiene hambre de luz nueva.\" *Sientes frío en los tobillos.*",
+                    text: "*Asiente, poco convencido.* \"Sí... seguro. Pero a veces parece que la oscuridad se queda quieta cuando la luz vuelve.\"",
                     options: [
-                        { id: 'gsh_o2a', label: 'Disparar a la sombra', next: 'gsh_n3a' },
-                        { id: 'gsh_o2b', label: 'Racionalizar', next: 'gsh_n3b' }
+                        { id: 'gsh_o2a', label: 'Estás cansado', next: 'gsh_n3a' },
+                        { id: 'gsh_o2b', label: 'Ignorar', next: 'gsh_n3b' }
                     ]
                 },
                 'gsh_n2b': {
                     id: 'gsh_n2b',
-                    text: "*Grita y se cubre los ojos.* \"¡La luz la alimenta! ¡La hace crecer!\" *Se hace un ovillo.*",
-                    options: [{ id: 'gsh_o2c', label: 'Apagar linterna', next: 'gsh_n3b' }]
+                    text: "*Baja la voz.* \"Cosas que te siguen. Sombras que son demasiado largas para ser tuyas.\"",
+                    options: [{ id: 'gsh_o2c', label: 'Psicosis', next: 'gsh_n4b' }]
                 },
                 'gsh_n3a': {
                     id: 'gsh_n3a',
-                    text: "*La bala rebota, pero él se retuerce de dolor como si le hubieras dado.* \"¡Le diste a mi alma! ¡La mataste!\"",
-                    options: [{ id: 'gsh_o3a', label: 'Iluminar (Ahuyentar)', next: null, resultText: "*Huye de la luz, pero su sombra parece quedarse un segundo más.* \"...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gsh_o3b', label: 'Testear', next: 'gsh_n4b' }]
+                    text: "*Se frota los ojos.* \"Quizás. Llevo tres días caminando a oscuras. La mente juega trucos.\"",
+                    options: [{ id: 'gsh_o3a', label: 'Rechazar', next: null, resultText: "*Se va mirando atrás.*", cssClass: 'horror-btn-dismiss' }, { id: 'gsh_o3b', label: 'Testear', next: 'gsh_n4b' }]
                 },
                 'gsh_n3b': {
                     id: 'gsh_n3b',
-                    text: "*Se lanza contra la lámpara del pasillo.* \"¡Apágalo! ¡Me va a comer si hay luz!\"",
-                    options: [{ id: 'gsh_o3c', label: 'Cerrar puerta', next: null, resultText: "*Huye de la luz, pero su sombra parece quedarse un segundo más.* \"...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gsh_o3d', label: 'Testear', next: 'gsh_n4b' }]
+                    text: "*Se estremece.* \"Solo déjame entrar donde haya luz constante. Por favor.\"",
+                    options: [{ id: 'gsh_o3c', label: 'Rechazar', next: null, resultText: "*Se va mirando atrás.*", cssClass: 'horror-btn-dismiss' }, { id: 'gsh_o3d', label: 'Testear', next: 'gsh_n4b' }]
                 },
                 'gsh_n4b': {
                     id: 'gsh_n4b',
-                    text: "*Anomalía visual confirmada. Sin riesgo biológico, posible riesgo psíquico.*",
+                    text: "*Estrés postraumático severo. Sin anomalías físicas.*",
                     options: [{ id: 'gsh_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'gsh_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
             }
@@ -288,86 +295,86 @@ export const DialogueData = {
             nodes: {
                 'gc_n1': {
                     id: 'gc_n1',
-                    text: "*Tiembla violentamente, labios azules, piel escarchada.* \"El generador... ¿por qué está tan lejos? No llega el calor...\" *Hace 30 grados aquí.*",
+                    text: "*Tiembla visiblemente y se abraza a sí mismo.* \"Hace... mucho frío aquí fuera. ¿Tenéis calefacción dentro?\"",
                     options: [
-                        { id: 'gc_o1', label: 'Tomar temperatura', next: 'gc_n2a' },
-                        { id: 'gc_o2', label: 'Dar manta', next: 'gc_n2b' }
+                        { id: 'gc_o1', label: 'No hace frío', next: 'gc_n2a' },
+                        { id: 'gc_o2', label: 'Ofrecer abrigo', next: 'gc_n2b' }
                     ]
                 },
                 'gc_n2a': {
                     id: 'gc_n2a',
-                    text: "*El termómetro marca error: bajo cero.* \"La sangre se congela... se vuelve cristal. Siento las agujas dentro.\" *Sus venas se ven negras.*",
+                    text: "*Sus labios tienen un tono azulado.* \"Yo lo siento en los huesos. Como si la sangre se me hubiera helado.\"",
                     options: [
-                        { id: 'gc_o2a', label: 'Cuarentena térmica', next: 'gc_n3a' },
-                        { id: 'gc_o2b', label: 'Alejarse', next: 'gc_n3b' }
+                        { id: 'gc_o2a', label: 'Hipotermia posible', next: 'gc_n3a' },
+                        { id: 'gc_o2b', label: 'Síntoma de infección', next: 'gc_n3b' }
                     ]
                 },
                 'gc_n2b': {
                     id: 'gc_n2b',
-                    text: "*La manta se endurece al tocarlo.* \"No sirve... el frío viene de dentro. Del vacío.\" *Sus dientes castañean hasta romperse.*",
-                    options: [{ id: 'gc_o2c', label: 'Observar', next: 'gc_n3a' }]
+                    text: "*Acepta cualquier cosa que le des.* \"Gracias... gracias. No siento los dedos de los pies.\"",
+                    options: [{ id: 'gc_o2c', label: 'Proceder', next: 'gc_n4b' }]
                 },
                 'gc_n3a': {
                     id: 'gc_n3a',
-                    text: "*Intenta abrazarte para robarte calor.* \"¡Dame tu calor! ¡Lo necesito! ¡Arde para mí!\"",
-                    options: [{ id: 'gc_o3a', label: 'Echar del umbral', next: null, resultText: "*Se aleja temblando, dejando escarcha en el suelo.* \"Frío... eterno...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gc_o3b', label: 'Testear', next: 'gc_n4b' }]
+                    text: "*Te mira confundido.* \"Solo necesito entrar en calor. Unas horas. Por favor.\"",
+                    options: [{ id: 'gc_o3a', label: 'Rechazar', next: null, resultText: "*Se va temblando.*", cssClass: 'horror-btn-dismiss' }, { id: 'gc_o3b', label: 'Testear', next: 'gc_n4b' }]
                 },
                 'gc_n3b': {
                     id: 'gc_n3b',
-                    text: "*Se queda mirando sus manos congeladas.* \"Estatuas de hielo... en el infierno...\"",
-                    options: [{ id: 'gc_o3c', label: 'Ignorar', next: null, resultText: "*Se aleja temblando, dejando escarcha en el suelo.* \"Frío... eterno...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gc_o3d', label: 'Testear', next: 'gc_n4b' }]
+                    text: "*Sus dientes castañean.* \"No... no estoy enfermo. Solo tengo frío.\"",
+                    options: [{ id: 'gc_o3c', label: 'Rechazar', next: null, resultText: "*Se va temblando.*", cssClass: 'horror-btn-dismiss' }, { id: 'gc_o3d', label: 'Testear', next: 'gc_n4b' }]
                 },
                 'gc_n4b': {
                     id: 'gc_n4b',
-                    text: "*Temperatura corporal crítica (22°C). Hipotermia anómala.*",
+                    text: "*Temperatura corporal baja. Signos de hipotermia o shock.*",
                     options: [{ id: 'gc_o4b1', label: 'Admitir (Enfermería)', next: null, sets: ['admitted'] }, { id: 'gc_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
             }
         },
-        // 8. THE EATER (El comedor de óxido)
-        "gen_rust": {
-            id: 'gen_rust',
-            tags: ['aggressive', 'fanatic'],
+        // 8. THE HOARDER (El recolector)
+        "gen_hoarder": {
+            id: 'gen_hoarder',
+            tags: ['obsessive', 'confused'],
             unique: false,
-            root: 'gr_n1',
+            root: 'gh_n1',
             nodes: {
-                'gr_n1': {
-                    id: 'gr_n1',
-                    text: "*Mastica ruidosamente un trozo de metal oxidado.* \"Hierro... para la sangre. El cuerpo es débil.\" *Sangre le baja por la barbilla.*",
+                'gh_n1': {
+                    id: 'gh_n1',
+                    text: "*Lleva los bolsillos llenos de chatarra y cables.* \"Tengo repuestos. Cobre, acero... cosas útiles. Puedo pagar mi entrada.\"",
                     options: [
-                        { id: 'gr_o1', label: 'Quitar metal', next: 'gr_n2a' },
-                        { id: 'gr_o2', label: 'Preguntar por qué', next: 'gr_n2b' }
+                        { id: 'gh_o1', label: 'Ver mercancía', next: 'gh_n2a' },
+                        { id: 'gh_o2', label: 'No aceptamos basura', next: 'gh_n2b' }
                     ]
                 },
-                'gr_n2a': {
-                    id: 'gr_n2a',
-                    text: "*Te escupe un trozo de tornillo.* \"¡Es mi medicina! ¡Me fortifico contra la corrosión exterior!\" *Su piel tiene tono grisáceo.*",
+                'gh_n2a': {
+                    id: 'gh_n2a',
+                    text: "*Saca un puñado de tornillos oxidados y un trozo de tubería.* \"Esto vale mucho. El metal es vida aquí abajo.\"",
                     options: [
-                        { id: 'gr_o2a', label: 'Someter', next: 'gr_n3a' }
+                        { id: 'gh_o2a', label: 'Parece basura', next: 'gh_n3a' },
+                        { id: 'gh_o2b', label: 'Aceptar soborno', next: 'gh_n3b' }
                     ]
                 },
-                'gr_n2b': {
-                    id: 'gr_n2b',
-                    text: "*Muestra dientes rotos y encías negras.* \"Para ser como la nave. Duro. Eterno. ¿Quieres?\" *Te ofrece un clavo.*",
+                'gh_n2b': {
+                    id: 'gh_n2b',
+                    text: "*Se aferra a sus bolsillos.* \"¡No es basura! ¡Es supervivencia! Ustedes los del refugio han olvidado lo que cuesta encontrar un buen tornillo.\"",
                     options: [
-                        { id: 'gr_o2b', label: 'Rechazar', next: 'gr_n3b' },
-                        { id: 'gr_o2c', label: 'Aceptar (fingir)', next: 'gr_n3b' }
+                        { id: 'gh_o2c', label: 'Calmarse', next: 'gh_n3b' }
                     ]
                 },
-                'gr_n3a': {
-                    id: 'gr_n3a',
-                    text: "*Intenta morderte el brazo.* \"¡Carne blanda! ¡Inútil! ¡Necesitas hierro!\"",
-                    options: [{ id: 'gr_o3a', label: 'Amenazar con agua', next: null, resultText: "*Se marcha tosiendo chatarra, buscando metal en otro sector.* \"Duro... demasiado duro...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gr_o3b', label: 'Testear', next: 'gr_n4b' }]
+                'gh_n3a': {
+                    id: 'gh_n3a',
+                    text: "*Te mira ofendido.* \"No sabes nada. El óxido alimenta.\"",
+                    options: [{ id: 'gh_o3a', label: 'Rechazar', next: null, resultText: "*Se va refunfuñando y contando sus tornillos.*", cssClass: 'horror-btn-dismiss' }, { id: 'gh_o3b', label: 'Testear', next: 'gh_n4b' }]
                 },
-                'gr_n3b': {
-                    id: 'gr_n3b',
-                    text: "*Se traga el clavo entero.* \"Sentiré cómo baja... rasgando... haciéndome fuerte.\"",
-                    options: [{ id: 'gr_o3c', label: 'Ignorar', next: null, resultText: "*Se marcha tosiendo chatarra, buscando metal en otro sector.* \"Duro... demasiado duro...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gr_o3d', label: 'Testear', next: 'gr_n4b' }]
+                'gh_n3b': {
+                    id: 'gh_n3b',
+                    text: "*Guarda sus cosas.* \"Solo déjame entrar. Puedo arreglar cosas. Soy útil.\"",
+                    options: [{ id: 'gh_o3c', label: 'Rechazar', next: null, resultText: "*Se va.*", cssClass: 'horror-btn-dismiss' }, { id: 'gh_o3d', label: 'Testear', next: 'gh_n4b' }]
                 },
-                'gr_n4b': {
-                    id: 'gr_n4b',
-                    text: "*Niveles de tétanos y metales pesados letales. Peligroso.*",
-                    options: [{ id: 'gr_o4b1', label: 'Admitir (Riesgo)', next: null, sets: ['admitted_infected'] }, { id: 'gr_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
+                'gh_n4b': {
+                    id: 'gh_n4b',
+                    text: "*Posible riesgo de tétanos. Conducta obsesiva.*",
+                    options: [{ id: 'gh_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'gh_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
             }
         },
@@ -380,40 +387,40 @@ export const DialogueData = {
             nodes: {
                 'ge_n1': {
                     id: 'ge_n1',
-                    text: "*Te mira sin parpadear, inclinando la cabeza.* \"Te mira sin parpadear...\" *Su voz es plana, sin tono.*",
+                    text: "*Te mira fijamente y mueve los labios en silencio antes de hablar.* \"Hola... hola. Vengo a... vengo a entrar.\"",
                     options: [
                         { id: 'ge_o1', label: '¿Quién eres?', next: 'ge_n2a' },
-                        { id: 'ge_o2', label: 'Ordenarle parar', next: 'ge_n2b' }
+                        { id: 'ge_o2', label: 'Habla normal', next: 'ge_n2b' }
                     ]
                 },
                 'ge_n2a': {
                     id: 'ge_n2a',
-                    text: "*Su cara intenta copiar tu expresión de confusión.* \"¿Quién eres?... ¿Quién eres?...\" *Sus músculos faciales tiemblan.*",
+                    text: "*Asiente con un retraso notable.* \"Bien... bien. Estoy bien. ¿Tú estás bien?\"",
                     options: [
-                        { id: 'ge_o2a', label: 'Amenazar', next: 'ge_n3a' }
+                        { id: 'ge_o2a', label: 'Pareces confundido', next: 'ge_n3a' }
                     ]
                 },
                 'ge_n2b': {
                     id: 'ge_n2b',
-                    text: "*Repite tus palabras con voz distorsionada, como una radio mal sintonizada.* \"...parar... parar...\" *Se golpea la garganta.*",
+                    text: "*Se toca la garganta.* \"La voz... cuesta. Cuesta usarla. Hace mucho que no hablo.\"",
                     options: [
-                        { id: 'ge_o2b', label: 'Examinar garganta', next: 'ge_n3b' }
+                        { id: 'ge_o2b', label: 'Entiendo', next: 'ge_n3b' }
                     ]
                 },
                 'ge_n3a': {
                     id: 'ge_n3a',
-                    text: "*Sonríe demasiado ancho, rasgándose las comisuras.* \"Soy tú... mejor que tú. Versión nueva.\"",
-                    options: [{ id: 'ge_o3a', label: 'Ahuyentar', next: null, resultText: "*Huye cubriéndose la cara mientras se derrite como cera.* \"No puedo... sostener la forma...\"", cssClass: 'horror-btn-dismiss' }, { id: 'ge_o3b', label: 'Testear', next: 'ge_n4b' }]
+                    text: "*Sonríe, pero la sonrisa no llega a sus ojos.* \"Confundido... sí. Todo es nuevo.\"",
+                    options: [{ id: 'ge_o3a', label: 'Rechazar', next: null, resultText: "*Se va imitando tu gesto de despedida.*", cssClass: 'horror-btn-dismiss' }, { id: 'ge_o3b', label: 'Testear', next: 'ge_n4b' }]
                 },
                 'ge_n3b': {
                     id: 'ge_n3b',
-                    text: "*Abre la boca y solo hay estática de radio.* \"Kzzzt... señal... perdida...\"",
-                    options: [{ id: 'ge_o3c', label: 'Cortar comunicación', next: null, resultText: "*Huye cubriéndose la cara mientras se derrite como cera.* \"No puedo... sostener la forma...\"", cssClass: 'horror-btn-dismiss' }, { id: 'ge_o3d', label: 'Testear', next: 'ge_n4b' }]
+                    text: "*Te mira esperando una señal.* \"¿Puedo pasar? ¿Pasar?\"",
+                    options: [{ id: 'ge_o3c', label: 'Rechazar', next: null, resultText: "*Se va repitiendo 'pasar' en voz baja.*", cssClass: 'horror-btn-dismiss' }, { id: 'ge_o3d', label: 'Testear', next: 'ge_n4b' }]
                 },
                 'ge_n4b': {
                     id: 'ge_n4b',
-                    text: "*ADN inestable. No es humano, es una imitación biológica.*",
-                    options: [{ id: 'ge_o4b1', label: 'Admitir (Error)', next: null, sets: ['admitted_infected'] }, { id: 'ge_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
+                    text: "*Patrones de habla atípicos. Posible afasia o disociación.*",
+                    options: [{ id: 'ge_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'ge_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
             }
         },
@@ -426,39 +433,39 @@ export const DialogueData = {
             nodes: {
                 'gsl_n1': {
                     id: 'gsl_n1',
-                    text: "*Tiene los párpados pegados con cinta adhesiva a la frente.* \"Si cierro los ojos... cambian las paredes. No puedo parpadear.\" *Sus ojos son rojos.*",
+                    text: "*Tiene ojeras profundas y los ojos inyectados en sangre.* \"No puedo dormir ahí fuera. Necesito un lugar seguro. Solo una noche.\"",
                     options: [
-                        { id: 'gsl_o1', label: 'Arrancar cinta', next: 'gsl_n2a' },
-                        { id: 'gsl_o2', label: 'Preguntar qué ve', next: 'gsl_n2b' }
+                        { id: 'gsl_o1', label: '¿Por qué no duermes?', next: 'gsl_n2a' },
+                        { id: 'gsl_o2', label: 'Te ves mal', next: 'gsl_n2b' }
                     ]
                 },
                 'gsl_n2a': {
                     id: 'gsl_n2a',
-                    text: "*Grita mientras la piel se desgarra.* \"¡No! ¡Entrarán! ¡Los vi mover la puerta cuando pestañeé hace tres días!\"",
+                    text: "*Se frota la cara.* \"Ruidos. Pesadillas. Si cierro los ojos, siento que algo se acerca.\"",
                     options: [
-                        { id: 'gsl_o2a', label: 'Sedar', next: 'gsl_n3a' }
+                        { id: 'gsl_o2a', label: 'Es estrés', next: 'gsl_n3a' }
                     ]
                 },
                 'gsl_n2b': {
                     id: 'gsl_n2b',
-                    text: "*Llora sin poder cerrar los ojos.* \"Veo los huecos entre los segundos. Donde ellos viven.\" *Señala al aire vacío.*",
+                    text: "*Se ríe nerviosamente.* \"Llevo cuatro días despierto. Tú también te verías mal.\"",
                     options: [
-                        { id: 'gsl_o2b', label: 'Mirar al aire', next: 'gsl_n3b' }
+                        { id: 'gsl_o2b', label: 'Proceder', next: 'gsl_n3b' }
                     ]
                 },
                 'gsl_n3a': {
                     id: 'gsl_n3a',
-                    text: "*Lucha contra el sueño.* \"¡No! ¡Oscuridad no! ¡Me llevarán al sótano!\"",
-                    options: [{ id: 'gsl_o3a', label: 'Echar del sector', next: null, resultText: "*Se aleja tambaleándose, luchando por no dormir.* \"Vigilancia... constante...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gsl_o3b', label: 'Testear', next: 'gsl_n4b' }]
+                    text: "*Niega con la cabeza.* \"No es estrés. Es instinto. El cuerpo sabe cuándo está en peligro.\"",
+                    options: [{ id: 'gsl_o3a', label: 'Rechazar', next: null, resultText: "*Se va tambaleándose.*", cssClass: 'horror-btn-dismiss' }, { id: 'gsl_o3b', label: 'Testear', next: 'gsl_n4b' }]
                 },
                 'gsl_n3b': {
                     id: 'gsl_n3b',
-                    text: "*Te agarra los párpados.* \"¡No parpadees tú tampoco! ¡Te estoy salvando!\"",
-                    options: [{ id: 'gsl_o3c', label: 'Cerrar puerta', next: null, resultText: "*Se aleja tambaleándose, luchando por no dormir.* \"Vigilancia... constante...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gsl_o3d', label: 'Testear', next: 'gsl_n4b' }]
+                    text: "*Bosteza y se tambalea.* \"Por favor... solo una cama. O el suelo. Me da igual.\"",
+                    options: [{ id: 'gsl_o3c', label: 'Rechazar', next: null, resultText: "*Se va casi durmiéndose.*", cssClass: 'horror-btn-dismiss' }, { id: 'gsl_o3d', label: 'Testear', next: 'gsl_n4b' }]
                 },
                 'gsl_n4b': {
                     id: 'gsl_n4b',
-                    text: "*Privación de sueño extrema. Alucinaciones. Inofensivo.*",
+                    text: "*Privación de sueño severa. Alucinaciones leves.*",
                     options: [{ id: 'gsl_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'gsl_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
             }
@@ -472,39 +479,39 @@ export const DialogueData = {
             nodes: {
                 'gtw_n1': {
                     id: 'gtw_n1',
-                    text: "*Su cuello se sacude violentamente hacia la izquierda cada pocos segundos.* \"No soy yo... son los cables bajo la piel. Tiran de mí.\" *Se oye un crujido cervical.*",
+                    text: "*Su cabeza se sacude bruscamente hacia un lado.* \"Perdón... perdón. Es un tic. Nervios.\"",
                     options: [
-                        { id: 'gtw_o1', label: 'Examinar cuello', next: 'gtw_n2a' },
-                        { id: 'gtw_o2', label: 'Sujetar cabeza', next: 'gtw_n2b' }
+                        { id: 'gtw_o1', label: '¿Te duele?', next: 'gtw_n2a' },
+                        { id: 'gtw_o2', label: 'Cálmate', next: 'gtw_n2b' }
                     ]
                 },
                 'gtw_n2a': {
                     id: 'gtw_n2a',
-                    text: "*Bajo la piel se ven bultos moviéndose como gusanos de metal.* \"¿Lo ves? Están recableando mi columna. Quieren que mire atrás.\" *Sus ojos giran hacia atrás.*",
+                    text: "*Se frota el cuello.* \"A veces. Es como si algo tirara del músculo. Un calambre constante.\"",
                     options: [
-                        { id: 'gtw_o2a', label: 'Cortar bulto', next: 'gtw_n3a', sets: ['performed_surgery'] },
-                        { id: 'gtw_o2b', label: 'Alejarse', next: 'gtw_n3b' }
+                        { id: 'gtw_o2a', label: 'Examinar cuello', next: 'gtw_n3a' },
+                        { id: 'gtw_o2b', label: 'Proceder', next: 'gtw_n3b' }
                     ]
                 },
                 'gtw_n2b': {
                     id: 'gtw_n2b',
-                    text: "*Grita de dolor cuando intentas detener el tic.* \"¡Si paras el movimiento, la carga se acumula! ¡Explotará!\"",
-                    options: [{ id: 'gtw_o2c', label: 'Soltar', next: 'gtw_n3b' }]
+                    text: "*El tic se repite, más fuerte.* \"Lo intento. Pero cuanto más lo pienso, peor es.\"",
+                    options: [{ id: 'gtw_o2c', label: 'Entiendo', next: 'gtw_n3b' }]
                 },
                 'gtw_n3a': {
                     id: 'gtw_n3a',
-                    text: "*Sacas un filamento de cobre ensangrentado.* \"¡Mi antena! ¡Ahora estoy sordo ante Él!\" *Se tambalea llorando estática.*",
-                    options: [{ id: 'gtw_o3a', label: 'Expulsar', next: null, resultText: "*Se aleja con espasmos violentos, chocando contra las paredes.* \"...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gtw_o3b', label: 'Testear', next: 'gtw_n4b' }]
+                    text: "*Notas un bulto duro bajo la piel, cerca de la columna.* \"¡Ay! No aprietes ahí.\"",
+                    options: [{ id: 'gtw_o3a', label: 'Rechazar', next: null, resultText: "*Se va con espasmos.*", cssClass: 'horror-btn-dismiss' }, { id: 'gtw_o3b', label: 'Testear', next: 'gtw_n4b' }]
                 },
                 'gtw_n3b': {
                     id: 'gtw_n3b',
-                    text: "*El espasmo le tuerce el cuello en un ángulo antinatural.* \"Ahora... miro... atrás...\"",
-                    options: [{ id: 'gtw_o3c', label: 'Ignorar', next: null, resultText: "*Se aleja con espasmos violentos, chocando contra las paredes.* \"...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gtw_o3d', label: 'Testear', next: 'gtw_n4b' }]
+                    text: "*Respira hondo.* \"¿Puedo pasar? Necesito sentarme.\"",
+                    options: [{ id: 'gtw_o3c', label: 'Rechazar', next: null, resultText: "*Se va.*", cssClass: 'horror-btn-dismiss' }, { id: 'gtw_o3d', label: 'Testear', next: 'gtw_n4b' }]
                 },
                 'gtw_n4b': {
                     id: 'gtw_n4b',
-                    text: "*Implantes mecánicos en la columna. Tecnología desconocida.*",
-                    options: [{ id: 'gtw_o4b1', label: 'Admitir (Investigar)', next: null, sets: ['admitted'] }, { id: 'gtw_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
+                    text: "*Espasmos musculares involuntarios. Posible daño neurológico.*",
+                    options: [{ id: 'gtw_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'gtw_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
             }
         },
@@ -517,87 +524,86 @@ export const DialogueData = {
             nodes: {
                 'ghu_n1': {
                     id: 'ghu_n1',
-                    text: "*Emite un zumbido grave y constante con la garganta cerrada.* \"Mmmm... calibrando... mmmm... no rompas la frecuencia.\" *El suelo vibra en simpatía.*",
+                    text: "*Tararea una melodía monótona y grave.* \"Mmmm... mmmm... ayuda a no pensar. ¿Te molesta?\"",
                     options: [
-                        { id: 'ghu_o1', label: 'Interrumpir', next: 'ghu_n2a' },
-                        { id: 'ghu_o2', label: 'Escuchar tono', next: 'ghu_n2b' }
+                        { id: 'ghu_o1', label: 'Por favor para', next: 'ghu_n2a' },
+                        { id: 'ghu_o2', label: '¿Qué canción es?', next: 'ghu_n2b' }
                     ]
                 },
                 'ghu_n2a': {
                     id: 'ghu_n2a',
-                    text: "*Te mira con odio sin dejar de zumbar, subiendo el volumen hasta que te duelen los dientes.* \"¡MMMMMM! ¡El escudo cae si callo!\"",
+                    text: "*Deja de tararear, pero empieza a golpear rítmicamente su pierna.* \"El silencio es peor. En el silencio se oyen cosas.\"",
                     options: [
-                        { id: 'ghu_o2a', label: 'Golpear garganta', next: 'ghu_n3a' }
+                        { id: 'ghu_o2a', label: 'Mantén la calma', next: 'ghu_n3a' }
                     ]
                 },
                 'ghu_n2b': {
                     id: 'ghu_n2b',
-                    text: "*El tono te provoca náuseas y visiones de geometría imposible.* \"Lo ves, ¿verdad? La estructura real detrás del óxido.\" *Sangra por la nariz.*",
+                    text: "*Se encoge de hombros.* \"No lo sé. La oí en los túneles. Se te pega.\"",
                     options: [
-                        { id: 'ghu_o2b', label: 'Unirse al zumbido', next: 'ghu_n3b' },
-                        { id: 'ghu_o2c', label: 'Alejarse', next: null }
+                        { id: 'ghu_o2b', label: 'Proceder', next: 'ghu_n3b' }
                     ]
                 },
                 'ghu_n3a': {
                     id: 'ghu_n3a',
-                    text: "*Se agarra la garganta, interrumpiendo el zumbido bruscamente.* \"Entran... ya entran...\" *Mira al techo aterrorizado.*",
-                    options: [{ id: 'ghu_o3a', label: 'Ahuyentar', next: null, resultText: "*Se marcha zumbando, manteniendo el mundo unido lejos de aquí.* \"Mmmm...\"", cssClass: 'horror-btn-dismiss' }, { id: 'ghu_o3b', label: 'Testear', next: 'ghu_n4b' }]
+                    text: "*Mira alrededor.* \"¿Seguro que es seguro aquí? El zumbido del generador... suena igual.\"",
+                    options: [{ id: 'ghu_o3a', label: 'Rechazar', next: null, resultText: "*Se va tarareando.*", cssClass: 'horror-btn-dismiss' }, { id: 'ghu_o3b', label: 'Testear', next: 'ghu_n4b' }]
                 },
                 'ghu_n3b': {
                     id: 'ghu_n3b',
-                    text: "*Ambos vibran en armonía. Sientes que tu piel se vuelve transparente.* \"Somos la onda... somos la señal.\"",
-                    options: [{ id: 'ghu_o3c', label: 'Cortar conexión', next: null, resultText: "*Se marcha zumbando, manteniendo el mundo unido lejos de aquí.* \"Mmmm...\"", cssClass: 'horror-btn-dismiss' }, { id: 'ghu_o3d', label: 'Testear', next: 'ghu_n4b' }]
+                    text: "*Vuelve a tararear.* \"Mmmm... mmmm...\"",
+                    options: [{ id: 'ghu_o3c', label: 'Rechazar', next: null, resultText: "*Se va tarareando.*", cssClass: 'horror-btn-dismiss' }, { id: 'ghu_o3d', label: 'Testear', next: 'ghu_n4b' }]
                 },
                 'ghu_n4b': {
                     id: 'ghu_n4b',
-                    text: "*Resonancia craneal anómala. Podría desestabilizar equipos.*",
+                    text: "*Conducta repetitiva. Mecanismo de defensa ante estrés.*",
                     options: [{ id: 'ghu_o4b1', label: 'Admitir (Riesgo)', next: null, sets: ['admitted'] }, { id: 'ghu_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
             }
         },
-        // 13. THE DIGGER (El excavador)
-        "gen_dig": {
-            id: 'gen_dig',
-            tags: ['aggressive', 'obsessive'],
+        // 13. THE SEARCHER (El buscador)
+        "gen_search": {
+            id: 'gen_search',
+            tags: ['obsessive', 'nervous'],
             unique: false,
-            root: 'gd_n1',
+            root: 'gsr_n1',
             nodes: {
-                'gd_n1': {
-                    id: 'gd_n1',
-                    text: "*Raspa el suelo metálico con una cuchara afilada.* \"Abajo... el aire limpio está abajo. Debajo de las placas.\" *Hay virutas de metal por todas partes.*",
+                'gsr_n1': {
+                    id: 'gsr_n1',
+                    text: "*Mira al suelo constantemente.* \"Se me cayó... se me cayó algo importante. ¿Lo has visto?\"",
                     options: [
-                        { id: 'gd_o1', label: 'Confiscar cuchara', next: 'gd_n2a' },
-                        { id: 'gd_o2', label: 'Preguntar qué hay abajo', next: 'gd_n2b' }
+                        { id: 'gsr_o1', label: '¿Qué perdiste?', next: 'gsr_n2a' },
+                        { id: 'gsr_o2', label: 'Aquí no hay nada', next: 'gsr_n2b' }
                     ]
                 },
-                'gd_n2a': {
-                    id: 'gd_n2a',
-                    text: "*Se lanza a tu cuello con las manos desnudas.* \"¡No me dejarás aquí! ¡Me asfixio! ¡Necesito el núcleo!\"",
+                'gsr_n2a': {
+                    id: 'gsr_n2a',
+                    text: "*Se arrodilla.* \"Una llave. O una moneda. Algo brillante. Brillaba en la oscuridad.\"",
                     options: [
-                        { id: 'gd_o2a', label: 'Repeler ataque', next: 'gd_n3a' }
+                        { id: 'gsr_o2a', label: 'Levántate', next: 'gsr_n3a' }
                     ]
                 },
-                'gd_n2b': {
-                    id: 'gd_n2b',
-                    text: "*Señala una grieta microscópica.* \"El jardín de los pulmones. Donde respiran los dioses muertos. ¿No oyes su exhalación?\"",
+                'gsr_n2b': {
+                    id: 'gsr_n2b',
+                    text: "*Te mira con desconfianza.* \"Seguro que te lo guardaste. Todos quieren lo que brilla.\"",
                     options: [
-                        { id: 'gd_o2b', label: 'Escuchar grieta', next: 'gd_n3b' }
+                        { id: 'gsr_o2b', label: 'No tengo nada', next: 'gsr_n3b' }
                     ]
                 },
-                'gd_n3a': {
-                    id: 'gd_n3a',
-                    text: "*Retrocede de golpe, rompiéndose las uñas contra el suelo.* \"Tan cerca... solo tres metros de acero...\"",
-                    options: [{ id: 'gd_o3a', label: 'Patear lejos', next: null, resultText: "*Se va arañando las paredes, buscando otro punto débil.* \"Abre... abre...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gd_o3b', label: 'Testear', next: 'gd_n4b' }]
+                'gsr_n3a': {
+                    id: 'gsr_n3a',
+                    text: "*Se levanta sacudiéndose el polvo.* \"Si no lo encuentro, no puedo pagar. ¿Aceptáis trabajo a cambio?\"",
+                    options: [{ id: 'gsr_o3a', label: 'Rechazar', next: null, resultText: "*Se va mirando al suelo.*", cssClass: 'horror-btn-dismiss' }, { id: 'gsr_o3b', label: 'Testear', next: 'gs_n4b' }]
                 },
-                'gd_n3b': {
-                    id: 'gd_n3b',
-                    text: "*Un gas verde sale de la grieta y él lo inhala con éxtasis.* \"Ahhh... dulce espora...\" *Su cara se llena de moho instantáneamente.*",
-                    options: [{ id: 'gd_o3c', label: 'Sellar y echar', next: null, resultText: "*Se va arañando las paredes, buscando otro punto débil.* \"Abre... abre...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gd_o3d', label: 'Testear', next: 'gd_n4b' }]
+                'gsr_n3b': {
+                    id: 'gsr_n3b',
+                    text: "*Entrecierra los ojos.* \"Ya... claro. Ladrones.\"",
+                    options: [{ id: 'gsr_o3c', label: 'Rechazar', next: null, resultText: "*Se va murmurando.*", cssClass: 'horror-btn-dismiss' }, { id: 'gsr_o3d', label: 'Testear', next: 'gs_n4b' }]
                 },
-                'gd_n4b': {
-                    id: 'gd_n4b',
-                    text: "*Contaminación fúngica detectada en ropa y piel.*",
-                    options: [{ id: 'gd_o4b1', label: 'Admitir (Descontaminar)', next: null, sets: ['admitted'] }, { id: 'gd_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
+                'gsr_n4b': {
+                    id: 'gsr_n4b',
+                    text: "*Sujeto desorientado. Sin posesiones de valor.*",
+                    options: [{ id: 'gsr_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'gsr_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
             }
         },
@@ -610,40 +616,188 @@ export const DialogueData = {
             nodes: {
                 'gmp_n1': {
                     id: 'gmp_n1',
-                    text: "*Se dibuja líneas en el brazo con un bolígrafo sin tinta, cortando la piel.* \"Este pasillo va aquí... y esta vena es el túnel de ventilación.\" *Sangre gotea formando un mapa.*",
+                    text: "*Tiene los brazos cubiertos de dibujos hechos con tinta.* \"Anoto el camino. Para no olvidar cómo volver.\"",
                     options: [
                         { id: 'gmp_o1', label: 'Ver mapa', next: 'gmp_n2a' },
-                        { id: 'gmp_o2', label: 'Vendar', next: 'gmp_n2b' }
+                        { id: 'gmp_o2', label: '¿Volver a dónde?', next: 'gmp_n2b' }
                     ]
                 },
                 'gmp_n2a': {
                     id: 'gmp_n2a',
-                    text: "*El mapa en su brazo coincide con el sector, pero hay una habitación extra dibujada en su muñeca.* \"La sala que no está. Donde guardan los ojos.\" *Señala su muñeca pulsante.*",
+                    text: "*Son líneas caóticas que imitan tuberías.* \"Aquí es donde estamos. Y aquí... aquí es donde se cortó la luz.\"",
                     options: [
-                        { id: 'gmp_o2a', label: 'Preguntar por la sala', next: 'gmp_n3a' }
+                        { id: 'gmp_o2a', label: 'Parece confuso', next: 'gmp_n3a' }
                     ]
                 },
                 'gmp_n2b': {
                     id: 'gmp_n2b',
-                    text: "*Te mira confundido.* \"Si tapas el mapa, nos perdemos. La casa cambia si no la escribes.\" *Intenta quitarse la venda.*",
+                    text: "*Señala hacia atrás.* \"Arriba. A la superficie. Algún día.\"",
                     options: [
-                        { id: 'gmp_o2b', label: 'Impedirlo', next: 'gmp_n3b' }
+                        { id: 'gmp_o2b', label: 'Optimista', next: 'gmp_n3b' }
                     ]
                 },
                 'gmp_n3a': {
                     id: 'gmp_n3a',
-                    text: "*Clava el bolígrafo en la 'sala extra' de su muñeca.* \"Aquí. Entra. Es profunda.\" *La sangre sale a borbotones.*",
-                    options: [{ id: 'gmp_o3a', label: 'Testear y curar', next: 'gmp_n4b' }, { id: 'gmp_o3b', label: 'Expulsar', next: null, resultText: "*Se aleja dejando un rastro de sangre que forma un nuevo mapa.* \"La puerta... se cierra...\"", cssClass: 'horror-btn-dismiss' }]
+                    text: "*Se mira el brazo.* \"A veces la tinta se borra con el sudor. Tengo que repasarla.\"",
+                    options: [{ id: 'gmp_o3a', label: 'Testear', next: 'gmp_n4b' }, { id: 'gmp_o3b', label: 'Rechazar', next: null, resultText: "*Se va dibujando en el aire.*", cssClass: 'horror-btn-dismiss' }]
                 },
                 'gmp_n3b': {
                     id: 'gmp_n3b',
-                    text: "*Llora mientras la venda se empapa.* \"Se borró el camino... estamos atrapados en el bucle...\"",
-                    options: [{ id: 'gmp_o3c', label: 'Ignorar', next: null, resultText: "*Se aleja dejando un rastro de sangre que forma un nuevo mapa.* \"La puerta... se cierra...\"", cssClass: 'horror-btn-dismiss' }, { id: 'gmp_o3d', label: 'Testear', next: 'gmp_n4b' }]
+                    text: "*Sonríe tristemente.* \"La esperanza es lo último que se pierde, ¿no?\"",
+                    options: [{ id: 'gmp_o3c', label: 'Rechazar', next: null, resultText: "*Se va.*", cssClass: 'horror-btn-dismiss' }, { id: 'gmp_o3d', label: 'Testear', next: 'gmp_n4b' }]
                 },
                 'gmp_n4b': {
                     id: 'gmp_n4b',
-                    text: "*Heridas autoinfligidas. Sin infección, pero mentalmente inestable.*",
+                    text: "*Tinta no tóxica. Sujeto estable.*",
                     options: [{ id: 'gmp_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'gmp_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
+                }
+            }
+        },
+        // 15. THE IMPATIENT (El impaciente)
+        "gen_wait": {
+            id: 'gen_wait',
+            tags: ['aggressive', 'generic'],
+            unique: false,
+            root: 'gwt_n1',
+            nodes: {
+                'gwt_n1': {
+                    id: 'gwt_n1',
+                    text: "*Golpea el marco de la puerta.* \"¡Vamos! ¡Llevo horas esperando! ¿Cuánto tarda un simple chequeo?\"",
+                    options: [
+                        { id: 'gwt_o1', label: 'Calma', next: 'gwt_n2a' },
+                        { id: 'gwt_o2', label: 'Es el protocolo', next: 'gwt_n2b' }
+                    ]
+                },
+                'gwt_n2a': {
+                    id: 'gwt_n2a',
+                    text: "\"¡No me calmo! ¡Tengo hambre y frío! ¡Abre la maldita puerta!\"",
+                    options: [{ id: 'gwt_o2a', label: 'Amenazar', next: 'gwt_n3a' }]
+                },
+                'gwt_n2b': {
+                    id: 'gwt_n2b',
+                    text: "\"Protocolo, protocolo... siempre lo mismo. Mientras tanto nosotros nos pudrimos fuera.\"",
+                    options: [{ id: 'gwt_o2b', label: 'Proceder', next: 'gwt_n3b' }]
+                },
+                'gwt_n3a': {
+                    id: 'gwt_n3a',
+                    text: "*Retrocede un paso.* \"Vale, vale... solo haz tu trabajo.\"",
+                    options: [{ id: 'gwt_o3a', label: 'Testear', next: 'gwt_n4b' }, { id: 'gwt_o3b', label: 'Rechazar por actitud', next: null, cssClass: 'horror-btn-dismiss' }]
+                },
+                'gwt_n3b': {
+                    id: 'gwt_n3b',
+                    text: "*Cruza los brazos.* \"Rápido.\"",
+                    options: [{ id: 'gwt_o3c', label: 'Testear', next: 'gwt_n4b' }]
+                },
+                'gwt_n4b': {
+                    id: 'gwt_n4b',
+                    text: "*Signos de estrés y malnutrición. Sin infección.*",
+                    options: [{ id: 'gwt_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'gwt_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
+                }
+            }
+        },
+        // 16. THE LOST (El perdido)
+        "gen_lost": {
+            id: 'gen_lost',
+            tags: ['confused', 'generic'],
+            unique: false,
+            root: 'glo_n1',
+            nodes: {
+                'glo_n1': {
+                    id: 'glo_n1',
+                    text: "*Mira un papel arrugado.* \"Disculpa... ¿es este el acceso al sector 4? Me dijeron que mi hermano estaba aquí.\"",
+                    options: [
+                        { id: 'glo_o1', label: 'Esto es el refugio', next: 'glo_n2a' },
+                        { id: 'glo_o2', label: 'No hay lista', next: 'glo_n2b' }
+                    ]
+                },
+                'glo_n2a': {
+                    id: 'glo_n2a',
+                    text: "\"Ya... pero ¿es el 4? Los túneles son todos iguales.\"",
+                    options: [{ id: 'glo_o2a', label: 'No lo sé', next: 'glo_n3a' }]
+                },
+                'glo_n2b': {
+                    id: 'glo_n2b',
+                    text: "*Baja la mirada.* \"Tiene que estar. Prometió esperarme.\"",
+                    options: [{ id: 'glo_o2b', label: 'Lo siento', next: 'glo_n3b' }]
+                },
+                'glo_n3a': {
+                    id: 'glo_n3a',
+                    text: "\"Supongo que tendré que entrar para buscarlo.\"",
+                    options: [{ id: 'glo_o3a', label: 'Testear', next: 'glo_n4b' }, { id: 'glo_o3b', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
+                },
+                'glo_n3b': {
+                    id: 'glo_n3b',
+                    text: "\"Solo déjame pasar. No molestaré.\"",
+                    options: [{ id: 'glo_o3c', label: 'Testear', next: 'glo_n4b' }]
+                },
+                'glo_n4b': {
+                    id: 'glo_n4b',
+                    text: "*Sujeto sano. Desorientado.*",
+                    options: [{ id: 'glo_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'glo_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
+                }
+            }
+        },
+        // 17. THE STOIC (El estoico)
+        "gen_quiet": {
+            id: 'gen_quiet',
+            tags: ['stoic', 'generic'],
+            unique: false,
+            root: 'gqt_n1',
+            nodes: {
+                'gqt_n1': {
+                    id: 'gqt_n1',
+                    text: "*Espera con las manos en los bolsillos, mirando al frente.* \"Buenas noches. Listo para la inspección.\"",
+                    options: [
+                        { id: 'gqt_o1', label: 'Proceder', next: 'gqt_n2a' },
+                        { id: 'gqt_o2', label: '¿Síntomas?', next: 'gqt_n2b' }
+                    ]
+                },
+                'gqt_n2a': {
+                    id: 'gqt_n2a',
+                    text: "\"Adelante. No tengo nada que ocultar.\"",
+                    options: [{ id: 'gqt_o2a', label: 'Testear', next: 'gqt_n4b' }]
+                },
+                'gqt_n2b': {
+                    id: 'gqt_n2b',
+                    text: "\"Cansancio. Hambre. Lo normal.\"",
+                    options: [{ id: 'gqt_o2b', label: 'Testear', next: 'gqt_n4b' }]
+                },
+                'gqt_n4b': {
+                    id: 'gqt_n4b',
+                    text: "*Constantes vitales normales.*",
+                    options: [{ id: 'gqt_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'gqt_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
+                }
+            }
+        },
+        // 18. THE SCARED (El asustado)
+        "gen_scared": {
+            id: 'gen_scared',
+            tags: ['nervous', 'generic'],
+            unique: false,
+            root: 'gsc_n1',
+            nodes: {
+                'gsc_n1': {
+                    id: 'gsc_n1',
+                    text: "*Da un salto cuando le hablas.* \"¡Ah! Perdón... estoy un poco nervioso. ¿Es seguro aquí?\"",
+                    options: [
+                        { id: 'gsc_o1', label: 'Es seguro', next: 'gsc_n2a' },
+                        { id: 'gsc_o2', label: 'Depende', next: 'gsc_n2b' }
+                    ]
+                },
+                'gsc_n2a': {
+                    id: 'gsc_n2a',
+                    text: "\"Gracias a Dios. He oído historias horribles de los otros refugios.\"",
+                    options: [{ id: 'gsc_o2a', label: 'Testear', next: 'gsc_n4b' }]
+                },
+                'gsc_n2b': {
+                    id: 'gsc_n2b',
+                    text: "*Traga saliva.* \"Bueno... mejor que fuera seguro que es.\"",
+                    options: [{ id: 'gsc_o2b', label: 'Testear', next: 'gsc_n4b' }]
+                },
+                'gsc_n4b': {
+                    id: 'gsc_n4b',
+                    text: "*Taquicardia leve por ansiedad. Sin infección.*",
+                    options: [{ id: 'gsc_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'gsc_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
             }
         }
