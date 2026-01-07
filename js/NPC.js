@@ -35,9 +35,9 @@ export class NPC {
 
     getEpithet() {
         // Dynamic epithet based on infection or global paranoia
-        const infectedEpithets = ['Carne Pálida', 'Manos Sucias'];
-        const paranoiaEpithets = ['El Que Tiembla', 'Manos Sucias', 'Ojos de Tercia', 'Sombra Que Llora'];
-        const neutralEpithets = ['Andariego', 'Sin Refugio', 'De Paso', 'Mirada Vaga'];
+        const infectedEpithets = ['Se lo ve con la piel pálida', 'Ves que sus manos están sucias'];
+        const paranoiaEpithets = ['Ves que tu iembla', 'Ves que sus manos están sucias', 'No está haciendo contacto visual', 'Parece nervioso', 'Suda ligeramente'];
+        const neutralEpithets = ['Porta una ropa peculiar', 'Está sin refugio', 'Se encuentra de paso', 'Tiene la mirada perdida', 'Lleva un accesorio llamativo'];
 
         if (this.isInfected) return infectedEpithets[Math.floor(Math.random() * infectedEpithets.length)];
         if (State.paranoia > 60) return paranoiaEpithets[Math.floor(Math.random() * paranoiaEpithets.length)];

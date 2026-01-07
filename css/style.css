@@ -195,6 +195,20 @@ h3 {
     box-shadow: 0 0 10px var(--color-alert);
 }
 
+.horror-btn-dismiss {
+    border-color: #4a4a4a;
+    color: #777;
+    border-style: dashed;
+}
+
+.horror-btn-dismiss:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #aaa;
+    border-color: #777;
+    box-shadow: none;
+    transform: none;
+}
+
 .horror-btn-tool {
     font-family: var(--font-term);
     font-size: 1.1em;

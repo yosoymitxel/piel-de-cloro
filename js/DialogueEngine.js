@@ -20,7 +20,11 @@ export function selectDialogueSet({ personality = null, infected = false, isLore
     // Generic pools: pick by personality tag (if any) and unused first
     let candidates = Object.values(DialogueData.pools);
     if (personality) {
-        candidates = candidates.filter(p => (p.tags || []).includes(personality) || (p.tags || []).includes('generic'));
+        const filtered = candidates.filter(p => (p.tags || []).includes(personality) || (p.tags || []).includes('generic'));
+        // Fallback: Si el filtro nos deja sin opciones, volvemos a usar todos los candidatos para asegurar que haya diálogo
+        if (filtered.length > 0) {
+            candidates = filtered;
+        }
     }
     // prefer unused ones
     const unused = candidates.filter(p => !State.isDialogueUsed(p.id));
@@ -34,10 +38,8 @@ export class Conversation {
         this.set = dialogueSet;
         this.currentId = dialogueSet.root;
         this.history = [];
-        // Mark unique sets as used immediately to prevent reuse in run
-        if (dialogueSet.unique) {
-            State.markDialogueUsed(dialogueSet.id);
-        }
+        // Mark as used immediately to prevent reuse in run until all are exhausted
+        State.markDialogueUsed(dialogueSet.id);
     }
 
     getRawTreeForCompatibility() {
@@ -78,7 +80,15 @@ export class Conversation {
         const node = this.set.nodes[this.currentId];
         if (!node) return null;
         const text = this._injectTemplate(node.text);
-        const options = (node.options || []).map(o => ({ id: o.id, label: o.label, next: o.next, requires: o.requires || [], sets: o.sets || [], audio: o.audio || null }));
+        const options = (node.options || []).map(o => ({
+            id: o.id,
+            label: o.label,
+            next: o.next,
+            requires: o.requires || [],
+            sets: o.sets || [],
+            audio: o.audio || null,
+            cssClass: o.cssClass || ''
+        }));
         return { id: node.id, text, options, audio: node.audio || null, meta: node.meta || {} };
     }
 
