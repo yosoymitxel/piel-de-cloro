@@ -10,10 +10,10 @@
     --color-alert: #ff3333;
     --color-warning: #ccaa00;
     --bottom-bar-space: 72px;
-    
+
     --font-head: 'Special Elite', cursive;
     --font-term: 'VT323', monospace;
-    
+
     --border-rough: 2px solid var(--color-chlorine);
 }
 
@@ -29,7 +29,9 @@ body {
     line-height: 1.5;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
     font-family: var(--font-head);
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -37,7 +39,7 @@ h1, h2, h3 {
 
 /* Textures & Effects */
 .crt-overlay {
-    background: 
+    background:
         linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
         linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
     background-size: 100% 2px, 3px 100%;
@@ -69,14 +71,12 @@ h1, h2, h3 {
     box-shadow: 0 0 15px rgba(45, 90, 39, 0.2);
     position: relative;
     /* Asymmetry */
-    clip-path: polygon(
-        0% 0%, 
-        100% 0%, 
-        100% 98%, 
-        98% 100%, 
-        2% 100%, 
-        0% 98%
-    );
+    clip-path: polygon(0% 0%,
+            100% 0%,
+            100% 98%,
+            98% 100%,
+            2% 100%,
+            0% 98%);
 }
 
 .horror-panel-inner {
@@ -99,9 +99,7 @@ h1, h2, h3 {
     min-height: 44px;
     will-change: transform, box-shadow;
     /* Jagged edges */
-    clip-path: polygon(
-        2% 0, 100% 0, 100% 90%, 98% 100%, 0 100%, 0 10%
-    );
+    clip-path: polygon(2% 0, 100% 0, 100% 90%, 98% 100%, 0 100%, 0 10%);
 }
 
 .horror-btn:hover {
@@ -124,18 +122,29 @@ h1, h2, h3 {
     transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
     will-change: transform, box-shadow, filter;
 }
+
 .btn-interactive:hover {
     transform: translate(-1px, -1px) scale(1.03);
-    box-shadow: 0 0 14px rgba(0,255,0,0.2);
+    box-shadow: 0 0 14px rgba(0, 255, 0, 0.2);
     filter: brightness(1.05);
 }
+
 .btn-click-flash {
     animation: btnFlash 220ms ease-in-out;
 }
+
 @keyframes btnFlash {
-    0% { box-shadow: 0 0 0 rgba(0,255,0,0.0); }
-    50% { box-shadow: 0 0 14px rgba(0,255,0,0.35); }
-    100% { box-shadow: 0 0 0 rgba(0,255,0,0.0); }
+    0% {
+        box-shadow: 0 0 0 rgba(0, 255, 0, 0.0);
+    }
+
+    50% {
+        box-shadow: 0 0 14px rgba(0, 255, 0, 0.35);
+    }
+
+    100% {
+        box-shadow: 0 0 0 rgba(0, 255, 0, 0.0);
+    }
 }
 
 .horror-btn-primary {
@@ -151,6 +160,7 @@ h1, h2, h3 {
     border-color: #aaffaa !important;
     box-shadow: 0 0 12px #00FF00aa;
 }
+
 .btn-off {
     background: #ff2b2b !important;
     color: #000 !important;
@@ -237,11 +247,9 @@ h1, h2, h3 {
 }
 
 .scanline-overlay {
-    background: linear-gradient(
-        to bottom,
-        transparent 50%,
-        rgba(0, 255, 0, 0.02) 50%
-    );
+    background: linear-gradient(to bottom,
+            transparent 50%,
+            rgba(0, 255, 0, 0.02) 50%);
     background-size: 100% 4px;
     z-index: 1;
 }
@@ -278,6 +286,7 @@ body.paused .game-container {
     filter: grayscale(0.5) brightness(0.4);
     /* Ya no bloqueamos pointer-events aquí porque el modal está fuera y captura los clics */
 }
+
 #screen-game.is-paused {
     pointer-events: none;
 }
@@ -298,7 +307,7 @@ body.paused .game-container {
 .horror-card:hover {
     border-color: var(--color-chlorine);
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .horror-card.infected {
@@ -309,6 +318,7 @@ body.paused .game-container {
 #stats-panel {
     background: #060606;
 }
+
 .stat-item {
     display: flex;
     align-items: center;
@@ -317,33 +327,40 @@ body.paused .game-container {
     border: 1px solid #1a1a1a;
     background: #0b0b0b;
 }
+
 .stat-item .label {
     font-size: 12px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     opacity: 0.8;
 }
+
 .stat-item .value {
     font-family: var(--font-term);
     font-size: 18px;
     color: var(--color-chlorine-light);
 }
+
 .badge-rt {
     background: rgba(0, 200, 255, 0.15);
     color: #69e1ff;
     border: 1px solid #176a83;
 }
+
 .badge-night {
     background: rgba(255, 150, 0, 0.12);
     color: #ffcc66;
     border: 1px solid #7a5a1a;
 }
+
 .trend {
     font-family: var(--font-term);
 }
+
 .trend-up {
     color: #79ff79;
 }
+
 .trend-down {
     color: var(--color-alert);
 }
@@ -354,19 +371,51 @@ body.paused .game-container {
         border-left: none;
         border-top: 1px solid var(--color-chlorine-dim);
     }
-    #npc-dialogue { font-size: 1rem; }
-    .horror-btn { padding: 12px; }
-    .horror-btn-tool { font-size: 1rem; }
+
+    #npc-dialogue {
+        font-size: 1rem;
+    }
+
+    .horror-btn {
+        padding: 12px;
+    }
+
+    .horror-btn-tool {
+        font-size: 1rem;
+    }
 }
 
 /* Animations */
 @keyframes glitch-anim {
-    0% { clip-path: inset(10% 0 80% 0); transform: translate(-2px, 1px); }
-    20% { clip-path: inset(80% 0 5% 0); transform: translate(2px, -1px); }
-    40% { clip-path: inset(20% 0 60% 0); transform: translate(-1px, 2px); }
-    60% { clip-path: inset(60% 0 10% 0); transform: translate(1px, -2px); }
-    80% { clip-path: inset(40% 0 30% 0); transform: translate(-2px, 1px); }
-    100% { clip-path: inset(10% 0 80% 0); transform: translate(2px, -1px); }
+    0% {
+        clip-path: inset(10% 0 80% 0);
+        transform: translate(-2px, 1px);
+    }
+
+    20% {
+        clip-path: inset(80% 0 5% 0);
+        transform: translate(2px, -1px);
+    }
+
+    40% {
+        clip-path: inset(20% 0 60% 0);
+        transform: translate(-1px, 2px);
+    }
+
+    60% {
+        clip-path: inset(60% 0 10% 0);
+        transform: translate(1px, -2px);
+    }
+
+    80% {
+        clip-path: inset(40% 0 30% 0);
+        transform: translate(-2px, 1px);
+    }
+
+    100% {
+        clip-path: inset(10% 0 80% 0);
+        transform: translate(2px, -1px);
+    }
 }
 
 .glitch-effect {
@@ -399,19 +448,46 @@ body.paused .game-container {
 
 /* Motion preferences */
 @media (prefers-reduced-motion: reduce) {
-    .animate__animated { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
-    .vhs-target.vhs-active { animation: none; }
+    .animate__animated {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+
+    .vhs-target.vhs-active {
+        animation: none;
+    }
+
     .vhs-target.vhs-active::before,
-    .vhs-target.vhs-active::after { display: none; }
-    .scanline { display: none; }
-    .horror-btn, .nav-btn { transition-duration: 0.01ms; }
+    .vhs-target.vhs-active::after {
+        display: none;
+    }
+
+    .scanline {
+        display: none;
+    }
+
+    .horror-btn,
+    .nav-btn {
+        transition-duration: 0.01ms;
+    }
 }
 
 /* Utility Overrides for Tailwind */
-.text-chlorine { color: var(--color-chlorine); }
-.text-chlorine-light { color: var(--color-chlorine-light); }
-.bg-chlorine { background-color: var(--color-chlorine); }
-.border-chlorine { border-color: var(--color-chlorine); }
+.text-chlorine {
+    color: var(--color-chlorine);
+}
+
+.text-chlorine-light {
+    color: var(--color-chlorine-light);
+}
+
+.bg-chlorine {
+    background-color: var(--color-chlorine);
+}
+
+.border-chlorine {
+    border-color: var(--color-chlorine);
+}
 
 /* Inputs */
 .horror-input {
@@ -431,12 +507,15 @@ body.paused .game-container {
 ::-webkit-scrollbar {
     width: 8px;
 }
+
 ::-webkit-scrollbar-track {
     background: #000;
 }
+
 ::-webkit-scrollbar-thumb {
     background: var(--color-chlorine-dim);
 }
+
 ::-webkit-scrollbar-thumb:hover {
     background: var(--color-chlorine);
 }
@@ -446,16 +525,19 @@ body.paused .game-container {
     box-shadow: 0 0 20px rgba(168, 213, 162, 0.2), inset 0 0 10px rgba(45, 90, 39, 0.2);
     position: relative;
 }
+
 .lore-panel::before,
 .lore-panel::after {
     content: "";
     position: absolute;
     border: 1px solid var(--color-chlorine);
 }
+
 .lore-panel::before {
     inset: 10px;
     opacity: 0.4;
 }
+
 .lore-panel::after {
     width: 22px;
     height: 22px;
@@ -465,14 +547,43 @@ body.paused .game-container {
 }
 
 /* Modal types */
-.modal-normal .horror-panel { background: #0a0f0a; border-color: var(--color-chlorine-light); }
-.modal-lore .horror-panel { background: #0b0f0b; border-color: #88dd88; }
-.modal-death .horror-panel { background: #120101; border-color: var(--color-alert); }
-.modal-warning .horror-panel { background: #130f00; border-color: #ffcc66; }
-.modal-death #modal-message-content { color: var(--color-alert); text-shadow: 0 0 10px var(--color-alert); }
-.modal-warning #modal-message-content { color: #ffcc66; text-shadow: 0 0 10px #ffcc66; }
-.modal-normal #modal-message-content { color: var(--color-chlorine-light); }
-.modal-lore #modal-message-content { color: #a8d5a2; }
+.modal-normal .horror-panel {
+    background: #0a0f0a;
+    border-color: var(--color-chlorine-light);
+}
+
+.modal-lore .horror-panel {
+    background: #0b0f0b;
+    border-color: #88dd88;
+}
+
+.modal-death .horror-panel {
+    background: #120101;
+    border-color: var(--color-alert);
+}
+
+.modal-warning .horror-panel {
+    background: #130f00;
+    border-color: #ffcc66;
+}
+
+.modal-death #modal-message-content {
+    color: var(--color-alert);
+    text-shadow: 0 0 10px var(--color-alert);
+}
+
+.modal-warning #modal-message-content {
+    color: #ffcc66;
+    text-shadow: 0 0 10px #ffcc66;
+}
+
+.modal-normal #modal-message-content {
+    color: var(--color-chlorine-light);
+}
+
+.modal-lore #modal-message-content {
+    color: #a8d5a2;
+}
 
 /* Lore panel variants ensure full backgrounds and button styles */
 .lore-danger {
@@ -480,29 +591,34 @@ body.paused .game-container {
     border-color: var(--color-alert) !important;
     box-shadow: 0 0 20px rgba(255, 51, 51, 0.35), inset 0 0 10px rgba(255, 51, 51, 0.2) !important;
 }
+
 .lore-calm {
     background: #0b0f0b !important;
     border-color: #88dd88 !important;
     box-shadow: 0 0 20px rgba(168, 213, 162, 0.3), inset 0 0 10px rgba(45, 90, 39, 0.25) !important;
 }
+
 .lore-danger .horror-btn,
 .lore-danger .horror-btn-primary {
     border-color: var(--color-alert) !important;
     color: var(--color-alert) !important;
     background: transparent !important;
 }
+
 .lore-danger .horror-btn:hover,
 .lore-danger .horror-btn-primary:hover {
     background: var(--color-alert) !important;
     color: #000 !important;
     box-shadow: 0 0 12px var(--color-alert) !important;
 }
+
 .lore-calm .horror-btn,
 .lore-calm .horror-btn-primary {
     border-color: var(--color-chlorine-light) !important;
     color: var(--color-chlorine-light) !important;
     background: transparent !important;
 }
+
 .lore-calm .horror-btn:hover,
 .lore-calm .horror-btn-primary:hover {
     background: var(--color-chlorine-light) !important;
@@ -511,10 +627,39 @@ body.paused .game-container {
 }
 
 /* Modal icons */
-.modal-death-icon { width: 14px; height: 14px; display: inline-block; background: var(--color-alert); border: 1px solid #ff6666; box-shadow: 0 0 8px var(--color-alert); }
-.modal-warning-icon { width: 0; height: 0; display: inline-block; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 14px solid #ffcc66; margin-right: 6px; }
-.modal-lore-icon { width: 14px; height: 14px; display: inline-block; border: 1px solid #88dd88; box-shadow: 0 0 8px #88dd88; }
-.modal-normal-icon { width: 14px; height: 14px; display: inline-block; border: 1px solid var(--color-chlorine-light); }
+.modal-death-icon {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    background: var(--color-alert);
+    border: 1px solid #ff6666;
+    box-shadow: 0 0 8px var(--color-alert);
+}
+
+.modal-warning-icon {
+    width: 0;
+    height: 0;
+    display: inline-block;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 14px solid #ffcc66;
+    margin-right: 6px;
+}
+
+.modal-lore-icon {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    border: 1px solid #88dd88;
+    box-shadow: 0 0 8px #88dd88;
+}
+
+.modal-normal-icon {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    border: 1px solid var(--color-chlorine-light);
+}
 
 .switch-track {
     display: inline-block;
@@ -525,6 +670,7 @@ body.paused .game-container {
     background: #0b0b0b;
     position: relative;
 }
+
 .switch-thumb {
     position: absolute;
     top: -1px;
@@ -536,19 +682,29 @@ body.paused .game-container {
     border: 1px solid var(--color-chlorine-light);
     transition: transform 0.2s ease, background 0.2s ease;
 }
-input.peer:checked ~ .inline-flex .switch-track { border-color: var(--color-chlorine-light); background: #0f1a0f; }
-input.peer:checked ~ .inline-flex .switch-thumb { transform: translateX(21px); background: var(--color-chlorine-light); }
+
+input.peer:checked~.inline-flex .switch-track {
+    border-color: var(--color-chlorine-light);
+    background: #0f1a0f;
+}
+
+input.peer:checked~.inline-flex .switch-thumb {
+    transform: translateX(21px);
+    background: var(--color-chlorine-light);
+}
 
 input[type=range].horror-range {
     width: 100%;
     appearance: none;
     background: transparent;
 }
+
 input[type=range].horror-range::-webkit-slider-runnable-track {
     height: 6px;
     background: #1a3317;
     border: 1px solid var(--color-chlorine);
 }
+
 input[type=range].horror-range::-webkit-slider-thumb {
     appearance: none;
     width: 18px;
@@ -558,11 +714,13 @@ input[type=range].horror-range::-webkit-slider-thumb {
     border: 1px solid var(--color-chlorine);
     margin-top: -6px;
 }
+
 input[type=range].horror-range::-moz-range-track {
     height: 6px;
     background: #1a3317;
     border: 1px solid var(--color-chlorine);
 }
+
 input[type=range].horror-range::-moz-range-thumb {
     width: 18px;
     height: 18px;
@@ -576,6 +734,7 @@ input[type=number].horror-input::-webkit-inner-spin-button {
     appearance: none;
     margin: 0;
 }
+
 input[type=number].horror-input {
     -moz-appearance: textfield;
 }
@@ -584,6 +743,7 @@ input[type=number].horror-input {
     border-color: var(--color-alert);
     box-shadow: 0 0 20px rgba(255, 51, 51, 0.25), inset 0 0 10px rgba(255, 51, 51, 0.15);
 }
+
 .lore-calm {
     border-color: var(--color-chlorine-light);
     box-shadow: 0 0 20px rgba(168, 213, 162, 0.25), inset 0 0 10px rgba(45, 90, 39, 0.15);
@@ -595,47 +755,92 @@ input[type=number].horror-input {
     position: relative;
     overflow: hidden;
 }
+
 .vhs-target.vhs-active {
     animation: vhs-flicker var(--vhs-duration) linear, vhs-jitter var(--vhs-duration) ease-in-out;
 }
+
 .vhs-target.vhs-active::before {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
     background:
-        radial-gradient(transparent 75%, rgba(0,0,0,0.2)),
-        repeating-linear-gradient(180deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 2px, transparent 4px);
+        radial-gradient(transparent 75%, rgba(0, 0, 0, 0.2)),
+        repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0px, rgba(0, 0, 0, 0.05) 2px, transparent 4px);
     mix-blend-mode: overlay;
     opacity: calc(var(--vhs-intensity) * 0.8);
     animation: vhs-scan var(--vhs-duration) linear infinite;
 }
+
 .vhs-target.vhs-active::after {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: repeating-linear-gradient(transparent, rgba(255,255,255,0.02) 2px, transparent 4px);
+    background: repeating-linear-gradient(transparent, rgba(255, 255, 255, 0.02) 2px, transparent 4px);
     opacity: calc(var(--vhs-intensity) * 0.5);
 }
 
 @keyframes vhs-flicker {
-    0%, 100% { opacity: 1; }
-    20% { opacity: 0.9; }
-    40% { opacity: 0.7; }
-    60% { opacity: 0.85; }
-    80% { opacity: 0.95; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    20% {
+        opacity: 0.9;
+    }
+
+    40% {
+        opacity: 0.7;
+    }
+
+    60% {
+        opacity: 0.85;
+    }
+
+    80% {
+        opacity: 0.95;
+    }
 }
+
 @keyframes vhs-jitter {
-    0% { transform: translate(0,0); filter: contrast(1) saturate(1); }
-    25% { transform: translate(-1px, 0.5px) skewX(0.5deg); filter: contrast(1.1) saturate(1.05); }
-    50% { transform: translate(1px, -0.5px) skewX(-0.5deg); filter: contrast(1.15) saturate(1.1); }
-    75% { transform: translate(-0.5px, 1px) skewX(0.3deg); filter: contrast(1.08) saturate(1.05); }
-    100% { transform: translate(0,0); filter: contrast(1) saturate(1); }
+    0% {
+        transform: translate(0, 0);
+        filter: contrast(1) saturate(1);
+    }
+
+    25% {
+        transform: translate(-1px, 0.5px) skewX(0.5deg);
+        filter: contrast(1.1) saturate(1.05);
+    }
+
+    50% {
+        transform: translate(1px, -0.5px) skewX(-0.5deg);
+        filter: contrast(1.15) saturate(1.1);
+    }
+
+    75% {
+        transform: translate(-0.5px, 1px) skewX(0.3deg);
+        filter: contrast(1.08) saturate(1.05);
+    }
+
+    100% {
+        transform: translate(0, 0);
+        filter: contrast(1) saturate(1);
+    }
 }
+
 @keyframes vhs-scan {
-    0% { background-position: 0 0; }
-    100% { background-position: 0 100%; }
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 0 100%;
+    }
 }
 
 .dayafter-card {
@@ -646,15 +851,18 @@ input[type=number].horror-input {
     flex-direction: column;
     gap: 8px;
 }
+
 .dayafter-card.validated {
     border-color: var(--color-chlorine);
-    box-shadow: 0 0 10px rgba(45,90,39,0.25);
+    box-shadow: 0 0 10px rgba(45, 90, 39, 0.25);
 }
+
 .dayafter-tests {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
 }
+
 .dayafter-tests .slot {
     border: 1px solid var(--color-chlorine-dim);
     padding: 6px;
@@ -662,21 +870,35 @@ input[type=number].horror-input {
     cursor: pointer;
     transition: all 0.2s;
 }
+
 .dayafter-tests .slot.done {
     background: var(--color-chlorine);
     color: #000;
     border-color: var(--color-chlorine-light);
 }
+
 .dayafter-tests .slot.blocked {
     opacity: 0.4;
     cursor: not-allowed;
 }
 
 @keyframes bloodPulse {
-    0% { box-shadow: 0 0 0 rgba(255, 51, 51, 0.0); background: transparent; }
-    50% { box-shadow: 0 0 18px rgba(255, 51, 51, 0.35), inset 0 0 24px rgba(255, 51, 51, 0.25); background: rgba(74, 14, 14, 0.35); }
-    100% { box-shadow: 0 0 0 rgba(255, 51, 51, 0.0); background: transparent; }
+    0% {
+        box-shadow: 0 0 0 rgba(255, 51, 51, 0.0);
+        background: transparent;
+    }
+
+    50% {
+        box-shadow: 0 0 18px rgba(255, 51, 51, 0.35), inset 0 0 24px rgba(255, 51, 51, 0.25);
+        background: rgba(74, 14, 14, 0.35);
+    }
+
+    100% {
+        box-shadow: 0 0 0 rgba(255, 51, 51, 0.0);
+        background: transparent;
+    }
 }
+
 .modal-blood-flash {
     animation: bloodPulse 0.7s ease-out;
     border-color: var(--color-alert) !important;
@@ -684,7 +906,13 @@ input[type=number].horror-input {
 
 /* Responsive Navigation: bottom bar on mobile */
 @media (max-width: 640px) {
-    .game-container { width: 100%; height: auto !important; min-height: calc(100dvh - var(--bottom-bar-space)); padding-bottom: var(--bottom-bar-space); }
+    .game-container {
+        width: 100%;
+        height: auto !important;
+        min-height: calc(100dvh - var(--bottom-bar-space));
+        padding-bottom: var(--bottom-bar-space);
+    }
+
     #sidebar-left {
         position: fixed;
         bottom: 0;
@@ -702,9 +930,18 @@ input[type=number].horror-input {
         z-index: 30;
         padding-bottom: env(safe-area-inset-bottom);
     }
-    #sidebar-left .nav-btn { padding: 8px 10px; }
-    #sidebar-left .nav-btn span { font-size: 0.65rem; }
-    #nav-morgue-stats span { font-size: 0.55rem; }
+
+    #sidebar-left .nav-btn {
+        padding: 8px 10px;
+    }
+
+    #sidebar-left .nav-btn span {
+        font-size: 0.65rem;
+    }
+
+    #nav-morgue-stats span {
+        font-size: 0.55rem;
+    }
 }
 
 /* Distintivo para 'Puesto' (centro del juego) */
@@ -741,22 +978,48 @@ input[type=number].horror-input {
     color: #00ff00;
     filter: drop-shadow(0 0 5px rgba(0, 255, 0, 0.5));
 }
+
 /* Responsive grids */
 @media (max-width: 640px) {
 
 
-    #shelter-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
-    #morgue-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
-    #dayafter-list { grid-template-columns: repeat(1, minmax(220px, 1fr)); }
-    .grid-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .grid-tools .horror-btn { min-height: 52px; }
-    .horror-btn-tool i { font-size: 1.1rem; }
+    #shelter-grid {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+    }
+
+    #morgue-grid {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+    }
+
+    #dayafter-list {
+        grid-template-columns: repeat(1, minmax(220px, 1fr));
+    }
+
+    .grid-tools {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-tools .horror-btn {
+        min-height: 52px;
+    }
+
+    .horror-btn-tool i {
+        font-size: 1.1rem;
+    }
 }
 
 @media (min-width: 1024px) {
-    #shelter-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-    #morgue-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-    #dayafter-list { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+    #shelter-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    #morgue-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    #dayafter-list {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
 }
 
 /* Animaciones y Efectos de Herramientas */
@@ -777,6 +1040,11 @@ input[type=number].horror-input {
 }
 
 @keyframes scanline {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(1000%); }
+    0% {
+        transform: translateY(-100%);
+    }
+
+    100% {
+        transform: translateY(1000%);
+    }
 }

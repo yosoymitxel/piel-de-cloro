@@ -1,7 +1,9 @@
 import { DialogueData } from './DialogueData.js';
+import { selectDialogueSet, Conversation } from './DialogueEngine.js';
+import { State } from './State.js';
 
 export class NPC {
-    constructor(infectedChance = null) {
+    constructor(infectedChance = null, opts = {}) {
         // Default: ~40% infectados (Math.random() > 0.6)
         // Sesgo configurable: usar infectedChance como probabilidad directa
         this.isInfected = infectedChance != null ? (Math.random() < infectedChance) : (Math.random() > 0.6);
@@ -9,8 +11,14 @@ export class NPC {
         this.attributes = this.generateAttributes(this.isInfected);
         this.visualFeatures = this.generateVisualFeatures(this.isInfected);
         this.personality = this.pickPersonality();
-        this.dialogueTree = this.generateDialogueTree(this.isInfected, this.personality);
-        
+        this.isLore = opts.isLore || false;
+        this.loreId = opts.loreId || null;
+
+        // Assign a dialogue set using DialogueEngine
+        const set = selectDialogueSet({ personality: this.personality, infected: this.isInfected, isLore: this.isLore, loreId: this.loreId });
+        this.conversation = new Conversation(this, set);
+        this.dialogueTree = this.conversation.getRawTreeForCompatibility();
+
         // Track scans
         this.scanCount = 0;
         this.maxScans = 2;
@@ -18,17 +26,27 @@ export class NPC {
     }
 
     generateName() {
-        const exoticPrefixes = ["ZOR","XEN","LYK","QIR","VYR","ZYL","KOR","MYR","NYX","AEG","NEX","VEX","LYR","ZEN","KAI","ORA","SOL","NOV","ARQ","SYL","THR"];
-        const exoticSuffixes = ["TH","YN","KR","VN","ZR","YL","QR","MR","IX","OS","AR","ON","IS","OR","AX","UM","EL","AN","IR","OR"];
+        // Spanish-friendly exotic-ish names, simple to read
+        const firsts = ['Ariel', 'Marin', 'Luz', 'Ciro', 'Noa', 'Elo', 'Dara', 'Bruno', 'Celia', 'Nico', 'Iker', 'Lina', 'Rocío', 'Pablo', 'Sofia', 'Enzo'];
+        const lasts = ['Maro', 'Sierra', 'Vega', 'Luz', 'Rojas', 'Sol', 'Mora', 'Rivera', 'Ortega', 'Campos', 'Valle', 'Cruz', 'Rey', 'Luna'];
         const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-        const p1 = pick(exoticPrefixes);
-        const p2 = pick(exoticPrefixes);
-        const s1 = pick(exoticSuffixes);
-        const s2 = pick(exoticSuffixes);
-        const compound = Math.random() < 0.35;
-        const mid = compound ? `${p1}-${p2}-${s1}` : `${p1}-${s1}`;
-        const tail = Math.random() < 0.25 ? `-${s2}` : "";
-        return `${mid}${tail}`;
+        return `${pick(firsts)} ${pick(lasts)}`;
+    }
+
+    getEpithet() {
+        // Dynamic epithet based on infection or global paranoia
+        const infectedEpithets = ['Carne Pálida', 'Voz de Ceniza', 'Pupilas de Sal', 'Mudo de Agua'];
+        const paranoiaEpithets = ['El Que Tiembla', 'Manos Sucias', 'Ojos de Tercia', 'Sombra Que Llora'];
+        const neutralEpithets = ['Andariego', 'Sin Refugio', 'De Paso', 'Mirada Vaga'];
+
+        if (this.isInfected) return infectedEpithets[Math.floor(Math.random() * infectedEpithets.length)];
+        if (State.paranoia > 60) return paranoiaEpithets[Math.floor(Math.random() * paranoiaEpithets.length)];
+        return neutralEpithets[Math.floor(Math.random() * neutralEpithets.length)];
+    }
+
+    getDisplayName() {
+        const epithet = this.getEpithet();
+        return `${this.name} — ${epithet}`;
     }
 
     generateAttributes(infected) {
@@ -48,7 +66,7 @@ export class NPC {
 
         // Skin tones
         const skins = ['var(--avatar-skin-1)', 'var(--avatar-skin-2)', 'var(--avatar-skin-3)', 'var(--avatar-skin-4)', 'var(--avatar-skin-5)'];
-        
+
         return {
             hair: hairStyles[Math.floor(Math.random() * hairStyles.length)],
             accessory: accessories[Math.floor(Math.random() * accessories.length)],
@@ -64,64 +82,34 @@ export class NPC {
     }
 
     generateDialogueTree(infected, personality) {
-        const t = DialogueData.dialogues[personality];
-        
-        // Helper to pick random response based on infection status
-        const getResponse = (category) => {
-            const cleanOpts = category.clean;
-            const infectedOpts = category.infected;
-            
-            // If infected, 30% chance to slip up, otherwise use clean lines to blend in
-            if (infected && Math.random() < 0.3) {
-                return infectedOpts[Math.floor(Math.random() * infectedOpts.length)];
-            }
-            return cleanOpts[Math.floor(Math.random() * cleanOpts.length)];
-        };
+        // If DialogueData doesn't have deeper dialogue templates, return a simple safe tree
+        const t = (DialogueData.dialogues && DialogueData.dialogues[personality]) ? DialogueData.dialogues[personality] : null;
 
         const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+        const getResponse = (category) => {
+            if (!category) return "...";
+            const cleanOpts = category.clean || [];
+            const infectedOpts = category.infected || [];
+            if (infected && Math.random() < 0.3 && infectedOpts.length) return pick(infectedOpts);
+            if (cleanOpts.length) return pick(cleanOpts);
+            return "...";
+        };
 
-        // Deep probe response
         const getDeepResponse = () => {
-            if (infected && Math.random() < 0.4) {
-                return pick(DialogueData.deep_probes.infected);
+            if (DialogueData.deep_probes) {
+                if (infected && DialogueData.deep_probes.infected && Math.random() < 0.4) return pick(DialogueData.deep_probes.infected);
+                if (DialogueData.deep_probes.clean) return pick(DialogueData.deep_probes.clean);
             }
-            return pick(DialogueData.deep_probes.clean);
+            return "...";
         };
 
         return {
-            root: {
-                text: getResponse(t.greeting),
-                options: [
-                    { label: t.q_status.q, next: 'status' },
-                    { label: t.q_origin.q, next: 'origin' }
-                ]
-            },
-            status: {
-                text: getResponse(t.q_status),
-                options: [
-                    { label: "Insistir sobre salud", next: 'deep_health' },
-                    { label: "Volver", next: 'root' }
-                ]
-            },
-            origin: {
-                text: getResponse(t.q_origin),
-                options: [
-                    { label: "Preguntar por detalles", next: 'deep_origin' },
-                    { label: "Volver", next: 'root' }
-                ]
-            },
-            deep_health: {
-                text: getDeepResponse(),
-                options: [{ label: "Terminar interrogatorio", next: 'end' }]
-            },
-            deep_origin: {
-                text: getDeepResponse(),
-                options: [{ label: "Terminar interrogatorio", next: 'end' }]
-            },
-            end: {
-                text: "Esperando decisión...",
-                options: [] 
-            }
+            root: { text: getResponse(t && t.greeting), options: [{ label: 'Estado', next: 'status' }, { label: 'Origen', next: 'origin' }] },
+            status: { text: getResponse(t && t.q_status), options: [{ label: 'Insistir sobre salud', next: 'deep_health' }, { label: 'Volver', next: 'root' }] },
+            origin: { text: getResponse(t && t.q_origin), options: [{ label: 'Preguntar por detalles', next: 'deep_origin' }, { label: 'Volver', next: 'root' }] },
+            deep_health: { text: getDeepResponse(), options: [{ label: 'Terminar interrogatorio', next: 'end' }] },
+            deep_origin: { text: getDeepResponse(), options: [{ label: 'Terminar interrogatorio', next: 'end' }] },
+            end: { text: 'Esperando decisión...', options: [] }
         };
     }
 }

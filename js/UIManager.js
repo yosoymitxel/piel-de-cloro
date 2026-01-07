@@ -5,6 +5,7 @@ import { AvatarRenderer } from './AvatarRenderer.js';
 import { ScreenManager } from './ScreenManager.js';
 import { GeneratorManager } from './GeneratorManager.js';
 import { StatsManager } from './StatsManager.js';
+import { parseDialogueMarkup, escapeHtml } from './markup.js';
 
 export class UIManager {
     constructor(audio = null) {
@@ -21,7 +22,7 @@ export class UIManager {
             generator: $('#screen-generator'),
             finalStats: $('#screen-final-stats')
         };
-        
+
         this.elements = {
             paranoia: $('#paranoia-level'),
             cycle: $('#cycle-count'),
@@ -45,7 +46,7 @@ export class UIManager {
             dayafterTestsLeft: $('#dayafter-tests-left'),
             dayafterGroupLimit: $('#dayafter-group-limit'),
             dayafterValidatedCount: $('#dayafter-validated-count'),
-            
+
             // Modal NPC
             modal: $('#modal-npc'),
             modalName: $('#modal-npc-name'),
@@ -54,14 +55,14 @@ export class UIManager {
             modalLog: $('#modal-npc-log'),
             modalPurgeBtn: $('#btn-modal-purge'),
             modalError: $('#modal-error'),
-            
+
             // Generator warnings
             genWarningGame: $('#generator-warning-game'),
             genWarningShelter: $('#generator-warning-shelter'),
             genWarningPanel: $('#generator-warning-panel'),
             gameActionsContainer: $('#game-actions-container'),
             inspectionToolsContainer: $('#inspection-tools-container'),
-            
+
             // Shelter finalize button
             finalizeNoPurgeBtn: $('#btn-finalize-day-no-purge'),
 
@@ -86,7 +87,7 @@ export class UIManager {
         };
         this.infectionEffectActive = false;
         this.typingTimer = null;
-        
+
         this.timings = {
             vhsDuration: 1000,
             loreFadeOut: 500,
@@ -146,11 +147,11 @@ export class UIManager {
 
         // La revisión solo es "obligatoria" si no hay energía o está apagado
         const generatorOk = State.generator && State.generator.isOn;
-        const needsCheck = !generatorOk; 
-        
+        const needsCheck = !generatorOk;
+
         if (this.elements.genWarningGame) this.elements.genWarningGame.toggleClass('hidden', !needsCheck);
         if (this.elements.genWarningShelter) this.elements.genWarningShelter.toggleClass('hidden', !needsCheck);
-        
+
         if (paranoia > 70) {
             this.elements.paranoia.removeClass('text-chlorine-light').addClass('text-alert');
         } else {
@@ -166,9 +167,9 @@ export class UIManager {
 
             // Calcular energía actual (0 si está apagado o fallo)
             const currentEnergy = (!State.generator.isOn || currentNPC.scanCount >= 90) ? 0 : Math.max(0, maxEnergy - currentNPC.scanCount);
-            
+
             energySpan.text(`${currentEnergy}/${maxEnergy}`);
-            
+
             if (currentEnergy > 0) {
                 energySpan.removeClass('text-alert animate-pulse').addClass('text-cyan-400');
             } else {
@@ -206,9 +207,9 @@ export class UIManager {
         // La revisión solo es "obligatoria" visualmente si no hay energía o está apagado
         const generatorOk = State.generator && State.generator.isOn && (State.generator.power > 10);
         const needsCheck = !generatorOk;
-        
+
         if (this.elements.genWarningGame) this.elements.genWarningGame.toggleClass('hidden', !needsCheck);
-        
+
         // Los botones de admitir/ignorar ya no se reemplazan aquí.
         // Se asume que el HTML inicial de index.html es el correcto.
     }
@@ -217,7 +218,7 @@ export class UIManager {
         if (!this.elements.inspectionToolsContainer) return;
 
         const npc = State.currentNPC;
-        
+
         if (!State.generator.isOn) {
             // Caso 1: Generador apagado
             this.elements.inspectionToolsContainer.removeClass('grid-cols-2 sm:grid-cols-2 lg:grid-cols-4').addClass('grid-cols-1');
@@ -228,7 +229,7 @@ export class UIManager {
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
             `);
-            
+
             return;
         }
 
@@ -248,7 +249,7 @@ export class UIManager {
         } else {
             // Caso Normal con energía disponible
             this.elements.inspectionToolsContainer.removeClass('grid-cols-1').addClass('grid-cols-2 sm:grid-cols-2 lg:grid-cols-4');
-            
+
             const modeMap = {
                 'save': 'Ahorro: Máx 1',
                 'normal': 'Normal: Máx 2',
@@ -291,9 +292,9 @@ export class UIManager {
         const avatar = this.renderAvatar(npc, 'lg');
         this.elements.npcDisplay.append(avatar);
 
-        // Initial Dialogue
-        this.updateDialogueBox(npc.dialogueTree.root, npc);
-        
+        // Initial Dialogue (Conversation engine)
+        this.updateDialogueBox(npc);
+
         // Glitch
         const glitchChance = Math.min(0.9, (npc.visualFeatures.glitchChance || 0) * (State.getGlitchModifier ? State.getGlitchModifier() : 1));
         if (Math.random() < glitchChance) {
@@ -302,43 +303,126 @@ export class UIManager {
         }
     }
 
-    updateDialogueBox(node, npc) {
-        this.elements.dialogue.html(`<span class="npc-name font-bold text-chlorine">SUJETO ${npc.name}:</span> <span class="npc-text"></span>`);
-        const textEl = this.elements.dialogue.find('.npc-text');
-        this.typeText(textEl, node.text, 18);
-        this.elements.dialogueOptions.empty();
-        
-        node.options.forEach(opt => {
-            const btn = $('<button>', {
-                class: 'option-btn border border-chlorine-light text-chlorine-light px-2 py-1 hover:bg-chlorine-light hover:text-black transition-colors text-left text-sm',
-                text: `> ${opt.label}`
-            });
-            
-            btn.on('click', () => {
-                if (npc.dialogueTree[opt.next]) {
-                    // Al seleccionar cualquier diálogo, el botón de omitir desaparece permanentemente
-                    npc.dialogueStarted = true;
-                    this.hideOmitOption(); // Asegurar que se oculta inmediatamente
-                    
-                    this.updateDialogueBox(npc.dialogueTree[opt.next], npc);
-                    if (!npc.history) npc.history = [];
-                    npc.history.push(`Q: ${opt.label} | A: ${npc.dialogueTree[opt.next].text}`);
-                    State.dialoguesCount++;
-                    
-                    this.updateInspectionTools(); // Asegurar que las herramientas reflejen que ya hubo interacción
-                }
-            });
-            
-            this.elements.dialogueOptions.append(btn);
-        });
+    updateDialogueBox(npc) {
+        if (!npc || !npc.conversation) return;
+        const convNode = npc.conversation.getCurrentNode();
+        const nodeText = convNode ? convNode.text : '...';
 
-        // Solo mostrar botón omitir si no se ha interactuado de ninguna forma (ni diálogo ni tests)
-        const hasInteracted = npc.dialogueStarted || npc.scanCount > 0;
+        const displayNameFull = npc.getDisplayName ? npc.getDisplayName() : npc.name;
+        // Split full display name into base name and epithet (apodo) if present (separator em-dash '—' or hyphen)
+        const nameParts = displayNameFull.split(/\s*[—\-]\s*/);
+        const baseName = nameParts[0].trim();
+        const epithet = nameParts.slice(1).join(' — ').trim();
+
+        const nameHtml = `<span class="npc-name font-bold text-chlorine">${baseName}</span>`;
+        this.elements.dialogue.html(`${nameHtml} <span class="npc-text"></span>`);
+        const textEl = this.elements.dialogue.find('.npc-text');
+        this.elements.dialogueOptions.empty();
+
+        // Helper to safely escape regex for display name removal (prefer removing the full displayNameFull or at least the baseName)
+        const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        // Avoid repeating the NPC display name: remove leading or any redundant mentions inside the node text
+        let raw = nodeText || '';
+        // Remove leading displayNameFull or baseName as before
+        const fullPattern = new RegExp('^\\s*' + escapeRegExp(displayNameFull) + '\\s*(?:[\\u2014\\-:\\s])*', 'i');
+        if (fullPattern.test(raw)) {
+            raw = raw.replace(fullPattern, '').trim();
+        } else {
+            const basePattern = new RegExp('^\\s*' + escapeRegExp(baseName) + '\\s*(?:[\\u2014\\-:\\s])*', 'i');
+            raw = raw.replace(basePattern, '').trim();
+        }
+        // Also remove any further occurrences of the base name or full name inside the dialogue (to avoid redundancy).
+        // Use word boundaries and case-insensitive match. Be careful with accented characters — use simple replace for now.
+        try {
+            const innerRemoveFull = new RegExp('\\b' + escapeRegExp(displayNameFull) + '\\b', 'gi');
+            raw = raw.replace(innerRemoveFull, '').trim();
+        } catch (e) { /* ignore if regex fails */ }
+        try {
+            const innerRemoveBase = new RegExp('\\b' + escapeRegExp(baseName) + '\\b', 'gi');
+            raw = raw.replace(innerRemoveBase, '').trim();
+        } catch (e) { /* ignore */ }
+
+
+        // If the epithet exists and is not included in the raw text, prepend it once to the dialogue text
+        let parsed = '';
+
+        // Play node audio on enter
+        if (convNode && convNode.audio && this.audio) {
+            this.audio.playSFXByKey(convNode.audio, { volume: 0.5 });
+        }
+
+        const needsMarkup = /\*.*?\*|".*?"|Se dice que|Dicen que|comentaba que/.test(raw);
+        if (needsMarkup) {
+            parsed = (typeof parseDialogueMarkup === 'function') ? parseDialogueMarkup(raw) : raw;
+            if (epithet && !raw.includes(epithet)) {
+                parsed = `<span class="npc-epithet"> — ${escapeHtml(epithet)}</span> ` + parsed;
+            }
+            // Use sequenced rendering that respects actions/speeches/rumors
+            this.typeText(textEl, parsed, 18);
+        } else {
+            // Plain text: optionally include epithet
+            let finalText = raw;
+            if (epithet && !raw.includes(epithet)) finalText = `— ${epithet} ${raw}`;
+            this.typeText(textEl, finalText, 18);
+        }
+
+        // Build option buttons
+        if (convNode && convNode.options && convNode.options.length) {
+            convNode.options.forEach((opt, idx) => {
+                const btn = $('<button>', {
+                    class: 'option-btn border border-chlorine-light text-chlorine-light px-2 py-1 hover:bg-chlorine-light hover:text-black transition-colors text-left text-sm',
+                    html: `&gt; ${escapeHtml(opt.label)}`
+                });
+
+                btn.on('click', () => {
+                    // Mark dialogue started and hide omit (tracking interaction)
+                    npc.dialogueStarted = true;
+                    this.hideOmitOption();
+
+                    // Play optional sfx tied to option
+                    if (opt.audio && this.audio) this.audio.playSFXByKey(opt.audio, { volume: 0.6 });
+
+                    const res = npc.conversation.getNextDialogue(idx);
+                    State.dialoguesCount++;
+
+                    if (res.error) {
+                        this.showMessage(res.error, () => { }, 'warning');
+                        return;
+                    }
+
+                    if (res.audio && this.audio) this.audio.playSFXByKey(res.audio, { volume: 0.6 });
+
+                    if (res.end) {
+                        this.showFeedback(res.message || 'FIN DE DIÁLOGO', 'green');
+                        this.elements.dialogueOptions.empty();
+                        if (res.message) this.typeText(textEl, res.message, 18);
+                        // update inspection tools after final choice
+                        this.updateInspectionTools();
+                        return;
+                    }
+
+                    // Otherwise render the next node
+                    this.updateDialogueBox(npc);
+
+                    // Slight VHS effect if paranoia high
+                    if (State.paranoia > 70) this.applyVHS(0.6, 600);
+
+                    // Ensure inspection tools reflect interaction
+                    this.updateInspectionTools();
+                });
+
+                this.elements.dialogueOptions.append(btn);
+            });
+        }
+
+        // Omit option: only if no interaction yet
+        const hasInteracted = npc.dialogueStarted || npc.scanCount > 0 || (npc.conversation && npc.conversation.history.length > 0);
 
         if (!npc.optOut && !hasInteracted) {
             const omitBtn = $('<button>', {
                 class: 'option-btn option-omit border border-[#7a5a1a] text-[#ffcc66] px-2 py-1 hover:bg-[#7a5a1a] hover:text-black transition-colors text-left text-sm',
-                text: '> Omitir por diálogo'
+                html: '&gt; Omitir por diálogo'
             });
             omitBtn.on('click', () => {
                 npc.optOut = true;
@@ -348,36 +432,221 @@ export class UIManager {
                 npc.history.push('Protocolo de omisión por diálogo activado.');
                 this.showFeedback('TEST OMITIDO POR DIÁLOGO', 'yellow');
                 this.updateInspectionTools();
-                this.updateDialogueBox(npc.dialogueTree['end'] || {text: "Entendido. Puede continuar.", options: []}, npc);
+                // Show end text (use parsed markup)
+                this.elements.dialogueOptions.empty();
+                const endText = (npc.conversation.getCurrentNode() && npc.conversation.getCurrentNode().text) || 'Entendido. Puede continuar.';
+                const parsed = (typeof parseDialogueMarkup === 'function') ? parseDialogueMarkup(endText) : endText;
+                textEl.html(parsed);
             });
             this.elements.dialogueOptions.append(omitBtn);
         }
     }
-    
+
     typeText(el, text, speed = 20) {
+        // Cancel any ongoing typing
         if (this.typingTimer) {
             cancelAnimationFrame(this.typingTimer);
             this.typingTimer = null;
         }
-        el.text('');
+
+        // Helper to detect if the incoming text is HTML (from parseDialogueMarkup)
+        const containsHtml = /<[^>]+>/.test(text);
+
+        // If there's an audio manager, start the typing sfx (long sfx may need to be stopped on finish)
         if (this.audio) this.audio.playSFXByKey('ui_dialogue_type', { volume: 0.4 });
-        let i = 0;
+
+        // If text is plain (no markup), keep the old behaviour (char-by-char)
+        if (!containsHtml) {
+            el.text('');
+            let i = 0;
+            const minStep = Math.max(5, speed);
+            const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+            const step = (now) => {
+                const elapsed = now - start;
+                const shouldBe = Math.floor(elapsed / minStep);
+                while (i <= shouldBe && i < text.length) {
+                    el.text(el.text() + text.charAt(i));
+                    i++;
+                }
+                if (i >= text.length) {
+                    this.typingTimer = null;
+                    // Stop typing sfx when finished
+                    if (this.audio && this.audio.channels && this.audio.channels.sfx) {
+                        try { this.audio.channels.sfx.pause(); this.audio.log && this.audio.log('[sfx] typing paused'); } catch (e) { }
+                    }
+                    return;
+                }
+                this.typingTimer = requestAnimationFrame(step);
+            };
+            this.typingTimer = requestAnimationFrame(step);
+            return;
+        }
+
+        // If we received HTML, render it but animate text nodes; actions (.action) will be shown instantly
+        // Build tokens from HTML. Prefer DOM parsing if available for accuracy
+        let tokens = [];
+        const buildTokensFromNode = (node) => {
+            const nodeTokens = [];
+            // Node can be text or element
+            if (typeof node === 'string') {
+                // fallback string content
+                nodeTokens.push({ type: 'text', value: node });
+                return nodeTokens;
+            }
+            if (node.nodeType === 3 || node.nodeType === undefined) {
+                // Text node or fallback plain string
+                const txt = (node.textContent || node.nodeValue || node).toString();
+                nodeTokens.push({ type: 'text', value: txt });
+                return nodeTokens;
+            }
+            if (node.nodeType === 1) {
+                const cls = (node.getAttribute && node.getAttribute('class')) || '';
+                // If action, add as instant outerHTML
+                if (/\baction\b/.test(cls) || /npc-epithet|epithet/.test(cls)) {
+                    nodeTokens.push({ type: 'instant', html: node.outerHTML || (`<span class="action">${node.textContent}</span>`) });
+                    return nodeTokens;
+                }
+                // For other elements, construct token with open/close and children tokens
+                const openTag = (() => {
+                    let tag = `<${node.tagName.toLowerCase()}`;
+                    for (const attr of node.attributes || []) {
+                        tag += ` ${attr.name}="${attr.value}"`;
+                    }
+                    tag += '>';
+                    return tag;
+                })();
+                nodeTokens.push({ type: 'open', html: openTag });
+                // children
+                const children = node.childNodes || [];
+                for (let i = 0; i < children.length; i++) {
+                    nodeTokens.push(...buildTokensFromNode(children[i]));
+                }
+                nodeTokens.push({ type: 'close', html: `</${node.tagName.toLowerCase()}>` });
+                return nodeTokens;
+            }
+            return nodeTokens;
+        };
+
+        if (typeof document !== 'undefined' && document.createElement) {
+            try {
+                const cont = document.createElement('div');
+                cont.innerHTML = text;
+                for (let i = 0; i < cont.childNodes.length; i++) {
+                    tokens.push(...buildTokensFromNode(cont.childNodes[i]));
+                }
+            } catch (e) {
+                // Fallback to naive tokenization if DOM parsing fails
+                tokens = text.split(/(<span[^>]*>.*?<\/span>)/g).filter(Boolean).map(seg => {
+                    if (/^<span/.test(seg)) return { type: 'instant', html: seg };
+                    return { type: 'text', value: seg };
+                });
+            }
+        } else {
+            // Node environment (tests), use simple regex tokenization
+            const parts = text.split(/(<span[^>]*>.*?<\/span>)/g).filter(Boolean);
+            for (const p of parts) {
+                if (/^<span/.test(p)) {
+                    // If inner contains an action or an epithet, expose it as instant
+                    if (/class=\".*?(action|npc-epithet|epithet).*?\"/.test(p)) {
+                        tokens.push({ type: 'instant', html: p });
+                    } else {
+                        // treat as element open, inner text, close
+                        const innerMatch = p.match(/^<span[^>]*>([\s\S]*?)<\/span>$/);
+                        const open = p.replace(innerMatch[1], '').replace(/<\/?span>/g, m => m); // crude
+                        tokens.push({ type: 'open', html: p.replace(innerMatch[1], '').replace(/<\/span>$/, '') });
+                        tokens.push({ type: 'text', value: innerMatch[1] });
+                        tokens.push({ type: 'close', html: '</span>' });
+                    }
+                } else {
+                    tokens.push({ type: 'text', value: p });
+                }
+            }
+        }
+
+        // Now iterate tokens and animate
+        let acc = '';
+        // Flush leading instant tokens and open tags immediately so epithets/actions and wrappers appear at once
+        while (tokens.length && (tokens[0].type === 'instant' || tokens[0].type === 'open')) {
+            const t0 = tokens.shift();
+            acc += t0.html;
+        }
+        el.html(acc);
+
+        let tokenIdx = 0; // index relative to remaining tokens array
+        let charIdx = 0;
         const minStep = Math.max(5, speed);
         const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-        const step = (now) => {
-            const elapsed = now - start;
-            const shouldBe = Math.floor(elapsed / minStep);
-            while (i <= shouldBe && i < text.length) {
-                el.text(el.text() + text.charAt(i));
-                i++;
+
+        const nextFrame = (now) => {
+            while (tokenIdx < tokens.length) {
+                const t = tokens[tokenIdx];
+                if (t.type === 'instant') {
+                    acc += t.html;
+                    tokenIdx++;
+                    charIdx = 0;
+                    // Update immediately (actions appear at once)
+                    el.html(acc);
+                    continue; // process next token immediately
+                }
+                if (t.type === 'open') {
+                    acc += t.html;
+                    tokenIdx++; continue;
+                }
+                if (t.type === 'close') {
+                    acc += t.html;
+                    tokenIdx++; continue;
+                }
+                if (t.type === 'text') {
+                    // type characters of this text token
+                    const elapsed = now - start;
+                    const shouldBe = Math.floor(elapsed / minStep);
+                    while (charIdx <= shouldBe && charIdx < t.value.length) {
+                        acc += t.value.charAt(charIdx);
+                        charIdx++;
+                    }
+                    el.html(acc);
+                    if (charIdx >= t.value.length) {
+                        tokenIdx++; charIdx = 0; continue;
+                    }
+                    // still typing this token
+                    break;
+                }
+
+                // rumor handling: if token has type 'rumor' use fade-in (tokenization should treat rumor as open/text/close or instant in fallback)
+                if (t.type === 'rumor') {
+                    // append container with zero opacity and then animate
+                    acc += `<span class="rumor" style="opacity:0; transition:opacity 360ms ease">${t.text}</span>`;
+                    el.html(acc);
+                    // trigger fade
+                    const fadeIndex = tokenIdx;
+                    setTimeout(() => {
+                        // change the last appended rumor span to opacity 1
+                        // In real DOM we'd do querySelector; for fake DOM, replace by updating the inner string
+                        const cur = el.html();
+                        el.html(cur.replace('opacity:0', 'opacity:1'));
+                        // continue after fade completes
+                        setTimeout(() => {
+                            tokenIdx = fadeIndex + 1;
+                            requestAnimationFrame(nextFrame);
+                        }, 380);
+                    }, 10);
+                    return; // wait for fade
+                }
             }
-            if (i >= text.length) {
+
+            if (tokenIdx >= tokens.length) {
                 this.typingTimer = null;
+                // Stop typing sfx
+                if (this.audio && this.audio.channels && this.audio.channels.sfx) {
+                    try { this.audio.channels.sfx.pause(); this.audio.log && this.audio.log('[sfx] typing paused'); } catch (e) { }
+                }
                 return;
             }
-            this.typingTimer = requestAnimationFrame(step);
+
+            this.typingTimer = requestAnimationFrame(nextFrame);
         };
-        this.typingTimer = requestAnimationFrame(step);
+
+        this.typingTimer = requestAnimationFrame(nextFrame);
     }
 
     hideOmitOption() {
@@ -454,10 +723,10 @@ export class UIManager {
             'red': 'text-alert',
             '#aaffaa': 'text-green-400'
         };
-        
+
         // Remove old color classes
         this.elements.feedback.removeClass('text-warning text-alert text-green-400');
-        
+
         // Add new color class or style if not mapped
         if (colorMap[color]) {
             this.elements.feedback.addClass(colorMap[color]);
@@ -475,19 +744,19 @@ export class UIManager {
     renderShelterGrid(npcs, max, onPurgeClick, onDetailClick) {
         this.elements.shelterCount.text(`${npcs.length}/${max}`);
         this.elements.shelterGrid.empty();
-        
+
         const batch = [];
         npcs.forEach(npc => {
             const card = $('<div>', {
                 class: 'bg-[#080808] border border-[#333] p-2 flex flex-col items-center cursor-pointer hover:border-chlorine-light hover:bg-[#111] transition-all'
             });
-            
+
             const avatar = this.renderAvatar(npc, 'sm');
             const name = $('<span>', { text: npc.name, class: 'mt-2 text-xs' });
 
             card.append(avatar, name);
             card.on('click', () => onDetailClick(npc, true));
-            
+
             batch.push(card[0]);
         });
         if (batch.length) this.elements.shelterGrid.append(batch);
@@ -504,7 +773,7 @@ export class UIManager {
         const needsCheck = !generatorOk;
 
         if (this.elements.genWarningShelter) this.elements.genWarningShelter.toggleClass('hidden', !needsCheck);
-        
+
         // Si necesita revisión, podemos añadir un botón temporal en el panel de tests
         const testsPanel = this.elements.dayafterPanel.find('.flex.flex-wrap');
         if (needsCheck) {
@@ -525,15 +794,15 @@ export class UIManager {
 
     renderMorgueGrid(npcs, onDetailClick) {
         this.elements.morgueGrid.empty();
-        
+
         const batch = [];
         npcs.forEach(npc => {
             const statusColorClass = npc.death && npc.death.revealed && npc.isInfected ? 'infected' : '';
-            
+
             const card = $('<div>', {
                 class: `horror-card p-2 flex flex-col items-center cursor-pointer ${statusColorClass}`
             });
-            
+
             const avatar = this.renderAvatar(npc, 'sm');
             if (npc.death && npc.death.revealed && npc.isInfected) {
                 avatar.addClass('infected');
@@ -545,7 +814,7 @@ export class UIManager {
 
             card.append(avatar, name);
             card.on('click', () => onDetailClick(npc, false));
-            
+
             batch.push(card[0]);
         });
         if (batch.length) this.elements.morgueGrid.append(batch);
@@ -595,7 +864,7 @@ export class UIManager {
         });
         if (batch.length) this.elements.securityGrid.append(batch);
     }
-    
+
     renderGeneratorRoom() {
         this.generatorManager.renderGeneratorRoom(State);
     }
@@ -660,7 +929,7 @@ export class UIManager {
             this.infectionEffectActive = false;
         }, 120);
     }
-    
+
     animateToolThermometer(value) {
         const container = this.elements.npcDisplay;
         container.css('position', 'relative');
@@ -668,16 +937,16 @@ export class UIManager {
         const overlay = $('<div>', { class: 'tool-thermo', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
         const tube = $('<div>', { css: { width: '20px', height: '120px', background: '#0a0a0a', border: '1px solid #555', position: 'relative', boxShadow: 'inset 0 0 8px #000' } });
         const isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
-        
+
         // Colores dinámicos basados en infección (cloro)
-        const fillColor = value < 35 
-            ? (isInfected ? State.colors.chlorineSutil : State.colors.safe) 
+        const fillColor = value < 35
+            ? (isInfected ? State.colors.chlorineSutil : State.colors.safe)
             : (isInfected ? State.colors.chlorineLight : '#a83232');
-            
+
         const fill = $('<div>', { css: { position: 'absolute', bottom: '0px', left: 0, width: '100%', height: '0%', background: fillColor, filter: isInfected ? `drop-shadow(0 0 4px ${State.colors.chlorineSutil})` : 'none' } });
         const ticks = $('<div>', { css: { position: 'absolute', inset: 0 } });
         for (let i = 0; i <= 6; i++) {
-            ticks.append($('<div>', { css: { position: 'absolute', left: '20px', bottom: `${i*20}px`, width: '10px', height: '1px', background: '#444' } }));
+            ticks.append($('<div>', { css: { position: 'absolute', left: '20px', bottom: `${i * 20}px`, width: '10px', height: '1px', background: '#444' } }));
         }
         tube.append(fill, ticks);
         overlay.append(tube);
@@ -696,7 +965,7 @@ export class UIManager {
             overlay.append(bubbleLayer);
             const bubbles = [];
             for (let i = 0; i < 6; i++) {
-                const b = $('<div>', { css: { position: 'absolute', bottom: '0', left: `${2 + Math.random()*14}px`, width: '3px', height: '3px', background: '#2d5a27', borderRadius: '50%', opacity: 0.0 } });
+                const b = $('<div>', { css: { position: 'absolute', bottom: '0', left: `${2 + Math.random() * 14}px`, width: '3px', height: '3px', background: '#2d5a27', borderRadius: '50%', opacity: 0.0 } });
                 bubbles.push(b);
                 bubbleLayer.append(b);
             }
@@ -704,7 +973,7 @@ export class UIManager {
             const bStep = (now) => {
                 const elapsed = now - bStart;
                 bubbles.forEach((b, idx) => {
-                    const y = (elapsed/12 + idx*20) % 120;
+                    const y = (elapsed / 12 + idx * 20) % 120;
                     b.css({ bottom: `${y}px`, opacity: y > 20 ? 0.25 : 0.0 });
                 });
                 if (elapsed < 2000) requestAnimationFrame(bStep);
@@ -718,21 +987,21 @@ export class UIManager {
         const overlay = $('#pupil-overlay');
         const container = overlay.find('.pupil-eye-container');
         const pupil = $('#giant-pupil');
-        
+
         overlay.removeClass('hidden').addClass('flex');
-        
+
         // Reset pupila
         pupil.css({ width: '24px', height: '24px' });
 
         // Animación de aparición
         setTimeout(() => {
             container.removeClass('scale-0').addClass('scale-100');
-            
+
             // Reacción de la pupila
             setTimeout(() => {
                 const size = type === 'dilated' ? '64px' : '24px';
                 pupil.css({ width: size, height: size });
-                
+
                 // Efecto de parpadeo/reacción
                 if (type === 'dilated') {
                     pupil.addClass('animate-pulse');
@@ -752,7 +1021,7 @@ export class UIManager {
             }, 500);
         }, 2200);
     }
-    
+
     animateToolFlashlight(skinTexture, skinColor) {
         const container = this.elements.npcDisplay;
         container.css('position', 'relative');
@@ -775,7 +1044,7 @@ export class UIManager {
             neck.css('background-color', origNeck);
         }, 900);
     }
-    
+
     animateToolPulse(bpm) {
         const container = this.elements.npcDisplay;
         container.css('position', 'relative');
@@ -783,10 +1052,10 @@ export class UIManager {
         const overlay = $('<div>', { class: 'tool-pulse', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
         const svg = $(document.createElementNS('http://www.w3.org/2000/svg', 'svg')).attr({ width: 220, height: 40 });
         const isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
-        
+
         // Color de pulso: verde sutil si es cloro
         const strokeColor = isInfected ? State.colors.chlorineSutil : State.colors.safe;
-        
+
         const path = $(document.createElementNS('http://www.w3.org/2000/svg', 'path')).attr({ d: 'M0 20 L20 20 L25 10 L30 30 L35 20 L220 20', stroke: strokeColor, 'stroke-width': 2, fill: 'none' });
         path.css({ filter: `drop-shadow(0 0 4px ${strokeColor})`, transform: isInfected ? 'scaleY(1.08)' : 'none', transformOrigin: 'center' });
         svg.append(path);
@@ -799,7 +1068,7 @@ export class UIManager {
         overlay.append(svg);
         container.append(overlay);
         const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-        const baseInterval = Math.max(280, Math.min(900, Math.round(60000 / Math.max(40, Math.min(160, bpm))))); 
+        const baseInterval = Math.max(280, Math.min(900, Math.round(60000 / Math.max(40, Math.min(160, bpm)))));
         let lastBeat = start;
         const step = (now) => {
             const elapsedSinceBeat = now - lastBeat;

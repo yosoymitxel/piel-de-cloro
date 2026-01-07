@@ -1,353 +1,211 @@
 export const DialogueData = {
     personalities: ['nervous', 'aggressive', 'stoic', 'confused'],
-    
-    // Structure: personality -> category -> { q: question, a_clean: [], a_infected: [] }
-    // Infected have a chance to use a_infected (subtle hints) or a_clean (blending in)
-    
-    dialogues: {
-        nervous: {
-            greeting: {
-                clean: [
-                    "¿H-hola? ¿Puedo pasar?",
-                    "No me mires así... solo quiero entrar.",
-                    "Hace frío... mucho frío.",
-                    "¿E-estás ahí? Solo quiero refugio.",
-                    "Por favor... no me cierres la puerta.",
-                    "¿Eres tú? ¿El de antes?",
-                    "No te preocupes... no hago daño.",
-                    "¿Puedo confiar en ti?",
-                    "Solo un rato... prometo irme.",
-                    "¿Es seguro aquí dentro?",
-                    "No me gusta estar afuera... demasiado ruido.",
-                    "¿Oyes eso? ¿O solo lo oigo yo?",
-                    "¿Te importa si paso un minuto?",
-                    "No soy fuerte... pero no soy una amenaza.",
-                    "¿Dónde están los demás?",
-                    "¿Estás solo? ¿Seguro?",
-                    "¿Por qué todo está tan oscuro?",
-                    "No tengo armas... mírame las manos.",
-                    "¿Qué fue eso? ¿Lo escuchaste?",
-                    "¿Puedo quedarme hasta que amanezca?"
-                ],
-                infected: [
-                    "¿H-hola? ¿Puedo... entrar?",
-                    "Tengo... tengo frío.",
-                    "La puerta... ábrela.",
-                    "¿Por qué... tanta luz? Apágala.",
-                    "Siento... algo en la garganta.",
-                    "¿Estás... solo? Perfecto.",
-                    "No... no me mires así.",
-                    "¿Puedo... tocarte? Solo un segundo.",
-                    "El agua... huele a agua.",
-                    "¿Tienes... algo caliente? Mi sangre... está fría.",
-                    "¿Por qué tiemblan tus manos? Las mías no.",
-                    "¿Oyes zumbidos? Yo también... dentro.",
-                    "¿Puedo pasar? No... no pienso morder.",
-                    "¿Estás seguro de que estás... tú?",
-                    "¿Por qué me miras así? ¿Te asusta mi piel?",
-                    "¿Te importa si... me acerco?",
-                    "¿Dónde está el baño? Necesito... vomitar agua.",
-                    "¿Puedo tocar tu cabello? Huele a... vida.",
-                    "¿Por qué sudas? Yo no sudo... ya.",
-                    "¿Puedo entrar? Prometo... no llorar sangre."
-                ]
-            },
-            q_status: {
-                q: "Estado físico",
-                clean: [
-                    "Tiemblo un poco... es el frío.",
-                    "Estoy bien, juro que estoy bien.",
-                    "Solo necesito descansar.",
-                    "Me duele la espalda... de correr.",
-                    "Tengo un poco de fiebre... nada grave.",
-                    "¿Por qué me preguntas? ¿Parezco enfermo?",
-                    "Solo cansado... muy cansado.",
-                    "No me siento fuerte... pero resisto.",
-                    "¿Te parezco pálido? Es la luz.",
-                    "¿Escuchas mi corazón? Late rápido... por el miedo.",
-                    "No tengo heridas abiertas... mira.",
-                    "¿Por qué tiemblo? No lo sé... no me preguntes.",
-                    "¿Te importa si me siento? Me mareo.",
-                    "¿Tienes agua? Mi boca está seca... de nervios.",
-                    "¿Por qué todo gira? ¿Es normal?",
-                    "No me siento bien del estómago... pero no es nada.",
-                    "¿Por qué me miras así? ¿Estoy pálido?",
-                    "¿Puedo tomar algo? Solo un poco.",
-                    "¿Te parezco diferente? No... no lo estoy.",
-                    "¿Por qué me cuesta respirar? Es el miedo... solo eso."
-                ],
-                infected: [
-                    "Mi piel... pica un poco.",
-                    "Siento... movimiento dentro.",
-                    "Estoy... óptimo.",
-                    "¿Por qué me miras? ¿Te gusta mi piel nueva?",
-                    "No tengo fiebre... mi temperatura es... perfecta.",
-                    "¿Por qué tiemblo? No es miedo... es ajuste.",
-                    "¿Te importa si me río? Me sale solo.",
-                    "¿Oyes ese ruido? Es mi estómago... o algo más.",
-                    "¿Por qué me duele la cabeza? Se está abriendo...",
-                    "¿Te asusta mi sonrisa? Es solo... más ancha.",
-                    "¿Por qué me cuesta hablar? Mi lengua... crece.",
-                    "¿Te importa si me toco la cara? Se está... mudando.",
-                    "¿Por qué sangro por la nariz? No es sangre... es agua.",
-                    "¿Te gusta mi olor? Es nuevo... dulce.",
-                    "¿Por qué me tiemblan las manos? No son mis manos.",
-                    "¿Te importa si me acuesto? Me siento... liviano.",
-                    "¿Por qué todo sabe a metal? ¿Tú también lo sabes?",
-                    "¿Por qué me cuesta ver? Todo es verde... hermoso.",
-                    "¿Te asusta mi voz? Está cambiando... mejorando.",
-                    "¿Por qué no paro de sudar? Es solo... agua de mi piel."
-                ]
-            },
-            q_origin: {
-                q: "Procedencia",
-                clean: [
-                    "Vengo del norte... sector 4.",
-                    "No recuerdo bien... corrí mucho.",
-                    "Estaba en los túneles.",
-                    "¿Por qué lo quieres saber? ¿Vas a juzgarme?",
-                    "Vengo del este... o del oeste... no lo recuerdo.",
-                    "Estaba escondido... en un sótano.",
-                    "¿Te importa? Solo quiero entrar.",
-                    "Vengo de lejos... muy lejos... caminé días.",
-                    "¿Por qué tantas preguntas? ¿No ves que estoy asustado?",
-                    "No sé dónde estuve... todo es confuso.",
-                    "¿Te importa si no lo recuerdo? Es mejor así.",
-                    "Vengo del bosque... o de la ciudad... no estoy seguro.",
-                    "¿Por qué me miras así? ¿No te gusta mi respuesta?",
-                    "Estaba con otros... pero los perdí.",
-                    "¿Dónde estaba? ¿No lo ves en mi cara? Estaba perdido.",
-                    "¿Te importa si miento? No quiero que sepas.",
-                    "Vengo del pasado... del miedo... de la oscuridad.",
-                    "¿Por qué me cuesta hablar? Porque no sé de dónde vengo.",
-                    "¿Te importa si invento? Es más fácil.",
-                    "No vengo de ningún lado... solo estoy aquí."
-                ],
-                infected: [
-                    "Vengo de... abajo.",
-                    "Del agua... digo, del río.",
-                    "Sector... verde.",
-                    "¿Por qué lo quieres saber? ¿Vas a unirte?",
-                    "Vengo del fondo... del fondo del agua.",
-                    "¿Te importa si no lo recuerdo? Es mejor... para ti.",
-                    "Del lugar donde todos somos uno... digo, yo solo.",
-                    "¿Por qué me miras? ¿Te gusta mi olor a lago?",
-                    "Vengo de donde el agua es espesa... y habla.",
-                    "¿Te importa si miento? No quiero que sepas... la verdad.",
-                    "Del subsuelo... donde el aire es dulce.",
-                    "¿Por qué tantas preguntas? ¿No ves que estoy... cambiando?",
-                    "Vengo de la reunión... donde todos éramos... yo.",
-                    "¿Dónde estaba? ¿No lo hueles? Estaba dentro... del agua.",
-                    "¿Te asusta mi respuesta? Es solo... el principio.",
-                    "Vengo del origen... del primer gusano.",
-                    "¿Por qué me cuesta hablar? Porque no soy... solo yo.",
-                    "¿Te importa si invento? Es más fácil... que explicar.",
-                    "No vengo de ningún lado... siempre estuve aquí... dentro.",
-                    "Del lugar donde el agua... te abraza... y nunca sueltas."
-                ]
+    // Pools of dialogues (each pool is an independent tree of nodes)
+    pools: {
+        "generic_01": {
+            id: 'generic_01',
+            tags: ['nervous', 'generic'],
+            unique: false,
+            root: 'g1_n1',
+            nodes: {
+                'g1_n1': {
+                    id: 'g1_n1',
+                    text: "*{npcName} aparece temblando.* " +
+                        "Puedes notar que mira hacia el generador: {generatorStatus}. " +
+                        "Rumor: {rumor}",
+                    audio: 'ui_dialogue_type',
+                    options: [
+                        { id: 'g1_o1', label: 'Preguntar por su estado', next: 'g1_n2a', sets: ['asked_health'] },
+                        { id: 'g1_o2', label: 'Insistir en su origen', next: 'g1_n2b', sets: ['pressed_origin'] }
+                    ]
+                },
+
+                'g1_n2a': {
+                    id: 'g1_n2a',
+                    text: "*Dice que tiene frío y su pulso parece errático.* (Referencia a la elección anterior: {prevChoiceLabel})",
+                    options: [
+                        { id: 'g1_o2a', label: 'Hacer un test rápido', next: 'g1_n3a', audio: 'tool_thermometer_beep' },
+                        { id: 'g1_o2b', label: 'Confiar y admitir', next: 'g1_n3b', sets: ['admitted_trust'] }
+                    ]
+                },
+                'g1_n2b': {
+                    id: 'g1_n2b',
+                    text: "*Su voz se agita cuando hablas del pasado. " +
+                        "Menciona un nombre que no recuerdas exactamente.*",
+                    options: [
+                        { id: 'g1_o2c', label: 'Presionar más', next: 'g1_n3c', sets: ['press_success'] },
+                        { id: 'g1_o2d', label: 'Cambiar tema', next: 'g1_n3d' }
+                    ]
+                },
+                'g1_n3a': {
+                    id: 'g1_n3a',
+                    text: "El termómetro marca 34.1°C — algo no está bien. *A partir de lo que dijiste ({prevChoiceLabel}), el sujeto parece... diferente.*",
+                    options: [
+                        { id: 'g1_o3a', label: 'Purgar discretamente', next: 'g1_n4a', sets: ['purged_by_guard'], audio: 'purge_confirm' },
+                        { id: 'g1_o3b', label: 'Admitir con observación', next: null, sets: ['admitted_observe'] }
+                    ]
+                },
+                'g1_n3b': {
+                    id: 'g1_n3b',
+                    text: "*Al confiar, el sujeto sonríe. Su respuesta es vaga, pero sincera.*",
+                    options: [
+                        { id: 'g1_o3c', label: 'Enviar al refugio', next: null, sets: ['admitted_trust'] },
+                        { id: 'g1_o3d', label: 'Mantener en observación', next: 'g1_n4b' }
+                    ]
+                },
+                'g1_n3c': {
+                    id: 'g1_n3c',
+                    text: "*Logras sacarle información útil. Dice:* 'No confíes en la tubería.'",
+                    options: [
+                        { id: 'g1_o3e', label: 'Agradecer y decidir', next: 'g1_n4c' }
+                    ],
+                    onChooseAudio: 'lore_interlude_heard'
+                },
+                'g1_n3d': {
+                    id: 'g1_n3d',
+                    text: "*El tema cambia; el sujeto se relaja pero no da más información.*",
+                    options: [
+                        { id: 'g1_o3f', label: 'Tomar decisión', next: null }
+                    ]
+                },
+                'g1_n4a': {
+                    id: 'g1_n4a',
+                    text: "Has elegido purgar basándote en la evidencia. La casa recuerda.",
+                    options: []
+                },
+                'g1_n4b': {
+                    id: 'g1_n4b',
+                    text: "Observación prolongada: quizá no era necesario un juicio inmediato.",
+                    options: []
+                },
+                'g1_n4c': {
+                    id: 'g1_n4c',
+                    text: "*La información se filtra por la tubería—una voz en el fondo canta algo que no entiendes.*",
+                    audio: 'pipes_whisper',
+                    options: []
+                }
             }
         },
-        aggressive: {
-            greeting: {
-                clean: [
-                    "Abre la maldita puerta.",
-                    "No tengo tiempo para esto.",
-                    "Déjame entrar o te arrepentirás.",
-                    "Muévete, no quiero herirte.",
-                    "¿Quieres que rompa esto?",
-                    "Soy tu aliado, idiota.",
-                    "No me hagas repetirlo.",
-                    "Tengo órdenes superiores.",
-                    "¿Tienes idea de lo que hay afuera?",
-                    "Abre o te arranco el brazo."
-                ],
-                infected: [
-                    "Abre. AHORA.",
-                    "Hueles a carne fresca.",
-                    "No me hagas esperar.",
-                    "Tu pulso... lo escucho.",
-                    "La sangre... la necesito.",
-                    "Abre o te desgarraré.",
-                    "Te veré por dentro.",
-                    "Siento tu calor.",
-                    "No resistas, será rápido.",
-                    "La puerta no te salvará."
-                ]
-            },
-            q_status: {
-                q: "Estado físico",
-                clean: [
-                    "¡Estoy mejor que tú!",
-                    "No me toques con esas máquinas.",
-                    "Fuerte. Sobreviví.",
-                    "Tengo más músculo que miedo.",
-                    "¿Quieres probar mi fuerza?",
-                    "No me harás sangrar.",
-                    "Mi cuerpo es mi arma.",
-                    "¿Dudas de mí?",
-                    "Soy un maldito tanque.",
-                    "Nada me detiene."
-                ],
-                infected: [
-                    "Me siento... poderoso.",
-                    "Mi sangre hierve.",
-                    "Nunca estuve mejor.",
-                    "Siento el poder en mis venas.",
-                    "La infección me fortalece.",
-                    "Mi piel es acero.",
-                    "El dolor es placer.",
-                    "Soy invencible.",
-                    "La carne es temporal.",
-                    "El virus me abraza."
-                ]
-            },
-            q_origin: {
-                q: "Procedencia",
-                clean: [
-                    "¿Qué te importa? Sector 9.",
-                    "Vengo de matar a esas cosas.",
-                    "Del infierno. Abre.",
-                    "Del frente, ¿satisfecho?",
-                    "Sector 12, ¿problema?",
-                    "De donde los monstruos huyen.",
-                    "De la zona caliente.",
-                    "¿Quieres mi historial?",
-                    "Del otro lado del muro.",
-                    "De tu peor pesadilla."
-                ],
-                infected: [
-                    "De la colmena... ¡del refugio anterior!",
-                    "Donde todos son uno.",
-                    "Cerca... muy cerca.",
-                    "Del nido principal.",
-                    "Desde la reunión.",
-                    "Del centro de la plaga.",
-                    "Donde nació el gusano.",
-                    "De la oscuridad colectiva.",
-                    "Del vientre de la bestia.",
-                    "Donde el agua es roja."
-                ]
+        "generic_02": {
+            id: 'generic_02',
+            tags: ['confused', 'generic'],
+            unique: false,
+            root: 'g2_n1',
+            nodes: {
+                'g2_n1': {
+                    id: 'g2_n1',
+                    text: "*{npcName} entra con las manos manchadas.* {generatorStatus}",
+                    options: [
+                        { id: 'g2_o1', label: '¿Qué te pasó?', next: 'g2_n2a', sets: ['asked_injury'] },
+                        { id: 'g2_o2', label: 'Aléjate', next: 'g2_n2b', sets: ['rejected'] }
+                    ]
+                },
+                'g2_n2a': {
+                    id: 'g2_n2a',
+                    text: "*Se arrastra hacia la luz, rascando el metal.* \"El generador... ruge como un animal herido\", susurra. Sabes que miente; lo viste hablar con el anterior guardia.",
+                    options: [
+                        { id: 'g2_o2a', label: 'Insistir detalles', next: 'g2_n3a' },
+                        { id: 'g2_o2b', label: 'Calmarlo', next: 'g2_n3b' }
+                    ]
+                },
+                'g2_n2b': {
+                    id: 'g2_n2b',
+                    text: "*Se ofende y da un paso atrás; su mirada es extraña.*",
+                    options: [
+                        { id: 'g2_o2c', label: 'Confrontar', next: 'g2_n3c' },
+                        { id: 'g2_o2d', label: 'Retirarte', next: null }
+                    ]
+                },
+                'g2_n3a': {
+                    id: 'g2_n3a',
+                    text: "*Habla de una voz en las tuberías que le dicta movimientos.* {prevChoiceLabel}",
+                    options: [
+                        { id: 'g2_o3a', label: 'Detener la entrevista', next: null },
+                        { id: 'g2_o3b', label: 'Registrar nota', next: 'g2_n4a', sets: ['noted_voice'], audio: 'pipes_whisper' }
+                    ]
+                },
+                'g2_n3b': {
+                    id: 'g2_n3b',
+                    text: "*Se tranquiliza y escupe algo blanco; no parece humano.*",
+                    options: [
+                        { id: 'g2_o3c', label: 'Observar', next: 'g2_n4b' }
+                    ]
+                },
+                'g2_n3c': {
+                    id: 'g2_n3c',
+                    text: "*La confrontación revela una cicatriz que brilla con sal.*",
+                    options: [
+                        { id: 'g2_o3d', label: 'Purgar', next: 'g2_n4c', sets: ['purged_by_guard'] },
+                        { id: 'g2_o3e', label: 'Regañar', next: null }
+                    ]
+                },
+                'g2_n4a': { id: 'g2_n4a', text: "Notas registradas. El informe se añade al archivo.", options: [{ id: 'g2_o4a1', label: 'Enviar informe', next: 'g2_n5a', requires: ['noted_voice'] }, { id: 'g2_o4a2', label: 'No enviar', next: null }] },
+                'g2_n5a': { id: 'g2_n5a', text: "*El informe fue enviado y causa un murmullo en la radio.*", audio: 'lore_interlude_seen', options: [{ id: 'g2_o5a1', label: 'Investigar el origen del murmullo', next: 'g2_n6a' }, { id: 'g2_o5a2', label: 'Ignorar y seguir', next: null }] },
+                'g2_n6a': { id: 'g2_n6a', text: "*Sigues la pista y llegas a una vieja estación de radio. Hay marcas en las paredes.*", options: [{ id: 'g2_o6a1', label: 'Examinar marcas', next: 'g2_n7a' }, { id: 'g2_o6a2', label: 'Volver', next: null }] },
+                'g2_n7a': { id: 'g2_n7a', text: "*Encuentras un registro con nombres que se repiten. Uno de ellos aparece también en tu memoria.*", options: [{ id: 'g2_o7a1', label: 'Compartir con el grupo', next: null, sets: ['reported_names'] }, { id: 'g2_o7a2', label: 'Guardar en secreto', next: null, sets: ['secret_names'] }] },
+
+                'g2_n4b': { id: 'g2_n4b', text: "Observación prolongada demuestra un patrón repetitivo.", options: [{ id: 'g2_o4b1', label: 'Marcar secuencia', next: 'g2_n5b' }] },
+                'g2_n5b': { id: 'g2_n5b', text: "La secuencia sugiere una sincronía con el generador.", options: [{ id: 'g2_o5b1', label: 'Investigar conexión', next: 'g2_n6b' }] },
+                'g2_n6b': { id: 'g2_n6b', text: "Al mirar las tuberías cerca del generador encuentras una nota: \"'No confiar en la noche'\"", options: [{ id: 'g2_o6b1', label: 'Leer la nota en voz alta', next: null }] },
+
+                'g2_n4c': { id: 'g2_n4c', text: "*La purga revela marcas extrañas; algo se mueve dentro.*", audio: 'purge_blood_flash', options: [] }
             }
         },
-        stoic: {
-            greeting: {
-                clean: [
-                    "Solicito acceso.",
-                    "Sector 7 reportándose.",
-                    "Sin novedades. Abre.",
-                    "Unidad 4 solicita ingreso.",
-                    "Protocolo de entrada.",
-                    "Identificación válida.",
-                    "Sin contacto hostil.",
-                    "Misión cumplida.",
-                    "Requiere refugio.",
-                    "Cumplo cuarentena."
-                ],
-                infected: [
-                    "Acceso requerido.",
-                    "Unidad lista para ingresar.",
-                    "Nosotros... yo solicito entrar.",
-                    "Integración necesaria.",
-                    "El colectivo... yo, vengo en paz.",
-                    "Unidad 9... individual, lista.",
-                    "Solicito unión temporal.",
-                    "La puerta... abre.",
-                    "Somos compatibles.",
-                    "Ingreso autorizado por... mí."
-                ]
-            },
-            q_status: {
-                q: "Estado físico",
-                clean: [
-                    "Óptimo.",
-                    "Cansado, pero funcional.",
-                    "Sin mordeduras.",
-                    "Signos vitales estables.",
-                    "Capacidad al 87%.",
-                    "Sin fiebre.",
-                    "No hay sangrado.",
-                    "Músculos respondiendo.",
-                    "Reflejos intactos.",
-                    "Sin anomalías."
-                ],
-                infected: [
-                    "Sistemas nominales.",
-                    "Temperatura adecuada para incubación... digo, vida.",
-                    "Funcional.",
-                    "Parámetros... aceptables.",
-                    "El huésped... yo, estoy bien.",
-                    "Integridad... del 92%.",
-                    "Sin rechazo.",
-                    "Óptimo para propagación.",
-                    "Estado... simbiótico.",
-                    "Operativo al 100%."
-                ]
-            },
-            q_origin: {
-                q: "Procedencia",
-                clean: [
-                    "Base Delta.",
-                    "Patrulla exterior.",
-                    "Zona de cuarentena este.",
-                    "Puesto avanzado 3.",
-                    "Sector de reconstrucción.",
-                    "Zona de evacuación.",
-                    "Base temporal norte.",
-                    "Perímetro seguro.",
-                    "Refugio 5.",
-                    "Zona neutral."
-                ],
-                infected: [
-                    "Origen irrelevante.",
-                    "Desde el origen.",
-                    "Zona cero.",
-                    "Del núcleo.",
-                    "Desde la fuente.",
-                    "Del epicentro.",
-                    "Origen primario.",
-                    "Desde la raíz.",
-                    "Del punto de inflexión.",
-                    "Desde el origen común."
-                ]
+
+        "generic_03": {
+            id: 'generic_03',
+            tags: ['aggressive', 'generic'],
+            unique: false,
+            root: 'g3_n1',
+            nodes: {
+                'g3_n1': { id: 'g3_n1', text: "*Entra con la mirada cortante; tiene algo clavado en la chaqueta.*", options: [{ id: 'g3_o1', label: 'Interrogar', next: 'g3_n2' }, { id: 'g3_o2', label: 'Retroceder', next: 'g3_n3' }] },
+                'g3_n2': { id: 'g3_n2', text: "*Dice palabras fragmentadas sobre 'el ruido' y la 'cosecha'.*", options: [{ id: 'g3_o2a', label: 'Atacar', next: 'g3_n4', sets: ['confronted'] }, { id: 'g3_o2b', label: 'Calmar', next: 'g3_n5' }] },
+                'g3_n3': { id: 'g3_n3', text: "*Se retira pero deja una tarjeta con símbolos.*", options: [{ id: 'g3_o3a', label: 'Tomar la tarjeta', next: 'g3_n5' }, { id: 'g3_o3b', label: 'Ignorar', next: null }] },
+                'g3_n4': { id: 'g3_n4', text: "*La confrontación degenera; el sujeto escupe sangre y dice* 'no somos lo que pensamos'.", options: [{ id: 'g3_o4a', label: 'Purgar', next: null, sets: ['purged_by_guard'] }, { id: 'g3_o4b', label: 'Agarrar la tarjeta', next: 'g3_n5' }] },
+                'g3_n5': { id: 'g3_n5', text: "La tarjeta contiene un verso: 'A quien escuchó, no le fue bien'. Puede que sea una advertencia.", options: [{ id: 'g3_o5a', label: 'Compartir con el radio', next: null, sets: ['shared_warning'] }] }
             }
         },
-        confused: {
-            greeting: {
-                clean: ["¿Dónde estoy?", "¿Es esto... seguro?", "Vi luces...", "¿Es de día o de noche?", "¿Hay alguien más?", "¿Este es el refugio 12?"],
-                infected: ["¿Es este el nido?", "¿Aquí hay... comida?", "Las voces callaron.", "Huele a... familia.", "¿El agua está cerca?", "¿Por qué todo gira?"]
-            },
-            q_status: {
-                q: "Estado físico",
-                clean: ["Me duele la cabeza.", "No siento las piernas.", "Creo que estoy bien.", "Tengo sed... mucha sed.", "Mis manos tiemblan sin parar.", "¿Por qué me zumban los oídos?"],
-                infected: ["Siento... cosquillas dentro.", "Mi cabeza... zumba.", "Todo es verde.", "Mi piel... respira.", "Hay algo que se mueve.", "Escucho un canto... dulce."]
-            },
-            q_origin: {
-                q: "Procedencia",
-                clean: ["Estaba en casa...", "Perdí a mi grupo.", "Solo caminé hacia la luz.", "Vine del túnel este... ¿o del oeste?", "Me encontraron en el bosque.", "No recuerdo... fue todo muy rápido."],
-                infected: ["Salí del agua.", "Seguí el olor.", "Me llamaron.", "Desde el lago... él me esperaba.", "Del subsuelo, donde el aire es espeso.", "Vengo de la reunión... todos éramos uno."]
-            }
-        }
     },
 
-    // Deeper probes
-    deep_probes: {
-        clean: [
-            "Ya te dije la verdad.",
-            "¿Por qué tantas preguntas?",
-            "Solo déjame entrar, por favor.",
-            "No tengo nada que ocultar.",
-            "¿No confías en mí?"
-        ],
-        infected: [
-            "No... no mires tan profundo.",
-            "El cloro... no me gusta el cloro.",
-            "¿Escuchas el zumbido?",
-            "Somos... soy inocente.",
-            "¿Por qué insistes?... duele.",
-            "El agua... siempre el agua.",
-            "Mis pensamientos... no son solo míos.",
-            "¿Sientes el olor? Dulce, metálico...",
-            "No mires mis ojos, no lo hagas."
-        ]
-    }
+    // Lore subjects: unique NPCs with fixed, deeper dialogues
+    loreSubjects: [
+        {
+            id: 'lore_witness_01',
+            unique: true,
+            tags: ['stoic', 'lore'],
+            root: 'lw1_n1',
+            nodes: {
+                'lw1_n1': {
+                    id: 'lw1_n1',
+                    text: "'Entré en la cámara y la piel ya no era piel', *dice {npcName} con voz baja.* {generatorStatus}",
+                    audio: 'lore_interlude_seen',
+                    options: [
+                        { id: 'lw1_o1', label: 'Preguntar por el origen', next: 'lw1_n2' },
+                        { id: 'lw1_o2', label: 'Pedir detalles', next: 'lw1_n3' }
+                    ]
+                },
+                'lw1_n2': {
+                    id: 'lw1_n2',
+                    text: "*Dice que lo vio en el agua: piel que se disuelve y retorna en patrones; la palabra que usa es* 'memoria húmeda'.",
+                    options: [
+                        { id: 'lw1_o2a', label: '¿Quién lo vio?', next: 'lw1_n4', sets: ['heard_lore'], audio: 'lore_interlude_heard' },
+                        { id: 'lw1_o2b', label: 'Mantener distancia', next: null }
+                    ]
+                },
+                'lw1_n3': {
+                    id: 'lw1_n3',
+                    text: "*El sujeto recita un verso equivocado. Sus ojos no parpadean. Al terminar, hace una pausa que no parece humana.*",
+                    options: [
+                        { id: 'lw1_o3a', label: 'Escuchar hasta el final', next: 'lw1_n4', audio: 'lore_final_corrupted' },
+                        { id: 'lw1_o3b', label: 'Interrumpir y retirarte', next: null }
+                    ]
+                },
+                'lw1_n4': {
+                    id: 'lw1_n4',
+                    text: "*Fragmentos de la historia quedan: alguien trajo agua a la ciudad. El nombre que repite es el mismo que te hace temblar.*",
+                    options: []
+                }
+            }
+        }
+    ]
 };

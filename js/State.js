@@ -49,7 +49,11 @@ export const State = {
     infectedSeenCount: 0,
     interludesShown: 0,
     dayAfter: { testsAvailable: 5 },
-    
+    // Dialogue/pool tracking and flags
+    dialoguePoolsUsed: [], // array of pool ids used this run
+    dialogueFlags: {},      // persistent flags set by conversation choices
+    dialogueMemory: [],     // recorded events for rumor/flags
+
     // Colores centralizados
     colors: {
         chlorine: '#2d5a27',
@@ -68,7 +72,7 @@ export const State = {
     securityItems: [],
     nextIntrusionAt: null,
     playerInfected: false,
-    
+
     // Track if we are in Night Phase
     isNight: false,
     dayClosed: false,
@@ -79,12 +83,12 @@ export const State = {
         victims: 0,
         message: ''
     },
-    
-    generator: { 
-        isOn: true, 
-        mode: 'normal', 
-        power: 100, 
-        blackoutUntil: 0, 
+
+    generator: {
+        isOn: true,
+        mode: 'normal',
+        power: 100,
+        blackoutUntil: 0,
         overclockCooldown: false,
         overloadRiskTurns: 0,
         maxModeCapacityReached: 2, // Por defecto Normal (2) al iniciar
@@ -117,6 +121,11 @@ export const State = {
         this.playerInfected = Math.random() < this.config.playerInfectedProbability;
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight = { occurred: false, victims: 0, message: '' };
+
+        // Reset dialogue trackers and flags
+        this.dialoguePoolsUsed = [];
+        this.dialogueFlags = {};
+        this.dialogueMemory = [];
     },
 
     addAdmitted(npc) {
@@ -173,7 +182,49 @@ export const State = {
         }
         return items;
     },
-    
+
+    // Dialogue & flags helpers
+    markDialogueUsed(id) {
+        if (!this.dialoguePoolsUsed.includes(id)) this.dialoguePoolsUsed.push(id);
+    },
+
+    isDialogueUsed(id) {
+        return this.dialoguePoolsUsed.includes(id);
+    },
+
+    setFlag(key, value = true) {
+        this.dialogueFlags[key] = value;
+    },
+
+    hasFlag(key) {
+        return !!this.dialogueFlags[key];
+    },
+
+    recordDialogueMemory(entry) {
+        if (!this.dialogueMemory) this.dialogueMemory = [];
+        this.dialogueMemory.push(entry);
+        // Keep last 200
+        if (this.dialogueMemory.length > 200) this.dialogueMemory.splice(0, this.dialogueMemory.length - 200);
+    },
+
+    recallDialogueHistory() {
+        return this.dialogueMemory || [];
+    },
+
+    getRandomRumor() {
+        const mem = this.dialogueMemory || [];
+        if (!mem.length) return '';
+        // Build a human-friendly rumor using fragments; prefer entries with npc names
+        const entry = mem[Math.floor(Math.random() * mem.length)];
+        const verbOptions = ['falleció', 'desapareció', 'mintió', 'fue visto', 'murió', 'cayó'];
+        const verb = verbOptions[Math.floor(Math.random() * verbOptions.length)];
+        // pick a previous name if available (purged or departed)
+        const namedPool = (this.purgedNPCs.concat(this.departedNPCs)).filter(n => n && n.name);
+        const prev = namedPool.length ? namedPool[Math.floor(Math.random() * namedPool.length)].name : (entry.npc || 'alguien');
+        const whoMentioned = entry.npc || 'alguien';
+        return `${whoMentioned} comentaba que ${prev} ${verb} en la oscuridad.`;
+    },
+
     ensureGeneratorItem() {
         const exists = this.securityItems.some(i => i.type === 'generador');
         if (!exists) {
@@ -213,7 +264,7 @@ export const State = {
             this.lastNight.message = this.lastNight.message ? `${this.lastNight.message} ${msg}` : msg;
         }
     },
-    
+
     getIntrusionModifier() {
         let m = 1.0;
         if (!this.generator.isOn) m *= 1.35;
@@ -224,7 +275,7 @@ export const State = {
         }
         return m;
     },
-    
+
     getGlitchModifier() {
         let g = 1.0;
         if (!this.generator.isOn) g *= 1.2;
