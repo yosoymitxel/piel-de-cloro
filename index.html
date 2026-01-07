@@ -45,17 +45,14 @@
 
         <!-- SIDEBAR NAVIGATION -->
         <aside id="sidebar-left" class="w-20 horror-sidebar flex flex-col pt-5 hidden">
-            <button id="nav-shelter" class="nav-btn group flex flex-col items-center gap-1 p-4 w-full">
-                <i class="fa-solid fa-house text-2xl"></i>
-                <span class="cfont-bold">REFUGIO</span>
-            </button>
+
             <button id="nav-room" class="nav-btn group flex flex-col items-center gap-1 p-4 w-full">
                 <i class="fa-solid fa-bell text-2xl"></i>
                 <span class="font-bold">SALA</span>
             </button>
-            <button id="nav-morgue" class="nav-btn group flex flex-col items-center gap-1 p-4 w-full">
-                <i class="fa-solid fa-skull text-2xl"></i>
-                <span class="font-bold">MORGUE</span>
+            <button id="nav-shelter" class="nav-btn group flex flex-col items-center gap-1 p-4 w-full">
+                <i class="fa-solid fa-house text-2xl"></i>
+                <span class="cfont-bold">REFUGIO</span>
             </button>
             <button id="nav-guard" class="nav-btn group flex flex-col items-center gap-1 p-4 w-full active">
                 <i class="fa-solid fa-shield-halved text-2xl"></i>
@@ -65,14 +62,20 @@
                 <i class="fa-solid fa-bolt text-2xl"></i>
                 <span class="font-bold">GENERADOR</span>
             </button>
+            <button id="nav-morgue" class="nav-btn group flex flex-col items-center gap-1 p-4 w-full">
+                <i class="fa-solid fa-skull text-2xl"></i>
+                <span class="font-bold">MORGUE</span>
+            </button>
+
+
         </aside>
 
         <!-- MAIN CONTENT AREA -->
-        <div class="flex-grow relative flex flex-col overflow-hidden horror-panel-inner m-1">
+        <div id="main-area" class="flex-grow relative flex flex-col overflow-hidden horror-panel-inner m-1">
 
             <!-- SCREEN 1: START -->
             <section id="screen-start"
-                class="h-full flex flex-col justify-center items-center gap-6 p-4 animate__animated animate__fadeIn">
+                class="h-full flex flex-col justify-center items-center gap-6 p-4">
                 <h1 class="text-6xl font-bold text-chlorine text-glow glitch-effect" data-text="PIEL DE CLORO">PIEL DE
                     CLORO</h1>
                 <h2 class="text-xl tracking-[0.5em] opacity-80">PROTOCOLO DE SEGURIDAD</h2>
@@ -85,7 +88,7 @@
             </section>
 
             <!-- SCREEN 2: GAME (Guard Post) -->
-            <section id="screen-game" class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
+            <section id="screen-game" class="h-full flex flex-col p-4 gap-4 hidden">
                 <header class="flex justify-between border-b border-chlorine pb-2 font-mono text-lg">
                     <div class="flex gap-6">
                         <span title="Nivel de Paranoia"><i class="fa-solid fa-brain text-chlorine"></i> <span
@@ -218,7 +221,7 @@
             </section>
 
             <!-- SCREEN: SECURITY ROOM -->
-            <section id="screen-room" class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
+            <section id="screen-room" class="h-full flex flex-col p-4 gap-4 hidden">
                 <header class="flex justify-between items-center border-b border-chlorine pb-2">
                     <h2 class="text-2xl text-glow">SALA DE VIGILANCIA</h2>
                     <span class="font-mono text-xl">Puntos: <span id="security-count">0</span></span>
@@ -289,7 +292,8 @@
                                 <div class="space-y-1">
                                     <p><span class="text-white">1. MODO NORMAL:</span> 2 cargas. Estándar.</p>
                                     <p><span class="text-white">2. MODO AHORRO:</span> 1 carga. Sin fallos eléctricos.
-                                        <span class="text-chlorine-light">Reduce intrusiones externas.</span></p>
+                                        <span class="text-chlorine-light">Reduce intrusiones externas.</span>
+                                    </p>
                                     <p><span class="text-white">3. OVERCLOCK:</span> 3 cargas. Alto riesgo de apagón
                                         súbito.</p>
                                     <p
@@ -305,7 +309,7 @@
             </section>
 
             <!-- SCREEN 4: MORGUE GRID -->
-            <section id="screen-morgue" class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
+            <section id="screen-morgue" class="h-full flex flex-col p-4 gap-4 hidden">
                 <header class="border-b border-chlorine pb-2">
                     <h2 class="text-2xl text-alert-glow text-alert">REGISTRO DE PURGAS</h2>
                 </header>
@@ -317,7 +321,7 @@
 
             <!-- SCREEN: FINAL STATS -->
             <section id="screen-final-stats"
-                class="h-full flex flex-col p-8 gap-6 animate__animated animate__fadeIn hidden bg-black/90">
+                class="h-full flex flex-col p-8 gap-6 hidden bg-black/90">
                 <div class="text-center space-y-2">
                     <h2 class="text-4xl font-bold text-chlorine tracking-tighter glitch-effect"
                         data-text="INFORME DE MISIÓN">INFORME DE MISIÓN</h2>
@@ -482,7 +486,7 @@
     <!-- MODAL: PAUSA -->
     <div id="modal-pause" class="fixed inset-0 hidden items-center justify-center z-[100] backdrop-blur-md bg-black/80">
         <div
-            class="horror-panel p-8 w-[480px] max-w-full animate__animated animate__fadeInDown animate__faster relative overflow-hidden">
+            class="horror-panel p-8 w-[480px] max-w-full animate__faster relative overflow-hidden">
             <!-- Efecto de interferencia decorativo -->
             <div class="absolute inset-0 pointer-events-none opacity-10 scanline-overlay"></div>
 
@@ -591,7 +595,7 @@
     <div id="modal-confirm"
         class="fixed inset-0 bg-black/90 backdrop-blur-md z-[210] hidden items-center justify-center p-4">
         <div
-            class="horror-panel max-w-sm w-full p-8 border-2 border-alert/50 flex flex-col gap-6 animate__animated animate__fadeInDown animate__faster">
+            class="horror-panel max-w-sm w-full p-8 border-2 border-alert/50 flex flex-col gap-6 animate__faster">
             <div class="flex flex-col gap-2 text-center">
                 <h3 class="text-alert font-bold tracking-[0.2em] text-xl glitch-effect" data-text="CONFIRMACIÓN">
                     CONFIRMACIÓN</h3>

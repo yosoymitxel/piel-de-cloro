@@ -823,7 +823,7 @@ export const DialogueData = {
             unique: true,
             root: 'g2_n4a',
             nodes: {
-                'g2_n4a': { id: 'g2_n4a', text: "Require test", options: [{ id: 'g2_o1', label: 'Require noted', requires: ['noted_voice'], next: 'g2_n5a' }, { id: 'g2_o2', label:'No', next: null }] },
+                'g2_n4a': { id: 'g2_n4a', text: "Require test", options: [{ id: 'g2_o1', label: 'Require noted', requires: ['noted_voice'], next: 'g2_n5a' }, { id: 'g2_o2', label: 'No', next: null }] },
                 'g2_n5a': { id: 'g2_n5a', text: "After require", options: [] }
             }
         }

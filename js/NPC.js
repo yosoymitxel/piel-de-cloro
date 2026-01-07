@@ -27,7 +27,7 @@ export class NPC {
 
     generateName() {
         // Spanish-friendly exotic-ish names, simple to read
-        const firsts = ['Ariel', 'Marin', 'Luz', 'Ciro', 'Noa', 'Elo', 'Dara', 'Bruno', 'Celia', 'Nico', 'Iker', 'Lina', 'Rocío', 'Pablo', 'Sofia', 'Enzo'];
+        const firsts = ['Ariel', 'Marin', 'Ciro', 'Noa', 'Elo', 'Bruno', 'Iker', 'Pablo', 'Enzo', 'Mateo', 'Julián', 'Luca', 'Sofía', 'Luna', 'Mía', 'Emma', 'Valeria', 'Camila', 'Renata', 'Elena'];
         const lasts = ['Maro', 'Sierra', 'Vega', 'Luz', 'Rojas', 'Sol', 'Mora', 'Rivera', 'Ortega', 'Campos', 'Valle', 'Cruz', 'Rey', 'Luna'];
         const pick = arr => arr[Math.floor(Math.random() * arr.length)];
         return `${pick(firsts)} ${pick(lasts)}`;

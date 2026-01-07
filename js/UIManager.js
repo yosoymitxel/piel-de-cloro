@@ -774,6 +774,12 @@ export class UIManager {
 
         if (this.elements.genWarningShelter) this.elements.genWarningShelter.toggleClass('hidden', !needsCheck);
 
+        // Update nav indicator for generator
+        if (this.setNavItemStatus) {
+            if (needsCheck) this.setNavItemStatus('nav-generator', 3);
+            else this.setNavItemStatus('nav-generator', null);
+        }
+
         // Si necesita revisión, podemos añadir un botón temporal en el panel de tests
         const testsPanel = this.elements.dayafterPanel.find('.flex.flex-wrap');
         if (needsCheck) {
@@ -793,6 +799,8 @@ export class UIManager {
     }
 
     renderMorgueGrid(npcs, onDetailClick) {
+        // Viewing the morgue clears its attention marker
+        if (this.setNavItemStatus) this.setNavItemStatus('nav-morgue', null);
         this.elements.morgueGrid.empty();
 
         const batch = [];
@@ -832,8 +840,9 @@ export class UIManager {
             const inactiveColor = '#ff2b2b';
             const borderColor = activeOrSecured ? activeColor : inactiveColor;
             const iconColor = activeOrSecured ? activeColor : inactiveColor;
+            const stateClass = activeOrSecured ? 'secured' : 'unsecured';
             const card = $('<div>', {
-                class: `bg-[#080808] p-3 flex flex-col gap-2 items-center hover:bg-[#111] transition-all`,
+                class: `security-item bg-[#080808] p-3 flex flex-col gap-2 items-center hover:bg-[#111] transition-all ${stateClass}`,
                 css: { border: `1px solid ${borderColor}` }
             });
             card.append($('<i>', { class: `fa-solid ${icon} text-3xl`, css: { color: iconColor } }));
@@ -863,10 +872,51 @@ export class UIManager {
             batch.push(card[0]);
         });
         if (batch.length) this.elements.securityGrid.append(batch);
+
+        // Update nav status: if any unsecured channels exist, set warning; otherwise clear
+        const unsecured = items ? items.filter(i => i.type !== 'alarma' && !i.secured) : [];
+        if (this.setNavItemStatus) {
+            if (unsecured.length > 0) {
+                this.setNavItemStatus('nav-room', 3);
+            } else {
+                this.setNavItemStatus('nav-room', null);
+            }
+        }
     }
 
     renderGeneratorRoom() {
         this.generatorManager.renderGeneratorRoom(State);
+    }
+
+    // NAVBAR status helpers
+    setNavStatus(level) {
+        const el = $('#sidebar-left');
+        el.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5');
+        if (level) {
+            el.addClass(`status-level-${level}`);
+            el.attr('data-status', level);
+        } else {
+            el.removeAttr('data-status');
+        }
+    }
+
+    setNavItemStatus(navId, level) {
+        const btn = $(`#${navId}`);
+        if (!btn.length) return;
+        // Clear any global sidebar status to prefer per-item indicators
+        const sidebar = $('#sidebar-left');
+        sidebar.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5');
+        sidebar.removeAttr('data-status');
+
+        btn.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5');
+        if (level) {
+            btn.addClass(`status-level-${level}`);
+            btn.attr('data-status', level);
+        } else {
+            btn.removeAttr('data-status');
+        }
+        // Ensure icons take current color (clear any inline color)
+        btn.find('i').css('color', '');
     }
 
     // Modal management delegators
@@ -991,7 +1041,7 @@ export class UIManager {
         overlay.removeClass('hidden').addClass('flex');
 
         // Reset pupila
-        pupil.css({ width: '24px', height: '24px' });
+        pupil.css({ width: '40px', height: '40px' });
 
         // Animación de aparición
         setTimeout(() => {
@@ -999,15 +1049,15 @@ export class UIManager {
 
             // Reacción de la pupila
             setTimeout(() => {
-                const size = type === 'dilated' ? '64px' : '24px';
+                const size = type === 'dilated' ? '42px' : '40px';
                 pupil.css({ width: size, height: size });
 
                 // Efecto de parpadeo/reacción
                 if (type === 'dilated') {
                     pupil.addClass('animate-pulse');
-                    pupil.css('background', 'radial-gradient(circle, #fff 0%, #00ff00 100%)');
+                    pupil.css('background', 'radial-gradient(circle, #3b0707 0%, #3bd853ff 100%)');
                 } else {
-                    pupil.css('background', '#fff');
+                    pupil.css('background', '#3b0707');
                 }
             }, 600);
         }, 50);
@@ -1017,7 +1067,7 @@ export class UIManager {
             container.removeClass('scale-100').addClass('scale-0');
             setTimeout(() => {
                 overlay.removeClass('flex').addClass('hidden');
-                pupil.removeClass('animate-pulse').css('background', '#fff');
+                pupil.removeClass('animate-pulse').css('background', '#3b0707');
             }, 500);
         }, 2200);
     }

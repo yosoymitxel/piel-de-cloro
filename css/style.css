@@ -279,6 +279,146 @@ h3 {
     border-left-color: var(--color-chlorine-light);
 }
 
+/* Status per nav item: show border color and text color when there is attention needed */
+.nav-btn.status-level-1 {
+    border-left-color: transparent;
+    color: var(--color-chlorine-light);
+}
+
+.nav-btn.status-level-2 {
+    border-left-color: var(--color-chlorine);
+    color: var(--color-chlorine-light);
+}
+
+.nav-btn.status-level-3 {
+    border-left-color: var(--color-warning);
+    color: var(--color-warning);
+    box-shadow: 0 0 8px rgba(204, 170, 0, 0.08);
+}
+
+.nav-btn.status-level-4 {
+    border-left-color: var(--color-alert);
+    color: var(--color-alert);
+    animation: navPulse 1.2s infinite;
+}
+
+.nav-btn.status-level-5 {
+    border-left-color: var(--color-alert);
+    color: var(--color-alert);
+    animation: navPulse 1.2s infinite;
+}
+
+/* Ensure icons reflect nav color */
+#sidebar-left .nav-btn i {
+    color: inherit;
+}
+
+@keyframes navPulse {
+    0% {
+        box-shadow: none;
+        transform: translateX(0);
+    }
+
+    50% {
+        box-shadow: 0 0 12px rgba(255, 51, 51, 0.6);
+        transform: translateX(1px);
+    }
+
+    100% {
+        box-shadow: none;
+        transform: translateX(0);
+    }
+}
+
+/* If the entire sidebar signals a global status, color the nav entries accordingly */
+#sidebar-left.status-level-2 .nav-btn {
+    border-left-color: var(--color-chlorine);
+    color: var(--color-chlorine-light);
+}
+
+#sidebar-left.status-level-3 .nav-btn {
+    border-left-color: var(--color-warning);
+    color: var(--color-warning);
+}
+
+#sidebar-left.status-level-4 .nav-btn {
+    border-left-color: var(--color-alert);
+    color: var(--color-alert);
+}
+
+/* Ensure a nav item that is BOTH active and has a status-level keeps the status coloring
+   (background and text) so visual feedback is unambiguous). */
+.nav-btn.active.status-level-3 {
+    background: rgba(204, 170, 0, 0.12) !important;
+    /* soft amber */
+    color: #0b0b0b !important;
+    /* dark text for contrast */
+    border-left-color: var(--color-warning) !important;
+}
+
+.nav-btn.active.status-level-4 {
+    background: rgba(255, 51, 51, 0.12) !important;
+    /* soft red */
+    color: #0b0b0b !important;
+    /* dark text for contrast */
+    border-left-color: var(--color-alert) !important;
+}
+
+/* Mobile: active + status overrides as well */
+@media (max-width: 640px) {
+    .nav-btn.active.status-level-3 {
+        background: rgba(204, 170, 0, 0.08) !important;
+        color: #0b0b0b !important;
+    }
+
+    .nav-btn.active.status-level-4 {
+        background: rgba(255, 51, 51, 0.08) !important;
+        color: #0b0b0b !important;
+    }
+}
+
+/* Mobile: use border-top when the sidebar becomes bottom bar */
+@media (max-width: 640px) {
+    #sidebar-left .nav-btn.status-level-3 {
+        border-top: 3px solid var(--color-warning);
+        border-left-color: transparent;
+        color: var(--color-warning);
+    }
+
+    #sidebar-left .nav-btn.status-level-4 {
+        border-top: 3px solid var(--color-alert);
+        border-left-color: transparent;
+        color: var(--color-alert);
+    }
+
+    #sidebar-left .nav-btn.status-level-2 {
+        border-top: 3px solid var(--color-chlorine);
+        border-left-color: transparent;
+        color: var(--color-chlorine-light);
+    }
+
+    #sidebar-left .nav-btn.status-level-1 {
+        border-top: 3px solid transparent;
+        border-left-color: transparent;
+        color: var(--color-chlorine-light);
+    }
+
+    #sidebar-left.status-level-2 .nav-btn {
+        border-top: 3px solid var(--color-chlorine);
+        border-left-color: transparent;
+    }
+
+    #sidebar-left.status-level-3 .nav-btn {
+        border-top: 3px solid var(--color-warning);
+        border-left-color: transparent;
+    }
+
+    #sidebar-left.status-level-4 .nav-btn {
+        border-top: 3px solid var(--color-alert);
+        border-left-color: transparent;
+    }
+}
+
 /* Estilos para el Menú de Pausa Renovado */
 #modal-pause .horror-panel {
     border-color: var(--color-chlorine);
@@ -372,6 +512,33 @@ body.paused .game-container {
     .horror-btn-tool {
         font-size: 1rem;
     }
+}
+
+/* Security item visual states (Sala de Vigilancia) */
+.security-item {
+    transition: all 0.18s ease;
+}
+
+.security-item.secured {
+    background: rgba(0, 255, 0, 0.03);
+    border-color: #00FF00 !important;
+    color: var(--color-chlorine-light);
+}
+
+.security-item.unsecured {
+    background: rgba(255, 43, 43, 0.03);
+    border-color: #ff2b2b !important;
+    color: var(--color-alert);
+}
+
+.security-item .text-xs {
+    color: inherit;
+}
+
+/* When the entire sidebar is active+status ensure consistent mobile border/top and text */
+#sidebar-left .nav-btn.status-level-3,
+#sidebar-left .nav-btn.status-level-4 {
+    color: inherit;
 }
 
 /* Animations */
@@ -1006,6 +1173,12 @@ input[type=number].horror-input {
     #sidebar-left .nav-btn span {
         font-size: 0.65rem;
     }
+
+    /* Ensure screens fill viewport in mobile (account for bottom nav) */
+    section[id^="screen-"] {
+        min-height: calc(100dvh - var(--bottom-bar-space));
+        height: auto;
+    }
 }
 
 /* Distintivo para 'Puesto' (centro del juego) */
@@ -1093,14 +1266,14 @@ input[type=number].horror-input {
 }
 
 .giant-eye {
-    background: radial-gradient(circle at center, #111 0%, #000 100%);
+    background: radial-gradient(circle at center, #eee2e2 0%, #3a3232 100%);
     box-shadow: inset 0 0 40px rgba(255, 255, 255, 0.1), 0 0 20px rgba(0, 0, 0, 0.5);
     border: 4px solid rgba(255, 255, 255, 0.1);
 }
 
 #giant-pupil {
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-    background: #fff;
+    box-shadow: 0 0 15px rgba(99, 0, 0, 0.5);
+    background: #3b0707;
 }
 
 @keyframes scanline {
