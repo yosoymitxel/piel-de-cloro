@@ -17,7 +17,7 @@ export function selectDialogueSet({ personality = null, infected = false, isLore
         return avail.length ? avail[Math.floor(Math.random() * avail.length)] : DialogueData.loreSubjects[0];
     }
 
-    // Generic pools: pick by personality tag (if any) and unused first
+    // Generic pools: pick by personality tag (if any)
     let candidates = Object.values(DialogueData.pools);
     if (personality) {
         const filtered = candidates.filter(p => (p.tags || []).includes(personality) || (p.tags || []).includes('generic'));
@@ -26,7 +26,18 @@ export function selectDialogueSet({ personality = null, infected = false, isLore
             candidates = filtered;
         }
     }
-    // prefer unused ones
+
+    // Prefer pools that haven't been used in the last N dialogues to reduce perceived repetition
+    const freshWindow = 5; // configurable window size (dialogues)
+    const fresh = candidates.filter(p => !State.wasDialogueUsedRecently(p.id, freshWindow));
+    if (fresh.length) {
+        // Prefer unused among fresh ones if possible
+        const unusedFresh = fresh.filter(p => !State.isDialogueUsed(p.id));
+        const pickFrom = unusedFresh.length ? unusedFresh : fresh;
+        return pickFrom[Math.floor(Math.random() * pickFrom.length)];
+    }
+
+    // fallback: prefer unused ones
     const unused = candidates.filter(p => !State.isDialogueUsed(p.id));
     const pick = unused.length ? unused[Math.floor(Math.random() * unused.length)] : candidates[Math.floor(Math.random() * candidates.length)];
     return pick;
@@ -38,7 +49,8 @@ export class Conversation {
         this.set = dialogueSet;
         this.currentId = dialogueSet.root;
         this.history = [];
-        // Mark as used immediately to prevent reuse in run until all are exhausted
+        // Count this dialogue start (logical time) and mark as used immediately to prevent reuse
+        State.dialoguesCount = (State.dialoguesCount || 0) + 1;
         State.markDialogueUsed(dialogueSet.id);
     }
 

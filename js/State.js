@@ -51,6 +51,7 @@ export const State = {
     dayAfter: { testsAvailable: 5 },
     // Dialogue/pool tracking and flags
     dialoguePoolsUsed: [], // array of pool ids used this run
+    dialoguePoolsLastUsed: {}, // map poolId -> dialoguesCount when last used
     dialogueFlags: {},      // persistent flags set by conversation choices
     dialogueMemory: [],     // recorded events for rumor/flags
 
@@ -124,6 +125,7 @@ export const State = {
 
         // Reset dialogue trackers and flags
         this.dialoguePoolsUsed = [];
+        this.dialoguePoolsLastUsed = {};
         this.dialogueFlags = {};
         this.dialogueMemory = [];
     },
@@ -186,6 +188,18 @@ export const State = {
     // Dialogue & flags helpers
     markDialogueUsed(id) {
         if (!this.dialoguePoolsUsed.includes(id)) this.dialoguePoolsUsed.push(id);
+        // record last used logical time (dialoguesCount)
+        this.dialoguePoolsLastUsed[id] = this.dialoguesCount || 0;
+    },
+
+    /**
+     * Returns true if the pool was used within the last `window` dialogues
+     * (uses `dialoguesCount` as logical time to avoid relying on wall-clock time in tests)
+     */
+    wasDialogueUsedRecently(id, window = 5) {
+        const last = this.dialoguePoolsLastUsed[id];
+        if (last === undefined) return false;
+        return (this.dialoguesCount - last) < window;
     },
 
     isDialogueUsed(id) {

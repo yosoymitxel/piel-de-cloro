@@ -1,0 +1,16 @@
+{
+  "name": "piel-de-cloro",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand --silent"
+  },
+  "devDependencies": {
+    "jest": "^29.6.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 10000,
+    "setupFilesAfterEnv": ["<rootDir>/jest.setup.js"]
+  }
+}

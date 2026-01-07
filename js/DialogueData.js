@@ -1,11 +1,11 @@
 export const DialogueData = {
     personalities: [
-        'nervous', 
-        'aggressive', 
-        'stoic', 
-        'confused', 
-        'fanatic', 
-        'broken', 
+        'nervous',
+        'aggressive',
+        'stoic',
+        'confused',
+        'fanatic',
+        'broken',
         'body_horror'],
     // Pools of dialogues (each pool is an independent tree of nodes)
     pools: {
@@ -43,7 +43,7 @@ export const DialogueData = {
                 'gs_n3a': {
                     id: 'gs_n3a',
                     text: "*Al presionar, la piel cede de forma extraña, como si hubiera aire o líquido debajo.* \"¡Ay! ¡Cuidado! No lo despiertes...\"",
-                    options: [{ id: 'gs_o3a', label: 'Expulsar por precaución', next: null, resultText: "*Se marcha rascándose furiosamente.* \"Solo es alergia... ¡solo es alergia!\"", cssClass: 'horror-btn-dismiss' }, { id: 'gs_o3b', label: 'Realizar tests completos', next: 'gs_n4b' }]
+                    options: [{ id: 'gs_o3a', label: 'Expulsar por precaución', next: null, resultText: "*Se marcha rascándose furiosamente.* \"Solo es alergia... ¡solo es alergia!\"", cssClass: 'horror-btn-dismiss' }, { id: 'gs_o3d', label: 'Realizar tests completos', next: 'gs_n4b' }]
                 },
                 'gs_n3b': {
                     id: 'gs_n3b',
@@ -593,12 +593,12 @@ export const DialogueData = {
                 'gsr_n3a': {
                     id: 'gsr_n3a',
                     text: "*Se levanta sacudiéndose el polvo.* \"Si no lo encuentro, no puedo pagar. ¿Aceptáis trabajo a cambio?\"",
-                    options: [{ id: 'gsr_o3a', label: 'Rechazar', next: null, resultText: "*Se va mirando al suelo.*", cssClass: 'horror-btn-dismiss' }, { id: 'gsr_o3b', label: 'Testear', next: 'gs_n4b' }]
+                    options: [{ id: 'gsr_o3a', label: 'Rechazar', next: null, resultText: "*Se va mirando al suelo.*", cssClass: 'horror-btn-dismiss' }, { id: 'gsr_o3b', label: 'Testear', next: 'gsr_n4b' }]
                 },
                 'gsr_n3b': {
                     id: 'gsr_n3b',
                     text: "*Entrecierra los ojos.* \"Ya... claro. Ladrones.\"",
-                    options: [{ id: 'gsr_o3c', label: 'Rechazar', next: null, resultText: "*Se va murmurando.*", cssClass: 'horror-btn-dismiss' }, { id: 'gsr_o3d', label: 'Testear', next: 'gs_n4b' }]
+                    options: [{ id: 'gsr_o3c', label: 'Rechazar', next: null, resultText: "*Se va murmurando.*", cssClass: 'horror-btn-dismiss' }, { id: 'gsr_o3d', label: 'Testear', next: 'gsr_n4b' }]
                 },
                 'gsr_n4b': {
                     id: 'gsr_n4b',
@@ -799,6 +799,32 @@ export const DialogueData = {
                     text: "*Taquicardia leve por ansiedad. Sin infección.*",
                     options: [{ id: 'gsc_o4b1', label: 'Admitir', next: null, sets: ['admitted'] }, { id: 'gsc_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss' }]
                 }
+            }
+        },
+
+        // Test pool generic_01 for unit tests
+        "generic_01": {
+            id: 'generic_01',
+            tags: ['test'],
+            unique: true,
+            root: 'g1_n1',
+            nodes: {
+                'g1_n1': { id: 'g1_n1', text: "*Hola* {rumor}", options: [{ id: 'g1_o1', label: 'Ask health', next: 'g1_n2a', sets: ['asked_health'] }, { id: 'g1_o2', label: 'Ignore', next: null }] },
+                'g1_n2a': { id: 'g1_n2a', text: "Follow up", options: [{ id: 'g1_o2a', label: 'Next', next: 'g1_n3a' }] },
+                'g1_n3a': { id: 'g1_n3a', text: "Then", options: [{ id: 'g1_o3a', label: 'Next', next: 'g1_n4a' }] },
+                'g1_n4a': { id: 'g1_n4a', text: "End", options: [] }
+            }
+        },
+
+        // Test pool generic_02 for requires
+        "generic_02": {
+            id: 'generic_02',
+            tags: ['test'],
+            unique: true,
+            root: 'g2_n4a',
+            nodes: {
+                'g2_n4a': { id: 'g2_n4a', text: "Require test", options: [{ id: 'g2_o1', label: 'Require noted', requires: ['noted_voice'], next: 'g2_n5a' }, { id: 'g2_o2', label:'No', next: null }] },
+                'g2_n5a': { id: 'g2_n5a', text: "After require", options: [] }
             }
         }
     },

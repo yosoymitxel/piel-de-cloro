@@ -1,8 +1,8 @@
 describe('Dialogue system', () => {
-    let Conversation, DialogueData, State;
+    let Conversation, selectDialogueSet, DialogueData, State;
 
     beforeAll(async () => {
-        ({ Conversation } = await import('../js/DialogueEngine.js'));
+        ({ Conversation, selectDialogueSet } = await import('../js/DialogueEngine.js'));
         ({ DialogueData } = await import('../js/DialogueData.js'));
         ({ State } = await import('../js/State.js'));
     });
@@ -31,6 +31,30 @@ describe('Dialogue system', () => {
                 }
             });
         }
+
+        // Ensure no duplicate option ids across all pools/lore
+        const seenOptionIds = new Set();
+        for (const [pid, pool] of Object.entries(DialogueData.pools)) {
+            for (const [nid, node] of Object.entries(pool.nodes || {})) {
+                if (node.options) node.options.forEach(opt => {
+                    if (!opt.id) return;
+                    if (seenOptionIds.has(opt.id)) errors.push(`Duplicate option id: ${opt.id}`);
+                    seenOptionIds.add(opt.id);
+                });
+            }
+        }
+        if (DialogueData.loreSubjects) {
+            DialogueData.loreSubjects.forEach(ls => {
+                for (const [nid, node] of Object.entries(ls.nodes || {})) {
+                    if (node.options) node.options.forEach(opt => {
+                        if (!opt.id) return;
+                        if (seenOptionIds.has(opt.id)) errors.push(`Duplicate option id: ${opt.id}`);
+                        seenOptionIds.add(opt.id);
+                    });
+                }
+            });
+        }
+
         expect(errors).toEqual([]);
     });
 
@@ -88,5 +112,30 @@ describe('Dialogue system', () => {
         const res2 = conv.getNextDialogue(0);
         expect(res2.error).toBeUndefined();
         expect(conv.currentId).toBe('g2_n5a');
+    });
+
+    test('selectDialogueSet avoids recent pools when alternatives exist', async () => {
+        // Temporarily replace pools with minimal deterministic set
+        const originalPools = DialogueData.pools;
+        DialogueData.pools = {
+            a: { id: 'a', root: 'a1', nodes: { a1: { id: 'a1', text: 'A', options: [] } } },
+            b: { id: 'b', root: 'b1', nodes: { b1: { id: 'b1', text: 'B', options: [] } } }
+        };
+
+        State.reset();
+        State.dialoguesCount = 10;
+        // Mark 'a' as used now (lastUsed = 10)
+        State.markDialogueUsed('a');
+
+        // Should avoid 'a' within default window (5)
+        const pick = selectDialogueSet();
+        expect(pick.id).toBe('b');
+
+        // Advance past window
+        State.dialoguesCount = 16;
+        const pick2 = selectDialogueSet();
+        expect(['a', 'b']).toContain(pick2.id);
+
+        DialogueData.pools = originalPools;
     });
 });
