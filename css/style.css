@@ -17,6 +17,32 @@
     --border-rough: 2px solid var(--color-chlorine);
 }
 
+/* Niveles de Estado (Sobreescriben variables para cambiar el tema dinámicamente) */
+.status-level-1 {
+    --color-chlorine: #2d5a27;
+    --color-chlorine-light: #a8d5a2;
+}
+
+/* Normal (Verde) */
+.status-level-2 {
+    --color-chlorine: #6b8c21;
+    --color-chlorine-light: #d4e8a2;
+}
+
+/* Precaución (Verde amarillento) */
+.status-level-3 {
+    --color-chlorine: #ccaa00;
+    --color-chlorine-light: #ffeebb;
+}
+
+/* Advertencia (Ámbar) */
+.status-level-4 {
+    --color-chlorine: #ff3333;
+    --color-chlorine-light: #ffaaaa;
+}
+
+/* Crítico (Rojo) */
+
 /* Base & Typography */
 body {
     background-color: var(--color-dark);
@@ -326,57 +352,6 @@ body.paused .game-container {
 
 .horror-card.infected {
     border-color: var(--color-alert);
-}
-
-/* Stats Panel */
-#stats-panel {
-    background: #060606;
-}
-
-.stat-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 8px;
-    border: 1px solid #1a1a1a;
-    background: #0b0b0b;
-}
-
-.stat-item .label {
-    font-size: 12px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    opacity: 0.8;
-}
-
-.stat-item .value {
-    font-family: var(--font-term);
-    font-size: 18px;
-    color: var(--color-chlorine-light);
-}
-
-.badge-rt {
-    background: rgba(0, 200, 255, 0.15);
-    color: #69e1ff;
-    border: 1px solid #176a83;
-}
-
-.badge-night {
-    background: rgba(255, 150, 0, 0.12);
-    color: #ffcc66;
-    border: 1px solid #7a5a1a;
-}
-
-.trend {
-    font-family: var(--font-term);
-}
-
-.trend-up {
-    color: #79ff79;
-}
-
-.trend-down {
-    color: var(--color-alert);
 }
 
 @media (max-width: 768px) {
@@ -1030,10 +1005,6 @@ input[type=number].horror-input {
 
     #sidebar-left .nav-btn span {
         font-size: 0.65rem;
-    }
-
-    #nav-morgue-stats span {
-        font-size: 0.55rem;
     }
 }
 

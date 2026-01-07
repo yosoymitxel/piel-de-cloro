@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Piel de Cloro: El Ciclo de la Paranoia</title>
-    
+
     <!-- Librerías Externas (CDNs) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
     <!-- Configuración Tailwind (Mantenemos solo lo necesario para layout) -->
     <script>
         tailwind.config = {
@@ -30,15 +31,18 @@
     <link rel="stylesheet" href="css/avatars.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body class="flex justify-center items-center min-h-screen">
     <!-- FX Layers -->
     <div class="crt-overlay fixed inset-0 w-full h-full pointer-events-none"></div>
     <div class="dirty-lens fixed inset-0 w-full h-full pointer-events-none"></div>
-    <div class="scanline fixed w-full h-[100px] z-20 bg-gradient-to-t from-transparent via-chlorine/10 to-transparent opacity-10 animate-[scanline_10s_linear_infinite] pointer-events-none"></div>
+    <div
+        class="scanline fixed w-full h-[100px] z-20 bg-gradient-to-t from-transparent via-chlorine/10 to-transparent opacity-10 animate-[scanline_10s_linear_infinite] pointer-events-none">
+    </div>
 
     <!-- Game Container -->
     <div class="game-container w-[95%] max-w-[900px] h-[100vh] horror-panel flex relative z-10">
-        
+
         <!-- SIDEBAR NAVIGATION -->
         <aside id="sidebar-left" class="w-20 horror-sidebar flex flex-col pt-5 hidden">
             <button id="nav-shelter" class="nav-btn group flex flex-col items-center gap-1 p-4 w-full">
@@ -61,20 +65,16 @@
                 <i class="fa-solid fa-bolt text-2xl"></i>
                 <span class="font-bold">GENERADOR</span>
             </button>
-            <div class="mt-auto pb-3 ">
-                <button id="nav-morgue-stats" class="nav-btn group flex flex-col items-center gap-1 p-3 w-full" title="Estadísticas de partida (Morgue)">
-                    <i class="fa-solid fa-chart-line text-2xl"></i>
-                    <span class="font-bold text-[0.6rem]">ESTADÍSTICAS</span>
-                </button>
-            </div>
         </aside>
 
         <!-- MAIN CONTENT AREA -->
         <div class="flex-grow relative flex flex-col overflow-hidden horror-panel-inner m-1">
-            
+
             <!-- SCREEN 1: START -->
-            <section id="screen-start" class="h-full flex flex-col justify-center items-center gap-6 p-4 animate__animated animate__fadeIn">
-                <h1 class="text-6xl font-bold text-chlorine text-glow glitch-effect" data-text="PIEL DE CLORO">PIEL DE CLORO</h1>
+            <section id="screen-start"
+                class="h-full flex flex-col justify-center items-center gap-6 p-4 animate__animated animate__fadeIn">
+                <h1 class="text-6xl font-bold text-chlorine text-glow glitch-effect" data-text="PIEL DE CLORO">PIEL DE
+                    CLORO</h1>
                 <h2 class="text-xl tracking-[0.5em] opacity-80">PROTOCOLO DE SEGURIDAD</h2>
                 <div class="italic text-center text-sm opacity-60 font-mono mt-4">
                     "Identifica a los infectados. Protege el refugio."
@@ -88,32 +88,44 @@
             <section id="screen-game" class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
                 <header class="flex justify-between border-b border-chlorine pb-2 font-mono text-lg">
                     <div class="flex gap-6">
-                        <span title="Nivel de Paranoia"><i class="fa-solid fa-brain text-chlorine"></i> <span id="paranoia-level" class="text-chlorine-light font-bold">0%</span></span>
-                        <span title="Energía de Escaneo"><i class="fa-solid fa-bolt text-cyan-400"></i> <span id="scan-energy" class="text-cyan-400 text-glow">⚡⚡</span></span>
+                        <span title="Nivel de Paranoia"><i class="fa-solid fa-brain text-chlorine"></i> <span
+                                id="paranoia-level" class="text-chlorine-light font-bold">0%</span></span>
+                        <span title="Energía de Escaneo"><i class="fa-solid fa-bolt text-cyan-400"></i> <span
+                                id="scan-energy" class="text-cyan-400 text-glow">⚡⚡</span></span>
                     </div>
                     <div class="flex gap-6">
-                        <span title="Ciclo Actual"><i class="fa-solid fa-rotate text-chlorine"></i> <span id="cycle-count">1</span></span>
-                        <span title="Hora del Turno"><i class="fa-solid fa-clock text-chlorine"></i> <span id="time-display">08:00</span></span>
+                        <span title="Ciclo Actual"><i class="fa-solid fa-rotate text-chlorine"></i> <span
+                                id="cycle-count">1</span></span>
+                        <span title="Hora del Turno"><i class="fa-solid fa-clock text-chlorine"></i> <span
+                                id="time-display">08:00</span></span>
                         <button id="btn-pause" class="horror-btn px-2 py-1 text-xs" title="Pausa">
                             <i class="fa-solid fa-pause"></i>
                         </button>
                     </div>
                 </header>
 
-                <main class="flex-grow bg-[#020202] border border-[#1a3317] relative flex flex-col items-center justify-center overflow-hidden min-h-[200px] vhs-target">
+                <main
+                    class="flex-grow bg-[#020202] border border-[#1a3317] relative flex flex-col items-center justify-center overflow-hidden min-h-[200px] vhs-target">
                     <!-- Background Grid Effect -->
-                    <div class="absolute inset-0 opacity-10" style="background-image: linear-gradient(#2d5a27 1px, transparent 1px), linear-gradient(90deg, #2d5a27 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    
-                    <div id="npc-display" class="flex justify-center items-center relative transition-all duration-150 z-10">
+                    <div class="absolute inset-0 opacity-10"
+                        style="background-image: linear-gradient(#2d5a27 1px, transparent 1px), linear-gradient(90deg, #2d5a27 1px, transparent 1px); background-size: 20px 20px;">
+                    </div>
+
+                    <div id="npc-display"
+                        class="flex justify-center items-center relative transition-all duration-150 z-10">
                         <!-- JS renders visuals here -->
                     </div>
                     <!-- Overlay para test de pupilas -->
-                    <div id="pupil-overlay" class="absolute inset-0 z-30 pointer-events-none hidden items-center justify-center bg-black/40">
+                    <div id="pupil-overlay"
+                        class="absolute inset-0 z-30 pointer-events-none hidden items-center justify-center bg-black/40">
                         <div class="pupil-eye-container relative scale-0 transition-transform duration-500">
-                             <div class="giant-eye border-4 border-white/20 rounded-full w-48 h-48 flex items-center justify-center overflow-hidden bg-black shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-                                 <div id="giant-pupil" class="w-24 h-24 bg-white rounded-full transition-all duration-700 shadow-[0_0_15px_rgba(255,255,255,0.8)]"></div>
-                             </div>
-                             <div class="absolute inset-0 border-2 border-chlorine/30 rounded-full animate-ping"></div>
+                            <div
+                                class="giant-eye border-4 border-white/20 rounded-full w-48 h-48 flex items-center justify-center overflow-hidden bg-black shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+                                <div id="giant-pupil"
+                                    class="w-24 h-24 bg-white rounded-full transition-all duration-700 shadow-[0_0_15px_rgba(255,255,255,0.8)]">
+                                </div>
+                            </div>
+                            <div class="absolute inset-0 border-2 border-chlorine/30 rounded-full animate-ping"></div>
                         </div>
                     </div>
                     <div id="inspection-feedback" class="mt-4 font-bold text-shadow h-5 hidden z-20"></div>
@@ -128,7 +140,8 @@
                     </div>
 
                     <!-- Tools grid: 4 cols on desktop, 2 on tablet, 1 on mobile -->
-                    <div id="inspection-tools-container" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 grid-tools">
+                    <div id="inspection-tools-container"
+                        class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 grid-tools">
                         <button id="tool-thermo" class="horror-btn horror-btn-tool">
                             <i class="fa-solid fa-temperature-half"></i> TERMÓMETRO
                         </button>
@@ -143,8 +156,10 @@
                         </button>
                     </div>
 
-                    <div id="generator-warning-game" class="hidden w-full mb-2 p-2 border border-alert bg-alert/10 text-alert animate-pulse text-center font-mono text-xs">
-                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> SISTEMA INSTABLE: REVISIÓN DE GENERADOR REQUERIDA
+                    <div id="generator-warning-game"
+                        class="hidden w-full mb-2 p-2 border border-alert bg-alert/10 text-alert animate-pulse text-center font-mono text-xs">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> SISTEMA INSTABLE: REVISIÓN DE GENERADOR
+                        REQUERIDA
                     </div>
                     <div id="game-actions-container" class="flex gap-3 mt-1">
                         <button id="btn-admit" class="horror-btn horror-btn-primary flex-grow p-4 text-xl">
@@ -158,62 +173,77 @@
             </section>
 
             <!-- SCREEN 3: SHELTER GRID -->
-            <section id="screen-shelter" class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
+            <section id="screen-shelter"
+                class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
                 <header class="flex justify-between items-center border-b border-chlorine pb-2">
                     <h2 class="text-2xl text-glow">HABITANTES DEL REFUGIO</h2>
                     <span class="font-mono text-xl">OCUPACIÓN: <span id="shelter-count">0/10</span></span>
                 </header>
-                <div id="generator-warning-shelter" class="hidden w-full p-2 border border-alert bg-alert/10 text-alert animate-pulse text-center font-mono text-xs mb-2">
-                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> SISTEMA INSTABLE: REVISIÓN DE GENERADOR REQUERIDA
+                <div id="generator-warning-shelter"
+                    class="hidden w-full p-2 border border-alert bg-alert/10 text-alert animate-pulse text-center font-mono text-xs mb-2">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> SISTEMA INSTABLE: REVISIÓN DE GENERADOR
+                    REQUERIDA
                 </div>
                 <div id="dayafter-panel" class="horror-panel p-3 bg-[#080808] border-chlorine-dim">
                     <div class="flex flex-wrap items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-vial text-chlorine-light"></i>
-                            <span class="font-mono text-sm">Tests disponibles: <span id="dayafter-tests-left">0</span></span>
+                            <span class="font-mono text-sm">Tests disponibles: <span
+                                    id="dayafter-tests-left">0</span></span>
                         </div>
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-users text-chlorine-light"></i>
-                            <span class="font-mono text-sm">Grupo de testeo: <span id="dayafter-group-limit">0</span></span>
+                            <span class="font-mono text-sm">Grupo de testeo: <span
+                                    id="dayafter-group-limit">0</span></span>
                         </div>
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-shield-heart text-chlorine-light"></i>
-                            <span class="font-mono text-sm">Validados: <span id="dayafter-validated-count">0</span></span>
+                            <span class="font-mono text-sm">Validados: <span
+                                    id="dayafter-validated-count">0</span></span>
                         </div>
                     </div>
-                <div id="dayafter-list" class="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 mt-3"></div>
+                    <div id="dayafter-list" class="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 mt-3">
+                    </div>
                 </div>
-                <div id="shelter-grid" class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-4 overflow-y-auto p-2 custom-scroll">
+                <div id="shelter-grid"
+                    class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-4 overflow-y-auto p-2 custom-scroll">
                     <!-- Cards items -->
                 </div>
                 <div class="flex justify-center mt-4">
-                    <button id="btn-finalize-day-no-purge" class="horror-btn horror-btn-primary p-4 min-w-[220px] hidden">
+                    <button id="btn-finalize-day-no-purge"
+                        class="horror-btn horror-btn-primary p-4 min-w-[220px] hidden">
                         <i class="fa-solid fa-check mr-2"></i> FINALIZAR EL DÍA SIN PURGAR
                     </button>
                 </div>
             </section>
-            
+
             <!-- SCREEN: SECURITY ROOM -->
             <section id="screen-room" class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
                 <header class="flex justify-between items-center border-b border-chlorine pb-2">
                     <h2 class="text-2xl text-glow">SALA DE VIGILANCIA</h2>
                     <span class="font-mono text-xl">Puntos: <span id="security-count">0</span></span>
                 </header>
-                <div class="italic text-sm text-gray-400">Verifica los elementos para reducir intrusiones nocturnas.</div>
-                <div id="security-grid" class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4 overflow-y-auto p-2 custom-scroll">
+                <div class="italic text-sm text-gray-400">Verifica los elementos para reducir intrusiones nocturnas.
+                </div>
+                <div id="security-grid"
+                    class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4 overflow-y-auto p-2 custom-scroll">
                     <!-- Items -->
                 </div>
             </section>
-            
+
             <!-- SCREEN: GENERATOR ROOM -->
-            <section id="screen-generator" class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
+            <section id="screen-generator"
+                class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
                 <header class="flex justify-center items-center border-b border-chlorine pb-2">
                     <h2 class="text-2xl text-glow">SALA DE GENERADOR</h2>
                 </header>
                 <div class="flex-1 flex items-center justify-center">
-                    <div id="generator-panel" class="horror-panel w-[520px] max-w-full p-6 flex flex-col gap-4 items-center">
-                        <div id="generator-warning-panel" class="hidden w-full p-2 border border-alert bg-alert/10 text-alert animate-pulse text-center font-mono text-xs">
-                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> MANTENIMIENTO REQUERIDO: INTERRUPTOR PRINCIPAL
+                    <div id="generator-panel"
+                        class="horror-panel w-[520px] max-w-full p-6 flex flex-col gap-4 items-center">
+                        <div id="generator-warning-panel"
+                            class="hidden w-full p-2 border border-alert bg-alert/10 text-alert animate-pulse text-center font-mono text-xs">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> MANTENIMIENTO REQUERIDO: INTERRUPTOR
+                            PRINCIPAL
                         </div>
                         <div id="generator-gauges" class="w-full flex gap-4 items-center justify-center">
                             <div class="flex flex-col items-center gap-2">
@@ -226,79 +256,104 @@
                             </div>
                         </div>
                         <div id="generator-knobs" class="grid grid-cols-2 gap-4 w-full">
-                            <button id="btn-gen-toggle" class="horror-btn p-3 font-mono flex items-center justify-center gap-2 col-span-2">
+                            <button id="btn-gen-toggle"
+                                class="horror-btn p-3 font-mono flex items-center justify-center gap-2 col-span-2">
                                 <i class="fa-solid fa-power-off"></i> I/O
                             </button>
-                            <p class="gap-2 col-span-2"><span class="text-white ">RESTRICCIÓN:</span> Tras iniciar tests o diálogos, la potencia <span class="text-alert">SOLO PUEDE BAJAR</span>.</p>
-                            <button id="btn-gen-save" class="horror-btn p-3 font-mono flex items-center justify-center gap-2">
+                            <p class="gap-2 col-span-2"><span class="text-white ">RESTRICCIÓN:</span> Tras iniciar tests
+                                o diálogos, la potencia <span class="text-alert">SOLO PUEDE BAJAR</span>.</p>
+                            <button id="btn-gen-save"
+                                class="horror-btn p-3 font-mono flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-leaf"></i> AHORRO
                             </button>
-                            <button id="btn-gen-over" class="horror-btn p-3 font-mono flex items-center justify-center gap-2">
+                            <button id="btn-gen-over"
+                                class="horror-btn p-3 font-mono flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-bolt"></i> SOBRECARGA
                             </button>
-                            <button id="btn-gen-normal" class="horror-btn p-3 font-mono flex items-center justify-center gap-2 col-span-2">
+                            <button id="btn-gen-normal"
+                                class="horror-btn p-3 font-mono flex items-center justify-center gap-2 col-span-2">
                                 <i class="fa-solid fa-equals"></i> NORMAL
                             </button>
                         </div>
                         <div id="generator-extra" class="w-full flex flex-col items-center gap-2">
-                            <div id="generator-status-summary" class="w-full p-2 bg-black/40 border border-chlorine-dim text-[10px] font-mono flex justify-around">
+                            <div id="generator-status-summary"
+                                class="w-full p-2 bg-black/40 border border-chlorine-dim text-[10px] font-mono flex justify-around">
                                 <!-- Se llena dinámicamente desde JS -->
                             </div>
-                            <button id="btn-gen-manual-toggle" class="horror-btn w-full p-2 font-mono">MANUAL DE OPERACIÓN</button>
-                            <div id="generator-manual" class="hidden w-full bg-black/60 border border-[#1a3317] p-3 text-xs font-mono space-y-3">
-                                <p class="text-chlorine-light border-b border-chlorine-dim pb-1 font-bold">PROTOCOLO DE ENERGÍA RUTA-01</p>
+                            <button id="btn-gen-manual-toggle" class="horror-btn w-full p-2 font-mono">MANUAL DE
+                                OPERACIÓN</button>
+                            <div id="generator-manual"
+                                class="hidden w-full bg-black/60 border border-[#1a3317] p-3 text-xs font-mono space-y-3">
+                                <p class="text-chlorine-light border-b border-chlorine-dim pb-1 font-bold">PROTOCOLO DE
+                                    ENERGÍA RUTA-01</p>
                                 <div class="space-y-1">
                                     <p><span class="text-white">1. MODO NORMAL:</span> 2 cargas. Estándar.</p>
-                                    <p><span class="text-white">2. MODO AHORRO:</span> 1 carga. Sin fallos eléctricos. <span class="text-chlorine-light">Reduce intrusiones externas.</span></p>
-                                    <p><span class="text-white">3. OVERCLOCK:</span> 3 cargas. Alto riesgo de apagón súbito.</p>
-                                    <p class="pt-1 text-[10px] italic opacity-70 border-t border-chlorine-dim text-center">EL EXCESO DE CALOR EN OVERCLOCK CAUSA CORTES DE LUZ.</p>
+                                    <p><span class="text-white">2. MODO AHORRO:</span> 1 carga. Sin fallos eléctricos.
+                                        <span class="text-chlorine-light">Reduce intrusiones externas.</span></p>
+                                    <p><span class="text-white">3. OVERCLOCK:</span> 3 cargas. Alto riesgo de apagón
+                                        súbito.</p>
+                                    <p
+                                        class="pt-1 text-[10px] italic opacity-70 border-t border-chlorine-dim text-center">
+                                        EL EXCESO DE CALOR EN OVERCLOCK CAUSA CORTES DE LUZ.</p>
                                 </div>
                             </div>
-                            <span class="italic text-sm text-gray-400 text-center">La energía afecta herramientas, intrusiones y glitches.</span>
+                            <span class="italic text-sm text-gray-400 text-center">La energía afecta herramientas,
+                                intrusiones y glitches.</span>
                         </div>
                     </div>
                 </div>
             </section>
-            
+
             <!-- SCREEN 4: MORGUE GRID -->
             <section id="screen-morgue" class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
                 <header class="border-b border-chlorine pb-2">
                     <h2 class="text-2xl text-alert-glow text-alert">REGISTRO DE PURGAS</h2>
                 </header>
-                <div id="morgue-grid" class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-4 overflow-y-auto p-2 custom-scroll">
+                <div id="morgue-grid"
+                    class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-4 overflow-y-auto p-2 custom-scroll">
                     <!-- Cards items -->
                 </div>
             </section>
 
             <!-- SCREEN: FINAL STATS -->
-            <section id="screen-final-stats" class="h-full flex flex-col p-8 gap-6 animate__animated animate__fadeIn hidden bg-black/90">
+            <section id="screen-final-stats"
+                class="h-full flex flex-col p-8 gap-6 animate__animated animate__fadeIn hidden bg-black/90">
                 <div class="text-center space-y-2">
-                    <h2 class="text-4xl font-bold text-chlorine tracking-tighter glitch-effect" data-text="INFORME DE MISIÓN">INFORME DE MISIÓN</h2>
+                    <h2 class="text-4xl font-bold text-chlorine tracking-tighter glitch-effect"
+                        data-text="INFORME DE MISIÓN">INFORME DE MISIÓN</h2>
                     <p class="text-xs font-mono opacity-50">REGISTRO FINAL DE OPERACIONES - SECTOR RUTA-01</p>
                 </div>
 
                 <div class="flex-grow grid grid-cols-2 gap-6 items-center">
                     <div class="space-y-4 font-mono">
                         <div class="p-4 bg-chlorine/10 border border-chlorine-dim">
-                            <h3 class="text-chlorine-light border-b border-chlorine-dim mb-2 text-sm">RESUMEN DE POBLACIÓN</h3>
+                            <h3 class="text-chlorine-light border-b border-chlorine-dim mb-2 text-sm">RESUMEN DE
+                                POBLACIÓN</h3>
                             <div class="space-y-1 text-sm">
-                                <div class="flex justify-between"><span>Sujetos procesados:</span> <span id="final-stat-total" class="text-white">0</span></div>
-                                <div class="flex justify-between"><span>Admitidos:</span> <span id="final-stat-admitted" class="text-white">0</span></div>
-                                <div class="flex justify-between"><span>Purgados:</span> <span id="final-stat-purged" class="text-white">0</span></div>
+                                <div class="flex justify-between"><span>Sujetos procesados:</span> <span
+                                        id="final-stat-total" class="text-white">0</span></div>
+                                <div class="flex justify-between"><span>Admitidos:</span> <span id="final-stat-admitted"
+                                        class="text-white">0</span></div>
+                                <div class="flex justify-between"><span>Purgados:</span> <span id="final-stat-purged"
+                                        class="text-white">0</span></div>
                             </div>
                         </div>
                         <div class="p-4 bg-alert/10 border border-alert/30">
                             <h3 class="text-alert border-b border-alert/30 mb-2 text-sm">SEGURIDAD BIOLÓGICA</h3>
                             <div class="space-y-1 text-sm">
-                                <div class="flex justify-between"><span>Infectados detectados:</span> <span id="final-stat-infected" class="text-white">0</span></div>
-                                <div class="flex justify-between"><span>Infectados filtrados:</span> <span id="final-stat-leaked" class="text-white">0</span></div>
-                                <div class="flex justify-between"><span>Civiles caídos:</span> <span id="final-stat-deaths" class="text-white">0</span></div>
+                                <div class="flex justify-between"><span>Infectados detectados:</span> <span
+                                        id="final-stat-infected" class="text-white">0</span></div>
+                                <div class="flex justify-between"><span>Infectados filtrados:</span> <span
+                                        id="final-stat-leaked" class="text-white">0</span></div>
+                                <div class="flex justify-between"><span>Civiles caídos:</span> <span
+                                        id="final-stat-deaths" class="text-white">0</span></div>
                             </div>
                         </div>
                     </div>
 
                     <div class="flex flex-col gap-4 h-full">
-                        <div class="flex-grow p-4 bg-black/40 border border-chlorine-dim overflow-y-auto custom-scrollbar">
+                        <div
+                            class="flex-grow p-4 bg-black/40 border border-chlorine-dim overflow-y-auto custom-scrollbar">
                             <h3 class="text-xs font-mono opacity-50 mb-2">NOTAS DEL ARCHIVO</h3>
                             <div id="final-stat-notes" class="text-[10px] font-mono space-y-2 text-gray-400 italic">
                                 <!-- Notas dinámicas -->
@@ -307,47 +362,59 @@
                         <div class="p-4 bg-black border border-chlorine flex flex-col gap-2">
                             <div class="flex justify-between items-center mb-2">
                                 <span class="text-xs font-mono">ESTADO FINAL:</span>
-                                <span id="final-stat-outcome" class="font-bold text-chlorine tracking-widest uppercase">COMPLETADO</span>
+                                <span id="final-stat-outcome"
+                                    class="font-bold text-chlorine tracking-widest uppercase">COMPLETADO</span>
                             </div>
-                            <button id="btn-final-to-start" class="horror-btn horror-btn-primary w-full py-3">VOLVER AL INICIO</button>
+                            <button id="btn-final-to-start" class="horror-btn horror-btn-primary w-full py-3">VOLVER AL
+                                INICIO</button>
                         </div>
                     </div>
                 </div>
             </section>
 
             <!-- SCREEN 5: SETTINGS -->
-            <section id="screen-settings" class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
-                <header class="border-b border-chlorine pb-2"><h2 class="text-2xl">CONFIGURACIÓN DEL SISTEMA</h2></header>
+            <section id="screen-settings"
+                class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
+                <header class="border-b border-chlorine pb-2">
+                    <h2 class="text-2xl">CONFIGURACIÓN DEL SISTEMA</h2>
+                </header>
                 <div class="flex flex-col gap-8 max-w-md mx-auto w-full mt-10">
                     <label class="flex flex-col gap-3 text-center font-mono text-xl">
                         CAPACIDAD DEL REFUGIO:
-                        <input type="number" id="config-max-shelter" value="10" min="1" max="50" class="horror-input p-3 text-2xl">
+                        <input type="number" id="config-max-shelter" value="10" min="1" max="50"
+                            class="horror-input p-3 text-2xl">
                     </label>
                     <label class="flex flex-col gap-3 text-center font-mono text-xl">
                         DURACIÓN DEL DÍA (Sujetos):
-                        <input type="number" id="config-day-length" value="5" min="1" max="20" class="horror-input p-3 text-2xl">
+                        <input type="number" id="config-day-length" value="5" min="1" max="20"
+                            class="horror-input p-3 text-2xl">
                     </label>
                     <label class="flex flex-col gap-3 text-center font-mono text-xl">
                         TESTS DISPONIBLES (Día después):
-                        <input type="number" id="config-dayafter-tests" value="5" min="0" max="20" class="horror-input p-3 text-2xl">
+                        <input type="number" id="config-dayafter-tests" value="5" min="0" max="20"
+                            class="horror-input p-3 text-2xl">
                     </label>
                     <div class="flex flex-col gap-6 text-left font-mono">
                         <div class="flex flex-col gap-2">
                             <span class="text-center text-xl">Volumen Maestro</span>
-                            <input id="config-volume-master" type="range" min="0" max="100" value="100" class="horror-range">
+                            <input id="config-volume-master" type="range" min="0" max="100" value="100"
+                                class="horror-range">
                         </div>
                         <div class="grid grid-cols-1 gap-4">
                             <div class="flex flex-col gap-2">
                                 <span>Ambiente</span>
-                                <input id="config-volume-ambient" type="range" min="0" max="100" value="30" class="horror-range">
+                                <input id="config-volume-ambient" type="range" min="0" max="100" value="30"
+                                    class="horror-range">
                             </div>
                             <div class="flex flex-col gap-2">
                                 <span>Lore</span>
-                                <input id="config-volume-lore" type="range" min="0" max="100" value="25" class="horror-range">
+                                <input id="config-volume-lore" type="range" min="0" max="100" value="25"
+                                    class="horror-range">
                             </div>
                             <div class="flex flex-col gap-2">
                                 <span>Efectos</span>
-                                <input id="config-volume-sfx" type="range" min="0" max="100" value="60" class="horror-range">
+                                <input id="config-volume-sfx" type="range" min="0" max="100" value="60"
+                                    class="horror-range">
                             </div>
                         </div>
                     </div>
@@ -365,12 +432,14 @@
 
             <!-- SCREEN LORE: DEDICADA -->
             <section id="screen-lore" class="h-full flex flex-col animate__animated animate__fadeIn hidden">
-                <div class="flex-grow relative bg-gradient-to-b from-[#000000] to-[#0b0f0b] overflow-hidden flex items-center justify-center">
+                <div
+                    class="flex-grow relative bg-gradient-to-b from-[#000000] to-[#0b0f0b] overflow-hidden flex items-center justify-center">
                     <div class="horror-panel lore-panel w-[90%] max-w-[600px] p-8 text-center">
                         <h3 id="lore-screen-title" class="text-3xl mb-4 text-glow"></h3>
                         <div id="lore-screen-content" class="font-mono text-sm text-gray-300 leading-relaxed"></div>
                         <div class="flex justify-center mt-6">
-                            <button id="btn-lore-continue-screen" class="horror-btn horror-btn-primary px-10 py-3">CONTINUAR</button>
+                            <button id="btn-lore-continue-screen"
+                                class="horror-btn horror-btn-primary px-10 py-3">CONTINUAR</button>
                         </div>
                     </div>
                 </div>
@@ -378,7 +447,8 @@
 
             <!-- SCREEN 6: NIGHT PHASE -->
             <section id="screen-night" class="h-full flex flex-col animate__animated animate__fadeIn hidden">
-                <div class="flex-grow relative bg-gradient-to-b from-[#020502] to-[#0a1a0a] overflow-hidden flex items-center justify-center">
+                <div
+                    class="flex-grow relative bg-gradient-to-b from-[#020502] to-[#0a1a0a] overflow-hidden flex items-center justify-center">
                     <div class="text-center opacity-50">
                         <i class="fa-solid fa-moon text-6xl text-chlorine-light mb-4 animate-pulse"></i>
                     </div>
@@ -386,7 +456,8 @@
                 </div>
                 <div class="p-6 bg-[#050505] border-t border-chlorine text-center">
                     <h3 class="text-3xl mb-2 text-glow">FIN DEL TURNO</h3>
-                    <p class="mb-6 font-mono text-lg text-gray-400">La noche ha caído. El refugio está en silencio...</p>
+                    <p class="mb-6 font-mono text-lg text-gray-400">La noche ha caído. El refugio está en silencio...
+                    </p>
                     <div class="flex justify-center gap-6">
                         <button id="btn-sleep" class="horror-btn horror-btn-primary p-4 min-w-[150px]">
                             <i class="fa-solid fa-bed mr-2"></i> DORMIR
@@ -400,108 +471,26 @@
         </div>
 
         <!-- SETTINGS BUTTON (Bottom Right) -->
-        <button id="btn-settings-toggle" class="absolute bottom-5 right-5 w-12 h-12 rounded-full bg-black border border-chlorine text-chlorine flex justify-center items-center z-20 hover:rotate-90 transition-transform duration-300 hover:shadow-[0_0_15px_#2d5a27]" title="Configuración">
+        <button id="btn-settings-toggle"
+            class="absolute bottom-5 right-5 w-12 h-12 rounded-full bg-black border border-chlorine text-chlorine flex justify-center items-center z-20 hover:rotate-90 transition-transform duration-300 hover:shadow-[0_0_15px_#2d5a27]"
+            title="Configuración">
             <i class="fa-solid fa-gear text-xl"></i>
         </button>
-
-        <div id="stats-panel" class="absolute top-0 right-0 h-full w-[260px] bg-[#060606] border-l border-chlorine-dim p-3 flex flex-col gap-3 hidden z-20">
-            <div class="flex items-center justify-between mb-2">
-                <span class="font-bold text-sm tracking-wide">ESTADÍSTICAS DE PARTIDA</span>
-                <button id="btn-stats-refresh" class="px-2 py-1 border border-chlorine-light text-chlorine-light text-xs">Actualizar</button>
-            </div>
-            <div class="space-y-2">
-                <div class="stat-item">
-                    <span class="label">Diálogos realizados</span>
-                    <span id="stat-run-dialogues" class="value">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Verificaciones realizadas</span>
-                    <span id="stat-run-verifications" class="value">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Admitidos</span>
-                    <span id="stat-run-admitted" class="value">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Ignorados</span>
-                    <span id="stat-run-ignored" class="value">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Cloros vistos</span>
-                    <span id="stat-run-cloros-vistos" class="value">—</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Cloros fuera del refugio</span>
-                    <span id="stat-run-cloros-fuera" class="value">—</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Cloros purgados</span>
-                    <span id="stat-run-cloros-purgados" class="value">—</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Civiles muertos</span>
-                    <span id="stat-run-civiles-muertos" class="value">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Civiles purgados</span>
-                    <span id="stat-run-civiles-purgados" class="value">—</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Última noche</span>
-                    <span id="stat-run-last-night" class="value">—</span>
-                </div>
-            </div>
-            <div class="mt-3">
-                <div class="stat-item badge-rt">
-                    <span class="label">Usuarios activos</span>
-                    <span id="stat-rt-users" class="value">0</span>
-                </div>
-                <div class="stat-item badge-rt">
-                    <span class="label">Transacciones</span>
-                    <span id="stat-rt-transactions" class="value">0</span>
-                </div>
-                <div class="stat-item badge-rt">
-                    <span class="label">Eventos</span>
-                    <span id="stat-rt-events" class="value">0</span>
-                </div>
-                <div class="stat-item badge-rt">
-                    <span class="label">Alertas</span>
-                    <span id="stat-rt-alerts" class="value">0</span>
-                </div>
-            </div>
-            <div class="mt-3 space-y-2">
-                <div class="stat-item badge-night">
-                    <span class="label">Consolidado nocturno</span>
-                    <span id="stat-night-consolidated" class="value">0</span>
-                </div>
-                <div class="stat-item badge-night">
-                    <span class="label">Promedio</span>
-                    <span id="stat-night-average" class="value">0</span>
-                </div>
-                <div class="stat-item badge-night">
-                    <span class="label">Tendencia</span>
-                    <span id="stat-night-trend" class="value trend">0%</span>
-                </div>
-                <div class="stat-item badge-night">
-                    <span class="label">Próxima actualización</span>
-                    <span id="stat-night-next-refresh" class="value">--:--</span>
-                </div>
-            </div>
-        </div>
 
     </div>
 
     <!-- MODAL: PAUSA -->
     <div id="modal-pause" class="fixed inset-0 hidden items-center justify-center z-[100] backdrop-blur-md bg-black/80">
-        <div class="horror-panel p-8 w-[480px] max-w-full animate__animated animate__fadeInDown animate__faster relative overflow-hidden">
+        <div
+            class="horror-panel p-8 w-[480px] max-w-full animate__animated animate__fadeInDown animate__faster relative overflow-hidden">
             <!-- Efecto de interferencia decorativo -->
             <div class="absolute inset-0 pointer-events-none opacity-10 scanline-overlay"></div>
-            
+
             <header class="border-b-2 border-chlorine pb-4 mb-6 flex justify-between items-center">
                 <h3 class="text-3xl font-mono tracking-widest text-chlorine-light">PAUSA</h3>
                 <div class="text-xs font-mono opacity-50">SISTEMA EN ESPERA</div>
             </header>
-            
+
             <div class="flex flex-col gap-6">
                 <!-- Sección de Configuración Rápida -->
                 <div class="grid grid-cols-1 gap-4 p-4 bg-black/40 border border-chlorine-dim rounded">
@@ -527,23 +516,27 @@
 
                 <!-- Acciones Principales -->
                 <div class="flex flex-col gap-3">
-                    <button id="btn-pause-close" class="horror-btn horror-btn-primary w-full py-4 text-xl flex items-center justify-center gap-3 group">
+                    <button id="btn-pause-close"
+                        class="horror-btn horror-btn-primary w-full py-4 text-xl flex items-center justify-center gap-3 group">
                         <i class="fa-solid fa-play group-hover:animate-pulse"></i> CONTINUAR
                     </button>
-                    
+
                     <div class="grid grid-cols-2 gap-3">
-                        <button id="btn-pause-restart-day" class="horror-btn py-3 text-sm flex flex-col items-center gap-1 border-yellow-900/50 hover:border-yellow-500 transition-all">
+                        <button id="btn-pause-restart-day"
+                            class="horror-btn py-3 text-sm flex flex-col items-center gap-1 border-yellow-900/50 hover:border-yellow-500 transition-all">
                             <i class="fa-solid fa-rotate-left"></i>
                             <span>REINICIAR DÍA</span>
                         </button>
-                        <button id="btn-pause-restart-game" class="horror-btn py-3 text-sm flex flex-col items-center gap-1 border-red-900/50 hover:border-red-500 transition-all">
+                        <button id="btn-pause-restart-game"
+                            class="horror-btn py-3 text-sm flex flex-col items-center gap-1 border-red-900/50 hover:border-red-500 transition-all">
                             <i class="fa-solid fa-skull"></i>
                             <span>NUEVA PARTIDA</span>
                         </button>
                     </div>
                 </div>
 
-                <footer class="mt-4 pt-4 border-t border-chlorine-dim flex justify-between items-center opacity-40 text-[10px] font-mono">
+                <footer
+                    class="mt-4 pt-4 border-t border-chlorine-dim flex justify-between items-center opacity-40 text-[10px] font-mono">
                     <span>RUTA-01 v1.0.4</span>
                     <span>PROTOCOLO DE SEGURIDAD ACTIVO</span>
                 </footer>
@@ -555,22 +548,25 @@
     <div id="modal-npc" class="fixed inset-0 bg-black/90 flex justify-center items-center z-50 hidden backdrop-blur-sm">
         <div class="horror-panel w-[90%] max-w-[500px] p-6 flex flex-col gap-4 animate__animated animate__zoomIn">
             <span class="close-modal self-end text-3xl cursor-pointer hover:text-alert leading-none">&times;</span>
-            <h2 id="modal-npc-name" class="text-2xl border-b border-chlorine pb-2 glitch-effect" data-text="SUJETO X">SUJETO X</h2>
-            
+            <h2 id="modal-npc-name" class="text-2xl border-b border-chlorine pb-2 glitch-effect" data-text="SUJETO X">
+                SUJETO X</h2>
+
             <div class="flex gap-6 items-center border-b border-chlorine-dim pb-4">
                 <div id="modal-npc-visual" class="w-[80px] h-[80px] flex-shrink-0 scale-125 origin-center"></div>
                 <div class="flex-grow font-mono">
-                    <p class="text-sm text-gray-400">ESTADO: <span id="modal-npc-status" class="font-bold">ADMITIDO</span></p>
+                    <p class="text-sm text-gray-400">ESTADO: <span id="modal-npc-status"
+                            class="font-bold">ADMITIDO</span></p>
                     <div id="modal-npc-stats-content" class="mt-3 text-sm space-y-1">
-                         <!-- Stats injected here -->
+                        <!-- Stats injected here -->
                     </div>
                 </div>
             </div>
-            
-            <div id="modal-npc-log" class="max-h-[200px] overflow-y-auto bg-black p-4 border border-chlorine-dim text-xs font-mono text-chlorine-light custom-scroll">
+
+            <div id="modal-npc-log"
+                class="max-h-[200px] overflow-y-auto bg-black p-4 border border-chlorine-dim text-xs font-mono text-chlorine-light custom-scroll">
                 <!-- History -->
             </div>
-            
+
             <div class="flex justify-center mt-4">
                 <button id="btn-modal-purge" class="horror-btn horror-btn-alert p-3 w-full hidden">
                     <i class="fa-solid fa-biohazard mr-2"></i> PURGAR DEL REFUGIO
@@ -581,35 +577,45 @@
     </div>
 
     <!-- Modal de Mensaje -->
-    <div id="modal-message" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] hidden items-center justify-center p-4">
-        <div class="horror-panel max-w-sm w-full p-6 flex flex-col gap-4 animate__animated animate__zoomIn animate__faster">
+    <div id="modal-message"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] hidden items-center justify-center p-4">
+        <div
+            class="horror-panel max-w-sm w-full p-6 flex flex-col gap-4 animate__animated animate__zoomIn animate__faster">
             <div id="modal-message-content" class="text-center font-mono text-sm leading-relaxed"></div>
-            <button id="btn-message-ok" class="horror-btn horror-btn-primary py-2 text-sm uppercase tracking-widest">ENTENDIDO</button>
+            <button id="btn-message-ok"
+                class="horror-btn horror-btn-primary py-2 text-sm uppercase tracking-widest">ENTENDIDO</button>
         </div>
     </div>
 
     <!-- Modal de Confirmación -->
-    <div id="modal-confirm" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[210] hidden items-center justify-center p-4">
-        <div class="horror-panel max-w-sm w-full p-8 border-2 border-alert/50 flex flex-col gap-6 animate__animated animate__fadeInDown animate__faster">
+    <div id="modal-confirm"
+        class="fixed inset-0 bg-black/90 backdrop-blur-md z-[210] hidden items-center justify-center p-4">
+        <div
+            class="horror-panel max-w-sm w-full p-8 border-2 border-alert/50 flex flex-col gap-6 animate__animated animate__fadeInDown animate__faster">
             <div class="flex flex-col gap-2 text-center">
-                <h3 class="text-alert font-bold tracking-[0.2em] text-xl glitch-effect" data-text="CONFIRMACIÓN">CONFIRMACIÓN</h3>
+                <h3 class="text-alert font-bold tracking-[0.2em] text-xl glitch-effect" data-text="CONFIRMACIÓN">
+                    CONFIRMACIÓN</h3>
                 <div class="h-0.5 w-full bg-gradient-to-r from-transparent via-alert to-transparent opacity-50"></div>
             </div>
             <div id="modal-confirm-content" class="text-center font-mono text-sm leading-relaxed text-gray-300">
                 ¿ESTÁ SEGURO DE REALIZAR ESTA ACCIÓN?
             </div>
             <div class="grid grid-cols-2 gap-4">
-                <button id="btn-confirm-cancel" class="horror-btn border-gray-600 text-gray-400 py-3 text-xs uppercase tracking-widest hover:bg-white/5">CANCELAR</button>
-                <button id="btn-confirm-yes" class="horror-btn horror-btn-primary py-3 text-xs uppercase tracking-widest bg-alert/20 border-alert text-alert hover:bg-alert hover:text-black">CONFIRMAR</button>
+                <button id="btn-confirm-cancel"
+                    class="horror-btn border-gray-600 text-gray-400 py-3 text-xs uppercase tracking-widest hover:bg-white/5">CANCELAR</button>
+                <button id="btn-confirm-yes"
+                    class="horror-btn horror-btn-primary py-3 text-xs uppercase tracking-widest bg-alert/20 border-alert text-alert hover:bg-alert hover:text-black">CONFIRMAR</button>
             </div>
-            <div class="text-[8px] font-mono opacity-30 text-center mt-2">SISTEMA DE SEGURIDAD RUTA-01 // PROTOCOLO DE AUTORIZACIÓN</div>
+            <div class="text-[8px] font-mono opacity-30 text-center mt-2">SISTEMA DE SEGURIDAD RUTA-01 // PROTOCOLO DE
+                AUTORIZACIÓN</div>
         </div>
     </div>
 
     <div id="validation-overlay" class="fixed inset-0 bg-black/85 flex justify-center items-center z-50 hidden">
         <div class="horror-panel w-[90%] max-w-[420px] p-6 flex flex-col gap-5 text-center">
             <h3 class="text-2xl font-bold">Validación requerida</h3>
-            <p class="font-mono text-sm text-gray-300">Debes realizar un test o participar en un diálogo para omitirlo antes de continuar.</p>
+            <p class="font-mono text-sm text-gray-300">Debes realizar un test o participar en un diálogo para omitirlo
+                antes de continuar.</p>
             <div class="flex gap-4 justify-center">
                 <button id="btn-do-test" class="horror-btn horror-btn-primary px-6 py-3">REALIZAR TEST</button>
                 <button id="btn-omit-test" class="horror-btn horror-btn-warning px-6 py-3">OMITIR TEST</button>
@@ -633,15 +639,18 @@
                 <h3 class="text-2xl font-bold">Antes de cerrar el día</h3>
                 <p class="font-mono text-sm text-gray-300">Primero puedes purgar desde el Refugio.</p>
                 <div class="flex gap-4 justify-center">
-                    <button id="btn-preclose-open-shelter" class="horror-btn horror-btn-alert px-6 py-3">ABRIR REFUGIO</button>
-                    <button id="btn-preclose-continue" class="horror-btn horror-btn-primary px-6 py-3">CONTINUAR</button>
+                    <button id="btn-preclose-open-shelter" class="horror-btn horror-btn-alert px-6 py-3">ABRIR
+                        REFUGIO</button>
+                    <button id="btn-preclose-continue"
+                        class="horror-btn horror-btn-primary px-6 py-3">CONTINUAR</button>
                 </div>
             </div>
             <div id="preclose-step2" class="flex flex-col gap-4 hidden">
                 <h3 class="text-2xl font-bold">¿Finalizar sesión o permanecer?</h3>
                 <p class="font-mono text-sm text-gray-300">Puedes finalizar la sesión o permanecer para la noche.</p>
                 <div class="flex gap-4 justify-center">
-                    <button id="btn-preclose-finish" class="horror-btn horror-btn-primary px-6 py-3">FINALIZAR SESIÓN</button>
+                    <button id="btn-preclose-finish" class="horror-btn horror-btn-primary px-6 py-3">FINALIZAR
+                        SESIÓN</button>
                     <button id="btn-preclose-stay" class="horror-btn horror-btn-warning px-6 py-3">PERMANECER</button>
                 </div>
             </div>
@@ -650,4 +659,5 @@
 
     <script type="module" src="js/main.js?v=1.1"></script>
 </body>
+
 </html>
