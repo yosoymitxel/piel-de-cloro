@@ -35,7 +35,7 @@ export class NPC {
 
     getEpithet() {
         // Dynamic epithet based on infection or global paranoia
-        const infectedEpithets = ['Carne Pálida', 'Voz de Ceniza', 'Pupilas de Sal', 'Mudo de Agua'];
+        const infectedEpithets = ['Carne Pálida', 'Manos Sucias'];
         const paranoiaEpithets = ['El Que Tiembla', 'Manos Sucias', 'Ojos de Tercia', 'Sombra Que Llora'];
         const neutralEpithets = ['Andariego', 'Sin Refugio', 'De Paso', 'Mirada Vaga'];
 
@@ -46,7 +46,9 @@ export class NPC {
 
     getDisplayName() {
         const epithet = this.getEpithet();
-        return `${this.name} — ${epithet}`;
+        let displayName = this.name;
+        if (epithet && Math.random() > 0.5) displayName += ` — ${epithet}`;
+        return displayName;
     }
 
     generateAttributes(infected) {

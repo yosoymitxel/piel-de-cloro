@@ -356,7 +356,7 @@ export class UIManager {
         if (needsMarkup) {
             parsed = (typeof parseDialogueMarkup === 'function') ? parseDialogueMarkup(raw) : raw;
             if (epithet && !raw.includes(epithet)) {
-                parsed = `<span class="npc-epithet"> — ${escapeHtml(epithet)}</span> ` + parsed;
+                parsed = `<span class="npc-epithet"> ${escapeHtml(epithet)}</span> ` + parsed;
             }
             // Use sequenced rendering that respects actions/speeches/rumors
             this.typeText(textEl, parsed, 18);

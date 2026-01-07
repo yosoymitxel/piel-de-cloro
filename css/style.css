@@ -446,6 +446,85 @@ body.paused .game-container {
     animation: glitch-anim 2s infinite linear alternate-reverse;
 }
 
+/* Narrative markup styles */
+
+#npc-dialogue .npc-text .npc-action {
+    font-style: italic;
+    color: var(--color-chlorine-dim);
+    opacity: 0.95;
+}
+
+#npc-dialogue .npc-text .npc-speech {
+    font-weight: 700;
+    color: var(--color-chlorine-light);
+}
+
+/* New plain class variants for markup: .action, .speech, .rumor */
+#npc-dialogue .npc-text .action {
+    font-style: italic;
+    color: var(--color-chlorine-dim);
+    opacity: 0.95;
+}
+
+#npc-dialogue .npc-text .speech {
+    font-weight: 700;
+    color: var(--color-chlorine-light);
+}
+
+#npc-dialogue {
+    border: 1px solid rgba(45, 90, 39, 0.55);
+    padding: 14px 18px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.35));
+    box-shadow: 0 0 18px rgba(45, 90, 39, 0.06) inset;
+}
+
+#npc-dialogue .npc-name {
+    color: var(--color-chlorine);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 6px;
+}
+
+#npc-dialogue .npc-text {
+    color: var(--color-chlorine-light);
+    font-family: var(--font-term);
+    white-space: pre-wrap;
+}
+
+#npc-dialogue .npc-text .npc-action {
+    font-style: italic;
+    color: var(--color-chlorine-dim);
+    opacity: 0.95;
+}
+
+#npc-dialogue .npc-text .npc-speech {
+    font-weight: 700;
+    color: var(--color-chlorine-light);
+}
+
+#npc-dialogue .npc-text .npc-rumor {
+    font-style: italic;
+    color: rgba(168, 213, 162, 0.95);
+    font-size: 0.95em;
+    opacity: 0.95;
+}
+
+#npc-dialogue .npc-text .rumor {
+    font-style: italic;
+    color: rgba(168, 213, 162, 0.95);
+    font-size: 0.95em;
+    opacity: 0.95;
+}
+
+/* Epithet (apodo) shown once inside dialogue */
+#npc-dialogue .npc-text .npc-epithet {
+    color: rgba(168, 213, 162, 0.85);
+    font-style: italic;
+    margin-right: 6px;
+    opacity: 0.95;
+}
+
 /* Motion preferences */
 @media (prefers-reduced-motion: reduce) {
     .animate__animated {

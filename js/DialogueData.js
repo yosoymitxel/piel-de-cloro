@@ -10,7 +10,7 @@ export const DialogueData = {
             nodes: {
                 'g1_n1': {
                     id: 'g1_n1',
-                    text: "*{npcName} aparece temblando.* " +
+                    text: "*aparece temblando.* " +
                         "Puedes notar que mira hacia el generador: {generatorStatus}. " +
                         "Rumor: {rumor}",
                     audio: 'ui_dialogue_type',
@@ -94,7 +94,7 @@ export const DialogueData = {
             nodes: {
                 'g2_n1': {
                     id: 'g2_n1',
-                    text: "*{npcName} entra con las manos manchadas.* {generatorStatus}",
+                    text: "*entra con las manos manchadas.* El generador ahí afuera se encuentra {generatorStatus}",
                     options: [
                         { id: 'g2_o1', label: '¿Qué te pasó?', next: 'g2_n2a', sets: ['asked_injury'] },
                         { id: 'g2_o2', label: 'Aléjate', next: 'g2_n2b', sets: ['rejected'] }
@@ -102,7 +102,7 @@ export const DialogueData = {
                 },
                 'g2_n2a': {
                     id: 'g2_n2a',
-                    text: "*Se arrastra hacia la luz, rascando el metal.* \"El generador... ruge como un animal herido\", susurra. Sabes que miente; lo viste hablar con el anterior guardia.",
+                    text: "*Se arrastra hacia la luz, rascando el metal.* 'El generador... ruge como un animal herido', susurra. Sabes que miente; lo viste hablar con el anterior guardia.",
                     options: [
                         { id: 'g2_o2a', label: 'Insistir detalles', next: 'g2_n3a' },
                         { id: 'g2_o2b', label: 'Calmarlo', next: 'g2_n3b' }
@@ -177,7 +177,7 @@ export const DialogueData = {
             nodes: {
                 'lw1_n1': {
                     id: 'lw1_n1',
-                    text: "'Entré en la cámara y la piel ya no era piel', *dice {npcName} con voz baja.* {generatorStatus}",
+                    text: "'Entré en la cámara y la piel ya no era piel', *dice con voz baja.* {generatorStatus}",
                     audio: 'lore_interlude_seen',
                     options: [
                         { id: 'lw1_o1', label: 'Preguntar por el origen', next: 'lw1_n2' },
