@@ -1,11 +1,36 @@
 export const LoreData = {
     initial: {
-        title: 'Protocolo del Refugio',
+        title: 'Protocolo de Emergencia',
         content: `
-            <p>Los piel de cloro son portadores. La piel se reseca, los ojos se dilatan y el pulso baja.</p>
-            <p>Herramientas: usa TERMÓMETRO, LINTERNA UV, PULSO y PUPILAS para revelar señales.</p>
-            <p>Decisiones: admitir aumenta riesgo; purgar reduce amenaza pero sube la paranoia si era civil.</p>
-            <p>Al caer la noche, si hay cloro dentro, alguien muere. Si no, descansas o afrontas un riesgo leve.</p>
+            <div class="flex flex-col gap-3 text-sm font-mono">
+                <div class="p-3 border border-chlorine bg-black/60 shadow-[0_0_10px_rgba(45,90,39,0.2)]">
+                    <h3 class="text-chlorine font-bold mb-2 text-base border-b border-chlorine/30 pb-1"><i class="fa-solid fa-biohazard mr-2"></i>LA AMENAZA</h3>
+                    <p class="text-chlorine-light opacity-90 leading-relaxed">
+                        Los <span class="text-white font-bold">Piel de Cloro</span> son portadores.
+                        <br>Síntomas: <span class="text-white">Piel seca, pupilas dilatadas, pulso bajo, hipotermia.</span>
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-2 border border-warning/40 bg-black/40">
+                        <h4 class="text-warning font-bold text-xs mb-1"><i class="fa-solid fa-bolt mr-1"></i>GENERADOR</h4>
+                        <p class="text-[11px] text-gray-300 leading-tight">Limita el uso de herramientas. Si se apaga, pierdes capacidad de análisis.</p>
+                    </div>
+                    <div class="p-2 border border-alert/40 bg-black/40">
+                        <h4 class="text-alert font-bold text-xs mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>SEGURIDAD</h4>
+                        <p class="text-[11px] text-gray-300 leading-tight">Vigila la Sala de Control. Las intrusiones ignoradas son letales.</p>
+                    </div>
+                </div>
+
+                <div class="p-2 border border-gray-800 bg-black/40">
+                    <ul class="list-none space-y-1 text-xs text-gray-400">
+                        <li><i class="fa-solid fa-check text-chlorine mr-1"></i> <span class="text-gray-200">Admitir:</span> Requiere validación al día siguiente.</li>
+                        <li><i class="fa-solid fa-xmark text-alert mr-1"></i> <span class="text-gray-200">Purgar:</span> Elimina la amenaza, pero matar civiles sube la Paranoia.</li>
+                    </ul>
+                </div>
+                
+                <p class="text-center text-xs text-chlorine-dim italic mt-1">"El refugio no olvida. La noche revela lo que el día oculta."</p>
+            </div>
         `,
         audio: 'lore_intro_track'
     },
@@ -36,7 +61,7 @@ export const LoreData = {
     },
     pre_final: {
         title: 'Umbral',
-        content: 'Antes de decidir, recuerda: sin pruebas, solo queda la palabra. El refugio no olvida.'
+        content: 'Antes de salir, recuerda: sin pruebas, solo queda la palabra. El refugio no olvida.'
     },
     post_final: {
         title: 'Resonancia',
@@ -49,49 +74,49 @@ export const LoreData = {
     },
     night_civil_death: {
         title: 'Noche de sangre',
-        content: 'Alguien fue encontrado sin pulso. El cloro respiró entre nosotros.',
+        content: 'Alguien fue encontrado sin pulso. El cloro está entre nosotros.',
         type: 'danger',
         sfx: 'glitch_burst'
     },
     night_player_death: {
         title: 'Última guardia',
-        content: 'El refugio te consumió. El cloro no duerme. Tú tampoco.',
+        content: 'El cloro te alcanzó y esta ha sido tu última guardia en el refugio.',
         type: 'danger',
         sfx: 'glitch_burst'
     },
     final_clean: {
         title: 'Salida limpia',
-        content: 'Escapaste con humanidad intacta. Por ahora, el ciclo descansa.',
+        content: 'Lograste cruzar el umbral con supervivientes reales. Sus pieles sudan, sus pulsos son firmes. Por primera vez en semanas, el agua que bebes no sabe a metal. Has contenido la amenaza.',
         type: 'calm',
         audio: 'lore_final_clean'
     },
     final_corrupted: {
         title: 'Salida contaminada',
-        content: 'Escapaste, pero el agua os sigue. El ciclo no termina.',
+        content: 'Alcanzasteis la superficie, pero la victoria fue breve. Uno de los tuyos comenzó a secarse bajo el sol. Ahora, la plaga tiene un nuevo hogar: el mundo exterior.',
         type: 'danger',
         audio: 'lore_final_corrupted'
     },
     final_death_alone: {
         title: 'Soledad terminal',
-        content: 'Nadie sobrevivió contigo. Nadie te escuchó. Fin.',
+        content: 'Abandonaste el puesto sin nadie a tu lado. En la inmensidad de los túneles, el silencio pesa más que el acero. Te encontraron acurrucado a pocos metros de la salida, con los ojos abiertos y vacíos.',
         type: 'danger',
         sfx: 'glitch_burst'
     },
     final_death_all_infected: {
         title: 'Refugio tomado',
-        content: 'Todos eran cloro. No hubo salida posible.',
+        content: 'No había a quién salvar. Cuando abriste la compuerta final, todos te miraron con pupilas dilatadas. No fue una huida, fue una asimilación. Ahora eres uno de ellos.',
         type: 'danger',
         sfx: 'glitch_burst'
     },
     final_death_paranoia: {
-        title: 'La paranoia te alcanzó',
-        content: 'Al intentar huir, el ruido te encontró primero.',
+        title: 'Colapso mental',
+        content: 'Tu mente se quebró antes que tu cuerpo. Corriste hacia la oscuridad huyendo de sombras imaginarias. Moriste de agotamiento, gritando nombres que nadie conoce, con la salida a solo unos pasos.',
         type: 'danger',
         sfx: 'glitch_burst'
     },
     final_player_infected_escape: {
-        title: 'Salida portadora',
-        content: 'No era el refugio. Eras tú. Lo llevaste contigo.',
+        title: 'Paciente Cero',
+        content: 'Sentiste el cambio al ver la luz real. Tu piel no soportó el aire puro y se deshizo. No escapaste para salvarte, sino para expandirte. Tú eras la zona cero.',
         type: 'danger',
         sfx: 'glitch_burst'
     }
