@@ -102,7 +102,7 @@ export class UIManager {
             energy: '#1aff1a',
             overload: '#ff3333',
             off: '#333333',
-            safe: '#1aff1a',
+            safe: '#1b571bff',
             chlorine: '#79ff79',
             chlorineSutil: '#3c8f3c',
             alert: '#ff3333'

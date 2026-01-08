@@ -1285,3 +1285,28 @@ input[type=number].horror-input {
         transform: translateY(1000%);
     }
 }
+
+.fisheye-center {
+    border-radius: 50% / 7% !important;
+}
+
+.fisheye-up {
+    border-radius: 50% 50% 0 0 / 14% 14% 0 0;
+}
+
+.fisheye-down {
+    border-radius: 0 0 50% 50% / 0 0 14% 14%;
+}
+
+.fisheye-left {
+    border-radius: 14% 0 0 14% / 20% 0 0 20%;
+}
+
+.fisheye-right {
+    border-radius: 0 14% 14% 0 / 0 20% 20% 0;
+}
+
+.terminal-border {
+    border: 2px solid #a4c6a4;
+    background: rgba(0, 10, 0, 0.9);
+}

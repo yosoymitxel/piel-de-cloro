@@ -107,9 +107,9 @@
                 </header>
 
                 <main
-                    class="flex-grow bg-[#020202] border border-[#1a3317] relative flex flex-col items-center justify-center overflow-hidden min-h-[200px] vhs-target">
+                    class="flex-grow bg-[#020202] border border-[#1a3317] fisheye-center relative flex flex-col items-center justify-center overflow-hidden min-h-[200px] vhs-target">
                     <!-- Background Grid Effect -->
-                    <div class="absolute inset-0 opacity-10"
+                    <div class="absolute inset-0 opacity-10 fisheye-center"
                         style="background-image: linear-gradient(#2d5a27 1px, transparent 1px), linear-gradient(90deg, #2d5a27 1px, transparent 1px); background-size: 20px 20px;">
                     </div>
 
@@ -317,24 +317,34 @@
                         <span class="text-blue-400"><i class="fa-solid fa-moon"></i> NOCTURNOS</span>
                     </div>
                 </header>
-                
+
                 <div class="flex-grow flex flex-col gap-2 overflow-hidden">
                     <!-- TOP: PURGED -->
                     <div class="flex-1 flex flex-col min-h-0 border border-alert/20 bg-alert/5 relative">
-                        <div class="absolute top-0 left-0 bg-alert/20 text-alert text-[10px] px-2 py-1 font-mono">PURGADOS (BAJAS)</div>
-                        <div id="morgue-grid-purged" class="flex-grow grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 overflow-y-auto custom-scroll p-2 pt-8"></div>
+                        <div class="absolute top-0 left-0 bg-alert/20 text-alert text-[10px] px-2 py-1 font-mono">
+                            PURGADOS (BAJAS)</div>
+                        <div id="morgue-grid-purged"
+                            class="flex-grow grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 overflow-y-auto custom-scroll p-2 pt-8">
+                        </div>
                     </div>
 
                     <!-- MIDDLE: ESCAPED -->
                     <div class="flex-1 flex flex-col min-h-0 border border-yellow-500/20 bg-yellow-500/5 relative">
-                        <div class="absolute top-0 left-0 bg-yellow-500/20 text-yellow-500 text-[10px] px-2 py-1 font-mono">FUGITIVOS (ESCAPADOS)</div>
-                        <div id="morgue-grid-escaped" class="flex-grow grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 overflow-y-auto custom-scroll p-2 pt-8"></div>
+                        <div
+                            class="absolute top-0 left-0 bg-yellow-500/20 text-yellow-500 text-[10px] px-2 py-1 font-mono">
+                            FUGITIVOS (ESCAPADOS)</div>
+                        <div id="morgue-grid-escaped"
+                            class="flex-grow grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 overflow-y-auto custom-scroll p-2 pt-8">
+                        </div>
                     </div>
 
                     <!-- BOTTOM: NIGHT -->
                     <div class="flex-1 flex flex-col min-h-0 border border-blue-500/20 bg-blue-500/5 relative">
-                        <div class="absolute top-0 left-0 bg-blue-500/20 text-blue-400 text-[10px] px-2 py-1 font-mono">SALIDAS NOCTURNAS</div>
-                        <div id="morgue-grid-night" class="flex-grow grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 overflow-y-auto custom-scroll p-2 pt-8"></div>
+                        <div class="absolute top-0 left-0 bg-blue-500/20 text-blue-400 text-[10px] px-2 py-1 font-mono">
+                            SALIDAS NOCTURNAS</div>
+                        <div id="morgue-grid-night"
+                            class="flex-grow grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 overflow-y-auto custom-scroll p-2 pt-8">
+                        </div>
                     </div>
                 </div>
             </section>

@@ -137,12 +137,6 @@ class Game {
         $('#inspection-tools-container').on('click', '#tool-pulse', () => { if (State.paused) return; this.inspect('pulse'); });
         $('#inspection-tools-container').on('click', '#tool-pupils', () => { if (State.paused) return; this.inspect('pupils'); });
 
-        // Generador toggle (Delegated)
-        $(document).on('click', '#btn-gen-toggle', () => {
-            // El evento ya se maneja en GeneratorManager, pero aseguramos que Game esté al tanto si fuera necesario
-            // En este caso, GeneratorManager ya hace el re-render.
-        });
-
         // El botón de ir al generador que aparece cuando está apagado
         $('#inspection-tools-container').on('click', '#btn-goto-generator', () => {
             $('#nav-generator').trigger('click');

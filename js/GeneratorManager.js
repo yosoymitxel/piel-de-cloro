@@ -23,9 +23,12 @@ export class GeneratorManager {
         const power = Math.max(0, Math.min(100, state.generator.power));
 
         let color = state.generator.isOn ? this.ui.colors.energy : this.ui.colors.off;
-        if (state.generator.isOn && state.generator.mode === 'overload') {
-            color = this.ui.colors.overload;
-        }
+
+        color = state.generator.isOn
+            ? state.generator.mode === 'overload'
+                ? this.ui.colors.overload
+                : (state.generator.mode === 'normal' ? this.ui.colors.energy : this.ui.colors.safe)
+            : this.ui.colors.off;
 
         this.renderPowerBar(bar, power, state.generator.isOn, color);
 
@@ -85,6 +88,19 @@ export class GeneratorManager {
             }
 
             state.generator.mode = newMode;
+            switch (newMode) {
+                case 'normal':
+                    state.generator.power = 63;
+                    break;
+                case 'save':
+                    state.generator.power = 32;
+                    break;
+                case 'overload':
+                    state.generator.power = 100;
+                    break;
+                default:
+                    console.warn(`Unknown generator mode: ${newMode}`);
+            }
             state.generator.maxModeCapacityReached = newCap;
 
             if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
