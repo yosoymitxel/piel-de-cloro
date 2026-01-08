@@ -1,23 +1,28 @@
-# Morgue (Registro de Purgas) ⚰️
+# Perímetro (Registro de Actividad) 📋
 
 **Resumen:**
-La morgue muestra el registro de sujetos purgados durante la run (`State.purgedNPCs`). Sirve como archivo informativo y de rastreo de infectados detectados.
+La pantalla de Perímetro (anteriormente Morgue) muestra el registro histórico de todos los sujetos que han abandonado el refugio, clasificados por su destino final.
 
 ## Estado relevante
 - `State.purgedNPCs` (Array): NPCs purgados. Cada NPC tiene un campo `death` con la forma `{ reason: 'purga', cycle, revealed: boolean }`.
+- `State.escapedNPCs` (Array): NPCs que escaparon o huyeron (ej. tras diálogo hostil o intrusión fallida).
+- `State.nightNPCs` (Array): NPCs que abandonaron el refugio durante la fase nocturna (ej. expulsados por sobrepoblación o eventos).
 - `death.revealed` se establece a `true` en `State.startNextDay()` (las purgas se hacen públicas al siguiente día).
 - NPCs pueden tener `isInfected` para marcar registros infectados.
 
 ## Elementos UI
 - `#screen-morgue` – pantalla de la morgue.
-- `#morgue-grid` – grid que contiene tarjetas de cada purgado.
+- `#morgue-grid-purged` – grid superior: muertos / purgados.
+- `#morgue-grid-escaped` – grid medio: fugitivos.
+- `#morgue-grid-night` – grid inferior: salidas nocturnas.
 - Las tarjetas muestran avatar y nombre y aplican la clase `infected` cuando `death.revealed && npc.isInfected`.
 - Reproducción de sonidos: `morgue_reveal_infected` cuando se muestra una infección.
 
 ## Lógica y comportamiento
-- `UIManager.renderMorgueGrid(npcs, onDetailClick)` genera las tarjetas, aplica efectos visuales y enlaza el detalle al `modal`.
+- `UIManager.renderMorgueGrid(purged, escaped, night, onDetailClick)` ahora debe aceptar tres listas y renderizar en los contenedores correspondientes.
 - `Game.openMorgue()` renderiza la morgue y abre la pantalla, además actualiza estadísticas (`ui.updateRunStats(State)`).
 - Si un purgado fue revelado como infectado, puede activarse un efecto visual (flash) con baja probabilidad para dramatizar.
+- Los fugitivos y nocturnos pueden tener estilos visuales distintos (bordes amarillos/azules) para diferenciar la causa de salida.
 
 ## Notas de integración / pruebas sugeridas ✅
 - Comprobar que `startNextDay()` marca `death.revealed = true` y que eso se refleja en la UI al abrir la morgue.

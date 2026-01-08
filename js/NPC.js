@@ -8,6 +8,7 @@ export class NPC {
         // Sesgo configurable: usar infectedChance como probabilidad directa
         this.isInfected = infectedChance != null ? (Math.random() < infectedChance) : (Math.random() > 0.6);
         this.name = this.generateName();
+        this.occupation = this.generateOccupation();
         this.attributes = this.generateAttributes(this.isInfected);
         this.visualFeatures = this.generateVisualFeatures(this.isInfected);
         this.personality = this.pickPersonality();
@@ -23,6 +24,7 @@ export class NPC {
         this.scanCount = 0;
         this.maxScans = 2;
         this.revealedStats = []; // Tracks which stats (temperature, pulse, etc) have been scanned
+        this.dayAfter = null; // Will be initialized if admitted
     }
 
     generateName() {
@@ -31,6 +33,15 @@ export class NPC {
         const lasts = ['Maro', 'Sierra', 'Vega', 'Luz', 'Rojas', 'Sol', 'Mora', 'Rivera', 'Ortega', 'Campos', 'Valle', 'Cruz', 'Rey', 'Luna'];
         const pick = arr => arr[Math.floor(Math.random() * arr.length)];
         return `${pick(firsts)} ${pick(lasts)}`;
+    }
+
+    generateOccupation() {
+        const jobs = [
+            'Mantenimiento', 'Hidroponía', 'Seguridad', 'Médico', 'Ingeniero',
+            'Civil', 'Recolector', 'Electricista', 'Cocinero', 'Transportista',
+            'Desempleado', 'Mecánico', 'Minero', 'Filtrador', 'Cartógrafo'
+        ];
+        return jobs[Math.floor(Math.random() * jobs.length)];
     }
 
     getEpithet() {
@@ -113,5 +124,27 @@ export class NPC {
             deep_origin: { text: getDeepResponse(), options: [{ label: 'Terminar interrogatorio', next: 'end' }] },
             end: { text: 'Esperando decisión...', options: [] }
         };
+    }
+
+    initDayAfterStatus() {
+        this.dayAfter = {
+            dermis: false,
+            pupils: false,
+            temperature: false,
+            pulse: false,
+            usedNightTests: 0,
+            validated: false,
+            result: null // 'clean' | 'infected'
+        };
+    }
+
+    checkDayAfterValidation() {
+        if (!this.dayAfter) return false;
+        const complete = this.dayAfter.dermis && this.dayAfter.pupils && this.dayAfter.temperature && this.dayAfter.pulse;
+        this.dayAfter.validated = complete;
+        if (complete) {
+            this.dayAfter.result = this.isInfected ? 'infected' : 'clean';
+        }
+        return complete;
     }
 }

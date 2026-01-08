@@ -32,7 +32,9 @@ export class UIManager {
             dialogue: $('#npc-dialogue'),
             dialogueOptions: $('#dialogue-options'),
             shelterGrid: $('#shelter-grid'),
-            morgueGrid: $('#morgue-grid'),
+            morgueGridPurged: $('#morgue-grid-purged'),
+            morgueGridEscaped: $('#morgue-grid-escaped'),
+            morgueGridNight: $('#morgue-grid-night'),
             securityGrid: $('#security-grid'),
             securityCount: $('#security-count'),
             shelterCount: $('#shelter-count'),
@@ -747,13 +749,30 @@ export class UIManager {
 
         const batch = [];
         npcs.forEach(npc => {
+            // Lógica de deducción visual
+            const isValidated = npc.dayAfter && npc.dayAfter.validated;
+            let borderClass = 'border-[#333]';
+            let bgClass = 'bg-[#080808]';
+            let statusIcon = '';
+
+            if (isValidated) {
+                if (npc.isInfected) {
+                    borderClass = 'border-alert bg-alert/10';
+                    statusIcon = '<i class="fa-solid fa-biohazard text-alert text-xs absolute top-1 right-1"></i>';
+                } else {
+                    borderClass = 'border-green-500/50 bg-green-500/10';
+                    statusIcon = '<i class="fa-solid fa-shield-check text-green-500 text-xs absolute top-1 right-1"></i>';
+                }
+            }
+
             const card = $('<div>', {
-                class: 'bg-[#080808] border border-[#333] p-2 flex flex-col items-center cursor-pointer hover:border-chlorine-light hover:bg-[#111] transition-all'
+                class: `${bgClass} border ${borderClass} p-2 flex flex-col items-center cursor-pointer hover:border-chlorine-light hover:bg-[#111] transition-all relative`
             });
 
             const avatar = this.renderAvatar(npc, 'sm');
             const name = $('<span>', { text: npc.name, class: 'mt-2 text-xs' });
 
+            if (statusIcon) card.append($(statusIcon));
             card.append(avatar, name);
             card.on('click', () => onDetailClick(npc, true));
 
@@ -798,34 +817,64 @@ export class UIManager {
         }
     }
 
-    renderMorgueGrid(npcs, onDetailClick) {
+    renderMorgueGrid(purged, escaped, night, onDetailClick) {
         // Viewing the morgue clears its attention marker
         if (this.setNavItemStatus) this.setNavItemStatus('nav-morgue', null);
-        this.elements.morgueGrid.empty();
 
-        const batch = [];
-        npcs.forEach(npc => {
-            const statusColorClass = npc.death && npc.death.revealed && npc.isInfected ? 'infected' : '';
-
-            const card = $('<div>', {
-                class: `horror-card p-2 flex flex-col items-center cursor-pointer ${statusColorClass}`
-            });
-
-            const avatar = this.renderAvatar(npc, 'sm');
-            if (npc.death && npc.death.revealed && npc.isInfected) {
-                avatar.addClass('infected');
-                if (!this.infectionEffectActive && Math.random() < 0.12) {
-                    this.flashInfectionEffect(avatar);
-                }
+        // Helper para renderizar una lista en un contenedor específico
+        const renderList = (list, container, type) => {
+            container.empty();
+            if (!list || list.length === 0) {
+                container.append($('<div>', { class: 'text-[10px] text-gray-600 italic p-2', text: 'Sin registros.' }));
+                return;
             }
-            const name = $('<span>', { text: npc.name, class: 'mt-2 text-xs' });
 
-            card.append(avatar, name);
-            card.on('click', () => onDetailClick(npc, false));
+            const batch = [];
+            list.forEach(npc => {
+                // Estilos según tipo
+                let borderClass = 'border-chlorine/20';
+                let hoverClass = 'hover:border-chlorine hover:bg-chlorine/5';
 
-            batch.push(card[0]);
-        });
-        if (batch.length) this.elements.morgueGrid.append(batch);
+                if (type === 'purged') {
+                    borderClass = 'border-alert/30';
+                    hoverClass = 'hover:border-alert hover:bg-alert/10';
+                } else if (type === 'escaped') {
+                    borderClass = 'border-yellow-500/30';
+                    hoverClass = 'hover:border-yellow-500 hover:bg-yellow-500/10';
+                } else if (type === 'night') {
+                    borderClass = 'border-blue-500/30';
+                    hoverClass = 'hover:border-blue-500 hover:bg-blue-500/10';
+                }
+
+                const isRevealedInfected = npc.death && npc.death.revealed && npc.isInfected;
+                const statusColorClass = isRevealedInfected ? 'border-alert shadow-[0_0_10px_rgba(255,0,0,0.2)]' : borderClass;
+
+                const card = $('<div>', {
+                    class: `relative p-2 border bg-black/40 flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 group ${statusColorClass} ${hoverClass}`
+                });
+
+                const avatar = this.renderAvatar(npc, 'sm');
+
+                if (isRevealedInfected) {
+                    avatar.addClass('infected');
+                    // Badge de infectado
+                    card.append($('<div>', {
+                        class: 'absolute top-1 right-1 text-alert text-[10px] animate-pulse',
+                        html: '<i class="fa-solid fa-biohazard"></i>'
+                    }));
+                }
+
+                const name = $('<span>', { text: npc.name, class: 'text-[10px] font-mono text-gray-400 group-hover:text-white truncate w-full text-center' });
+                card.append(avatar, name);
+                card.on('click', () => onDetailClick(npc));
+                batch.push(card[0]);
+            });
+            container.append(batch);
+        };
+
+        renderList(purged, this.elements.morgueGridPurged, 'purged');
+        renderList(escaped, this.elements.morgueGridEscaped, 'escaped');
+        renderList(night, this.elements.morgueGridNight, 'night');
     }
 
     renderSecurityRoom(items, onToggle) {

@@ -63,8 +63,8 @@
                 <span class="font-bold">GENERADOR</span>
             </button>
             <button id="nav-morgue" class="nav-btn group flex flex-col items-center gap-1 p-4 w-full">
-                <i class="fa-solid fa-skull text-2xl"></i>
-                <span class="font-bold">MORGUE</span>
+                <i class="fa-solid fa-clipboard-list text-2xl"></i>
+                <span class="font-bold">PERÍMETRO</span>
             </button>
 
 
@@ -74,8 +74,7 @@
         <div id="main-area" class="flex-grow relative flex flex-col overflow-hidden horror-panel-inner m-1">
 
             <!-- SCREEN 1: START -->
-            <section id="screen-start"
-                class="h-full flex flex-col justify-center items-center gap-6 p-4">
+            <section id="screen-start" class="h-full flex flex-col justify-center items-center gap-6 p-4">
                 <h1 class="text-6xl font-bold text-chlorine text-glow glitch-effect" data-text="PIEL DE CLORO">PIEL DE
                     CLORO</h1>
                 <h2 class="text-xl tracking-[0.5em] opacity-80">PROTOCOLO DE SEGURIDAD</h2>
@@ -310,18 +309,38 @@
 
             <!-- SCREEN 4: MORGUE GRID -->
             <section id="screen-morgue" class="h-full flex flex-col p-4 gap-4 hidden">
-                <header class="border-b border-chlorine pb-2">
-                    <h2 class="text-2xl text-alert-glow text-alert">REGISTRO DE PURGAS</h2>
+                <header class="flex justify-between items-center border-b border-chlorine pb-2 flex-shrink-0">
+                    <h2 class="text-2xl text-glow">REGISTRO DE PERÍMETRO</h2>
+                    <div class="flex gap-4 text-xs font-mono opacity-70">
+                        <span class="text-alert"><i class="fa-solid fa-skull"></i> BAJAS</span>
+                        <span class="text-yellow-500"><i class="fa-solid fa-person-running"></i> FUGAS</span>
+                        <span class="text-blue-400"><i class="fa-solid fa-moon"></i> NOCTURNOS</span>
+                    </div>
                 </header>
-                <div id="morgue-grid"
-                    class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-4 overflow-y-auto p-2 custom-scroll">
-                    <!-- Cards items -->
+                
+                <div class="flex-grow flex flex-col gap-2 overflow-hidden">
+                    <!-- TOP: PURGED -->
+                    <div class="flex-1 flex flex-col min-h-0 border border-alert/20 bg-alert/5 relative">
+                        <div class="absolute top-0 left-0 bg-alert/20 text-alert text-[10px] px-2 py-1 font-mono">PURGADOS (BAJAS)</div>
+                        <div id="morgue-grid-purged" class="flex-grow grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 overflow-y-auto custom-scroll p-2 pt-8"></div>
+                    </div>
+
+                    <!-- MIDDLE: ESCAPED -->
+                    <div class="flex-1 flex flex-col min-h-0 border border-yellow-500/20 bg-yellow-500/5 relative">
+                        <div class="absolute top-0 left-0 bg-yellow-500/20 text-yellow-500 text-[10px] px-2 py-1 font-mono">FUGITIVOS (ESCAPADOS)</div>
+                        <div id="morgue-grid-escaped" class="flex-grow grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 overflow-y-auto custom-scroll p-2 pt-8"></div>
+                    </div>
+
+                    <!-- BOTTOM: NIGHT -->
+                    <div class="flex-1 flex flex-col min-h-0 border border-blue-500/20 bg-blue-500/5 relative">
+                        <div class="absolute top-0 left-0 bg-blue-500/20 text-blue-400 text-[10px] px-2 py-1 font-mono">SALIDAS NOCTURNAS</div>
+                        <div id="morgue-grid-night" class="flex-grow grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 overflow-y-auto custom-scroll p-2 pt-8"></div>
+                    </div>
                 </div>
             </section>
 
             <!-- SCREEN: FINAL STATS -->
-            <section id="screen-final-stats"
-                class="h-full flex flex-col p-8 gap-6 hidden bg-black/90">
+            <section id="screen-final-stats" class="h-full flex flex-col p-8 gap-6 hidden bg-black/90">
                 <div class="text-center space-y-2">
                     <h2 class="text-4xl font-bold text-chlorine tracking-tighter glitch-effect"
                         data-text="INFORME DE MISIÓN">INFORME DE MISIÓN</h2>
@@ -485,8 +504,7 @@
 
     <!-- MODAL: PAUSA -->
     <div id="modal-pause" class="fixed inset-0 hidden items-center justify-center z-[100] backdrop-blur-md bg-black/80">
-        <div
-            class="horror-panel p-8 w-[480px] max-w-full animate__faster relative overflow-hidden">
+        <div class="horror-panel p-8 w-[480px] max-w-full animate__faster relative overflow-hidden">
             <!-- Efecto de interferencia decorativo -->
             <div class="absolute inset-0 pointer-events-none opacity-10 scanline-overlay"></div>
 
@@ -594,8 +612,7 @@
     <!-- Modal de Confirmación -->
     <div id="modal-confirm"
         class="fixed inset-0 bg-black/90 backdrop-blur-md z-[210] hidden items-center justify-center p-4">
-        <div
-            class="horror-panel max-w-sm w-full p-8 border-2 border-alert/50 flex flex-col gap-6 animate__faster">
+        <div class="horror-panel max-w-sm w-full p-8 border-2 border-alert/50 flex flex-col gap-6 animate__faster">
             <div class="flex flex-col gap-2 text-center">
                 <h3 class="text-alert font-bold tracking-[0.2em] text-xl glitch-effect" data-text="CONFIRMACIÓN">
                     CONFIRMACIÓN</h3>

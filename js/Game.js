@@ -375,6 +375,7 @@ class Game {
                 this.ui.showMessage("REFUGIO LLENO. Debes purgar a alguien desde la pantalla de Refugio.", null, 'warning');
                 return;
             }
+            npc.initDayAfterStatus();
             State.addAdmitted(npc);
         } else if (action === 'ignore') {
             State.ignoredNPCs.push(npc);
@@ -425,7 +426,12 @@ class Game {
     }
 
     openMorgue() {
-        this.ui.renderMorgueGrid(State.purgedNPCs, (npc) => {
+        // Mapeamos las listas del Estado a las secciones de la UI
+        const purged = State.purgedNPCs || [];
+        const escaped = State.ignoredNPCs || []; // Los ignorados cuentan como fugitivos/escapados
+        const night = State.nightNPCs || [];     // Lista futura para eventos nocturnos
+
+        this.ui.renderMorgueGrid(purged, escaped, night, (npc) => {
             this.ui.openModal(npc, false, null);
         });
         this.ui.showScreen('morgue');

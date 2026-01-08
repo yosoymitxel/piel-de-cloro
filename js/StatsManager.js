@@ -34,7 +34,7 @@ export class StatsManager {
     saveCache() {
         try {
             localStorage.setItem(this.cacheKey, JSON.stringify(this.cache));
-        } catch {}
+        } catch { }
     }
 
     now() { return Date.now(); }
@@ -113,10 +113,11 @@ export class StatsManager {
         const purgedCivil = state.purgedNPCs.filter(n => !n.isInfected).length;
         const civilesMuertos = state.purgedNPCs.filter(n => n.death && n.death.reason === 'asesinado' && !n.isInfected).length;
         const clorosFuera = state.ignoredNPCs.filter(n => n.infected).length;
+        const validados = state.admittedNPCs.filter(n => n.dayAfter && n.dayAfter.validated).length;
         const showSensitive = !!(state.lastNight && state.lastNight.occurred);
 
         $('#stat-run-dialogues').text(state.dialoguesCount);
-        $('#stat-run-verifications').text(state.verificationsCount);
+        $('#stat-run-verifications').text(`${state.verificationsCount} (${validados} validados)`);
         $('#stat-run-admitted').text(admitted);
         $('#stat-run-ignored').text(ignored);
         $('#stat-run-cloros-vistos').text(showSensitive ? state.infectedSeenCount : '—');
