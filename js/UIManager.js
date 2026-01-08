@@ -387,6 +387,16 @@ export class UIManager {
                     // Play optional sfx tied to option
                     if (opt.audio && this.audio) this.audio.playSFXByKey(opt.audio, { volume: 0.6 });
 
+                    // Execute custom onclick if defined
+                    if (opt.onclick) {
+                        try {
+                            opt.onclick();
+                        } catch (e) {
+                            console.warn("Dialogue onclick failed:", e);
+                        }
+                        if (State.currentNPC !== npc) return;
+                    }
+
                     const res = npc.conversation.getNextDialogue(idx);
                     State.dialoguesCount++;
 
@@ -852,7 +862,7 @@ export class UIManager {
                 const statusColorClass = isRevealedInfected ? 'border-alert shadow-[0_0_10px_rgba(255,0,0,0.2)]' : borderClass;
 
                 const card = $('<div>', {
-                    class: `relative p-2 border bg-black/40 flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 group ${statusColorClass} ${hoverClass}`
+                    class: `self-start relative p-2 border bg-black/40 flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 group ${statusColorClass} ${hoverClass}`
                 });
 
                 const avatar = this.renderAvatar(npc, 'sm');

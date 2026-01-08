@@ -99,7 +99,8 @@ export class Conversation {
             requires: o.requires || [],
             sets: o.sets || [],
             audio: o.audio || null,
-            cssClass: o.cssClass || ''
+            cssClass: o.cssClass || '',
+            onclick: o.onclick || null
         }));
         return { id: node.id, text, options, audio: node.audio || null, meta: node.meta || {} };
     }
