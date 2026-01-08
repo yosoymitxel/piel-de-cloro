@@ -11,7 +11,7 @@ export class GeneratorManager {
         // Update warnings immediately
         if (this.elements.genWarningGame) this.elements.genWarningGame.addClass('hidden');
         if (this.elements.genWarningShelter) this.elements.genWarningShelter.addClass('hidden');
-        if (this.elements.genWarningPanel) this.elements.genWarningPanel.removeClass('hidden');
+        if (this.elements.genWarningPanel) this.elements.genWarningPanel.addClass('hidden');
 
         // Refresh game actions to restore normal buttons
         this.ui.updateGameActions();

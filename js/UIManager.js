@@ -222,6 +222,8 @@ export class UIManager {
         const npc = State.currentNPC;
 
         if (!State.generator.isOn) {
+            if (this.elements.genWarningPanel) this.elements.genWarningPanel.removeClass('hidden');
+
             // Caso 1: Generador apagado
             this.elements.inspectionToolsContainer.removeClass('grid-cols-2 sm:grid-cols-2 lg:grid-cols-4').addClass('grid-cols-1');
             this.elements.inspectionToolsContainer.html(`
