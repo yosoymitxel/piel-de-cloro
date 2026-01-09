@@ -338,7 +338,7 @@ class Game {
                 result = `DERMIS: ${this.ui.translateValue('skinTexture', npc.attributes.skinTexture)}`;
                 if (!npc.revealedStats.includes('skinTexture')) npc.revealedStats.push('skinTexture');
                 this.ui.applyVHS(0.7, 900);
-                this.ui.animateToolFlashlight(npc.attributes.skinTexture, npc.visualFeatures.skinColor);
+                this.ui.animateToolFlashlight(npc.attributes.skinTexture);
                 this.audio.playSFXByKey('tool_uv_toggle', { volume: 0.6 });
                 break;
             case 'pupils':

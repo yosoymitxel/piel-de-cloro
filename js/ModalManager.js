@@ -80,10 +80,16 @@ export class ModalManager {
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
 
         this.elements.modalName.text(`SUJETO ${npc.name}`);
-        const visualContainer = $('#modal-npc-visual');
-        visualContainer.empty().append(this.ui.renderAvatar(npc, 'sm'));
 
-        const avatarEl = visualContainer.find('.pixel-avatar');
+        // Renderizar Avatar Grande en el nuevo contenedor visual
+        const visualContainer = $('#modal-visual-container');
+        // Limpiar todo excepto los overlays fijos (título y cerrar)
+        visualContainer.children().not('.absolute').remove();
+
+        const avatar = this.ui.renderAvatar(npc, 'lg');
+        visualContainer.append(avatar);
+
+        const avatarEl = avatar; // Referencia para efectos
         if (npc.death && npc.death.revealed && npc.isInfected) {
             avatarEl.addClass('infected');
         }
@@ -186,17 +192,30 @@ export class ModalManager {
             ${extraInfo}
         `);
 
-        this.elements.modal.find('.dayafter-tests').remove();
+        const testsGrid = $('#modal-tests-grid');
+        testsGrid.empty().addClass('hidden');
 
         if (allowPurge) {
-            const testsGrid = $('<div>', { class: 'dayafter-tests mt-3' });
+            testsGrid.removeClass('hidden');
 
-            const makeSlot = (key, label) => {
+            const makeSlot = (key, label, icon, animMethod) => {
+                const globalTestsAvailable = state.dayAfter.testsAvailable > 0;
                 const knownByDay = npc.revealedStats && npc.revealedStats.includes(key);
                 const doneNight = npc.dayAfter[key];
-                const slot = $('<div>', { class: `slot ${knownByDay || doneNight ? 'done blocked' : ''}`, text: label });
 
-                slot.on('click', () => {
+                const btn = $('<button>', {
+                    class: `btn-test-icon ${knownByDay || doneNight ? 'done' : ''}`,
+                    html: `<i class="fa-solid ${icon}"></i><span>${label}</span>`
+                });
+
+                if (knownByDay || doneNight || (!globalTestsAvailable && !doneNight)) {
+                    btn.prop('disabled', true);
+                    if (!globalTestsAvailable && !doneNight && !knownByDay) {
+                        btn.addClass('opacity-20 grayscale border-gray-800 text-gray-600');
+                    }
+                }
+
+                btn.on('click', () => {
                     if (knownByDay || npc.dayAfter[key]) return;
                     if (npc.dayAfter.usedNightTests >= 1) {
                         this.showModalError('SOLO 1 TEST NOCTURNO POR SUJETO');
@@ -209,9 +228,31 @@ export class ModalManager {
                     state.dayAfter.testsAvailable--;
                     npc.dayAfter[key] = true;
                     npc.dayAfter.usedNightTests++;
-                    slot.addClass('done');
-                    testsGrid.find('.slot').addClass('blocked');
+
+                    // Actualizar UI
+                    btn.addClass('done').prop('disabled', true);
+                    // Bloquear el resto
+                    testsGrid.find('.btn-test-icon').not('.done').prop('disabled', true);
+
                     this.elements.dayafterTestsLeft.text(state.dayAfter.testsAvailable);
+
+                    // Ejecutar animación en el contenedor visual del modal
+                    const visualContainer = $('#modal-visual-container');
+                    if (this.ui[animMethod]) {
+                        // Mapeo de valores para la animación
+                        let val = null;
+                        if (key === 'temperature') val = npc.attributes.temperature;
+                        if (key === 'skinTexture') val = npc.attributes.skinTexture; // Necesita skinColor también, pero el método lo saca del DOM o args
+                        if (key === 'pulse') val = npc.attributes.pulse;
+                        if (key === 'pupils') val = npc.attributes.pupils;
+
+                        // Llamar a la animación pasando el contenedor del modal
+                        if (typeof this.ui[animMethod] === 'function') {
+                            this.ui[animMethod](val, visualContainer);
+                        } else {
+                            console.error(`ModalManager Error: El método de animación '${animMethod}' no existe en UIManager.`);
+                        }
+                    }
 
                     // Re-render stats
                     const complete = npc.dayAfter.dermis && npc.dayAfter.pupils && npc.dayAfter.temperature && npc.dayAfter.pulse;
@@ -220,16 +261,15 @@ export class ModalManager {
                     this.renderModalStats(npc, allowPurge, state);
                     this.clearModalError();
                 });
-                return slot;
+                return btn;
             };
 
             testsGrid.append(
-                makeSlot('skinTexture', 'DERMIS'),
-                makeSlot('pupils', 'PUPILAS'),
-                makeSlot('temperature', 'TEMP'),
-                makeSlot('pulse', 'PULSO')
+                makeSlot('skinTexture', 'DERMIS', 'fa-lightbulb', 'animateToolFlashlight'),
+                makeSlot('pupils', 'PUPILAS', 'fa-eye', 'animateToolPupils'),
+                makeSlot('temperature', 'TEMP', 'fa-temperature-half', 'animateToolThermometer'),
+                makeSlot('pulse', 'PULSO', 'fa-heart-pulse', 'animateToolPulse')
             );
-            this.elements.modalStats.after(testsGrid);
         }
     }
 

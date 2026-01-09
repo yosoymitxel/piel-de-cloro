@@ -47,9 +47,8 @@ export class UIManager {
             sidebar: $('#sidebar-left'),
             settingsBtn: $('#btn-settings-toggle'),
             dayafterPanel: $('#dayafter-panel'),
-            dayafterList: $('#dayafter-list'),
             dayafterTestsLeft: $('#dayafter-tests-left'),
-            dayafterGroupLimit: $('#dayafter-group-limit'),
+            dayafterPendingCount: $('#dayafter-pending-count'),
             dayafterValidatedCount: $('#dayafter-validated-count'),
 
             // Modal NPC
@@ -791,6 +790,7 @@ export class UIManager {
             // Lógica de deducción visual
             const isValidated = npc.dayAfter && npc.dayAfter.validated;
             const isPurgeLocked = npc.purgeLockedUntil && State.cycle < npc.purgeLockedUntil;
+            const canTest = !isValidated && !isPurgeLocked && (npc.dayAfter && npc.dayAfter.usedNightTests < 1);
             let borderClass = 'border-[#333]';
             let bgClass = 'bg-[#080808]';
             let statusIcon = '';
@@ -806,6 +806,9 @@ export class UIManager {
             } else if (isPurgeLocked) {
                 borderClass = 'border-gray-600 border-dashed';
                 statusIcon = '<i class="fa-solid fa-lock text-gray-500 text-[10px] absolute top-1 right-1"></i>';
+            } else if (canTest) {
+                borderClass = 'border-save';
+                bgClass = 'bg-save/5';
             }
 
             const card = $('<div>', {
@@ -827,8 +830,12 @@ export class UIManager {
     updateDayAfterSummary(npcs) {
         const testsLeft = State.dayAfter.testsAvailable;
         this.elements.dayafterTestsLeft.text(testsLeft);
+
         const validatedCount = npcs.filter(n => n.dayAfter && n.dayAfter.validated).length;
+        const pendingCount = npcs.length - validatedCount;
+
         this.elements.dayafterValidatedCount.text(validatedCount);
+        this.elements.dayafterPendingCount.text(pendingCount);
 
         // La revisión solo es "obligatoria" si no hay energía o está apagado
         const generatorOk = State.generator && State.generator.isOn && (State.generator.power > 10);
@@ -843,12 +850,12 @@ export class UIManager {
         }
 
         // Si necesita revisión, podemos añadir un botón temporal en el panel de tests
-        const testsPanel = this.elements.dayafterPanel.find('.flex.flex-wrap');
+        const testsPanel = this.elements.dayafterPanel;
         if (needsCheck) {
             if ($('#btn-shelter-goto-gen').length === 0) {
                 const btn = $('<button>', {
                     id: 'btn-shelter-goto-gen',
-                    class: 'horror-btn horror-btn-alert px-3 py-1 text-xs flex items-center gap-2 animate-pulse',
+                    class: 'horror-btn horror-btn-alert px-3 py-2 text-xs flex items-center justify-center gap-2 animate-pulse mt-2 w-full',
                     html: '<i class="fa-solid fa-bolt"></i> IR AL GENERADOR'
                 }).on('click', () => {
                     if (window.game) window.game.openGenerator();
@@ -1168,8 +1175,7 @@ export class UIManager {
         }, 120);
     }
 
-    animateToolThermometer(value) {
-        const container = this.elements.npcDisplay;
+    animateToolThermometer(value, container = this.elements.npcDisplay) {
         container.css('position', 'relative');
         container.find('.tool-thermo').remove();
         const overlay = $('<div>', { class: 'tool-thermo', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
@@ -1221,19 +1227,41 @@ export class UIManager {
         setTimeout(() => overlay.remove(), 2200);
     }
 
-    animateToolPupils(type = 'normal') {
-        const overlay = $('#pupil-overlay');
-        const container = overlay.find('.pupil-eye-container');
-        const pupil = $('#giant-pupil');
+    animateToolPupils(type = 'normal', container = null) {
+        if (!container) container = this.elements.npcDisplay;
 
-        overlay.removeClass('hidden').addClass('flex');
+        if (!container || (container.jquery && container.length === 0)) {
+            console.error("animateToolPupils Error: Contenedor de animación no encontrado o inválido.", container);
+            return;
+        }
+
+        container.css('position', 'relative');
+
+        // Limpiar animaciones previas
+        container.find('.pupil-overlay-local').remove();
+
+        const overlay = $('<div>', {
+            class: 'pupil-overlay-local absolute inset-0 z-20 flex items-center justify-center bg-black/40',
+            html: `
+                <div class="pupil-eye-container relative scale-0 transition-transform duration-500">
+                    <div class="giant-eye border-4 border-white/20 rounded-full w-48 h-48 flex items-center justify-center overflow-hidden bg-black shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+                        <div class="giant-pupil w-24 h-24 bg-white rounded-full transition-all duration-700 shadow-[0_0_15px_rgba(255,255,255,0.8)]"></div>
+                    </div>
+                    <div class="absolute inset-0 border-2 border-chlorine/30 rounded-full animate-ping"></div>
+                </div>
+            `
+        });
+
+        container.append(overlay);
+        const eyeContainer = overlay.find('.pupil-eye-container');
+        const pupil = overlay.find('.giant-pupil');
 
         // Reset pupila
         pupil.css({ width: '40px', height: '40px' });
 
         // Animación de aparición
         setTimeout(() => {
-            container.removeClass('scale-0').addClass('scale-100');
+            eyeContainer.removeClass('scale-0').addClass('scale-100');
 
             // Reacción de la pupila
             setTimeout(() => {
@@ -1252,16 +1280,15 @@ export class UIManager {
 
         // Desvanecimiento
         setTimeout(() => {
-            container.removeClass('scale-100').addClass('scale-0');
+            eyeContainer.removeClass('scale-100').addClass('scale-0');
             setTimeout(() => {
-                overlay.removeClass('flex').addClass('hidden');
+                overlay.remove();
                 pupil.removeClass('animate-pulse').css('background', '#3b0707');
             }, 500);
         }, 2200);
     }
 
-    animateToolFlashlight(skinTexture, skinColor) {
-        const container = this.elements.npcDisplay;
+    animateToolFlashlight(skinTexture, container = this.elements.npcDisplay) {
         container.css('position', 'relative');
         container.find('.tool-flash').remove();
         const flash = $('<div>', { class: 'tool-flash', css: { position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.18)', mixBlendMode: 'screen', pointerEvents: 'none', zIndex: 10 } });
@@ -1283,8 +1310,7 @@ export class UIManager {
         }, 900);
     }
 
-    animateToolPulse(bpm) {
-        const container = this.elements.npcDisplay;
+    animateToolPulse(bpm, container = this.elements.npcDisplay) {
         container.css('position', 'relative');
         container.find('.tool-pulse').remove();
         const overlay = $('<div>', { class: 'tool-pulse', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });

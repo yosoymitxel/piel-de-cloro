@@ -20,7 +20,8 @@
                     colors: {
                         chlorine: '#2d5a27',
                         'chlorine-light': '#a8d5a2',
-                        alert: '#ff3333'
+                        alert: '#ff3333',
+                        save: '#00ced1'
                     }
                 }
             }
@@ -119,30 +120,18 @@
                         class="flex justify-center items-center relative transition-all duration-150 z-10">
                         <!-- JS renders visuals here -->
                     </div>
-                    <!-- Overlay para test de pupilas -->
-                    <div id="pupil-overlay"
-                        class="absolute inset-0 z-30 pointer-events-none hidden items-center justify-center bg-black/40">
-                        <div class="pupil-eye-container relative scale-0 transition-transform duration-500">
-                            <div
-                                class="giant-eye border-4 border-white/20 rounded-full w-48 h-48 flex items-center justify-center overflow-hidden bg-black shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-                                <div id="giant-pupil"
-                                    class="w-24 h-24 bg-white rounded-full transition-all duration-700 shadow-[0_0_15px_rgba(255,255,255,0.8)]">
-                                </div>
-                            </div>
-                            <div class="absolute inset-0 border-2 border-chlorine/30 rounded-full animate-ping"></div>
-                        </div>
-                    </div>
                     <div id="inspection-feedback" class="mt-4 font-bold text-shadow h-5 hidden z-20"></div>
+                    <!-- Floating Log Button -->
+                    <div id="btn-bitacora" class="absolute right-6 top-[80%] -translate-y-1/2 z-30">
+                        <button id="btn-open-log"
+                            class="horror-btn w-12 h-12 rounded-full flex items-center justify-center border-chlorine text-chlorine hover:bg-chlorine hover:text-black transition-all shadow-[0_0_15px_rgba(45,90,39,0.5)]"
+                            title="Abrir Bitácora">
+                            <i class="fa-solid fa-book-journal-whills text-xl"></i>
+                        </button>
+                    </div>
                 </main>
 
-                <!-- Floating Log Button -->
-                <div id="btn-bitacora" class="absolute right-6 top-1/2 -translate-y-1/2 z-30">
-                    <button id="btn-open-log"
-                        class="horror-btn w-12 h-12 rounded-full flex items-center justify-center border-chlorine text-chlorine hover:bg-chlorine hover:text-black transition-all shadow-[0_0_15px_rgba(45,90,39,0.5)]"
-                        title="Abrir Bitácora">
-                        <i class="fa-solid fa-book-journal-whills text-xl"></i>
-                    </button>
-                </div>
+
 
                 <section class="border-t border-chlorine pt-3 flex flex-col gap-3">
                     <div class="bg-black/80 p-3 border border-[#1a3317] min-h-[100px] shadow-inner">
@@ -197,29 +186,33 @@
                     <i class="fa-solid fa-triangle-exclamation mr-1"></i> SISTEMA INSTABLE: REVISIÓN DE GENERADOR
                     REQUERIDA
                 </div>
-                <div id="dayafter-panel" class="horror-panel p-3 bg-[#080808] border-chlorine-dim">
-                    <div class="flex flex-wrap items-center justify-between gap-4">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-vial text-chlorine-light"></i>
-                            <span class="font-mono text-sm">Tests disponibles: <span
-                                    id="dayafter-tests-left">0</span></span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-users text-chlorine-light"></i>
-                            <span class="font-mono text-sm">Grupo de testeo: <span
-                                    id="dayafter-group-limit">0</span></span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-shield-heart text-chlorine-light"></i>
-                            <span class="font-mono text-sm">Validados: <span
-                                    id="dayafter-validated-count">0</span></span>
-                        </div>
+
+                <!-- Panel de Gestión Diaria (Day After) -->
+                <div id="dayafter-panel" class="horror-panel p-0 bg-[#080808] border-save flex flex-col panel-save">
+                    <div class="bg-save-dim p-2 border-b border-save/30 flex justify-between items-center">
+                        <h3 class="text-save font-mono text-sm uppercase tracking-widest font-bold">
+                            <i class="fa-solid fa-microscope mr-2"></i>PROTOCOLO DE BIO-VALIDACIÓN
+                        </h3>
+                        <div class="text-xs font-mono text-save opacity-80">CICLO ACTUAL</div>
                     </div>
-                    <div id="dayafter-list" class="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 mt-3">
+                    <div class="grid grid-cols-3 divide-x divide-save/20">
+                        <div class="flex flex-col items-center p-2 hover:bg-save/5 transition-colors">
+                            <span class="text-3xl font-bold text-save text-glow" id="dayafter-tests-left">0</span>
+                            <span class="text-[10px] font-mono text-gray-400 uppercase mt-1">REACTIVOS</span>
+                        </div>
+                        <div class="flex flex-col items-center p-2 hover:bg-save/5 transition-colors">
+                            <span class="text-3xl font-bold text-gray-300" id="dayafter-pending-count">0</span>
+                            <span class="text-[10px] font-mono text-gray-400 uppercase mt-1">PENDIENTES</span>
+                        </div>
+                        <div class="flex flex-col items-center p-2 hover:bg-save/5 transition-colors">
+                            <span class="text-3xl font-bold text-green-400" id="dayafter-validated-count">0</span>
+                            <span class="text-[10px] font-mono text-gray-400 uppercase mt-1">VALIDADOS</span>
+                        </div>
                     </div>
                 </div>
+
                 <div id="shelter-grid"
-                    class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-4 overflow-y-auto p-2 custom-scroll">
+                    class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2 overflow-y-auto p-2 custom-scroll">
                     <!-- Cards items -->
                 </div>
                 <div class="flex justify-center mt-4">
@@ -609,26 +602,37 @@
     <!-- NPC DETAIL MODAL -->
     <div id="modal-npc" class="modal-overlay-base hidden">
         <div
-            class="horror-panel w-[90%] max-w-[600px] p-0 flex flex-col animate__animated animate__zoomIn overflow-hidden">
-            <!-- Header Bar -->
-            <div class="bg-black/40 p-4 border-b border-chlorine flex justify-between items-start">
-                <div class="flex gap-4">
-                    <div id="modal-npc-visual" class="dossier-visual"></div>
-                    <div class="dossier-info">
-                        <h2 id="modal-npc-name" class="dossier-name glitch-effect" data-text="SUJETO X">SUJETO X</h2>
-                        <p id="modal-npc-status" class="dossier-status">ESTADO: DESCONOCIDO</p>
-                    </div>
+            class="horror-panel w-[90%] max-w-[500px] p-0 flex flex-col animate__animated animate__zoomIn overflow-hidden bg-[#050505] border-save panel-save">
+
+            <!-- Visual Feed (Top) - Reutiliza animaciones -->
+            <div id="modal-visual-container"
+                class="relative w-full h-[220px] bg-black flex justify-center items-end border-b border-save/30 overflow-hidden">
+                <!-- Avatar LG se inyectará aquí -->
+                <div class="absolute top-3 left-3 text-[10px] font-mono text-save opacity-70 z-20">
+                    <i class="fa-solid fa-video mr-1"></i> VISUAL FEED // LIVE
                 </div>
                 <span
-                    class="close-modal text-2xl cursor-pointer hover:text-alert opacity-70 hover:opacity-100 transition-opacity">&times;</span>
+                    class="close-modal absolute top-2 right-4 text-3xl cursor-pointer text-save hover:text-white z-30 leading-none">&times;</span>
             </div>
 
             <!-- Content -->
-            <div class="p-6 flex flex-col gap-4 bg-[#0a0a0a]">
-                <!-- Stats Grid -->
-                <div id="modal-npc-stats-content" class="dossier-stats-grid">
-                    <!-- Stats injected here -->
+            <div class="p-3 flex flex-col gap-3 bg-[#0a0a0a]">
+
+                <div class="flex justify-between items-end border-b border-save/20 pb-2">
+                    <div>
+                        <h2 id="modal-npc-name" class="text-2xl font-head text-save glitch-effect tracking-wider">SUJETO
+                            X</h2>
+                        <p id="modal-npc-status" class="text-xs font-mono text-gray-400 mt-1">ESTADO: PENDIENTE</p>
+                    </div>
                 </div>
+
+                <!-- Test Grid (Botones con iconos) -->
+                <div id="modal-tests-grid" class="grid grid-cols-4 gap-2 hidden">
+                    <!-- Buttons injected here -->
+                </div>
+
+                <!-- Stats Results (Texto) -->
+                <div id="modal-npc-stats-content" class="dossier-stats-grid"></div>
 
                 <!-- Log -->
                 <div>
