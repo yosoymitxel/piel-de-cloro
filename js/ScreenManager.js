@@ -15,7 +15,7 @@ export class ScreenManager {
         this.elements.settingsBtn.toggleClass('hidden', screenName !== 'start');
 
         // Logic 2: Sidebar only on Game, Shelter, Morgue, Room, Generator
-        const showSidebar = ['game', 'shelter', 'morgue', 'room', 'generator'].includes(screenName);
+        const showSidebar = ['game', 'shelter', 'morgue', 'room', 'generator', 'log'].includes(screenName);
         this.elements.sidebar.toggleClass('hidden', !showSidebar);
 
         // Toggle finalize button visibility in Shelter

@@ -49,6 +49,7 @@ export class Conversation {
         this.set = dialogueSet;
         this.currentId = dialogueSet.root;
         this.history = [];
+        this.loggedNodes = new Set(); // Evitar duplicados en el log
         // Count this dialogue start (logical time) and mark as used immediately to prevent reuse
         State.dialoguesCount = (State.dialoguesCount || 0) + 1;
         State.markDialogueUsed(dialogueSet.id);
@@ -61,7 +62,7 @@ export class Conversation {
         return obj;
     }
 
-    _injectTemplate(text) {
+    _injectTemplate(text, nodeId) {
         if (!text) return '';
         // Simple templating: replace {generatorStatus} {paranoia} {npcName} {prevChoiceLabel}
         let out = text.replace(/\{npcName\}/g, this.npc.getDisplayName ? this.npc.getDisplayName() : this.npc.name);
@@ -73,11 +74,16 @@ export class Conversation {
         out = out.replace(/\{prevChoiceLabel\}/g, last ? (last.choiceLabel || '') : '');
 
         // Rumor injection (from global dialogue memory)
-        try {
-            const rumor = (typeof State.getRandomRumor === 'function') ? State.getRandomRumor() : '';
-            out = out.replace(/\{rumor\}/g, rumor);
-        } catch (e) {
-            // ignore
+        if (out.includes('{rumor}')) {
+            out = out.replace(/\{rumor\}/g, () => {
+                const r = (typeof State.getRandomRumor === 'function') ? State.getRandomRumor() : '';
+                // Log rumor if not logged for this node
+                if (nodeId && !this.loggedNodes.has(nodeId + '_rumor')) {
+                    State.addLogEntry('note', `Rumor escuchado: "${r}"`);
+                    this.loggedNodes.add(nodeId + '_rumor');
+                }
+                return r;
+            });
         }
 
         // Apply madness/glitch modifier if paranoia high
@@ -91,7 +97,7 @@ export class Conversation {
     getCurrentNode() {
         const node = this.set.nodes[this.currentId];
         if (!node) return null;
-        const text = this._injectTemplate(node.text);
+        const text = this._injectTemplate(node.text, node.id);
         const options = (node.options || []).map(o => ({
             id: o.id,
             label: o.label,
@@ -100,7 +106,8 @@ export class Conversation {
             sets: o.sets || [],
             audio: o.audio || null,
             cssClass: o.cssClass || '',
-            onclick: o.onclick || null
+            onclick: o.onclick || null,
+            log: o.log || null
         }));
         return { id: node.id, text, options, audio: node.audio || null, meta: node.meta || {} };
     }
@@ -148,7 +155,7 @@ export class Conversation {
         }
         this.currentId = opt.next;
         const nextNodeRaw = this.set.nodes[this.currentId];
-        const text = this._injectTemplate(nextNodeRaw.text);
+        const text = this._injectTemplate(nextNodeRaw.text, nextNodeRaw.id);
         return { node: { id: nextNodeRaw.id, text, options: (nextNodeRaw.options || []).map(o => ({ id: o.id, label: o.label })) }, audio };
     }
 }

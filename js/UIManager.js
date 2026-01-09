@@ -20,7 +20,8 @@ export class UIManager {
             lore: $('#screen-lore'),
             room: $('#screen-room'),
             generator: $('#screen-generator'),
-            finalStats: $('#screen-final-stats')
+            finalStats: $('#screen-final-stats'),
+            log: $('#screen-log')
         };
 
         this.elements = {
@@ -38,6 +39,7 @@ export class UIManager {
             securityGrid: $('#security-grid'),
             securityCount: $('#security-count'),
             roomPowerWarning: $('#room-power-warning'),
+            logContainer: $('#log-container'),
             shelterCount: $('#shelter-count'),
             generatorPanel: $('#generator-panel'),
             generatorPowerBar: $('#generator-power-bar'),
@@ -388,6 +390,11 @@ export class UIManager {
                     // Riesgo de degradación de seguridad durante el diálogo
                     if (window.game && typeof window.game.checkSecurityDegradation === 'function') {
                         window.game.checkSecurityDegradation();
+                    }
+
+                    // Registrar evidencia en bitácora si la opción lo requiere
+                    if (opt.log) {
+                        State.addLogEntry('evidence', opt.log.text, { icon: opt.log.icon });
                     }
 
                     // Play optional sfx tied to option
@@ -1005,6 +1012,40 @@ export class UIManager {
 
         // Update nav status: if any unsecured channels exist, set warning; otherwise clear
         this.updateSecurityNavStatus(items);
+    }
+
+    renderLog(state) {
+        const container = this.elements.logContainer;
+        container.empty();
+
+        if (!state.gameLog || state.gameLog.length === 0) {
+            container.append($('<div>', { class: 'text-gray-500 italic text-center p-4', text: 'Sin registros disponibles.' }));
+            return;
+        }
+
+        state.gameLog.forEach(entry => {
+            const typeClass = `log-${entry.type}`; // log-lore, log-system, log-note
+            let icon = 'fa-pen';
+            if (entry.meta && entry.meta.icon) {
+                icon = entry.meta.icon;
+            } else {
+                icon = entry.type === 'lore' ? 'fa-book-open' :
+                    entry.type === 'system' ? 'fa-terminal' : 'fa-pen';
+            }
+
+            const html = `
+                <div class="log-entry ${typeClass}">
+                    <div class="log-meta flex justify-between">
+                        <span><i class="fa-solid ${icon} mr-1"></i> CICLO ${entry.cycle} // HORA ${entry.dayTime}</span>
+                    </div>
+                    <div class="log-content">${entry.text}</div>
+                </div>
+            `;
+            container.append(html);
+        });
+
+        // Auto-scroll al final para ver lo más nuevo (ya que el orden es cronológico)
+        container.scrollTop(container[0].scrollHeight);
     }
 
     renderGeneratorRoom() {

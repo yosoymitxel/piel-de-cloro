@@ -97,6 +97,7 @@ export const State = {
         restartLock: false // Bloqueo tras reinicio
     },
     paused: false,
+    gameLog: [], // Historial cronológico
     dialogueStarted: false,
 
     reset() {
@@ -129,6 +130,19 @@ export const State = {
         this.dialoguePoolsLastUsed = {};
         this.dialogueFlags = {};
         this.dialogueMemory = [];
+        this.gameLog = [];
+        this.addLogEntry('system', 'Sistema RUTA-01 inicializado. Ciclo 1.');
+    },
+
+    addLogEntry(type, text, meta = {}) {
+        this.gameLog.push({
+            cycle: this.cycle,
+            dayTime: this.dayTime,
+            type, // 'lore', 'system', 'note'
+            text,
+            timestamp: Date.now(),
+            meta
+        });
     },
 
     addAdmitted(npc) {
@@ -252,6 +266,7 @@ export const State = {
         this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight.occurred = true;
+        this.addLogEntry('system', `Inicio del Ciclo ${this.cycle}.`);
         this.purgedNPCs.forEach(n => {
             if (n.death) n.death.revealed = true;
         });

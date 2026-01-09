@@ -133,6 +133,15 @@
                     <div id="inspection-feedback" class="mt-4 font-bold text-shadow h-5 hidden z-20"></div>
                 </main>
 
+                <!-- Floating Log Button -->
+                <div class="absolute right-6 top-1/2 -translate-y-1/2 z-30">
+                    <button id="btn-open-log"
+                        class="horror-btn w-12 h-12 rounded-full flex items-center justify-center border-chlorine text-chlorine hover:bg-chlorine hover:text-black transition-all shadow-[0_0_15px_rgba(45,90,39,0.5)]"
+                        title="Abrir Bitácora">
+                        <i class="fa-solid fa-book-journal-whills text-xl"></i>
+                    </button>
+                </div>
+
                 <section class="border-t border-chlorine pt-3 flex flex-col gap-3">
                     <div class="bg-black/80 p-3 border border-[#1a3317] min-h-[100px] shadow-inner">
                         <p id="npc-dialogue" class="mb-3 font-mono text-lg text-white">Esperando sujeto...</p>
@@ -237,6 +246,30 @@
                 </div>
             </section>
 
+            <!-- SCREEN: LOG (BITÁCORA) -->
+            <section id="screen-log"
+                class="h-full flex flex-col p-4 gap-4 hidden animate__animated animate__fadeIn bg-black/95">
+                <header class="flex justify-between items-center border-b border-chlorine pb-2">
+                    <div>
+                        <h2 class="text-2xl text-glow">BITÁCORA DE RUTA</h2>
+                        <span class="font-mono text-xs opacity-70">REGISTRO CRONOLÓGICO</span>
+                    </div>
+                    <button id="btn-log-close-header"
+                        class="text-chlorine hover:text-alert text-3xl transition-colors px-2">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </header>
+                <div id="log-container"
+                    class="flex-grow overflow-y-auto custom-scroll p-2 space-y-3 font-mono bg-black/40 border border-chlorine/20">
+                    <!-- Entries injected by JS -->
+                </div>
+                <div class="flex justify-center pt-2">
+                    <button id="btn-log-back" class="horror-btn horror-btn-primary px-8 py-3 text-lg">
+                        <i class="fa-solid fa-arrow-left mr-2"></i> VOLVER AL PUESTO
+                    </button>
+                </div>
+            </section>
+
             <!-- SCREEN: GENERATOR ROOM -->
             <section id="screen-generator"
                 class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
@@ -268,7 +301,8 @@
                             </button>
                             <p id="generator-restriction-text" class="gap-2 col-span-2 transition-colors duration-300">
                                 <span class="text-white ">RESTRICCIÓN:</span> Tras iniciar tests
-                                o diálogos, la potencia <span class="text-alert">SOLO PUEDE BAJAR</span>.</p>
+                                o diálogos, la potencia <span class="text-alert">SOLO PUEDE BAJAR</span>.
+                            </p>
                             <button id="btn-gen-save"
                                 class="horror-btn p-3 font-mono flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-leaf"></i> AHORRO

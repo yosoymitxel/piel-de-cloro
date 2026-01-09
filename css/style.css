@@ -1310,3 +1310,44 @@ input[type=number].horror-input {
     border: 2px solid #a4c6a4;
     background: rgba(0, 10, 0, 0.9);
 }
+
+/* Log Entries */
+.log-entry {
+    background: rgba(0, 0, 0, 0.4);
+    border-left: 2px solid #333;
+    padding: 10px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.log-entry:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.log-entry.log-lore {
+    border-left-color: var(--color-chlorine-light);
+    background: rgba(45, 90, 39, 0.1);
+}
+
+.log-entry.log-system {
+    border-left-color: var(--color-alert);
+    color: #ffaaaa;
+}
+
+.log-entry.log-note {
+    border-left-color: var(--color-warning);
+    color: #eeeebb;
+    font-style: italic;
+}
+
+.log-entry.log-evidence {
+    border-left-color: #00ffff;
+    background: rgba(0, 255, 255, 0.05);
+}
+
+.log-meta {
+    font-size: 0.7rem;
+    opacity: 0.6;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}

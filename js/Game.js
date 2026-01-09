@@ -50,6 +50,11 @@ class Game {
         $('#nav-shelter').on('click', () => { this.ui.lastNav = 'shelter'; this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openShelter(); });
         $('#nav-morgue').on('click', () => { this.ui.lastNav = 'morgue'; this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openMorgue(); });
         $('#nav-generator').on('click', () => { this.ui.lastNav = 'generator'; this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openGenerator(); });
+        $('#btn-open-log').on('click', () => { this.ui.lastNav = 'log'; this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openLog(); });
+        $('#btn-log-close-header, #btn-log-back').on('click', () => {
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.ui.showScreen('game');
+        });
         $('#nav-morgue-stats').on('click', () => this.toggleMorgueStats());
         $('#btn-audio-diagnostics').on('click', () => {
             const logs = this.audio.getLogString();
@@ -441,6 +446,11 @@ class Game {
         this.ui.showScreen('generator');
     }
 
+    openLog() {
+        this.ui.renderLog(State);
+        this.ui.showScreen('log');
+    }
+
     updateGenerator() {
         if (!State.generator.isOn) {
             // No hay energía disponible si el generador está apagado
@@ -486,6 +496,7 @@ class Game {
         }
         this.shutdownSecuritySystem();
         this.audio.playSFXByKey('glitch_low', { volume: 0.8 });
+        State.addLogEntry('system', 'FALLO CRÍTICO: Generador apagado por inestabilidad.');
         this.ui.showFeedback("¡FALLO CRÍTICO DEL GENERADOR!", "red");
         // Mark generator nav as critical
         if (this.ui && this.ui.setNavItemStatus) {
@@ -775,6 +786,7 @@ class Game {
         npc.history = npc.history || [];
         npc.history.push(`Intrusión ${period} por ${via.type}.`);
         npc.purgeLockedUntil = State.cycle + 1; // Penalización: No se puede purgar hasta el siguiente ciclo
+        State.addLogEntry('system', `ALERTA: Intrusión detectada (${period}) vía ${via.type}.`);
         State.addAdmitted(npc);
         this.audio.playSFXByKey('intrusion_detected', { volume: 0.6, priority: 1 });
         if (via.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });

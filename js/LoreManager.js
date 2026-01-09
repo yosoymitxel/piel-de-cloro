@@ -1,4 +1,5 @@
 import { LoreData } from './LoreData.js';
+import { State } from './State.js';
 
 export class LoreManager {
     constructor(uiManager, audioManager) {
@@ -30,11 +31,11 @@ export class LoreManager {
             const variants = LoreData.intermediate.variants;
             const pick = variants[Math.floor(Math.random() * variants.length)];
             titleText = LoreData.intermediate.title;
-            
+
             const icon = this.getIconForKind(pick.kind);
             const label = this.getLabelForKind(pick.kind);
             contentHtml = `<p class="mb-2"><i class="fa-solid ${icon} mr-2"></i><span class="font-bold">${label}</span></p><p>${pick.text}</p>`;
-            
+
             this.playIntermediateAudio(pick.kind);
         } else {
             titleText = data.title;
@@ -50,6 +51,9 @@ export class LoreManager {
             if (sfxKey && this.audio) {
                 this.audio.playSFXByKey(sfxKey, { volume: 0.5 });
             }
+
+            // Registrar en Bitácora
+            State.addLogEntry('lore', `Archivo desbloqueado: ${titleText}`);
         }
 
         if (isDanger) {
@@ -62,7 +66,7 @@ export class LoreManager {
 
         this.elements.title.text(titleText);
         this.elements.content.html(contentHtml);
-        
+
         this.ui.showScreen('lore');
         if (this.audio) this.audio.duckAmbient(0.12);
 
