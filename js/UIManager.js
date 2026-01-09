@@ -396,7 +396,6 @@ export class UIManager {
                 btn.on('click', () => {
                     // Mark dialogue started and hide omit (tracking interaction)
                     npc.dialogueStarted = true;
-                    this.hideOmitOption();
 
                     // Riesgo de degradación de seguridad durante el diálogo
                     if (window.game && typeof window.game.checkSecurityDegradation === 'function') {
@@ -461,10 +460,8 @@ export class UIManager {
             });
         }
 
-        // Omit option: only if no interaction yet
-        const hasInteracted = npc.dialogueStarted || npc.scanCount > 0 || (npc.conversation && npc.conversation.history.length > 0);
-
-        if (!npc.optOut && !hasInteracted) {
+        // Omit option: show if no tests performed yet (allow during dialogue)
+        if (!npc.optOut && npc.scanCount === 0) {
             const omitBtn = $('<button>', {
                 class: 'horror-btn-dialogue option-omit',
                 html: '&gt; Omitir por diálogo'
@@ -1123,8 +1120,8 @@ export class UIManager {
         this.modalManager.showMessage(text, onClose, type);
     }
 
-    showConfirm(text, onYes, onCancel) {
-        this.modalManager.showConfirm(text, onYes, onCancel);
+    showConfirm(text, onYes, onCancel, type) {
+        this.modalManager.showConfirm(text, onYes, onCancel, type);
     }
 
     showModalError(text) {

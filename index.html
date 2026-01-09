@@ -90,19 +90,19 @@
             <!-- SCREEN 2: GAME (Guard Post) -->
             <section id="screen-game" class="h-full flex flex-col p-4 gap-4 hidden">
                 <header class="flex justify-between border-b border-chlorine pb-2 font-mono text-lg">
-                    <div class="flex gap-6">
+                    <div class="flex gap-6 items-center ">
                         <span title="Nivel de Paranoia"><i class="fa-solid fa-brain text-chlorine"></i> <span
                                 id="paranoia-level" class="text-chlorine-light font-bold">0%</span></span>
                         <span id="hud-energy-container" class="cursor-pointer hover:text-white transition-colors"
                             title="Energía de Escaneo"><i class="fa-solid fa-bolt text-cyan-400"></i> <span
                                 id="scan-energy" class="text-cyan-400 text-glow">⚡⚡</span></span>
                     </div>
-                    <div class="flex gap-6">
+                    <div class="flex gap-6 items-center ">
                         <span title="Ciclo Actual"><i class="fa-solid fa-rotate text-chlorine"></i> <span
                                 id="cycle-count">1</span></span>
                         <span title="Hora del Turno"><i class="fa-solid fa-clock text-chlorine"></i> <span
                                 id="time-display">08:00</span></span>
-                        <button id="btn-pause" class="horror-btn px-2 py-1 text-xs" title="Pausa">
+                        <button id="btn-pause" class="horror-btn px-4 text-xs" title="Pausa">
                             <i class="fa-solid fa-pause"></i>
                         </button>
                     </div>
@@ -551,97 +551,102 @@
 
     <!-- MODAL: PAUSA -->
     <div id="modal-pause" class="fixed inset-0 hidden items-center justify-center z-[100] backdrop-blur-md bg-black/80">
-        <div class="horror-panel p-8 w-[480px] max-w-full animate__faster relative overflow-hidden">
+        <div class="horror-panel p-8 w-[480px] max-w-full animate__faster relative overflow-hidden flex flex-col gap-6">
             <!-- Efecto de interferencia decorativo -->
             <div class="absolute inset-0 pointer-events-none opacity-10 scanline-overlay"></div>
 
-            <header class="border-b-2 border-chlorine pb-4 mb-6 flex justify-between items-center">
-                <h3 class="text-3xl font-mono tracking-widest text-chlorine-light">PAUSA</h3>
-                <div class="text-xs font-mono opacity-50">SISTEMA EN ESPERA</div>
+            <header class="text-center border-b border-chlorine pb-4">
+                <h3 class="text-4xl font-mono tracking-[0.2em] text-chlorine-light glitch-effect" data-text="PAUSA">
+                    PAUSA</h3>
+                <div class="text-xs font-mono opacity-50 mt-1">SISTEMA EN ESPERA</div>
             </header>
 
-            <div class="flex flex-col gap-6">
-                <!-- Sección de Configuración Rápida -->
-                <div class="grid grid-cols-1 gap-4 p-4 bg-black/40 border border-chlorine-dim rounded">
-                    <label class="flex items-center justify-between gap-3 font-mono cursor-pointer group">
-                        <span class="group-hover:text-chlorine-light transition-colors">Música Ambiental</span>
-                        <div class="flex items-center gap-3">
-                            <input type="checkbox" id="toggle-mute-music" class="peer sr-only">
-                            <span class="inline-flex items-center">
-                                <span class="switch-track"><span class="switch-thumb"></span></span>
-                            </span>
-                        </div>
-                    </label>
-                    <label class="flex items-center justify-between gap-3 font-mono cursor-pointer group">
-                        <span class="group-hover:text-chlorine-light transition-colors">Efectos de Sonido</span>
-                        <div class="flex items-center gap-3">
-                            <input type="checkbox" id="toggle-mute-sfx" class="peer sr-only">
-                            <span class="inline-flex items-center">
-                                <span class="switch-track"><span class="switch-thumb"></span></span>
-                            </span>
-                        </div>
-                    </label>
-                </div>
-
-                <!-- Acciones Principales -->
-                <div class="flex flex-col gap-3">
-                    <button id="btn-pause-close"
-                        class="horror-btn horror-btn-primary w-full py-4 text-xl flex items-center justify-center gap-3 group">
-                        <i class="fa-solid fa-play group-hover:animate-pulse"></i> CONTINUAR
-                    </button>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="btn-pause-restart-day"
-                            class="horror-btn py-3 text-sm flex flex-col items-center gap-1 border-yellow-900/50 hover:border-yellow-500 transition-all">
-                            <i class="fa-solid fa-rotate-left"></i>
-                            <span>REINICIAR DÍA</span>
-                        </button>
-                        <button id="btn-pause-restart-game"
-                            class="horror-btn py-3 text-sm flex flex-col items-center gap-1 border-red-900/50 hover:border-red-500 transition-all">
-                            <i class="fa-solid fa-skull"></i>
-                            <span>NUEVA PARTIDA</span>
-                        </button>
+            <!-- Sección de Configuración Rápida -->
+            <div class="grid grid-cols-1 gap-4 p-4 bg-black/40 border border-chlorine-dim">
+                <label class="flex items-center justify-between gap-3 font-mono cursor-pointer group">
+                    <span class="group-hover:text-chlorine-light transition-colors">Música Ambiental</span>
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="toggle-mute-music" class="peer sr-only">
+                        <span class="inline-flex items-center">
+                            <span class="switch-track"><span class="switch-thumb"></span></span>
+                        </span>
                     </div>
-                </div>
-
-                <footer
-                    class="mt-4 pt-4 border-t border-chlorine-dim flex justify-between items-center opacity-40 text-[10px] font-mono">
-                    <span>RUTA-01 v1.0.4</span>
-                    <span>PROTOCOLO DE SEGURIDAD ACTIVO</span>
-                </footer>
+                </label>
+                <label class="flex items-center justify-between gap-3 font-mono cursor-pointer group">
+                    <span class="group-hover:text-chlorine-light transition-colors">Efectos de Sonido</span>
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="toggle-mute-sfx" class="peer sr-only">
+                        <span class="inline-flex items-center">
+                            <span class="switch-track"><span class="switch-thumb"></span></span>
+                        </span>
+                    </div>
+                </label>
             </div>
+
+            <!-- Acciones Principales -->
+            <div class="flex flex-col gap-6">
+                <button id="btn-pause-close" class="pause-menu-btn primary">
+                    <i class="fa-solid fa-play"></i> CONTINUAR
+                </button>
+                <div class="grid grid-cols-2 gap-4">
+                    <button id="btn-pause-restart-day" class="pause-menu-btn sm warning text-sm">
+                        <i class="fa-solid fa-rotate-left"></i> REINICIAR DÍA
+                    </button>
+                    <button id="btn-pause-restart-game" class="pause-menu-btn sm danger text-sm">
+                        <i class="fa-solid fa-skull"></i> NUEVA PARTIDA
+                    </button>
+                </div>
+            </div>
+
+            <footer
+                class="mt-4 pt-4 border-t border-chlorine-dim flex justify-between items-center opacity-40 text-[10px] font-mono">
+                <span>RUTA-01 v1.0.4</span>
+                <span>PROTOCOLO DE SEGURIDAD ACTIVO</span>
+            </footer>
         </div>
     </div>
 
     <!-- NPC DETAIL MODAL -->
     <div id="modal-npc" class="modal-overlay-base hidden">
-        <div class="horror-panel w-[90%] max-w-[500px] p-6 flex flex-col gap-4 animate__animated animate__zoomIn">
-            <span class="close-modal self-end text-3xl cursor-pointer hover:text-alert leading-none">&times;</span>
-            <h2 id="modal-npc-name" class="text-2xl border-b border-chlorine pb-2 glitch-effect" data-text="SUJETO X">
-                SUJETO X</h2>
-
-            <div class="flex gap-6 items-center border-b border-chlorine-dim pb-4">
-                <div id="modal-npc-visual" class="w-[80px] h-[80px] flex-shrink-0 scale-125 origin-center"></div>
-                <div class="flex-grow font-mono">
-                    <p class="text-sm text-gray-400">ESTADO: <span id="modal-npc-status"
-                            class="font-bold">ADMITIDO</span></p>
-                    <div id="modal-npc-stats-content" class="mt-3 text-sm space-y-1">
-                        <!-- Stats injected here -->
+        <div
+            class="horror-panel w-[90%] max-w-[600px] p-0 flex flex-col animate__animated animate__zoomIn overflow-hidden">
+            <!-- Header Bar -->
+            <div class="bg-black/40 p-4 border-b border-chlorine flex justify-between items-start">
+                <div class="flex gap-4">
+                    <div id="modal-npc-visual" class="dossier-visual"></div>
+                    <div class="dossier-info">
+                        <h2 id="modal-npc-name" class="dossier-name glitch-effect" data-text="SUJETO X">SUJETO X</h2>
+                        <p id="modal-npc-status" class="dossier-status">ESTADO: DESCONOCIDO</p>
                     </div>
                 </div>
+                <span
+                    class="close-modal text-2xl cursor-pointer hover:text-alert opacity-70 hover:opacity-100 transition-opacity">&times;</span>
             </div>
 
-            <div id="modal-npc-log"
-                class="max-h-[200px] overflow-y-auto bg-black p-4 border border-chlorine-dim text-xs font-mono text-chlorine-light custom-scroll">
-                <!-- History -->
-            </div>
+            <!-- Content -->
+            <div class="p-6 flex flex-col gap-4 bg-[#0a0a0a]">
+                <!-- Stats Grid -->
+                <div id="modal-npc-stats-content" class="dossier-stats-grid">
+                    <!-- Stats injected here -->
+                </div>
 
-            <div class="flex justify-center mt-4">
-                <button id="btn-modal-purge" class="horror-btn horror-btn-alert p-3 w-full hidden">
-                    <i class="fa-solid fa-biohazard mr-2"></i> PURGAR DEL REFUGIO
-                </button>
+                <!-- Log -->
+                <div>
+                    <h4 class="text-xs font-mono text-chlorine-dim mb-1 uppercase tracking-widest">Registro de
+                        Interacción</h4>
+                    <div id="modal-npc-log" class="dossier-log-container custom-scroll">
+                        <!-- History -->
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="mt-2">
+                    <button id="btn-modal-purge" class="horror-btn horror-btn-alert w-full py-3 hidden">
+                        <i class="fa-solid fa-biohazard mr-2"></i> PURGAR DEL REFUGIO
+                    </button>
+                </div>
+                <div id="modal-error" class="text-alert text-center text-sm hidden font-mono mt-2"></div>
             </div>
-            <div id="modal-error" class="mt-2 text-alert text-center text-sm hidden"></div>
         </div>
     </div>
 
@@ -668,12 +673,10 @@
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <button id="btn-confirm-cancel"
-                    class="horror-btn border-gray-600 text-gray-400 py-3 text-xs uppercase tracking-widest hover:bg-white/5">CANCELAR</button>
+                    class="horror-btn border-gray-600 text-gray-400 py-3 text-xs uppercase tracking-widest hover:bg-white/5 hover:text-white">CANCELAR</button>
                 <button id="btn-confirm-yes"
                     class="horror-btn horror-btn-primary py-3 text-xs uppercase tracking-widest bg-alert/20 border-alert text-alert hover:bg-alert hover:text-black">CONFIRMAR</button>
             </div>
-            <div class="text-[8px] font-mono opacity-30 text-center mt-2">SISTEMA DE SEGURIDAD RUTA-01 // PROTOCOLO DE
-                AUTORIZACIÓN</div>
         </div>
     </div>
 
@@ -705,7 +708,7 @@
                 <h3 class="text-2xl font-bold">Antes de cerrar el día</h3>
                 <p class="font-mono text-sm text-gray-300">Primero puedes purgar desde el Refugio.</p>
                 <div class="flex gap-4 justify-center">
-                    <button id="btn-preclose-open-shelter" class="horror-btn horror-btn-alert px-6 py-3">ABRIR
+                    <button idcd="btn-preclose-open-shelter" class="horror-btn horror-btn-alert px-6 py-3">ABRIR
                         REFUGIO</button>
                     <button id="btn-preclose-continue"
                         class="horror-btn horror-btn-primary px-6 py-3">CONTINUAR</button>

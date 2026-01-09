@@ -146,3 +146,178 @@
     backdrop-filter: blur(4px);
     background-color: rgba(0, 0, 0, 0.9);
 }
+
+/* --- Pause Menu Components --- */
+.pause-menu-btn {
+    width: 100%;
+    font-family: var(--font-head);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid var(--color-chlorine-dim);
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--color-chlorine-light);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.pause-menu-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    background: transparent;
+    transition: background 0.2s;
+}
+
+/* Primary Action (Continuar) */
+.pause-menu-btn.primary {
+    padding: 1.5rem;
+    font-size: 1.5rem;
+    border-color: var(--color-chlorine);
+    background: rgba(45, 90, 39, 0.1);
+    box-shadow: 0 0 15px rgba(71, 189, 55, 0.288);
+}
+
+.pause-menu-btn.primary:hover {
+    background: var(--color-chlorine);
+    color: #000;
+    transform: scale(1.02);
+    box-shadow: 0 0 30px var(--color-chlorine);
+}
+
+.pause-menu-btn:hover {
+    background: rgba(45, 90, 39, 0.15);
+    color: #fff;
+    border-color: var(--color-chlorine);
+    transform: translateX(4px);
+    box-shadow: 0 0 20px rgba(45, 90, 39, 0.2);
+}
+
+.pause-menu-btn:hover::before {
+    background: var(--color-chlorine);
+}
+
+/* Secondary Actions (Small) */
+.pause-menu-btn.sm {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    opacity: 0.8;
+}
+
+.pause-menu-btn.sm:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+.pause-menu-btn.warning {
+    border-color: var(--color-warning);
+    color: var(--color-warning);
+}
+
+.pause-menu-btn.warning:hover {
+    background: var(--color-warning);
+    color: #000;
+    box-shadow: 0 0 15px var(--color-warning);
+}
+
+.pause-menu-btn.danger {
+    border-color: var(--color-alert);
+    color: var(--color-alert);
+}
+
+.pause-menu-btn.danger:hover {
+    background: var(--color-alert);
+    color: #fff;
+    box-shadow: 0 0 15px var(--color-alert);
+}
+
+/* --- NPC Dossier Modal Components --- */
+.dossier-visual {
+    width: 100px;
+    height: 100px;
+    border: 1px solid var(--color-chlorine-dim);
+    background: #050505;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+.dossier-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.dossier-name {
+    font-family: var(--font-head);
+    font-size: 1.75rem;
+    line-height: 1;
+    color: var(--color-chlorine-light);
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(45, 90, 39, 0.3);
+}
+
+.dossier-status {
+    font-family: var(--font-term);
+    font-size: 1rem;
+    color: #666;
+    letter-spacing: 0.05em;
+}
+
+.dossier-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.dossier-stat-item {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 0.75rem;
+    border-left: 2px solid var(--color-chlorine-dim);
+    font-family: var(--font-term);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.2s;
+}
+
+.dossier-stat-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-left-color: var(--color-chlorine);
+}
+
+.dossier-stat-label {
+    font-size: 0.75rem;
+    opacity: 0.5;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.dossier-stat-value {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #eee;
+    line-height: 1;
+}
+
+.dossier-log-container {
+    border: 1px solid var(--color-chlorine-dim);
+    background: rgba(0, 0, 0, 0.6);
+    padding: 0.75rem;
+    height: 160px;
+    overflow-y: auto;
+    font-family: var(--font-term);
+    font-size: 0.9rem;
+    color: #aaa;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}

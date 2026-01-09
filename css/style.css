@@ -466,12 +466,10 @@ h3 {
 }
 
 #btn-pause-restart-day:hover {
-    color: #ffcc66;
     border-color: #ffcc66;
 }
 
 #btn-pause-restart-game:hover {
-    color: #ff3333;
     border-color: #ff3333;
 }
 
@@ -731,6 +729,10 @@ body.paused .game-container {
 
 .text-chlorine-light {
     color: var(--color-chlorine-light);
+}
+
+.text-warning {
+    color: var(--color-warning);
 }
 
 .bg-chlorine {

@@ -90,7 +90,7 @@ export class ScreenManager {
                 : 'background-color: #555;';
 
             return `
-                <div class="bg-black/40 border ${borderColor} p-2 flex items-center gap-3 min-h-[60px] relative overflow-hidden group hover:bg-white/5 transition-colors">
+                <div class="bg-black/40 border ${borderColor} p-2 flex items-center gap-3 min-h-[60px] relative overflow-hidden group hover:bg-white/5 hover:text-white transition-colors">
                     <!-- Photo / Avatar Placeholder -->
                     <div class="w-10 h-10 flex-shrink-0 border border-white/10 rounded-sm overflow-hidden relative bg-gray-900">
                         <div class="absolute inset-0 opacity-70" style="${skinStyle}"></div>

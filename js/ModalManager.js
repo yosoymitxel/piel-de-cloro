@@ -47,10 +47,18 @@ export class ModalManager {
         });
     }
 
-    showConfirm(text, onYes, onCancel) {
+    showConfirm(text, onYes, onCancel, type = 'normal') {
         const modal = this.elements.confirmModal;
         const content = this.elements.confirmContent;
         modal.removeClass('hidden').addClass('flex');
+
+        // Reset classes
+        content.removeClass('text-gray-300 text-warning text-alert');
+
+        if (type === 'warning') content.addClass('text-warning');
+        else if (type === 'danger') content.addClass('text-alert');
+        else content.addClass('text-gray-300');
+
         content.text(text);
 
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
@@ -144,13 +152,18 @@ export class ModalManager {
             npc.dayAfter = { dermis: false, pupils: false, temperature: false, pulse: false, usedNightTests: 0, validated: false };
         }
 
-        const showStat = (key, label, value) => {
+        const makeStatItem = (label, value, isUnknown) => `
+            <div class="dossier-stat-item">
+                <span class="dossier-stat-label">${label}</span>
+                <span class="dossier-stat-value ${isUnknown ? 'text-gray-600' : ''}">${value}</span>
+            </div>
+        `;
+
+        const getStat = (key, label, value) => {
             const knownByDay = npc.revealedStats && npc.revealedStats.includes(key);
             const knownByNight = npc.dayAfter && npc.dayAfter[key];
-            if (knownByDay || knownByNight) {
-                return `<p>${label}: <span class="text-white">${value}</span></p>`;
-            }
-            return `<p>${label}: <span class="text-gray-600">???</span></p>`;
+            const isUnknown = !(knownByDay || knownByNight);
+            return makeStatItem(label, isUnknown ? '???' : value, isUnknown);
         };
 
         const dermisTxt = this.ui.translateValue('skinTexture', npc.attributes.skinTexture);
@@ -159,15 +172,18 @@ export class ModalManager {
             Math.max(0, npc.death.cycle - npc.enterCycle) :
             (npc.enterCycle != null ? Math.max(0, state.cycle - npc.enterCycle) : 0);
 
-        const extraDeathInfo = npc.death ?
-            `<p>MUERTE: <span class="text-white">CICLO ${npc.death.cycle}</span></p><p>TIEMPO EN REFUGIO: <span class="text-white">${stayCycles} ciclos</span></p>` : '';
+        let extraInfo = '';
+        if (npc.death) {
+            extraInfo += makeStatItem('CICLO MUERTE', npc.death.cycle, false);
+        }
+        extraInfo += makeStatItem('TIEMPO EN REFUGIO', `${stayCycles} CICLOS`, false);
 
         this.elements.modalStats.html(`
-            ${showStat('temperature', 'TEMP', `${npc.attributes.temperature}°C`)}
-            ${showStat('pulse', 'PULSO', `${npc.attributes.pulse} BPM`)}
-            ${showStat('skinTexture', 'DERMIS', dermisTxt)}
-            ${showStat('pupils', 'PUPILAS', pupilsTxt)}
-            ${extraDeathInfo}
+            ${getStat('temperature', 'TEMPERATURA', `${npc.attributes.temperature}°C`)}
+            ${getStat('pulse', 'PULSO', `${npc.attributes.pulse} BPM`)}
+            ${getStat('skinTexture', 'DERMIS', dermisTxt)}
+            ${getStat('pupils', 'PUPILAS', pupilsTxt)}
+            ${extraInfo}
         `);
 
         this.elements.modal.find('.dayafter-tests').remove();

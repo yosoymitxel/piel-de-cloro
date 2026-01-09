@@ -83,13 +83,13 @@ class Game {
         $('#btn-pause-restart-day').on('click', () => {
             this.ui.showConfirm('¿REINICIAR EL DÍA ACTUAL? SE PERDERÁ TODO EL PROGRESO DE HOY.', () => {
                 this.restartDay();
-            });
+            }, null, 'warning');
         });
 
         $('#btn-pause-restart-game').on('click', () => {
             this.ui.showConfirm('¿INICIAR NUEVA PARTIDA? SE PERDERÁ TODO EL PROGRESO ACTUAL.', () => {
                 this.restartGame();
-            });
+            }, null, 'danger');
         });
 
         // Final stats navigation
