@@ -397,6 +397,10 @@ export class UIManager {
                         State.addLogEntry('evidence', opt.log.text, { icon: opt.log.icon });
                     }
 
+                    // Log choice to NPC history
+                    if (!npc.history) npc.history = [];
+                    npc.history.push(`> ${opt.label}`);
+
                     // Play optional sfx tied to option
                     if (opt.audio && this.audio) this.audio.playSFXByKey(opt.audio, { volume: 0.6 });
 
@@ -421,9 +425,12 @@ export class UIManager {
                     if (res.audio && this.audio) this.audio.playSFXByKey(res.audio, { volume: 0.6 });
 
                     if (res.end) {
-                        this.showFeedback(res.message || 'FIN DE DIÁLOGO', 'green');
+                        this.showFeedback('FIN DE DIÁLOGO', 'green');
                         this.elements.dialogueOptions.empty();
-                        if (res.message) this.typeText(textEl, res.message, 18);
+                        if (res.message) {
+                            const parsedMsg = (typeof parseDialogueMarkup === 'function') ? parseDialogueMarkup(res.message) : res.message;
+                            this.typeText(textEl, parsedMsg, 18);
+                        }
                         // update inspection tools after final choice
                         this.updateInspectionTools();
                         return;
@@ -456,14 +463,10 @@ export class UIManager {
                 npc.scanCount = npc.maxScans;
                 npc.dialogueStarted = true; // También cuenta como interacción
                 if (!npc.history) npc.history = [];
-                npc.history.push('Protocolo de omisión por diálogo activado.');
+                npc.history.push({ text: 'Test omitido por diálogo.', type: 'warning' });
                 this.showFeedback('TEST OMITIDO POR DIÁLOGO', 'yellow');
                 this.updateInspectionTools();
-                // Show end text (use parsed markup)
                 this.elements.dialogueOptions.empty();
-                const endText = (npc.conversation.getCurrentNode() && npc.conversation.getCurrentNode().text) || 'Entendido. Puede continuar.';
-                const parsed = (typeof parseDialogueMarkup === 'function') ? parseDialogueMarkup(endText) : endText;
-                textEl.html(parsed);
             });
             this.elements.dialogueOptions.append(omitBtn);
         }

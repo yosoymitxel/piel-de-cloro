@@ -221,7 +221,12 @@ export class ModalManager {
         this.elements.modalLog.empty();
         if (npc.history && npc.history.length > 0) {
             npc.history.forEach(entry => {
-                this.elements.modalLog.append($('<div>', { class: 'mb-1 border-b border-gray-900 pb-1', text: entry }));
+                if (typeof entry === 'object' && entry.type === 'warning') {
+                    this.elements.modalLog.append($('<div>', { class: 'mb-1 border-b border-gray-900 pb-1 text-yellow-500', text: entry.text }));
+                } else {
+                    const txt = typeof entry === 'string' ? entry : (entry.text || JSON.stringify(entry));
+                    this.elements.modalLog.append($('<div>', { class: 'mb-1 border-b border-gray-900 pb-1', text: txt }));
+                }
             });
         } else {
             this.elements.modalLog.text("Sin registro de diálogo.");
