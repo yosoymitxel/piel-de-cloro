@@ -101,16 +101,7 @@ export class UIManager {
             precloseOpen: 0
         };
 
-        this.colors = {
-            energy: '#00ff00', // Normal (Verde)
-            save: '#00ced1',   // Ahorro (Cian)
-            overload: '#ffaa00', // Sobrecarga (Naranja)
-            off: '#333333',
-            safe: '#1b571bff',
-            chlorine: '#79ff79',
-            chlorineSutil: '#3c8f3c',
-            alert: '#ff3333'
-        };
+        this.colors = State.colors;
 
         // Initialize Specialized Managers
         this.avatarRenderer = AvatarRenderer; // Static class
@@ -398,7 +389,7 @@ export class UIManager {
         if (convNode && convNode.options && convNode.options.length) {
             convNode.options.forEach((opt, idx) => {
                 const btn = $('<button>', {
-                    class: `option-btn border border-chlorine-light text-chlorine-light px-2 py-1 hover:bg-chlorine-light hover:text-black transition-colors text-left text-sm ${opt.cssClass || ''}`,
+                    class: `horror-btn-dialogue ${opt.cssClass || ''}`,
                     html: `&gt; ${escapeHtml(opt.label)}`
                 });
 
@@ -475,7 +466,7 @@ export class UIManager {
 
         if (!npc.optOut && !hasInteracted) {
             const omitBtn = $('<button>', {
-                class: 'option-btn option-omit border border-[#7a5a1a] text-[#ffcc66] px-2 py-1 hover:bg-[#7a5a1a] hover:text-black transition-colors text-left text-sm',
+                class: 'horror-btn-dialogue option-omit',
                 html: '&gt; Omitir por diálogo'
             });
             omitBtn.on('click', () => {
@@ -983,7 +974,7 @@ export class UIManager {
             const iconColor = activeOrSecured ? activeColor : inactiveColor;
             const stateClass = activeOrSecured ? 'secured' : 'unsecured';
             const card = $('<div>', {
-                class: `security-item bg-[#080808] p-3 flex flex-col gap-2 items-center hover:bg-[#111] transition-all ${stateClass}`,
+                class: `security-item bg-[#080808] p-3 flex flex-col gap-2 items-center hover:bg-[#111] transition-all h-full ${stateClass}`,
                 css: { border: `1px solid ${borderColor}` }
             });
 
@@ -997,8 +988,10 @@ export class UIManager {
             card.append($('<span>', { text: label, class: 'text-xs font-mono' }));
             {
                 const btnText = it.type === 'alarma' ? (it.active ? 'ACTIVADA' : 'ACTIVAR') : (activeOrSecured ? 'ASEGURADO' : 'ASEGURAR');
-                const btn = $('<button>', { class: 'horror-btn horror-btn-primary w-full py-1 text-xs', text: btnText });
-                if (activeOrSecured) btn.addClass('opacity-60');
+
+                // Usamos la nueva clase horror-btn-security y añadimos secured/unsecured para el color
+                const btnClass = `horror-btn horror-btn-security ${activeOrSecured ? 'secured' : 'unsecured'}`;
+                const btn = $('<button>', { class: btnClass, text: btnText });
 
                 if (!hasPower) {
                     btn.prop('disabled', true);

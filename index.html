@@ -29,6 +29,7 @@
 
     <!-- Estilos -->
     <link rel="stylesheet" href="css/avatars.css">
+    <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -46,23 +47,23 @@
         <!-- SIDEBAR NAVIGATION -->
         <aside id="sidebar-left" class="w-20 horror-sidebar flex flex-col pt-5 hidden">
 
-            <button id="nav-room" class="nav-btn group flex flex-col items-center gap-1 p-4 w-full">
+            <button id="nav-room" class="nav-btn nav-sidebar-btn">
                 <i class="fa-solid fa-bell text-2xl"></i>
                 <span class="font-bold">SALA</span>
             </button>
-            <button id="nav-shelter" class="nav-btn group flex flex-col items-center gap-1 p-4 w-full">
+            <button id="nav-shelter" class="nav-btn nav-sidebar-btn">
                 <i class="fa-solid fa-house text-2xl"></i>
                 <span class="cfont-bold">REFUGIO</span>
             </button>
-            <button id="nav-guard" class="nav-btn group flex flex-col items-center gap-1 p-4 w-full active">
+            <button id="nav-guard" class="nav-btn nav-sidebar-btn active">
                 <i class="fa-solid fa-shield-halved text-2xl"></i>
                 <span class="font-bold">PUESTO</span>
             </button>
-            <button id="nav-generator" class="nav-btn group flex flex-col items-center gap-1 p-4 w-full">
+            <button id="nav-generator" class="nav-btn nav-sidebar-btn">
                 <i class="fa-solid fa-bolt text-2xl"></i>
                 <span class="font-bold">GENERADOR</span>
             </button>
-            <button id="nav-morgue" class="nav-btn group flex flex-col items-center gap-1 p-4 w-full">
+            <button id="nav-morgue" class="nav-btn nav-sidebar-btn">
                 <i class="fa-solid fa-clipboard-list text-2xl"></i>
                 <span class="font-bold">PERÍMETRO</span>
             </button>
@@ -174,10 +175,10 @@
                         REQUERIDA
                     </div>
                     <div id="game-actions-container" class="flex gap-3 mt-1">
-                        <button id="btn-admit" class="horror-btn horror-btn-primary flex-grow p-4 text-xl">
+                        <button id="btn-admit" class="horror-btn horror-btn-primary btn-action-lg">
                             <i class="fa-solid fa-check mr-2"></i> ADMITIR
                         </button>
-                        <button id="btn-ignore" class="horror-btn horror-btn-warning flex-grow p-4 text-xl">
+                        <button id="btn-ignore" class="horror-btn horror-btn-warning btn-action-lg">
                             <i class="fa-solid fa-eye-slash mr-2"></i> IGNORAR
                         </button>
                     </div>
@@ -296,24 +297,20 @@
                             </div>
                         </div>
                         <div id="generator-knobs" class="grid grid-cols-2 gap-4 w-full">
-                            <button id="btn-gen-toggle"
-                                class="horror-btn p-3 font-mono flex items-center justify-center gap-2 col-span-2">
+                            <button id="btn-gen-toggle" class="horror-btn btn-generator-control col-span-2">
                                 <i class="fa-solid fa-power-off"></i> I/O
                             </button>
                             <p id="generator-restriction-text" class="gap-2 col-span-2 transition-colors duration-300">
                                 <span class="text-white ">RESTRICCIÓN:</span> Tras iniciar tests
                                 o diálogos, la potencia <span class="text-alert">SOLO PUEDE BAJAR</span>.
                             </p>
-                            <button id="btn-gen-save"
-                                class="horror-btn p-3 font-mono flex items-center justify-center gap-2">
+                            <button id="btn-gen-save" class="horror-btn btn-generator-control">
                                 <i class="fa-solid fa-leaf"></i> AHORRO
                             </button>
-                            <button id="btn-gen-over"
-                                class="horror-btn p-3 font-mono flex items-center justify-center gap-2">
+                            <button id="btn-gen-over" class="horror-btn btn-generator-control">
                                 <i class="fa-solid fa-bolt"></i> SOBRECARGA
                             </button>
-                            <button id="btn-gen-normal"
-                                class="horror-btn p-3 font-mono flex items-center justify-center gap-2 col-span-2">
+                            <button id="btn-gen-normal" class="horror-btn btn-generator-control col-span-2">
                                 <i class="fa-solid fa-equals"></i> NORMAL
                             </button>
                         </div>
@@ -452,20 +449,20 @@
                     <h2 class="text-2xl">CONFIGURACIÓN DEL SISTEMA</h2>
                 </header>
                 <div class="flex flex-col gap-8 max-w-md mx-auto w-full mt-10">
-                    <label class="flex flex-col gap-3 text-center font-mono text-xl">
+                    <label class="settings-group">
                         CAPACIDAD DEL REFUGIO:
                         <input type="number" id="config-max-shelter" value="10" min="1" max="50"
-                            class="horror-input p-3 text-2xl">
+                            class="horror-input settings-input-field">
                     </label>
-                    <label class="flex flex-col gap-3 text-center font-mono text-xl">
+                    <label class="settings-group">
                         DURACIÓN DEL DÍA (Sujetos):
                         <input type="number" id="config-day-length" value="5" min="1" max="20"
-                            class="horror-input p-3 text-2xl">
+                            class="horror-input settings-input-field">
                     </label>
-                    <label class="flex flex-col gap-3 text-center font-mono text-xl">
+                    <label class="settings-group">
                         TESTS DISPONIBLES (Día después):
                         <input type="number" id="config-dayafter-tests" value="5" min="0" max="20"
-                            class="horror-input p-3 text-2xl">
+                            class="horror-input settings-input-field">
                     </label>
                     <div class="flex flex-col gap-6 text-left font-mono">
                         <div class="flex flex-col gap-2">
@@ -617,7 +614,7 @@
     </div>
 
     <!-- NPC DETAIL MODAL -->
-    <div id="modal-npc" class="fixed inset-0 bg-black/90 flex justify-center items-center z-50 hidden backdrop-blur-sm">
+    <div id="modal-npc" class="modal-overlay-base hidden">
         <div class="horror-panel w-[90%] max-w-[500px] p-6 flex flex-col gap-4 animate__animated animate__zoomIn">
             <span class="close-modal self-end text-3xl cursor-pointer hover:text-alert leading-none">&times;</span>
             <h2 id="modal-npc-name" class="text-2xl border-b border-chlorine pb-2 glitch-effect" data-text="SUJETO X">
@@ -649,8 +646,7 @@
     </div>
 
     <!-- Modal de Mensaje -->
-    <div id="modal-message"
-        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] hidden items-center justify-center p-4">
+    <div id="modal-message" class="modal-overlay-base z-[200] hidden p-4">
         <div
             class="horror-panel max-w-sm w-full p-6 flex flex-col gap-4 animate__animated animate__zoomIn animate__faster">
             <div id="modal-message-content" class="text-center font-mono text-sm leading-relaxed"></div>
@@ -660,8 +656,7 @@
     </div>
 
     <!-- Modal de Confirmación -->
-    <div id="modal-confirm"
-        class="fixed inset-0 bg-black/90 backdrop-blur-md z-[210] hidden items-center justify-center p-4">
+    <div id="modal-confirm" class="modal-overlay-base z-[210] hidden p-4">
         <div class="horror-panel max-w-sm w-full p-8 border-2 border-alert/50 flex flex-col gap-6 animate__faster">
             <div class="flex flex-col gap-2 text-center">
                 <h3 class="text-alert font-bold tracking-[0.2em] text-xl glitch-effect" data-text="CONFIRMACIÓN">
@@ -682,7 +677,7 @@
         </div>
     </div>
 
-    <div id="validation-overlay" class="fixed inset-0 bg-black/85 flex justify-center items-center z-50 hidden">
+    <div id="validation-overlay" class="modal-overlay-base hidden">
         <div class="horror-panel w-[90%] max-w-[420px] p-6 flex flex-col gap-5 text-center">
             <h3 class="text-2xl font-bold">Validación requerida</h3>
             <p class="font-mono text-sm text-gray-300">Debes realizar un test o participar en un diálogo para omitirlo
@@ -694,7 +689,7 @@
         </div>
     </div>
 
-    <div id="lore-overlay" class="fixed inset-0 bg-black/85 flex justify-center items-center z-50 hidden">
+    <div id="lore-overlay" class="modal-overlay-base hidden">
         <div class="horror-panel w-[90%] max-w-[520px] p-8 flex flex-col gap-6 text-center">
             <h3 id="lore-title" class="text-2xl font-bold"></h3>
             <div id="lore-content" class="font-mono text-sm text-gray-300"></div>
@@ -704,7 +699,7 @@
         </div>
     </div>
 
-    <div id="preclose-overlay" class="fixed inset-0 bg-black/85 flex justify-center items-center z-50 hidden">
+    <div id="preclose-overlay" class="modal-overlay-base hidden">
         <div class="horror-panel w-[90%] max-w-[520px] p-8 flex flex-col gap-6 text-center">
             <div id="preclose-step1" class="flex flex-col gap-4">
                 <h3 class="text-2xl font-bold">Antes de cerrar el día</h3>

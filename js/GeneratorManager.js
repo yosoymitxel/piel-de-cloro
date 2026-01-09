@@ -236,7 +236,7 @@ export class GeneratorManager {
         if (state.generator.isOn) {
             toggleBtn.addClass('btn-on');
             toggleBtn.css('color', '#000');
-            toggleBtn.find('i').css('color', this.ui.colors.safe);
+            toggleBtn.find('i').css('color', this.ui.colors.chlorineDark);
         } else {
             toggleBtn.addClass('btn-off');
             toggleBtn.css('color', '#000');

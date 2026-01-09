@@ -4,11 +4,21 @@
     --color-chlorine: #2d5a27;
     --color-chlorine-light: #a8d5a2;
     --color-chlorine-dim: #1a3a1a;
+    --color-chlorine-sutil: #3d7a36;
     --color-blood: #4a0e0e;
     --color-dark: #050505;
     --color-black: #000000;
     --color-alert: #ff3333;
-    --color-warning: #ccaa00;
+    --color-warning: #ffcc66;
+    --color-safe: #00FF00;
+
+    /* Generator / Functional Colors */
+    --color-energy: #00FF00;
+    --color-save: #00ced1;
+    --color-overload: #ffaa00;
+    --color-off: #333333;
+    --color-off-status: #ff2b2b;
+
     --bottom-bar-space: 72px;
 
     --font-head: 'Special Elite', cursive;
@@ -243,20 +253,6 @@ h3 {
     box-shadow: 0 0 10px var(--color-alert);
 }
 
-.horror-btn-dismiss {
-    border-color: #4a4a4a;
-    color: #777;
-    border-style: dashed;
-}
-
-.horror-btn-dismiss:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #aaa;
-    border-color: #777;
-    box-shadow: none;
-    transform: none;
-}
-
 .horror-btn-tool {
     font-family: var(--font-term);
     font-size: 1.1em;
@@ -373,7 +369,8 @@ h3 {
 .nav-btn.active.status-level-3 {
     background: rgba(204, 170, 0, 0.12) !important;
     /* soft amber */
-    color: #0b0b0b !important;
+    color: #ffeebb !important;
+    /* Texto claro para contraste */
     /* dark text for contrast */
     border-left-color: var(--color-warning) !important;
 }
@@ -381,7 +378,8 @@ h3 {
 .nav-btn.active.status-level-4 {
     background: rgba(255, 51, 51, 0.12) !important;
     /* soft red */
-    color: #0b0b0b !important;
+    color: #ffaaaa !important;
+    /* Texto claro para contraste */
     /* dark text for contrast */
     border-left-color: var(--color-alert) !important;
 }
@@ -557,12 +555,6 @@ body.paused .game-container {
     color: inherit;
 }
 
-/* When the entire sidebar is active+status ensure consistent mobile border/top and text */
-#sidebar-left .nav-btn.status-level-3,
-#sidebar-left .nav-btn.status-level-4 {
-    color: inherit;
-}
-
 /* Animations */
 @keyframes glitch-anim {
     0% {
@@ -665,9 +657,12 @@ body.paused .game-container {
 }
 
 #npc-dialogue .npc-text {
-    color: var(--color-chlorine-light);
+    color: #d4e8a2;
+    /* Más brillante que chlorine-light */
     font-family: var(--font-term);
     white-space: pre-wrap;
+    font-size: 1.05rem;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
 }
 
 #npc-dialogue .npc-text .npc-action {

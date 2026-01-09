@@ -41,7 +41,7 @@ export class ScreenManager {
     }
 
     updateSidebarActive(screenName) {
-        $('.group').removeClass('active text-black bg-chlorine opacity-100').addClass('text-chlorine-light opacity-60');
+        $('#sidebar-left .nav-btn').removeClass('active text-black bg-chlorine opacity-100').addClass('text-chlorine-light opacity-60');
 
         const activeClass = 'active text-black bg-chlorine opacity-100';
         const inactiveClass = 'text-chlorine-light opacity-60';

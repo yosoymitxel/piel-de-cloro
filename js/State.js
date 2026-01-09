@@ -60,13 +60,15 @@ export const State = {
         chlorine: '#2d5a27',
         chlorineLight: '#a8d5a2',
         chlorineSutil: '#3d7a36',
+        chlorineDark: '#1b571b',
         alert: '#ff3333',
         safe: '#00FF00',
         warning: '#ffcc66',
         energy: '#00FF00',
-        energyLow: '#7a1a1a',
+        save: '#00ced1',
         overload: '#ffaa00',
-        off: '#ff2b2b'
+        off: '#333333',
+        offStatus: '#ff2b2b'
     },
 
     // Seguridad por run
