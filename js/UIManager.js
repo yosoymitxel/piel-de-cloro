@@ -375,7 +375,7 @@ export class UIManager {
         if (convNode && convNode.options && convNode.options.length) {
             convNode.options.forEach((opt, idx) => {
                 const btn = $('<button>', {
-                    class: 'option-btn border border-chlorine-light text-chlorine-light px-2 py-1 hover:bg-chlorine-light hover:text-black transition-colors text-left text-sm',
+                    class: `option-btn border border-chlorine-light text-chlorine-light px-2 py-1 hover:bg-chlorine-light hover:text-black transition-colors text-left text-sm ${opt.cssClass || ''}`,
                     html: `&gt; ${escapeHtml(opt.label)}`
                 });
 

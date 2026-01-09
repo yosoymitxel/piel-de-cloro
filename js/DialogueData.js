@@ -43,17 +43,17 @@ export const DialogueData = {
                 'gs_n3a': {
                     id: 'gs_n3a',
                     text: "*Al presionar, la piel cede de forma extraña, como si hubiera aire o líquido debajo.* \"¡Ay! ¡Cuidado! No lo despiertes...\"",
-                    options: [{ id: 'gs_o3a', label: 'Expulsar por precaución', next: null, resultText: "*Se marcha rascándose furiosamente.* \"Solo es alergia... ¡solo es alergia!\"", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gs_o3d', label: 'Realizar tests completos', next: 'gs_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gs_o3a', label: '¡Aléjate! Eso no es normal', next: null, resultText: "*Retrocede asustado.* \"¡No es nada, lo juro!\"", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gs_o3d', label: 'Espera, voy a analizarte', next: null, resultText: "*Se queda quieto temblando mientras preparas el equipo.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gs_n3b': {
                     id: 'gs_n3b',
                     text: "*Se rasca hasta que brota una gota de sangre oscura.* \"Es el metal... el óxido del aire nos está cambiando.\"",
-                    options: [{ id: 'gs_o3b', label: 'Rechazar entrada', next: null, resultText: "*Se va murmurando y rascándose.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gs_o3c', label: 'Proceder a tests', next: 'gs_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gs_o3b', label: 'No puedo arriesgarme. Vete.', next: null, resultText: "*Se va murmurando y rascándose.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gs_o3c', label: 'Déjame verificar esa sangre', next: null, resultText: "*Te permite acercarte con desconfianza.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gs_n4b': {
                     id: 'gs_n4b',
                     text: "*Requiere análisis clínico para descartar infección parasitaria.*",
-                    options: [{ id: 'gs_o4b1', label: 'Admitir (Riesgo)', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gs_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gs_o4b1', label: 'Admitir (Riesgo)', next: null, sets: ['admitted'], cssClass: 'text-alert border-alert', onclick: () => document.getElementById('btn-admit').click() }, { id: 'gs_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -90,17 +90,17 @@ export const DialogueData = {
                 'gl_n3a': {
                     id: 'gl_n3a',
                     text: "*Se frota la cara, extendiendo una mancha grisácea.* \"¿Por qué me miras así? ¿Tengo algo en la cara?\"",
-                    options: [{ id: 'gl_o3a', label: 'Expulsar', next: null, resultText: "*Se va cubriéndose la cara.* \"Solo necesito colirio...\"", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gl_o3b', label: 'Testear', next: 'gl_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gl_o3a', label: 'Estás infectado. Largo.', next: null, resultText: "*Se va cubriéndose la cara.* \"Solo necesito colirio...\"", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gl_o3b', label: 'Necesito verificar esa secreción', next: null, resultText: "*Se limpia nerviosamente esperando tu veredicto.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gl_n3b': {
                     id: 'gl_n3b',
                     text: "*Parpadea lentamente.* \"Veo... manchas. Como aceite flotando en agua. ¿Tú no las ves?\"",
-                    options: [{ id: 'gl_o3c', label: 'Rechazar', next: null, resultText: "*Se aleja tropezando.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gl_o3d', label: 'Testear', next: 'gl_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gl_o3c', label: 'Estás alucinando. Fuera.', next: null, resultText: "*Se aleja tropezando.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gl_o3d', label: 'Espera, déjame ver tus ojos', next: null, resultText: "*Se acerca a la ventanilla para que lo examines.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gl_n4b': {
                     id: 'gl_n4b',
                     text: "*Secreción ocular anómala. Posible síntoma temprano.*",
-                    options: [{ id: 'gl_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gl_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gl_o4b1', label: 'Proceder con análisis ocular', next: null }, { id: 'gl_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -137,17 +137,17 @@ export const DialogueData = {
                 'gw_n3a': {
                     id: 'gw_n3a',
                     text: "*Sacude la cabeza.* \"Ojalá fuera el viento. El viento no tiene ritmo.\"",
-                    options: [{ id: 'gw_o3a', label: 'Rechazar por inestabilidad', next: null, resultText: "*Se va tapándose los oídos.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gw_o3b', label: 'Testear', next: 'gw_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gw_o3a', label: 'Eres inestable. Vete.', next: null, resultText: "*Se va tapándose los oídos.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gw_o3b', label: 'Intenta calmarte, voy a hacer un chequeo', next: null, resultText: "*Asiente, intentando ignorar los ruidos.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gw_n3b': {
                     id: 'gw_n3b',
                     text: "*Se queda quieto.* \"Shhh... si hacemos ruido, nos encontrarán.\"",
-                    options: [{ id: 'gw_o3c', label: 'Expulsar', next: null, resultText: "*Se aleja de puntillas.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gw_o3d', label: 'Testear', next: 'gw_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gw_o3c', label: 'No quiero locos aquí. Fuera.', next: null, resultText: "*Se aleja de puntillas.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gw_o3d', label: 'Silencio. Déjame trabajar.', next: null, resultText: "*Se tapa la boca con las manos.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gw_n4b': {
                     id: 'gw_n4b',
                     text: "*Paranoia auditiva. Común en aislamiento prolongado.*",
-                    options: [{ id: 'gw_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gw_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gw_o4b1', label: 'Verificar pulso y estrés', next: null }, { id: 'gw_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -182,17 +182,17 @@ export const DialogueData = {
                 'gm_n3a': {
                     id: 'gm_n3a',
                     text: "*Se toca el cuello.* \"Es... una erupción. Pica un poco. Nada que un poco de alcohol no cure.\"",
-                    options: [{ id: 'gm_o3a', label: 'Rechazar', next: null, resultText: "*Se va dejando un rastro de olor a podrido.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gm_o3b', label: 'Testear', next: 'gm_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gm_o3a', label: 'Eso es hongo. Aléjate.', next: null, resultText: "*Se va dejando un rastro de olor a podrido.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gm_o3b', label: 'No te toques. Voy a analizar eso.', next: null, resultText: "*Baja las manos lentamente.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gm_n3b': {
                     id: 'gm_n3b',
                     text: "*Te mira suplicante.* \"No me dejes fuera. La humedad me está comiendo vivo.\"",
-                    options: [{ id: 'gm_o3c', label: 'Cerrar compuerta', next: null, resultText: "*Se va tosiendo.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gm_o3d', label: 'Testear', next: 'gm_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gm_o3c', label: 'Lo siento, es muy arriesgado.', next: null, resultText: "*Se va tosiendo.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gm_o3d', label: 'Quédate en la zona de contención.', next: null, resultText: "*Se pega al cristal esperando.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gm_n4b': {
                     id: 'gm_n4b',
                     text: "*Presencia de esporas fúngicas en dermis. Riesgo de propagación.*",
-                    options: [{ id: 'gm_o4b1', label: 'Admitir (Peligro)', next: null, sets: ['admitted_infected'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gm_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gm_o4b1', label: 'Admitir (Peligro)', next: null, sets: ['admitted_infected'], cssClass: 'text-alert border-alert', onclick: () => document.getElementById('btn-admit').click() }, { id: 'gm_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -227,17 +227,17 @@ export const DialogueData = {
                 'gt_n3a': {
                     id: 'gt_n3a',
                     text: "*Se toca un diente y este cae en su mano sin esfuerzo.* \"Oh no... otro más. Se me están cayendo solos.\"",
-                    options: [{ id: 'gt_o3a', label: 'Expulsar', next: null, resultText: "*Se va llorando con el diente en la mano.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gt_o3b', label: 'Testear', next: 'gt_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gt_o3a', label: '¡Qué asco! Vete.', next: null, resultText: "*Se va llorando con el diente en la mano.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gt_o3b', label: 'Guarda eso. Necesito examinarte.', next: null, resultText: "*Cierra el puño ocultando el diente.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gt_n3b': {
                     id: 'gt_n3b',
                     text: "*Te mira con desesperación.* \"¿Crees que es por el agua? He bebido de los charcos... no tenía opción.\"",
-                    options: [{ id: 'gt_o3c', label: 'Rechazar', next: null, resultText: "*Se aleja escupiendo sangre.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gt_o3d', label: 'Testear', next: 'gt_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gt_o3c', label: 'Bebiste agua contaminada. Largo.', next: null, resultText: "*Se aleja escupiendo sangre.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gt_o3d', label: 'Vamos a ver qué tienes. Espera.', next: null, resultText: "*Abre la boca para la inspección.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gt_n4b': {
                     id: 'gt_n4b',
                     text: "*Necrosis gingival avanzada. Posible intoxicación o infección.*",
-                    options: [{ id: 'gt_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gt_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gt_o4b1', label: 'Buscar fiebre (Temperatura)', next: null }, { id: 'gt_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -272,17 +272,17 @@ export const DialogueData = {
                 'gsh_n3a': {
                     id: 'gsh_n3a',
                     text: "*Se frota los ojos.* \"Quizás. Llevo tres días caminando a oscuras. La mente juega trucos.\"",
-                    options: [{ id: 'gsh_o3a', label: 'Rechazar', next: null, resultText: "*Se va mirando atrás.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gsh_o3b', label: 'Testear', next: 'gsh_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gsh_o3a', label: 'No aceptamos inestables. Vete.', next: null, resultText: "*Se va mirando atrás.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gsh_o3b', label: 'Descansa un momento, voy a revisarte.', next: null, resultText: "*Se apoya en la pared, aliviado.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gsh_n3b': {
                     id: 'gsh_n3b',
                     text: "*Se estremece.* \"Solo déjame entrar donde haya luz constante. Por favor.\"",
-                    options: [{ id: 'gsh_o3c', label: 'Rechazar', next: null, resultText: "*Se va mirando atrás.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gsh_o3d', label: 'Testear', next: 'gsh_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gsh_o3c', label: 'Lo siento, no hay espacio.', next: null, resultText: "*Se va mirando atrás.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gsh_o3d', label: 'Ponte bajo la luz, déjame ver.', next: null, resultText: "*Se coloca justo bajo el foco.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gsh_n4b': {
                     id: 'gsh_n4b',
                     text: "*Estrés postraumático severo. Sin anomalías físicas.*",
-                    options: [{ id: 'gsh_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gsh_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gsh_o4b1', label: 'Revisar pupilas y reflejos', next: null }, { id: 'gsh_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -317,17 +317,17 @@ export const DialogueData = {
                 'gc_n3a': {
                     id: 'gc_n3a',
                     text: "*Te mira confundido.* \"Solo necesito entrar en calor. Unas horas. Por favor.\"",
-                    options: [{ id: 'gc_o3a', label: 'Rechazar', next: null, resultText: "*Se va temblando.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gc_o3b', label: 'Testear', next: 'gc_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gc_o3a', label: 'No es un hotel. Vete.', next: null, resultText: "*Se va temblando.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gc_o3b', label: 'Vamos a medir tu temperatura, espera.', next: null, resultText: "*Se abraza a sí mismo esperando.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gc_n3b': {
                     id: 'gc_n3b',
                     text: "*Sus dientes castañean.* \"No... no estoy enfermo. Solo tengo frío.\"",
-                    options: [{ id: 'gc_o3c', label: 'Rechazar', next: null, resultText: "*Se va temblando.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gc_o3d', label: 'Testear', next: 'gc_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gc_o3c', label: 'Pareces enfermo. Aléjate.', next: null, resultText: "*Se va temblando.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gc_o3d', label: 'Si es solo frío, lo veremos pronto.', next: null, resultText: "*Intenta dejar de temblar para el test.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gc_n4b': {
                     id: 'gc_n4b',
                     text: "*Temperatura corporal baja. Signos de hipotermia o shock.*",
-                    options: [{ id: 'gc_o4b1', label: 'Admitir (Enfermería)', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gc_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gc_o4b1', label: 'Medir constantes térmicas', next: null }, { id: 'gc_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -364,17 +364,17 @@ export const DialogueData = {
                 'gh_n3a': {
                     id: 'gh_n3a',
                     text: "*Te mira ofendido.* \"No sabes nada. El óxido alimenta.\"",
-                    options: [{ id: 'gh_o3a', label: 'Rechazar', next: null, resultText: "*Se va refunfuñando y contando sus tornillos.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gh_o3b', label: 'Testear', next: 'gh_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gh_o3a', label: 'Estás loco. Largo.', next: null, resultText: "*Se va refunfuñando y contando sus tornillos.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gh_o3b', label: 'Deja eso ahí. Procedo a escanear.', next: null, resultText: "*Suelta los tornillos a regañadientes.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gh_n3b': {
                     id: 'gh_n3b',
                     text: "*Guarda sus cosas.* \"Solo déjame entrar. Puedo arreglar cosas. Soy útil.\"",
-                    options: [{ id: 'gh_o3c', label: 'Rechazar', next: null, resultText: "*Se va.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gh_o3d', label: 'Testear', next: 'gh_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gh_o3c', label: 'No necesitamos chatarreros.', next: null, resultText: "*Se va.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gh_o3d', label: 'Veremos si eres útil. Espera.', next: null, resultText: "*Se pone firme, intentando parecer profesional.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gh_n4b': {
                     id: 'gh_n4b',
                     text: "*Posible riesgo de tétanos. Conducta obsesiva.*",
-                    options: [{ id: 'gh_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gh_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gh_o4b1', label: 'Revisar piel y temperatura', next: null }, { id: 'gh_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -410,17 +410,17 @@ export const DialogueData = {
                 'ge_n3a': {
                     id: 'ge_n3a',
                     text: "*Sonríe, pero la sonrisa no llega a sus ojos.* \"Confundido... sí. Todo es nuevo.\"",
-                    options: [{ id: 'ge_o3a', label: 'Rechazar', next: null, resultText: "*Se va imitando tu gesto de despedida.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'ge_o3b', label: 'Testear', next: 'ge_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'ge_o3a', label: 'Me das mala espina. Vete.', next: null, resultText: "*Se va imitando tu gesto de despedida.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'ge_o3b', label: 'Solo... quédate quieto un segundo.', next: null, resultText: "*Se congela en el sitio, sin parpadear.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'ge_n3b': {
                     id: 'ge_n3b',
                     text: "*Te mira esperando una señal.* \"¿Puedo pasar? ¿Pasar?\"",
-                    options: [{ id: 'ge_o3c', label: 'Rechazar', next: null, resultText: "*Se va repitiendo 'pasar' en voz baja.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'ge_o3d', label: 'Testear', next: 'ge_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'ge_o3c', label: 'No. No puedes pasar.', next: null, resultText: "*Se va repitiendo 'pasar' en voz baja.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'ge_o3d', label: 'Voy a procesar tu solicitud, espera.', next: null, resultText: "*Asiente rítmicamente.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'ge_n4b': {
                     id: 'ge_n4b',
                     text: "*Patrones de habla atípicos. Posible afasia o disociación.*",
-                    options: [{ id: 'ge_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'ge_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'ge_o4b1', label: 'Analizar pupilas', next: null }, { id: 'ge_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -456,17 +456,17 @@ export const DialogueData = {
                 'gsl_n3a': {
                     id: 'gsl_n3a',
                     text: "*Niega con la cabeza.* \"No es estrés. Es instinto. El cuerpo sabe cuándo está en peligro.\"",
-                    options: [{ id: 'gsl_o3a', label: 'Rechazar', next: null, resultText: "*Se va tambaleándose.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gsl_o3b', label: 'Testear', next: 'gsl_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gsl_o3a', label: 'Estás paranoico. Vete.', next: null, resultText: "*Se va tambaleándose.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gsl_o3b', label: 'Tranquilo. Déjame hacer unas pruebas.', next: null, resultText: "*Respira hondo, intentando calmarse.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gsl_n3b': {
                     id: 'gsl_n3b',
                     text: "*Bosteza y se tambalea.* \"Por favor... solo una cama. O el suelo. Me da igual.\"",
-                    options: [{ id: 'gsl_o3c', label: 'Rechazar', next: null, resultText: "*Se va casi durmiéndose.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gsl_o3d', label: 'Testear', next: 'gsl_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gsl_o3c', label: 'No tenemos sitio. Lo siento.', next: null, resultText: "*Se va casi durmiéndose.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gsl_o3d', label: 'Aguanta un poco más, voy a revisar.', next: null, resultText: "*Se apoya pesadamente en el marco.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gsl_n4b': {
                     id: 'gsl_n4b',
                     text: "*Privación de sueño severa. Alucinaciones leves.*",
-                    options: [{ id: 'gsl_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gsl_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gsl_o4b1', label: 'Chequear pupilas y pulso', next: null }, { id: 'gsl_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -501,17 +501,17 @@ export const DialogueData = {
                 'gtw_n3a': {
                     id: 'gtw_n3a',
                     text: "*Notas un bulto duro bajo la piel, cerca de la columna.* \"¡Ay! No aprietes ahí.\"",
-                    options: [{ id: 'gtw_o3a', label: 'Rechazar', next: null, resultText: "*Se va con espasmos.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gtw_o3b', label: 'Testear', next: 'gtw_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gtw_o3a', label: 'Eso no es normal. Fuera.', next: null, resultText: "*Se va con espasmos.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gtw_o3b', label: 'No te muevas, por favor.', next: null, resultText: "*Se queda rígido, conteniendo el tic.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gtw_n3b': {
                     id: 'gtw_n3b',
                     text: "*Respira hondo.* \"¿Puedo pasar? Necesito sentarme.\"",
-                    options: [{ id: 'gtw_o3c', label: 'Rechazar', next: null, resultText: "*Se va.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gtw_o3d', label: 'Testear', next: 'gtw_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gtw_o3c', label: 'No estás en condiciones. Vete.', next: null, resultText: "*Se va.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gtw_o3d', label: 'Siéntate ahí, voy a verificar.', next: null, resultText: "*Se sienta en el suelo esperando.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gtw_n4b': {
                     id: 'gtw_n4b',
                     text: "*Espasmos musculares involuntarios. Posible daño neurológico.*",
-                    options: [{ id: 'gtw_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gtw_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gtw_o4b1', label: 'Monitorizar pulso', next: null }, { id: 'gtw_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -547,17 +547,17 @@ export const DialogueData = {
                 'ghu_n3a': {
                     id: 'ghu_n3a',
                     text: "*Mira alrededor.* \"¿Seguro que es seguro aquí? El zumbido del generador... suena igual.\"",
-                    options: [{ id: 'ghu_o3a', label: 'Rechazar', next: null, resultText: "*Se va tarareando.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'ghu_o3b', label: 'Testear', next: 'ghu_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'ghu_o3a', label: 'Si no te gusta, vete.', next: null, resultText: "*Se va tarareando.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'ghu_o3b', label: 'Guarda silencio un momento, por favor.', next: null, resultText: "*Cierra la boca, pero sigue marcando el ritmo con el pie.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'ghu_n3b': {
                     id: 'ghu_n3b',
                     text: "*Vuelve a tararear.* \"Mmmm... mmmm...\"",
-                    options: [{ id: 'ghu_o3c', label: 'Rechazar', next: null, resultText: "*Se va tarareando.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'ghu_o3d', label: 'Testear', next: 'ghu_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'ghu_o3c', label: 'Ese ruido es insoportable. Fuera.', next: null, resultText: "*Se va tarareando.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'ghu_o3d', label: 'Voy a revisarte mientras esperas.', next: null, resultText: "*Sigue tarareando bajito.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'ghu_n4b': {
                     id: 'ghu_n4b',
                     text: "*Conducta repetitiva. Mecanismo de defensa ante estrés.*",
-                    options: [{ id: 'ghu_o4b1', label: 'Admitir (Riesgo)', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'ghu_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'ghu_o4b1', label: 'Admitir (Riesgo)', next: null, sets: ['admitted'], cssClass: 'text-alert border-alert', onclick: () => document.getElementById('btn-admit').click() }, { id: 'ghu_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -593,17 +593,17 @@ export const DialogueData = {
                 'gsr_n3a': {
                     id: 'gsr_n3a',
                     text: "*Se levanta sacudiéndose el polvo.* \"Si no lo encuentro, no puedo pagar. ¿Aceptáis trabajo a cambio?\"",
-                    options: [{ id: 'gsr_o3a', label: 'Rechazar', next: null, resultText: "*Se va mirando al suelo.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gsr_o3b', label: 'Testear', next: 'gsr_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gsr_o3a', label: 'No aceptamos mendigos.', next: null, resultText: "*Se va mirando al suelo.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gsr_o3b', label: 'Ya buscaremos luego. Ahora el chequeo.', next: null, resultText: "*Se limpia las manos en el pantalón.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gsr_n3b': {
                     id: 'gsr_n3b',
                     text: "*Entrecierra los ojos.* \"Ya... claro. Ladrones.\"",
-                    options: [{ id: 'gsr_o3c', label: 'Rechazar', next: null, resultText: "*Se va murmurando.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gsr_o3d', label: 'Testear', next: 'gsr_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gsr_o3c', label: 'Cuidado con lo que dices. Fuera.', next: null, resultText: "*Se va murmurando.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gsr_o3d', label: 'Nadie te va a robar. Espera.', next: null, resultText: "*Te mira con recelo.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gsr_n4b': {
                     id: 'gsr_n4b',
                     text: "*Sujeto desorientado. Sin posesiones de valor.*",
-                    options: [{ id: 'gsr_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gsr_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gsr_o4b1', label: 'Iniciar escaneo físico', next: null }, { id: 'gsr_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -639,17 +639,17 @@ export const DialogueData = {
                 'gmp_n3a': {
                     id: 'gmp_n3a',
                     text: "*Se mira el brazo.* \"A veces la tinta se borra con el sudor. Tengo que repasarla.\"",
-                    options: [{ id: 'gmp_o3a', label: 'Testear', next: 'gmp_n4b', onclick: () => document.getElementById('btn-test').click() }, { id: 'gmp_o3b', label: 'Rechazar', next: null, resultText: "*Se va dibujando en el aire.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gmp_o3a', label: 'Interesante. Déjame ver tus constantes.', next: null, resultText: "*Extiende el brazo para que lo veas.*", onclick: () => document.getElementById('btn-test').click() }, { id: 'gmp_o3b', label: 'No quiero gente rara aquí.', next: null, resultText: "*Se va dibujando en el aire.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 },
                 'gmp_n3b': {
                     id: 'gmp_n3b',
                     text: "*Sonríe tristemente.* \"La esperanza es lo último que se pierde, ¿no?\"",
-                    options: [{ id: 'gmp_o3c', label: 'Rechazar', next: null, resultText: "*Se va.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gmp_o3d', label: 'Testear', next: 'gmp_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gmp_o3c', label: 'Aquí ya no hay esperanza. Vete.', next: null, resultText: "*Se va.*", cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }, { id: 'gmp_o3d', label: 'Mantén la esperanza. Voy a revisar.', next: null, resultText: "*Sonríe levemente.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gmp_n4b': {
                     id: 'gmp_n4b',
                     text: "*Tinta no tóxica. Sujeto estable.*",
-                    options: [{ id: 'gmp_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gmp_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gmp_o4b1', label: 'Examinar marcas en piel', next: null }, { id: 'gmp_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -681,17 +681,17 @@ export const DialogueData = {
                 'gwt_n3a': {
                     id: 'gwt_n3a',
                     text: "*Retrocede un paso.* \"Vale, vale... solo haz tu trabajo.\"",
-                    options: [{ id: 'gwt_o3a', label: 'Testear', next: 'gwt_n4b', onclick: () => document.getElementById('btn-test').click() }, { id: 'gwt_o3b', label: 'Rechazar por actitud', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gwt_o3a', label: 'Cálmate o no entras. Voy a empezar.', next: null, resultText: "*Resopla, pero espera.*", onclick: () => document.getElementById('btn-test').click() }, { id: 'gwt_o3b', label: 'No tolero amenazas. Largo.', next: null, cssClass: 'horror-btn-dismiss', resultText: "*Golpea la puerta antes de irse.*", onclick: () => document.getElementById('btn-ignore').click() }]
                 },
                 'gwt_n3b': {
                     id: 'gwt_n3b',
                     text: "*Cruza los brazos.* \"Rápido.\"",
-                    options: [{ id: 'gwt_o3c', label: 'Testear', next: 'gwt_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gwt_o3c', label: 'Será rápido si colaboras.', next: null, resultText: "*Mira el reloj inexistente en su muñeca.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gwt_n4b': {
                     id: 'gwt_n4b',
                     text: "*Signos de estrés y malnutrición. Sin infección.*",
-                    options: [{ id: 'gwt_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gwt_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gwt_o4b1', label: 'Proceder con toma de constantes', next: null }, { id: 'gwt_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -723,17 +723,17 @@ export const DialogueData = {
                 'glo_n3a': {
                     id: 'glo_n3a',
                     text: "\"Supongo que tendré que entrar para buscarlo.\"",
-                    options: [{ id: 'glo_o3a', label: 'Testear', next: 'glo_n4b', onclick: () => document.getElementById('btn-test').click() }, { id: 'glo_o3b', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'glo_o3a', label: 'Primero el protocolo. Espera.', next: null, resultText: "*Guarda el papel arrugado.*", onclick: () => document.getElementById('btn-test').click() }, { id: 'glo_o3b', label: 'No puedes entrar sin autorización.', next: null, cssClass: 'horror-btn-dismiss', resultText: "*Se va cabizbajo.*", onclick: () => document.getElementById('btn-ignore').click() }]
                 },
                 'glo_n3b': {
                     id: 'glo_n3b',
                     text: "\"Solo déjame pasar. No molestaré.\"",
-                    options: [{ id: 'glo_o3c', label: 'Testear', next: 'glo_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'glo_o3c', label: 'Veremos qué se puede hacer. Un momento.', next: null, resultText: "*Junta las manos en gesto de súplica.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'glo_n4b': {
                     id: 'glo_n4b',
                     text: "*Sujeto sano. Desorientado.*",
-                    options: [{ id: 'glo_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'glo_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'glo_o4b1', label: 'Realizar chequeo general', next: null }, { id: 'glo_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -755,17 +755,17 @@ export const DialogueData = {
                 'gqt_n2a': {
                     id: 'gqt_n2a',
                     text: "\"Adelante. No tengo nada que ocultar.\"",
-                    options: [{ id: 'gqt_o2a', label: 'Testear', next: 'gqt_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gqt_o2a', label: 'Bien, procedo a la inspección.', next: null, resultText: "*Permanece inmóvil.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gqt_n2b': {
                     id: 'gqt_n2b',
                     text: "\"Cansancio. Hambre. Lo normal.\"",
-                    options: [{ id: 'gqt_o2b', label: 'Testear', next: 'gqt_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gqt_o2b', label: 'Entendido. Iniciando escaneo.', next: null, resultText: "*Asiente levemente.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gqt_n4b': {
                     id: 'gqt_n4b',
                     text: "*Constantes vitales normales.*",
-                    options: [{ id: 'gqt_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gqt_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gqt_o4b1', label: 'Proceder con escaneo', next: null }, { id: 'gqt_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
@@ -787,17 +787,17 @@ export const DialogueData = {
                 'gsc_n2a': {
                     id: 'gsc_n2a',
                     text: "\"Gracias a Dios. He oído historias horribles de los otros refugios.\"",
-                    options: [{ id: 'gsc_o2a', label: 'Testear', next: 'gsc_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gsc_o2a', label: 'Relájate, voy a revisarte.', next: null, resultText: "*Sonríe nerviosamente.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gsc_n2b': {
                     id: 'gsc_n2b',
                     text: "*Traga saliva.* \"Bueno... mejor que fuera seguro que es.\"",
-                    options: [{ id: 'gsc_o2b', label: 'Testear', next: 'gsc_n4b', onclick: () => document.getElementById('btn-test').click() }]
+                    options: [{ id: 'gsc_o2b', label: 'No temas. Espera un segundo.', next: null, resultText: "*Se seca el sudor de la frente.*", onclick: () => document.getElementById('btn-test').click() }]
                 },
                 'gsc_n4b': {
                     id: 'gsc_n4b',
                     text: "*Taquicardia leve por ansiedad. Sin infección.*",
-                    options: [{ id: 'gsc_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: () => document.getElementById('btn-admit').click() }, { id: 'gsc_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
+                    options: [{ id: 'gsc_o4b1', label: 'Medir pulso y temperatura', next: null }, { id: 'gsc_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: () => document.getElementById('btn-ignore').click() }]
                 }
             }
         },
