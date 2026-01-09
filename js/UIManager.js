@@ -37,6 +37,7 @@ export class UIManager {
             morgueGridNight: $('#morgue-grid-night'),
             securityGrid: $('#security-grid'),
             securityCount: $('#security-count'),
+            roomPowerWarning: $('#room-power-warning'),
             shelterCount: $('#shelter-count'),
             generatorPanel: $('#generator-panel'),
             generatorPowerBar: $('#generator-power-bar'),
@@ -905,11 +906,16 @@ export class UIManager {
 
     renderSecurityRoom(items, onToggle) {
         this.elements.securityGrid.empty();
-        const filtered = items.filter(i => i.type !== 'generador');
-        this.elements.securityCount.text(filtered.length);
+        this.elements.securityCount.text(items.length);
+
+        const hasPower = State.generator && State.generator.isOn;
+        if (this.elements.roomPowerWarning) {
+            this.elements.roomPowerWarning.toggleClass('hidden', hasPower);
+        }
+
         const batch = [];
-        filtered.forEach((it, idx) => {
-            const icon = it.type === 'alarma' ? 'fa-bell' : it.type === 'puerta' ? 'fa-door-closed' : it.type === 'ventana' ? 'fa-window-maximize' : it.type === 'tuberias' ? 'fa-water' : it.type === 'generador' ? 'fa-bolt' : 'fa-question';
+        items.forEach((it, idx) => {
+            const icon = it.type === 'alarma' ? 'fa-bell' : it.type === 'puerta' ? 'fa-door-closed' : it.type === 'ventana' ? 'fa-window-maximize' : it.type === 'tuberias' ? 'fa-water' : 'fa-question';
             const activeOrSecured = it.type === 'alarma' ? it.active : it.secured;
             const activeColor = '#00FF00';
             const inactiveColor = '#ff2b2b';
@@ -920,23 +926,42 @@ export class UIManager {
                 class: `security-item bg-[#080808] p-3 flex flex-col gap-2 items-center hover:bg-[#111] transition-all ${stateClass}`,
                 css: { border: `1px solid ${borderColor}` }
             });
+
+            if (!hasPower) {
+                card.addClass('opacity-50 grayscale');
+                card.css({ border: '1px solid #333' });
+            }
+
             card.append($('<i>', { class: `fa-solid ${icon} text-3xl`, css: { color: iconColor } }));
-            const label = it.type === 'alarma' ? 'ALARMA' : (it.type === 'tuberias' ? 'TUBERÍAS' : it.type === 'generador' ? 'GENERADOR' : it.type.toUpperCase());
+            const label = it.type === 'alarma' ? 'ALARMA' : (it.type === 'tuberias' ? 'TUBERÍAS' : it.type.toUpperCase());
             card.append($('<span>', { text: label, class: 'text-xs font-mono' }));
             {
                 const btnText = it.type === 'alarma' ? (it.active ? 'ACTIVADA' : 'ACTIVAR') : (activeOrSecured ? 'ASEGURADO' : 'ASEGURAR');
                 const btn = $('<button>', { class: 'horror-btn horror-btn-primary w-full py-1 text-xs', text: btnText });
                 if (activeOrSecured) btn.addClass('opacity-60');
+
+                if (!hasPower) {
+                    btn.prop('disabled', true);
+                    btn.addClass('opacity-20 cursor-not-allowed');
+                    btn.text('SIN ENERGÍA');
+                }
+
                 btn.on('click', () => {
+                    if (!hasPower) return;
                     if (it.type === 'alarma') {
-                        if (!it.active) it.active = true;
-                        if (this.audio) this.audio.playSFXByKey('alarm_activate', { volume: 0.6, priority: 1 });
+                        it.active = !it.active;
+                        if (it.active && this.audio) this.audio.playSFXByKey('alarm_activate', { volume: 0.6, priority: 1 });
                     } else {
-                        if (!it.secured) it.secured = true;
+                        it.secured = !it.secured;
                         if (this.audio) {
-                            if (it.type === 'puerta') this.audio.playSFXByKey('door_secure', { volume: 0.6, priority: 1 });
-                            if (it.type === 'ventana') this.audio.playSFXByKey('window_secure', { volume: 0.6, priority: 1 });
-                            if (it.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
+                            if (it.secured) {
+                                if (it.type === 'puerta') this.audio.playSFXByKey('door_secure', { volume: 0.6, priority: 1 });
+                                if (it.type === 'ventana') this.audio.playSFXByKey('window_secure', { volume: 0.6, priority: 1 });
+                                if (it.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
+                            } else {
+                                if (it.type === 'puerta') this.audio.playSFXByKey('door_unsecure', { volume: 0.6, priority: 1 });
+                                if (it.type === 'ventana') this.audio.playSFXByKey('window_unsecure', { volume: 0.6, priority: 1 });
+                            }
                         }
                     }
                     if (onToggle) onToggle(idx, it);

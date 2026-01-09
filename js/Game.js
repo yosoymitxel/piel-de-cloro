@@ -481,6 +481,7 @@ class Game {
         if (State.currentNPC) {
             State.currentNPC.scanCount = 99; // Disipar energías inmediatamente
         }
+        this.shutdownSecuritySystem();
         this.audio.playSFXByKey('glitch_low', { volume: 0.8 });
         this.ui.showFeedback("¡FALLO CRÍTICO DEL GENERADOR!", "red");
         // Mark generator nav as critical
@@ -532,6 +533,7 @@ class Game {
             if (State.currentNPC) {
                 State.currentNPC.scanCount = 99;
             }
+            this.shutdownSecuritySystem();
 
             // Mark nav generator as warning/critical when turned off manually
             if (this.ui && this.ui.setNavItemStatus) {
@@ -543,6 +545,19 @@ class Game {
         this.ui.renderGeneratorRoom();
         this.updateHUD(); // Sincronizar contador de energía del puesto
         this.ui.updateInspectionTools();
+    }
+
+    shutdownSecuritySystem() {
+        if (State.securityItems) {
+            State.securityItems.forEach(item => {
+                if (item.type === 'alarma') item.active = false;
+                else item.secured = false;
+            });
+            // Si la sala es visible, refrescar para mostrar el estado apagado
+            if ($('#screen-room').is(':visible')) {
+                this.ui.renderSecurityRoom(State.securityItems, (idx, item) => { State.securityItems[idx] = item; });
+            }
+        }
     }
 
     calculatePurgeConsequences(npc) {

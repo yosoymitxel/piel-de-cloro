@@ -179,8 +179,9 @@ export const State = {
         const items = [];
         for (let i = 0; i < count; i++) {
             const t = types[Math.floor(Math.random() * types.length)];
-            if (t === 'alarma') items.push({ type: t, active: false });
-            else items.push({ type: t, secured: false });
+            const isInitActive = Math.random() > 0.5;
+            if (t === 'alarma') items.push({ type: t, active: isInitActive });
+            else items.push({ type: t, secured: isInitActive });
         }
         return items;
     },
@@ -237,13 +238,6 @@ export const State = {
         const prev = namedPool.length ? namedPool[Math.floor(Math.random() * namedPool.length)].name : (entry.npc || 'alguien');
         const whoMentioned = entry.npc || 'alguien';
         return `${whoMentioned} comentaba que ${prev} ${verb} en la oscuridad.`;
-    },
-
-    ensureGeneratorItem() {
-        const exists = this.securityItems.some(i => i.type === 'generador');
-        if (!exists) {
-            this.securityItems.unshift({ type: 'generador', isOn: true, mode: 'normal', power: 100 });
-        }
     },
 
     startNextDay() {

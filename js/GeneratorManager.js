@@ -47,25 +47,10 @@ export class GeneratorManager {
             const isLocked = state.generator.blackoutUntil > Date.now();
             if (isLocked) return;
 
-            state.generator.isOn = !state.generator.isOn;
-
-            if (this.audio) {
-                this.audio.playSFXByKey(state.generator.isOn ? 'ui_button_click' : 'ui_error', { volume: 0.5 });
+            // Delegar al controlador del juego para manejar efectos secundarios (apagado de seguridad, audio, etc.)
+            if (window.game && typeof window.game.toggleGenerator === 'function') {
+                window.game.toggleGenerator();
             }
-
-            this.ui.showFeedback(state.generator.isOn ? "GENERADOR ENCENDIDO" : "GENERADOR APAGADO", state.generator.isOn ? "green" : "red");
-
-            // Update nav status to reflect generator state
-            if (this.ui && this.ui.setNavItemStatus) {
-                this.ui.setNavItemStatus('nav-generator', state.generator.isOn ? null : 4);
-            }
-
-            // Refrescar advertencias y herramientas en otras pantallas
-            this.ui.updateGameActions();
-            this.ui.updateInspectionTools();
-
-            // Re-render everything affected
-            this.renderGeneratorRoom(state);
         });
     }
 
