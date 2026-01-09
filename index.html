@@ -92,7 +92,8 @@
                     <div class="flex gap-6">
                         <span title="Nivel de Paranoia"><i class="fa-solid fa-brain text-chlorine"></i> <span
                                 id="paranoia-level" class="text-chlorine-light font-bold">0%</span></span>
-                        <span title="Energía de Escaneo"><i class="fa-solid fa-bolt text-cyan-400"></i> <span
+                        <span id="hud-energy-container" class="cursor-pointer hover:text-white transition-colors"
+                            title="Energía de Escaneo"><i class="fa-solid fa-bolt text-cyan-400"></i> <span
                                 id="scan-energy" class="text-cyan-400 text-glow">⚡⚡</span></span>
                     </div>
                     <div class="flex gap-6">
@@ -134,7 +135,7 @@
                 </main>
 
                 <!-- Floating Log Button -->
-                <div class="absolute right-6 top-1/2 -translate-y-1/2 z-30">
+                <div id="btn-bitacora" class="absolute right-6 top-1/2 -translate-y-1/2 z-30">
                     <button id="btn-open-log"
                         class="horror-btn w-12 h-12 rounded-full flex items-center justify-center border-chlorine text-chlorine hover:bg-chlorine hover:text-black transition-all shadow-[0_0_15px_rgba(45,90,39,0.5)]"
                         title="Abrir Bitácora">

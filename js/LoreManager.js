@@ -37,6 +37,7 @@ export class LoreManager {
             contentHtml = `<p class="mb-2"><i class="fa-solid ${icon} mr-2"></i><span class="font-bold">${label}</span></p><p>${pick.text}</p>`;
 
             this.playIntermediateAudio(pick.kind);
+            State.addLogEntry('lore', `${label}: ${pick.text}`, { icon: icon });
         } else {
             titleText = data.title;
             contentHtml = data.content;

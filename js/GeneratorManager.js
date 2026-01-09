@@ -35,11 +35,13 @@ export class GeneratorManager {
 
         let color = state.generator.isOn ? this.ui.colors.energy : this.ui.colors.off;
 
-        color = state.generator.isOn
-            ? state.generator.mode === 'overload'
-                ? this.ui.colors.overload
-                : (state.generator.mode === 'normal' ? this.ui.colors.energy : this.ui.colors.safe)
-            : this.ui.colors.off;
+        if (state.generator.isOn) {
+            switch (state.generator.mode) {
+                case 'save': color = this.ui.colors.save; break;
+                case 'normal': color = this.ui.colors.energy; break;
+                case 'overload': color = this.ui.colors.overload; break;
+            }
+        }
 
         this.renderPowerBar(bar, power, state.generator.isOn, color);
 
@@ -145,9 +147,9 @@ export class GeneratorManager {
             }
         });
 
-        btnSave.toggleClass('horror-btn-primary', state.generator.mode === 'save');
-        btnNormal.toggleClass('horror-btn-primary', state.generator.mode === 'normal');
-        btnOver.toggleClass('horror-btn-primary', state.generator.mode === 'overload');
+        btnSave.toggleClass('horror-btn-save-active', state.generator.mode === 'save');
+        btnNormal.toggleClass('horror-btn-normal-active', state.generator.mode === 'normal');
+        btnOver.toggleClass('horror-btn-overload-active', state.generator.mode === 'overload');
 
         $('#btn-gen-manual-toggle').off('click').on('click', () => {
             $('#generator-manual').toggleClass('hidden');

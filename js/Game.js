@@ -50,6 +50,7 @@ class Game {
         $('#nav-shelter').on('click', () => { this.ui.lastNav = 'shelter'; this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openShelter(); });
         $('#nav-morgue').on('click', () => { this.ui.lastNav = 'morgue'; this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openMorgue(); });
         $('#nav-generator').on('click', () => { this.ui.lastNav = 'generator'; this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openGenerator(); });
+        $('#hud-energy-container').on('click', () => { this.ui.lastNav = 'generator'; this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openGenerator(); });
         $('#btn-open-log').on('click', () => { this.ui.lastNav = 'log'; this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.openLog(); });
         $('#btn-log-close-header, #btn-log-back').on('click', () => {
             this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
@@ -151,6 +152,13 @@ class Game {
         $('#btn-sleep').on('click', () => this.sleep());
         $('#btn-night-escape').on('click', () => this.finishRun());
 
+        // Log notification animation
+        $(document).on('log-added', () => {
+            const btn = $('#btn-open-log');
+            btn.addClass('log-btn-notify');
+            setTimeout(() => btn.removeClass('log-btn-notify'), 800);
+        });
+
         // Finalize day without purge (visible only at end of day in Shelter)
         $('#btn-finalize-day-no-purge').on('click', () => {
             if (State.isDayOver() && !State.isNight) {
@@ -193,7 +201,7 @@ class Game {
         State.dayClosed = false;
         State.dayEnded = false;
         State.generatorCheckedThisTurn = false;
-        State.generator = { isOn: false, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
+        State.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
 
         // Quitar pausa
         State.paused = false;

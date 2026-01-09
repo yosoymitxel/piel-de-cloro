@@ -102,8 +102,9 @@ export class UIManager {
         };
 
         this.colors = {
-            energy: '#1aff1a',
-            overload: '#ff3333',
+            energy: '#00ff00', // Normal (Verde)
+            save: '#00ced1',   // Ahorro (Cian)
+            overload: '#ffaa00', // Sobrecarga (Naranja)
             off: '#333333',
             safe: '#1b571bff',
             chlorine: '#79ff79',
@@ -165,6 +166,7 @@ export class UIManager {
 
         // Update Energy
         const energySpan = $('#scan-energy');
+        const energyIcon = $('#hud-energy-container i');
         if (currentNPC) {
             // Definir límite máximo según modo
             const mode = State.generator.mode;
@@ -176,9 +178,23 @@ export class UIManager {
             energySpan.text(`${currentEnergy}/${maxEnergy}`);
 
             if (currentEnergy > 0) {
-                energySpan.removeClass('text-alert animate-pulse').addClass('text-cyan-400');
+                let color = this.colors.energy;
+                if (mode === 'save') color = this.colors.save;
+                if (mode === 'overload') color = this.colors.overload;
+
+                energySpan.css('color', color);
+                energySpan.css('text-shadow', `0 0 5px ${color}`);
+                energySpan.removeClass('text-alert animate-pulse text-cyan-400');
+
+                energyIcon.css('color', color);
+                energyIcon.removeClass('text-cyan-400 text-alert');
             } else {
+                energySpan.css('color', ''); // Reset para usar clase
+                energySpan.css('text-shadow', '');
                 energySpan.removeClass('text-cyan-400').addClass('text-alert animate-pulse');
+
+                energyIcon.css('color', '');
+                energyIcon.removeClass('text-cyan-400').addClass('text-alert');
             }
 
             if (currentEnergy <= 0) {
@@ -188,6 +204,10 @@ export class UIManager {
             }
         } else {
             energySpan.text('---');
+            energySpan.css('color', '#555');
+            energySpan.css('text-shadow', 'none');
+            energyIcon.css('color', '#555');
+            energyIcon.removeClass('text-cyan-400 text-alert');
             this.elements.tools.forEach(btn => btn.addClass('btn-disabled'));
         }
     }

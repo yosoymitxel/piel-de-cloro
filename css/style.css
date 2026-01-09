@@ -199,6 +199,28 @@ h3 {
     box-shadow: 0 0 15px var(--color-chlorine-light);
 }
 
+/* Generator Mode Buttons Active States */
+.horror-btn-save-active {
+    background: #008b8b !important;
+    color: #fff !important;
+    border-color: #00ced1 !important;
+    box-shadow: 0 0 15px #008b8b;
+}
+
+.horror-btn-normal-active {
+    background: var(--color-chlorine) !important;
+    color: var(--color-dark) !important;
+    border-color: var(--color-chlorine-light) !important;
+    box-shadow: 0 0 15px var(--color-chlorine);
+}
+
+.horror-btn-overload-active {
+    background: #ffaa00 !important;
+    color: #000 !important;
+    border-color: #ffcc00 !important;
+    box-shadow: 0 0 15px #ffaa00;
+}
+
 .horror-btn-warning {
     border-color: var(--color-warning);
     color: var(--color-warning);
@@ -1312,12 +1334,18 @@ input[type=number].horror-input {
 }
 
 /* Log Entries */
+#btn-bitacora {
+    border-radius: 50%;
+    overflow: hidden;
+}
+
 .log-entry {
     background: rgba(0, 0, 0, 0.4);
     border-left: 2px solid #333;
     padding: 10px;
     font-size: 0.9rem;
     transition: all 0.2s;
+    animation: fadeInEntry 0.3s ease-out backwards;
 }
 
 .log-entry:hover {
@@ -1350,4 +1378,41 @@ input[type=number].horror-input {
     opacity: 0.6;
     margin-bottom: 4px;
     text-transform: uppercase;
+}
+
+@keyframes fadeInEntry {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.log-btn-notify {
+    animation: glowPulse 0.8s ease-out;
+}
+
+@keyframes glowPulse {
+    0% {
+        box-shadow: 0 0 15px rgba(45, 90, 39, 0.5);
+        border-color: var(--color-chlorine);
+        transform: scale(1);
+    }
+
+    50% {
+        box-shadow: 0 0 25px var(--color-chlorine-light);
+        border-color: var(--color-chlorine-light);
+        color: #fff;
+        transform: scale(1.15);
+    }
+
+    100% {
+        box-shadow: 0 0 15px rgba(45, 90, 39, 0.5);
+        border-color: var(--color-chlorine);
+        transform: scale(1);
+    }
 }
