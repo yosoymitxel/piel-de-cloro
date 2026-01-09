@@ -193,7 +193,7 @@ class Game {
         State.dayClosed = false;
         State.dayEnded = false;
         State.generatorCheckedThisTurn = false;
-        State.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0 };
+        State.generator = { isOn: false, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
 
         // Quitar pausa
         State.paused = false;

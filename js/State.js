@@ -120,7 +120,7 @@ export const State = {
         this.dialogueStarted = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
-        this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
+        this.generator = { isOn: false, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
         this.playerInfected = Math.random() < this.config.playerInfectedProbability;
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight = { occurred: false, victims: 0, message: '' };
@@ -263,7 +263,7 @@ export const State = {
         this.dayEnded = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
-        this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
+        this.generator = { isOn: false, mode: 'normal', power: 100, blackoutUntil: 0, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight.occurred = true;
         this.addLogEntry('system', `Inicio del Ciclo ${this.cycle}.`);
