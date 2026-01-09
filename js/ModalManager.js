@@ -198,78 +198,92 @@ export class ModalManager {
         if (allowPurge) {
             testsGrid.removeClass('hidden');
 
-            const makeSlot = (key, label, icon, animMethod) => {
-                const globalTestsAvailable = state.dayAfter.testsAvailable > 0;
-                const knownByDay = npc.revealedStats && npc.revealedStats.includes(key);
-                const doneNight = npc.dayAfter[key];
+            const isPurgeLocked = npc.purgeLockedUntil && state.cycle < npc.purgeLockedUntil;
+            const alreadyTested = npc.dayAfter && npc.dayAfter.usedNightTests >= 1;
+            const noTestsLeft = state.dayAfter.testsAvailable <= 0;
 
-                const btn = $('<button>', {
-                    class: `btn-test-icon ${knownByDay || doneNight ? 'done' : ''}`,
-                    html: `<i class="fa-solid ${icon}"></i><span>${label}</span>`
-                });
+            if (isPurgeLocked || alreadyTested || noTestsLeft) {
+                testsGrid.removeClass('grid-cols-4').addClass('grid-cols-1');
+                let msg = "";
+                let icon = "";
 
-                if (knownByDay || doneNight || (!globalTestsAvailable && !doneNight)) {
-                    btn.prop('disabled', true);
-                    if (!globalTestsAvailable && !doneNight && !knownByDay) {
-                        btn.addClass('opacity-20 grayscale border-gray-800 text-gray-600');
-                    }
+                if (isPurgeLocked) {
+                    msg = "PROTOCOLO DE SEGURIDAD: SUJETO RECIENTE (BLOQUEADO)";
+                    icon = "fa-lock";
+                } else if (alreadyTested) {
+                    msg = "LÍMITE DE TEST DIARIO ALCANZADO";
+                    icon = "fa-ban";
+                } else {
+                    msg = "SIN REACTIVOS DISPONIBLES";
+                    icon = "fa-flask";
                 }
 
-                btn.on('click', () => {
-                    if (knownByDay || npc.dayAfter[key]) return;
-                    if (npc.dayAfter.usedNightTests >= 1) {
-                        this.showModalError('SOLO 1 TEST NOCTURNO POR SUJETO');
-                        return;
+                testsGrid.html(`
+                    <div class="horror-btn horror-btn-disabled w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed text-xs flex items-center justify-center">
+                        <i class="fa-solid ${icon} mr-2"></i> ${msg}
+                    </div>
+                `);
+            } else {
+                testsGrid.removeClass('grid-cols-1').addClass('grid-cols-4');
+
+                const makeSlot = (key, label, icon, animMethod) => {
+                    const knownByDay = npc.revealedStats && npc.revealedStats.includes(key);
+
+                    const btn = $('<button>', {
+                        class: `btn-test-icon ${knownByDay ? 'done' : ''}`,
+                        html: `<i class="fa-solid ${icon}"></i><span>${label}</span>`
+                    });
+
+                    if (knownByDay) {
+                        btn.prop('disabled', true);
                     }
-                    if (state.dayAfter.testsAvailable <= 0) {
-                        this.showModalError('SIN TESTS DISPONIBLES');
-                        return;
-                    }
-                    state.dayAfter.testsAvailable--;
-                    npc.dayAfter[key] = true;
-                    npc.dayAfter.usedNightTests++;
 
-                    // Actualizar UI
-                    btn.addClass('done').prop('disabled', true);
-                    // Bloquear el resto
-                    testsGrid.find('.btn-test-icon').not('.done').prop('disabled', true);
+                    btn.on('click', () => {
+                        if (knownByDay) return;
+                        if (npc.dayAfter.usedNightTests >= 1) return;
+                        if (state.dayAfter.testsAvailable <= 0) return;
 
-                    this.elements.dayafterTestsLeft.text(state.dayAfter.testsAvailable);
+                        state.dayAfter.testsAvailable--;
+                        npc.dayAfter[key] = true;
+                        npc.dayAfter.usedNightTests++;
 
-                    // Ejecutar animación en el contenedor visual del modal
-                    const visualContainer = $('#modal-visual-container');
-                    if (this.ui[animMethod]) {
-                        // Mapeo de valores para la animación
-                        let val = null;
-                        if (key === 'temperature') val = npc.attributes.temperature;
-                        if (key === 'skinTexture') val = npc.attributes.skinTexture; // Necesita skinColor también, pero el método lo saca del DOM o args
-                        if (key === 'pulse') val = npc.attributes.pulse;
-                        if (key === 'pupils') val = npc.attributes.pupils;
+                        this.elements.dayafterTestsLeft.text(state.dayAfter.testsAvailable);
 
-                        // Llamar a la animación pasando el contenedor del modal
-                        if (typeof this.ui[animMethod] === 'function') {
-                            this.ui[animMethod](val, visualContainer);
-                        } else {
-                            console.error(`ModalManager Error: El método de animación '${animMethod}' no existe en UIManager.`);
+                        // Ejecutar animación en el contenedor visual del modal
+                        const visualContainer = $('#modal-visual-container');
+                        if (this.ui[animMethod]) {
+                            // Mapeo de valores para la animación
+                            let val = null;
+                            if (key === 'temperature') val = npc.attributes.temperature;
+                            if (key === 'skinTexture') val = npc.attributes.skinTexture; // Necesita skinColor también, pero el método lo saca del DOM o args
+                            if (key === 'pulse') val = npc.attributes.pulse;
+                            if (key === 'pupils') val = npc.attributes.pupils;
+
+                            // Llamar a la animación pasando el contenedor del modal
+                            if (typeof this.ui[animMethod] === 'function') {
+                                this.uianimMethod;
+                            } else {
+                                console.error(`ModalManager Error: El método de animación '${animMethod}' no existe en UIManager.`);
+                            }
                         }
-                    }
 
-                    // Re-render stats
-                    const complete = npc.dayAfter.dermis && npc.dayAfter.pupils && npc.dayAfter.temperature && npc.dayAfter.pulse;
-                    npc.dayAfter.validated = complete;
-                    this.ui.updateDayAfterSummary(state.admittedNPCs);
-                    this.renderModalStats(npc, allowPurge, state);
-                    this.clearModalError();
-                });
-                return btn;
-            };
+                        // Re-render stats
+                        const complete = npc.dayAfter.dermis && npc.dayAfter.pupils && npc.dayAfter.temperature && npc.dayAfter.pulse;
+                        npc.dayAfter.validated = complete;
+                        this.ui.updateDayAfterSummary(state.admittedNPCs);
+                        this.renderModalStats(npc, allowPurge, state);
+                        this.clearModalError();
+                    });
+                    return btn;
+                };
 
-            testsGrid.append(
-                makeSlot('skinTexture', 'DERMIS', 'fa-lightbulb', 'animateToolFlashlight'),
-                makeSlot('pupils', 'PUPILAS', 'fa-eye', 'animateToolPupils'),
-                makeSlot('temperature', 'TEMP', 'fa-temperature-half', 'animateToolThermometer'),
-                makeSlot('pulse', 'PULSO', 'fa-heart-pulse', 'animateToolPulse')
-            );
+                testsGrid.append(
+                    makeSlot('skinTexture', 'DERMIS', 'fa-lightbulb', 'animateToolFlashlight'),
+                    makeSlot('pupils', 'PUPILAS', 'fa-eye', 'animateToolPupils'),
+                    makeSlot('temperature', 'TEMP', 'fa-temperature-half', 'animateToolThermometer'),
+                    makeSlot('pulse', 'PULSO', 'fa-heart-pulse', 'animateToolPulse')
+                );
+            }
         }
     }
 
