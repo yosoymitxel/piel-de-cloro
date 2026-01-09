@@ -13,6 +13,17 @@ export class GeneratorManager {
         if (this.elements.genWarningShelter) this.elements.genWarningShelter.addClass('hidden');
         if (this.elements.genWarningPanel) this.elements.genWarningPanel.addClass('hidden');
 
+        // Update nav status based on state (Persistent Status)
+        if (this.ui && this.ui.setNavItemStatus) {
+            if (!state.generator.isOn) {
+                this.ui.setNavItemStatus('nav-generator', 4); // Critical
+            } else if (state.generator.power <= 10) {
+                this.ui.setNavItemStatus('nav-generator', 3); // Warning
+            } else {
+                this.ui.setNavItemStatus('nav-generator', null); // Clear
+            }
+        }
+
         // Refresh game actions to restore normal buttons
         this.ui.updateGameActions();
         this.ui.updateInspectionTools();

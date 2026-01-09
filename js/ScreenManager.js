@@ -32,12 +32,6 @@ export class ScreenManager {
         // Update active state in sidebar
         this.updateSidebarActive(screenName);
 
-        // Clear attention marking for the screen the player just opened
-        const navIdMap = { game: 'nav-guard', shelter: 'nav-shelter', morgue: 'nav-morgue', room: 'nav-room', generator: 'nav-generator' };
-        if (this.ui && this.ui.setNavItemStatus && navIdMap[screenName]) {
-            this.ui.setNavItemStatus(navIdMap[screenName], null);
-        }
-
         // Toggle visibility of morgue stats nav button
         $('#nav-morgue-stats').removeClass('hidden');
 

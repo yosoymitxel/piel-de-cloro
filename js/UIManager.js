@@ -765,6 +765,9 @@ export class UIManager {
         this.elements.shelterCount.text(`${npcs.length}/${max}`);
         this.elements.shelterGrid.empty();
 
+        // Clear nav status on view (acknowledgement of new entrants)
+        if (this.setNavItemStatus) this.setNavItemStatus('nav-shelter', null);
+
         const batch = [];
         npcs.forEach(npc => {
             // Lógica de deducción visual
@@ -913,6 +916,24 @@ export class UIManager {
         renderList(night, this.elements.morgueGridNight, 'night');
     }
 
+    updateSecurityNavStatus(items) {
+        if (!this.setNavItemStatus) return;
+        if (!items || items.length === 0) {
+            this.setNavItemStatus('nav-room', null);
+            return;
+        }
+
+        const unsecuredCount = items.filter(it => it.type === 'alarma' ? !it.active : !it.secured).length;
+
+        if (unsecuredCount === items.length) {
+            this.setNavItemStatus('nav-room', 4); // Critical (Red) - Todos apagados
+        } else if (unsecuredCount > 0) {
+            this.setNavItemStatus('nav-room', 3); // Warning (Yellow) - Al menos uno apagado
+        } else {
+            this.setNavItemStatus('nav-room', null); // Clear
+        }
+    }
+
     renderSecurityRoom(items, onToggle) {
         this.elements.securityGrid.empty();
         this.elements.securityCount.text(items.length);
@@ -983,14 +1004,7 @@ export class UIManager {
         if (batch.length) this.elements.securityGrid.append(batch);
 
         // Update nav status: if any unsecured channels exist, set warning; otherwise clear
-        const unsecured = items ? items.filter(i => i.type !== 'alarma' && !i.secured) : [];
-        if (this.setNavItemStatus) {
-            if (unsecured.length > 0) {
-                this.setNavItemStatus('nav-room', 3);
-            } else {
-                this.setNavItemStatus('nav-room', null);
-            }
-        }
+        this.updateSecurityNavStatus(items);
     }
 
     renderGeneratorRoom() {

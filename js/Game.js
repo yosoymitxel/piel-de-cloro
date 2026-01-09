@@ -257,6 +257,7 @@ class Game {
         }
         this.updateHUD();
         this.ui.updateRunStats(State);
+        this.ui.updateSecurityNavStatus(State.securityItems);
     }
 
     updateHUD() {
@@ -590,6 +591,7 @@ class Game {
             if ($('#screen-room').is(':visible')) {
                 this.ui.renderSecurityRoom(State.securityItems, (idx, item) => { State.securityItems[idx] = item; });
             }
+            this.ui.updateSecurityNavStatus(State.securityItems);
         }
     }
 
@@ -820,6 +822,11 @@ class Game {
                 State.addAdmitted(npc);
             }
         }
+
+        // Si hay habitantes iniciales, marcar el refugio con estatus naranja (3)
+        if (State.admittedNPCs.length > 0 && this.ui && this.ui.setNavItemStatus) {
+            this.ui.setNavItemStatus('nav-shelter', 3);
+        }
     }
 
     attemptDayIntrusion() {
@@ -862,9 +869,7 @@ class Game {
         if (item.type === 'ventana') this.audio.playSFXByKey('window_unsecure', { volume: 0.6, priority: 1 });
 
         // Mark the room as needing attention (deactivated channel)
-        if (this.ui && this.ui.setNavItemStatus) {
-            this.ui.setNavItemStatus('nav-room', 3); // warning
-        }
+        this.ui.updateSecurityNavStatus(State.securityItems);
 
         if ($('#screen-room').is(':visible')) {
             this.ui.renderSecurityRoom(State.securityItems, (idx, it) => { State.securityItems[idx] = it; });
