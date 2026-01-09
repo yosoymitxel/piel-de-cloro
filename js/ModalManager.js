@@ -29,7 +29,7 @@ export class ModalManager {
         const content = this.elements.msgContent;
         modal.removeClass('hidden').addClass('flex');
         modal.removeClass('modal-normal modal-lore modal-death modal-warning').addClass(`modal-${type}`);
-        
+
         const iconClass = {
             death: 'modal-death-icon',
             warning: 'modal-warning-icon',
@@ -37,9 +37,9 @@ export class ModalManager {
         }[type] || 'modal-normal-icon';
 
         content.html(`<span class="${iconClass}"></span> <span>${text}</span>`);
-        
+
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
-        
+
         this.elements.msgBtn.off('click').on('click', () => {
             modal.addClass('hidden').removeClass('flex');
             if (this.audio) this.audio.playSFXByKey('ui_modal_close', { volume: 0.5 });
@@ -69,17 +69,17 @@ export class ModalManager {
     openModal(npc, allowPurge, onPurgeConfirm, state) {
         this.elements.modal.removeClass('hidden').addClass('flex');
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
-        
+
         this.elements.modalName.text(`SUJETO ${npc.name}`);
         const visualContainer = $('#modal-npc-visual');
         visualContainer.empty().append(this.ui.renderAvatar(npc, 'sm'));
-        
+
         const avatarEl = visualContainer.find('.pixel-avatar');
         if (npc.death && npc.death.revealed && npc.isInfected) {
             avatarEl.addClass('infected');
         }
 
-        this.updateModalStatus(npc, allowPurge);
+        this.updateModalStatus(npc, allowPurge, state);
         this.renderModalStats(npc, allowPurge, state);
         this.renderModalLog(npc);
 
@@ -89,12 +89,12 @@ export class ModalManager {
                 const panel = $('#modal-npc .horror-panel');
                 panel.addClass('modal-blood-flash');
                 setTimeout(() => panel.removeClass('modal-blood-flash'), 700);
-                
+
                 if (this.audio) {
                     this.audio.playSFXByKey('purge_blood_flash', { volume: 0.6, priority: 2, lockMs: 600 });
                     this.audio.playSFXByKey('purge_confirm', { volume: 0.7, priority: 2, lockMs: 600 });
                 }
-                
+
                 onPurgeConfirm(npc);
                 this.closeModal(true);
             });
@@ -105,7 +105,7 @@ export class ModalManager {
         $('.close-modal').off('click').on('click', () => this.closeModal());
     }
 
-    updateModalStatus(npc, allowPurge) {
+    updateModalStatus(npc, allowPurge, state) {
         if (allowPurge) {
             this.elements.modalStatus.text("EN REFUGIO").css('color', '#fff');
         } else {
@@ -119,6 +119,14 @@ export class ModalManager {
                     statusText = npc.isInfected ? 'ASESINADO — CLORO' : 'ASESINADO — CIVIL';
                     color = npc.isInfected ? this.colors.chlorine : "#cccccc";
                 }
+            } else if (npc.exitCycle && state && npc.exitCycle < state.cycle) {
+                // Ignorados / Fugitivos
+                statusText = npc.isInfected ? 'FUGITIVO — CLORO' : 'FUGITIVO — CIVIL';
+                color = npc.isInfected ? this.colors.chlorine : "#cccccc";
+            } else if (npc.left && state && npc.left.cycle <= state.cycle) {
+                // Salidas nocturnas
+                statusText = npc.isInfected ? 'DESERCIÓN — CLORO' : 'DESERCIÓN — CIVIL';
+                color = npc.isInfected ? this.colors.chlorine : "#cccccc";
             }
             this.elements.modalStatus.text(statusText).css('color', color);
         }
@@ -140,11 +148,11 @@ export class ModalManager {
 
         const dermisTxt = this.ui.translateValue('skinTexture', npc.attributes.skinTexture);
         const pupilsTxt = this.ui.translateValue('pupils', npc.attributes.pupils);
-        const stayCycles = npc.enterCycle != null && npc.death ? 
-            Math.max(0, npc.death.cycle - npc.enterCycle) : 
+        const stayCycles = npc.enterCycle != null && npc.death ?
+            Math.max(0, npc.death.cycle - npc.enterCycle) :
             (npc.enterCycle != null ? Math.max(0, state.cycle - npc.enterCycle) : 0);
-        
-        const extraDeathInfo = npc.death ? 
+
+        const extraDeathInfo = npc.death ?
             `<p>MUERTE: <span class="text-white">CICLO ${npc.death.cycle}</span></p><p>TIEMPO EN REFUGIO: <span class="text-white">${stayCycles} ciclos</span></p>` : '';
 
         this.elements.modalStats.html(`
@@ -156,15 +164,15 @@ export class ModalManager {
         `);
 
         this.elements.modal.find('.dayafter-tests').remove();
-        
+
         if (allowPurge) {
             const testsGrid = $('<div>', { class: 'dayafter-tests mt-3' });
-            
+
             const makeSlot = (key, label) => {
                 const knownByDay = npc.revealedStats && npc.revealedStats.includes(key);
                 const doneNight = npc.dayAfter[key];
                 const slot = $('<div>', { class: `slot ${knownByDay || doneNight ? 'done blocked' : ''}`, text: label });
-                
+
                 slot.on('click', () => {
                     if (knownByDay || npc.dayAfter[key]) return;
                     if (npc.dayAfter.usedNightTests >= 1) {
@@ -181,7 +189,7 @@ export class ModalManager {
                     slot.addClass('done');
                     testsGrid.find('.slot').addClass('blocked');
                     this.elements.dayafterTestsLeft.text(state.dayAfter.testsAvailable);
-                    
+
                     // Re-render stats
                     const complete = npc.dayAfter.dermis && npc.dayAfter.pupils && npc.dayAfter.temperature && npc.dayAfter.pulse;
                     npc.dayAfter.validated = complete;

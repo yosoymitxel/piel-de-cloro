@@ -858,7 +858,21 @@ export class UIManager {
                     hoverClass = 'hover:border-blue-500 hover:bg-blue-500/10';
                 }
 
-                const isRevealedInfected = npc.death && npc.death.revealed && npc.isInfected;
+                let isRevealedInfected = false;
+                if (type === 'purged') {
+                    isRevealedInfected = npc.death && npc.death.revealed && npc.isInfected;
+                } else {
+                    // Para escapados y nocturnos, revelamos si pertenecen a un ciclo anterior
+                    // Ignorados (exitCycle): revelan al día siguiente (< State.cycle)
+                    // Nocturnos (left.cycle): revelan esa misma mañana (<= State.cycle)
+                    const isIgnoredRevealed = npc.exitCycle && npc.exitCycle < State.cycle;
+                    const isNightRevealed = npc.left && npc.left.cycle <= State.cycle;
+
+                    if ((isIgnoredRevealed || isNightRevealed) && npc.isInfected) {
+                        isRevealedInfected = true;
+                    }
+                }
+
                 const statusColorClass = isRevealedInfected ? 'border-alert shadow-[0_0_10px_rgba(255,0,0,0.2)]' : borderClass;
 
                 const card = $('<div>', {

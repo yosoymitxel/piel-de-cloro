@@ -28,7 +28,3 @@ La pantalla de Perímetro (anteriormente Morgue) muestra el registro histórico 
 - Comprobar que `startNextDay()` marca `death.revealed = true` y que eso se refleja en la UI al abrir la morgue.
 - Validar que la tarjeta aplica la clase `infected` sólo cuando corresponde y que se dispara `morgue_reveal_infected` al render.
 - Asegurar que la acción click en la tarjeta invoca `ui.openModal(npc, false, null)` y muestra los detalles esperados.
-
----
-
-¿Prefieres que también agregue un documento con ejemplos de cómo testear UI (jest/dom) estas pantallas?
