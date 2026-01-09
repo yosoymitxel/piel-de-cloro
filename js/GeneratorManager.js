@@ -59,14 +59,19 @@ export class GeneratorManager {
         const btnNormal = $('#btn-gen-normal');
         const btnOver = $('#btn-gen-over');
 
+        const npc = state.currentNPC;
+        const actionTaken = (npc && npc.scanCount > 0) || state.dialogueStarted || state.generator.restartLock;
+        const currentMax = state.generator.maxModeCapacityReached;
+
         const handleModeSwitch = (newMode, newCap) => {
-            const currentMax = state.generator.maxModeCapacityReached;
-            const npc = state.currentNPC;
-
-            // Restriction logic: can't increase power after interaction
-            const actionTaken = (npc && npc.scanCount > 0) || state.dialogueStarted;
-
             if (actionTaken && newCap > currentMax) {
+                // Animación de feedback en el texto de restricción
+                const restrictionText = $('#generator-restriction-text');
+                restrictionText.removeClass('text-gray-400').addClass('text-alert animate-pulse font-bold');
+                setTimeout(() => {
+                    restrictionText.removeClass('text-alert animate-pulse font-bold').addClass('text-gray-400');
+                }, 600);
+
                 this.ui.showFeedback(`SISTEMA BLOQUEADO: No puedes subir la potencia tras interactuar con el civil.`, "yellow");
                 if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
                 return false;
@@ -101,13 +106,20 @@ export class GeneratorManager {
         btnSave.off('click').on('click', () => handleModeSwitch('save', 1));
         btnNormal.off('click').on('click', () => handleModeSwitch('normal', 2));
 
-        if (state.generator.overclockCooldown) {
-            btnOver.prop('disabled', true).addClass('opacity-50 grayscale cursor-not-allowed');
-            btnOver.attr('title', 'BLOQUEADO: Espera al siguiente turno');
-        } else {
-            btnOver.prop('disabled', false).removeClass('opacity-50 grayscale cursor-not-allowed');
-            btnOver.attr('title', 'Sobrecarga el sistema (Overclock)');
-        }
+        // Helper para actualizar estado visual de botones
+        const updateBtnState = (btn, targetCap, isCooldown = false) => {
+            const isBlocked = (actionTaken && targetCap > currentMax) || isCooldown;
+            if (isBlocked) {
+                btn.prop('disabled', true).addClass('opacity-30 grayscale cursor-not-allowed border-dashed');
+                btn.attr('title', isCooldown ? 'BLOQUEADO: Enfriamiento' : 'BLOQUEADO: Restricción de potencia');
+            } else {
+                btn.prop('disabled', false).removeClass('opacity-30 grayscale cursor-not-allowed border-dashed');
+                btn.attr('title', '');
+            }
+        };
+
+        updateBtnState(btnNormal, 2);
+        updateBtnState(btnOver, 3, state.generator.overclockCooldown);
 
         btnOver.off('click').on('click', () => {
             if (state.generator.overclockCooldown) return;

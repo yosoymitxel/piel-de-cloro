@@ -5,11 +5,13 @@ La sala de vigilancia permite revisar y asegurar elementos de seguridad que redu
 
 ## Estado relevante
  - `State.securityItems` (Array): elementos generados al iniciar la run. Cada elemento tiene la forma `{ type: 'alarma'|'puerta'|'ventana'|'tuberias', active?/secured? }`.
-  - `alarma` → `{ type: 'alarma', active: boolean }`
-  - otros (`puerta`, `ventana`, `tuberias`) → `{ type, secured: boolean }`
+  - `alarma` → `{ type: 'alarma', active: boolean }`.
+  - otros (`puerta`, `ventana`, `tuberias`) → `{ type, secured: boolean }`.
+  - **Nota:** Los estados iniciales (`active`/`secured`) se generan aleatoriamente (50% probabilidad) al inicio de la partida.
 
 ## Elementos UI
 - `#screen-room` – pantalla de la sala de vigilancia.
+- `#room-power-warning` – aviso visual "SIN ENERGÍA" cuando el generador está apagado.
 - `#security-grid` – rejilla con tarjetas de seguridad.
 - `#security-count` – contador de ítems.
 - Botones creados dentro de cada tarjeta que alternan `active`/`secured` y disparan sonidos/feedback.
@@ -17,7 +19,9 @@ La sala de vigilancia permite revisar y asegurar elementos de seguridad que redu
 
 ## Lógica y comportamiento
 - `UIManager.renderSecurityRoom(items, onToggle)` renderiza las tarjetas y crea botones para activar/asegurar.
+  - Si `State.generator.isOn` es `false`, la interfaz se bloquea, muestra el aviso de energía y deshabilita los botones.
 - `Game.openRoom()` recupera `State.securityItems` y llama al renderer.
+- **Dependencia Energética:** Si el generador se apaga (manual o fallo), se invoca `Game.shutdownSecuritySystem()`, que fuerza todos los ítems a estado inseguro/inactivo.
 - Intrusiones se procesan en `Game.processIntrusions()` y `Game.attemptDayIntrusion()`:
   - Se calcula `prob = State.config.securityIntrusionProbability * State.getIntrusionModifier()`.
   - Las intrusiones usan como vía un `channel` (un item con `type !== 'alarma'` y `!secured`) o la `alarma` si no hay canales disponibles.
@@ -28,3 +32,4 @@ La sala de vigilancia permite revisar y asegurar elementos de seguridad que redu
 - Testear que asegurar una `puerta`/`ventana` evita que sea seleccionada como `via` para intrusión.
 - Validar que `alarm.active` envía la notificación apropiada cuando ocurre una intrusión.
 - Asegurar que el botón `#btn-shelter-goto-gen` aparece sólo cuando `generatorOk` es false (basado en `State.generator.power` y `isOn`).
+- Verificar que al apagar el generador, todos los ítems de la sala pasan a `false` y requieren reactivación manual al volver la luz.

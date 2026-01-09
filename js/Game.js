@@ -241,6 +241,7 @@ class Game {
         if (currentMode === 'save') initialCap = 1;
         if (currentMode === 'overload') initialCap = 3;
         State.generator.maxModeCapacityReached = initialCap;
+        State.generator.restartLock = false;
 
         this.ui.hideFeedback();
         this.ui.renderNPC(State.currentNPC);
@@ -505,6 +506,14 @@ class Game {
             if (this.ui && this.ui.setNavItemStatus) {
                 this.ui.setNavItemStatus('nav-generator', null);
             }
+
+            // Penalización por reinicio: Modo Ahorro forzado y Overclock bloqueado
+            State.generator.mode = 'save';
+            State.generator.power = 32;
+            State.generator.overclockCooldown = true;
+            State.generator.maxModeCapacityReached = 1;
+            State.generator.restartLock = true;
+            this.ui.showFeedback("SISTEMA REINICIADO: MODO AHORRO", "yellow");
 
             // LÓGICA DE ENERGÍA DE EMERGENCIA
             // Si el jugador no ha hecho nada (scanCount=0 y no diálogo) y el generador estaba apagado

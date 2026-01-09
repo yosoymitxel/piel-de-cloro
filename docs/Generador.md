@@ -12,6 +12,7 @@ La sala de generador controla el suministro energético del puesto. Afecta las h
 - `overloadRiskTurns` (int): turnos restantes con riesgo de fallo por sobrecarga.
 - `maxModeCapacityReached` (int): el máximo de cargas consumibles permitido por el modo (1,2,3).
 - `emergencyEnergyGranted` (boolean): evita restaurar energía de emergencia más de una vez por NPC.
+- `restartLock` (boolean): indica si el generador acaba de ser reiniciado, impidiendo subir la potencia en el mismo turno.
 
 ## Configuración (State.config.generator)
 - `consumption`: cargas por modo (save:1, normal:2, overload:3).
@@ -32,10 +33,15 @@ La sala de generador controla el suministro energético del puesto. Afecta las h
 - `GeneratorManager.renderGeneratorRoom(state)` renderiza todos los controles y estado.
 - Cambiar modo valida si ya hubo interacción con el NPC (no se permite subir capacidad después de usar herramientas o empezar diálogo).
 - `overload` puede causar un apagón inmediato con ~35% de probabilidad: setea `blackoutUntil` y se llama `ui.applyBlackout(ms)`.
-- Cuando el generador está `isOn === false`, las acciones de inspección quedan bloqueadas (scanCount se ajusta a 99 por seguridad en el flujo del juego).
+- **Apagado:** Cuando el generador se apaga (`isOn = false`), ya sea manual o por fallo:
+  - Las acciones de inspección se bloquean.
+  - Se llama a `Game.shutdownSecuritySystem()`, desactivando toda la Sala de Vigilancia.
 - `Game.updateGenerator()` aplica riesgos por sobrecarga (activa `overloadRiskTurns`) y puede llamar a `triggerGeneratorFailure()`.
 - `Game.triggerGeneratorFailure()` apaga el generador, bloquea scans y reproduce efectos sonoros y visuales.
-- Encender el generador puede restaurar 1 carga de emergencia en ciertas condiciones (si no hubo actividad o tras fallo) y marcar `emergencyEnergyGranted` para evitar abuso.
+- **Encendido / Reinicio:** Al encender el generador:
+  - Se fuerza el modo **AHORRO** (1 carga).
+  - Se activa `restartLock` y `overclockCooldown`, impidiendo subir a Normal o Sobrecarga hasta el siguiente turno.
+  - Puede restaurar 1 carga de emergencia si no hubo actividad previa con el NPC actual.
 
 ## Notas de integración / pruebas sugeridas ✅
 - Verificar que los botones `#btn-gen-*` respetan la lógica de `maxModeCapacityReached` cuando `npc.scanCount > 0` o `dialogueStarted`.
@@ -43,6 +49,3 @@ La sala de generador controla el suministro energético del puesto. Afecta las h
 - Testear la restauración de energía de emergencia al encender tras fallo o si no hubo actividad (flag `emergencyEnergyGranted`).
 - Comprobar que `DialogueEngine` reemplaza `{generatorStatus}` por "apagado" / "inestable" / "estable" según `isOn` y `power`.
 
----
-
-Si quieres, puedo añadir diagramas de estado (transiciones entre modos) o ejemplos de pruebas unitarias/automatizadas para estos comportamientos.
