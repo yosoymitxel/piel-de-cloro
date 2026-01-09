@@ -385,6 +385,11 @@ export class UIManager {
                     npc.dialogueStarted = true;
                     this.hideOmitOption();
 
+                    // Riesgo de degradación de seguridad durante el diálogo
+                    if (window.game && typeof window.game.checkSecurityDegradation === 'function') {
+                        window.game.checkSecurityDegradation();
+                    }
+
                     // Play optional sfx tied to option
                     if (opt.audio && this.audio) this.audio.playSFXByKey(opt.audio, { volume: 0.6 });
 
@@ -764,6 +769,7 @@ export class UIManager {
         npcs.forEach(npc => {
             // Lógica de deducción visual
             const isValidated = npc.dayAfter && npc.dayAfter.validated;
+            const isPurgeLocked = npc.purgeLockedUntil && State.cycle < npc.purgeLockedUntil;
             let borderClass = 'border-[#333]';
             let bgClass = 'bg-[#080808]';
             let statusIcon = '';
@@ -776,6 +782,9 @@ export class UIManager {
                     borderClass = 'border-green-500/50 bg-green-500/10';
                     statusIcon = '<i class="fa-solid fa-shield-check text-green-500 text-xs absolute top-1 right-1"></i>';
                 }
+            } else if (isPurgeLocked) {
+                borderClass = 'border-gray-600 border-dashed';
+                statusIcon = '<i class="fa-solid fa-lock text-gray-500 text-[10px] absolute top-1 right-1"></i>';
             }
 
             const card = $('<div>', {
@@ -1021,7 +1030,18 @@ export class UIManager {
 
     // Modal management delegators
     openModal(npc, allowPurge, onPurgeConfirm) {
+        // Verificar si el NPC tiene bloqueo de purga (intruso reciente)
+        const isPurgeLocked = npc.purgeLockedUntil && State.cycle < npc.purgeLockedUntil;
+
         this.modalManager.openModal(npc, allowPurge, onPurgeConfirm, State);
+
+        if (isPurgeLocked && allowPurge) {
+            const btn = $('#btn-modal-purge');
+            btn.prop('disabled', true);
+            btn.addClass('opacity-50 cursor-not-allowed grayscale');
+            btn.html('<i class="fa-solid fa-lock mr-2"></i> PURGA BLOQUEADA (INTRUSO RECIENTE)');
+            this.showModalError("Protocolo de seguridad: Los intrusos recientes deben ser procesados en el siguiente ciclo.");
+        }
     }
 
     closeModal(silent = false) {

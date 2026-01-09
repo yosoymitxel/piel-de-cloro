@@ -67,6 +67,7 @@ export class ModalManager {
     }
 
     openModal(npc, allowPurge, onPurgeConfirm, state) {
+        this.clearModalError();
         this.elements.modal.removeClass('hidden').addClass('flex');
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
 
@@ -85,6 +86,12 @@ export class ModalManager {
 
         if (allowPurge) {
             this.elements.modalPurgeBtn.removeClass('hidden');
+
+            // Resetear estado del botón (por si quedó bloqueado por un NPC anterior)
+            this.elements.modalPurgeBtn.prop('disabled', false);
+            this.elements.modalPurgeBtn.removeClass('opacity-50 cursor-not-allowed grayscale');
+            this.elements.modalPurgeBtn.html('<i class="fa-solid fa-biohazard mr-2"></i> PURGAR DEL REFUGIO');
+
             this.elements.modalPurgeBtn.off('click').on('click', () => {
                 const panel = $('#modal-npc .horror-panel');
                 panel.addClass('modal-blood-flash');

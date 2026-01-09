@@ -303,6 +303,7 @@ class Game {
         this.isAnimating = true;
         State.verificationsCount++;
         npc.scanCount++;
+        this.checkSecurityDegradation(); // Riesgo de fallo en seguridad al usar herramientas
         this.updateHUD(); // Actualizar el HUD inmediatamente (refleja energía en el contador)
         let result = "";
         let color = "yellow";
@@ -556,6 +557,29 @@ class Game {
         this.ui.updateInspectionTools();
     }
 
+    checkSecurityDegradation() {
+        // Probabilidad de que un sistema falle durante la operación (diálogo o tests)
+        // Usamos una probabilidad ajustada para que no sea tan agresiva como la de fin de turno
+        const chance = (State.config.dayDeactivationProbability || 0.5) * 0.3;
+
+        if (Math.random() < chance) {
+            const items = State.securityItems;
+            const securedChannels = items.map((it, idx) => ({ it, idx })).filter(x => x.it.type !== 'alarma' && x.it.secured);
+            const activeAlarm = items.map((it, idx) => ({ it, idx })).find(x => x.it.type === 'alarma' && x.it.active);
+
+            let target = null;
+            if (securedChannels.length > 0) {
+                target = securedChannels[Math.floor(Math.random() * securedChannels.length)];
+            } else if (activeAlarm) {
+                target = activeAlarm;
+            }
+
+            if (target) {
+                this.deactivateSecurityItem(target.it, target.idx);
+            }
+        }
+    }
+
     shutdownSecuritySystem() {
         if (State.securityItems) {
             State.securityItems.forEach(item => {
@@ -748,6 +772,7 @@ class Game {
         npc.scanCount = 1;
         npc.history = npc.history || [];
         npc.history.push(`Intrusión ${period} por ${via.type}.`);
+        npc.purgeLockedUntil = State.cycle + 1; // Penalización: No se puede purgar hasta el siguiente ciclo
         State.addAdmitted(npc);
         this.audio.playSFXByKey('intrusion_detected', { volume: 0.6, priority: 1 });
         if (via.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
@@ -791,6 +816,7 @@ class Game {
                 npc.scanCount = 1;
                 npc.history = npc.history || [];
                 npc.history.push('Ingreso inicial por pertenencia al refugio.');
+                npc.purgeLockedUntil = State.cycle + 1; // Penalización: No se puede purgar en el primer día
                 State.addAdmitted(npc);
             }
         }
@@ -803,33 +829,9 @@ class Game {
             const alarm = items.find(i => i.type === 'alarma');
             const channels = items.filter(i => i.type !== 'alarma' && !i.secured);
             const prob = State.config.dayIntrusionProbability * State.getIntrusionModifier();
-            if (Math.random() < State.config.dayDeactivationProbability) {
-                const securedChannels = items.map((it, idx) => ({ it, idx })).filter(x => x.it.type !== 'alarma' && x.it.secured);
-                const activeAlarm = items.map((it, idx) => ({ it, idx })).find(x => x.it.type === 'alarma' && x.it.active);
-                let target = null;
-                if (securedChannels.length > 0) {
-                    target = securedChannels[Math.floor(Math.random() * securedChannels.length)];
-                } else if (activeAlarm) {
-                    target = activeAlarm;
-                }
-                if (target) {
-                    if (target.it.type === 'alarma') target.it.active = false;
-                    else target.it.secured = false;
-                    State.securityItems[target.idx] = target.it;
-                    if (target.it.type === 'alarma') this.audio.playSFXByKey('alarm_deactivate', { volume: 0.6, priority: 1 });
-                    if (target.it.type === 'puerta') this.audio.playSFXByKey('door_unsecure', { volume: 0.6, priority: 1 });
-                    if (target.it.type === 'ventana') this.audio.playSFXByKey('window_unsecure', { volume: 0.6, priority: 1 });
 
-                    // Mark the room as needing attention (deactivated channel)
-                    if (this.ui && this.ui.setNavItemStatus) {
-                        this.ui.setNavItemStatus('nav-room', 3); // warning
-                    }
-
-                    if ($('#screen-room').is(':visible')) {
-                        this.ui.renderSecurityRoom(State.securityItems, (idx, item) => { State.securityItems[idx] = item; });
-                    }
-                }
-            }
+            // La desactivación ahora ocurre durante las acciones (checkSecurityDegradation),
+            // aquí solo comprobamos si entra alguien por los huecos dejados.
             if (Math.random() < prob) {
                 let via = null;
                 if (channels.length > 0) {
@@ -846,6 +848,26 @@ class Game {
                 }
             }
             State.rescheduleIntrusion();
+        }
+    }
+
+    deactivateSecurityItem(item, idx) {
+        if (item.type === 'alarma') item.active = false;
+        else item.secured = false;
+
+        State.securityItems[idx] = item;
+
+        if (item.type === 'alarma') this.audio.playSFXByKey('alarm_deactivate', { volume: 0.6, priority: 1 });
+        if (item.type === 'puerta') this.audio.playSFXByKey('door_unsecure', { volume: 0.6, priority: 1 });
+        if (item.type === 'ventana') this.audio.playSFXByKey('window_unsecure', { volume: 0.6, priority: 1 });
+
+        // Mark the room as needing attention (deactivated channel)
+        if (this.ui && this.ui.setNavItemStatus) {
+            this.ui.setNavItemStatus('nav-room', 3); // warning
+        }
+
+        if ($('#screen-room').is(':visible')) {
+            this.ui.renderSecurityRoom(State.securityItems, (idx, it) => { State.securityItems[idx] = it; });
         }
     }
 }
