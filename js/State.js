@@ -122,7 +122,9 @@ export const State = {
     isNight: false,
     dayClosed: false,
     dayEnded: false,
+    endingTriggered: false,
     generatorCheckedThisTurn: false,
+    nightPurgePerformed: false,
     lastNight: {
         occurred: false,
         victims: 0,
@@ -160,7 +162,9 @@ export const State = {
         this.isNight = false;
         this.dayClosed = false;
         this.dayEnded = false;
+        this.endingTriggered = false;
         this.generatorCheckedThisTurn = false;
+        this.nightPurgePerformed = false;
         this.dialogueStarted = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
@@ -322,6 +326,7 @@ export const State = {
         this.isNight = false;
         this.dayClosed = false;
         this.dayEnded = false;
+        this.nightPurgePerformed = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
         

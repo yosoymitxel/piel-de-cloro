@@ -29,8 +29,19 @@ export class ScreenManager {
 
         // Toggle finalize button visibility in Shelter
         if (screenName === 'shelter') {
-            const shouldShow = state.isDayOver() && !state.isNight;
+            // Mostrar si el día terminó (fase de transición) O si es de noche (gestión de refugio)
+            const isTransition = state.isDayOver() && !state.isNight;
+            const isNightManagement = state.isNight;
+            const shouldShow = isTransition || isNightManagement;
+            
             this.elements.finalizeNoPurgeBtn.toggleClass('hidden', !shouldShow);
+            
+            // Ajustar texto según el contexto
+            if (isNightManagement) {
+                this.elements.finalizeNoPurgeBtn.text('VOLVER AL PROTOCOLO NOCTURNO');
+            } else {
+                this.elements.finalizeNoPurgeBtn.text('FINALIZAR TURNO SIN PURGAR');
+            }
         } else {
             this.elements.finalizeNoPurgeBtn.addClass('hidden');
         }
@@ -121,7 +132,7 @@ export class ScreenManager {
                         </div>
                         <!-- Status Icon Overlay -->
                         <div class="absolute top-0 right-0 p-0.5 bg-black/50">
-                            <i class="fa-solid ${icon} ${colorClass} text-[8px]"></i>
+                            <i class="fa-solid ${icon} ${colorClass} text-xs"></i>
                         </div>
                     </div>
                     
@@ -129,10 +140,10 @@ export class ScreenManager {
                     <div class="flex flex-col overflow-hidden w-full">
                         <div class="flex justify-between items-center">
                             <span class="font-mono text-xs font-bold text-white truncate">${npc.name}</span>
-                            <span class="font-mono text-[9px] ${colorClass} border border-current px-1 rounded-[2px]">${statusLabel}</span>
+                            <span class="font-mono text-xs ${colorClass} border border-current px-1 rounded-[2px]">${statusLabel}</span>
                         </div>
-                        <span class="font-mono text-[10px] text-chlorine-light opacity-80 truncate">${npc.occupation || 'Sin registro'}</span>
-                        <div class="flex gap-2 text-[9px] opacity-50 font-mono mt-0.5">
+                        <span class="font-mono text-xs text-chlorine-light opacity-80 truncate">${npc.occupation || 'Sin registro'}</span>
+                        <div class="flex gap-2 text-xs opacity-50 font-mono mt-0.5">
                             <span><i class="fa-solid fa-fingerprint"></i> ${npc.personality ? npc.personality.toUpperCase() : '???'}</span>
                         </div>
                     </div>

@@ -319,7 +319,7 @@ export class UIManager {
             };
             const modeLabel = modeMap[currentMode] || `Modo ${currentMode}`;
 
-            let extraLabel = `<div class="col-span-full text-center text-[10px] text-chlorine-light mb-1 opacity-80 uppercase tracking-widest">
+            let extraLabel = `<div class="col-span-full text-center text-xs text-chlorine-light mb-1 opacity-80 uppercase tracking-widest">
                 <i class="fa-solid fa-bolt mr-1"></i> ${modeLabel}
             </div>`;
 
@@ -785,59 +785,24 @@ export class UIManager {
 
     showLore(type, onClose) { return this.modules.lore.showLore(type, onClose); }
 
-    showPreCloseFlow(state, onAction) {
-        const overlay = $('#preclose-overlay');
-        const statusText = $('#preclose-shelter-status');
-        const optEscape = $('#preclose-opt-escape');
-        const optSleep = $('#preclose-opt-sleep');
-        const optRelocate = $('#preclose-opt-relocate');
-        
+    renderNightScreen(state) {
         const count = state.admittedNPCs.length;
         const max = state.config.maxShelterCapacity;
         const isFull = count >= max;
 
-        // Actualizar UI de capacidad
-        statusText.text(`${count}/${max}`);
+        $('#night-shelter-status').text(`${count}/${max}`);
+        $('#night-paranoia-status').text(`${Math.round(state.paranoia)}%`);
+
         if (isFull) {
-            statusText.removeClass('text-white').addClass('text-alert animate-pulse');
-            optEscape.removeClass('opacity-50 grayscale pointer-events-none').addClass('border-white/40');
+            $('#night-shelter-status').removeClass('text-white').addClass('text-alert animate-pulse');
         } else {
-            statusText.removeClass('text-alert animate-pulse').addClass('text-white');
-            optEscape.addClass('opacity-50 grayscale pointer-events-none').removeClass('border-white/40');
+            $('#night-shelter-status').removeClass('text-alert animate-pulse').addClass('text-white');
         }
 
-        overlay.removeClass('hidden').addClass('flex');
-        if (this.audio) this.audio.playSFXByKey('preclose_overlay_open', { volume: 0.5 });
+        // Enable/Disable escape button
+        $('#btn-night-escape').prop('disabled', !isFull);
         
-        // Ocultar sidebar mientras el flujo está activo
-        this.elements.sidebar.addClass('hidden');
-
-        // Configurar botones
-        $('#btn-preclose-open-shelter').off('click').on('click', () => {
-            overlay.addClass('hidden').removeClass('flex');
-            if (onAction) onAction('purge');
-        });
-
-        $('#btn-preclose-stay').off('click').on('click', () => {
-            overlay.addClass('hidden').removeClass('flex');
-            if (onAction) onAction('stay');
-        });
-
-        optSleep.off('click').on('click', () => {
-            overlay.addClass('hidden').removeClass('flex');
-            if (onAction) onAction('finalize'); // Equivale a dormir
-        });
-
-        optRelocate.off('click').on('click', () => {
-            overlay.addClass('hidden').removeClass('flex');
-            if (onAction) onAction('relocate');
-        });
-
-        optEscape.off('click').on('click', () => {
-            if (!isFull) return;
-            overlay.addClass('hidden').removeClass('flex');
-            if (onAction) onAction('escape');
-        });
+        this.showScreen('night');
     }
 
     showFeedback(text, color = 'yellow') {
@@ -891,7 +856,7 @@ export class UIManager {
                 }
             } else if (isPurgeLocked) {
                 borderClass = 'border-gray-600 border-dashed';
-                statusIcon = '<i class="fa-solid fa-lock text-gray-500 text-[10px] absolute top-1 right-1"></i>';
+                statusIcon = '<i class="fa-solid fa-lock text-gray-500 text-xs absolute top-1 right-1"></i>';
             } else if (canTest) {
                 borderClass = 'border-save';
                 bgClass = 'bg-save/5';
@@ -961,7 +926,7 @@ export class UIManager {
         const renderList = (list, container, type) => {
             container.empty();
             if (!list || list.length === 0) {
-                container.append($('<div>', { class: 'text-[10px] text-gray-600 italic p-2', text: 'Sin registros.' }));
+                container.append($('<div>', { class: 'text-xs text-gray-600 italic p-2', text: 'Sin registros.' }));
                 return;
             }
 
@@ -1009,12 +974,12 @@ export class UIManager {
                     avatar.addClass('infected');
                     // Badge de infectado
                     card.append($('<div>', {
-                        class: 'absolute top-1 right-1 text-alert text-[10px] animate-pulse',
+                        class: 'absolute top-1 right-1 text-alert text-xs animate-pulse',
                         html: '<i class="fa-solid fa-biohazard"></i>'
                     }));
                 }
 
-                const name = $('<span>', { text: npc.name, class: 'text-[10px] font-mono text-gray-400 group-hover:text-white truncate w-full text-center' });
+                const name = $('<span>', { text: npc.name, class: 'text-xs font-mono text-gray-400 group-hover:text-white truncate w-full text-center' });
                 card.append(avatar, name);
                 card.on('click', () => onDetailClick(npc));
                 batch.push(card[0]);
@@ -1189,6 +1154,11 @@ export class UIManager {
         btn.find('i').css('color', '');
     }
 
+    clearAllNavStatuses() {
+        const navItems = ['nav-guard', 'nav-room', 'nav-shelter', 'nav-morgue', 'nav-generator', 'btn-open-log'];
+        navItems.forEach(id => this.setNavItemStatus(id, null));
+    }
+
     // Modal management delegators
     openModal(npc, allowPurge, onPurgeConfirm) {
         // Verificar si el NPC tiene bloqueo de purga (intruso reciente)
@@ -1237,6 +1207,32 @@ export class UIManager {
             else overlay.remove();
         };
         requestAnimationFrame(step);
+    }
+
+    setNavLocked(locked) {
+        const navItems = ['nav-guard', 'nav-room', 'nav-shelter', 'nav-morgue', 'nav-generator', 'btn-open-log'];
+        navItems.forEach(id => {
+            const $el = $(`#${id}`);
+            if (locked) {
+                // Durante el bloqueo en la noche (gestión de refugio), solo permitimos interactuar con el refugio
+                if (id === 'nav-shelter' && State.isNight) {
+                    $el.prop('disabled', false).removeClass('opacity-40 grayscale pointer-events-none').addClass('active');
+                } else {
+                    $el.prop('disabled', true).addClass('opacity-40 grayscale pointer-events-none transition-all duration-300');
+                }
+            } else {
+                $el.prop('disabled', false).removeClass('opacity-40 grayscale pointer-events-none active');
+            }
+        });
+        
+        if (this.elements.sidebar) {
+            this.elements.sidebar.toggleClass('nav-locked', locked);
+            if (locked) {
+                this.elements.sidebar.addClass('border-gray-700').removeClass('border-chlorine/20');
+            } else {
+                this.elements.sidebar.removeClass('border-gray-700').addClass('border-chlorine/20');
+            }
+        }
     }
 
     updateRunStats(state) {

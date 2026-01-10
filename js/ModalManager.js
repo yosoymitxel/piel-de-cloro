@@ -1,3 +1,5 @@
+import { State } from './State.js';
+
 export class ModalManager {
     constructor(uiManager, audioManager) {
         this.ui = uiManager;
@@ -25,6 +27,7 @@ export class ModalManager {
     }
 
     showMessage(text, onClose, type = 'normal') {
+        if (State.endingTriggered) return;
         const modal = this.elements.msgModal;
         const content = this.elements.msgContent;
         modal.removeClass('hidden').addClass('flex');
@@ -48,6 +51,7 @@ export class ModalManager {
     }
 
     showConfirm(text, onYes, onCancel, type = 'normal') {
+        if (State.endingTriggered) return;
         const modal = this.elements.confirmModal;
         const content = this.elements.confirmContent;
         modal.removeClass('hidden').addClass('flex');
@@ -75,6 +79,7 @@ export class ModalManager {
     }
 
     openModal(npc, allowPurge, onPurgeConfirm, state) {
+        if (State.endingTriggered) return;
         this.clearModalError();
         this.elements.modal.removeClass('hidden').addClass('flex');
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
@@ -169,7 +174,7 @@ export class ModalManager {
             const display = isRevealed ? value : '???';
             statsGrid.append(`
                 <div class="flex justify-between items-center border-b border-chlorine/10 py-2 px-1 hover:bg-white/5 transition-colors">
-                    <span class="text-[10px] opacity-60 uppercase font-mono">${label}</span>
+                    <span class="text-xs opacity-60 uppercase font-mono">${label}</span>
                     <span class="font-mono text-sm ${isRevealed ? 'text-white' : 'text-gray-600 italic'}">${display}</span>
                 </div>
             `);

@@ -182,9 +182,11 @@ class Game {
             $('#nav-generator').trigger('click');
         });
 
-        // Night Actions
-        $('#btn-sleep').on('click', () => this.sleep());
+        // Night Hub Actions
+        $('#btn-night-sleep').on('click', () => this.sleep());
         $('#btn-night-escape').on('click', () => this.finishRun());
+        $('#btn-night-relocate').on('click', () => this.relocateShelter());
+        $('#btn-night-shelter').on('click', () => this.openShelter());
 
         // Log notification animation
         $(document).on('log-added', () => {
@@ -196,7 +198,7 @@ class Game {
         // Finalize day without purge (visible only at end of day in Shelter)
         $('#btn-finalize-day-no-purge').on('click', () => {
             if (State.isDayOver() && !State.isNight) {
-                this.ui.showPreCloseFlow(State, (action) => this.handlePreCloseAction(action));
+                this.startNightPhase();
             }
         });
     }
@@ -230,6 +232,7 @@ class Game {
     startGame() {
         this.ui.showLore('initial', () => {
             State.reset();
+            this.ui.clearAllNavStatuses();
             this.audio.playAmbientByKey('ambient_main_loop', { loop: true, volume: 0.28, fadeIn: 800 });
             this.generateInitialEntrants();
             this.nextTurn();
@@ -248,6 +251,8 @@ class Game {
         State.dayEnded = false;
         State.generatorCheckedThisTurn = false;
         State.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
+        
+        this.ui.clearAllNavStatuses();
 
         // Quitar pausa
         State.paused = false;
@@ -273,18 +278,13 @@ class Game {
     }
 
     nextTurn() {
+        if (State.endingTriggered) return;
+
+        // Asegurar que el nav esté desbloqueado al inicio de cada turno
+        this.ui.setNavLocked(false);
+
         // Actualizar estado del generador al pasar de turno
         this.updateGenerator();
-
-        // Primero verificamos si el refugio está lleno. 
-        // Si está lleno, forzamos el flujo de cierre para que el jugador tome una decisión estratégica.
-        const isShelterFull = State.admittedNPCs.length >= State.config.maxShelterCapacity;
-        
-        if (isShelterFull) {
-            this.ui.showFeedback("REFUGIO LLENO: Debes tomar una decisión estratégica.", "yellow");
-            this.ui.showPreCloseFlow(State, (action) => this.handlePreCloseAction(action));
-            return;
-        }
 
         // Si la paranoia es extrema, colapso mental inmediato
         if (State.paranoia >= 100) {
@@ -300,11 +300,29 @@ class Game {
 
         // Check Day/Night Cycle
         if (State.isDayOver()) {
-            this.ui.showPreCloseFlow(State, (action) => this.handlePreCloseAction(action));
+            this.startNightPhase();
+            return;
+        }
+
+        // Procesar posibles intrusiones diurnas ANTES de generar el nuevo NPC
+        // pero solo si ya ha pasado tiempo (no en el primer turno del ciclo)
+        if (State.dayTime > 1) {
+            this.attemptDayIntrusion();
+        }
+
+        // Primero verificamos si el refugio está lleno. 
+        // Si está lleno, forzamos el flujo de cierre para que el jugador tome una decisión estratégica.
+        const isShelterFull = State.admittedNPCs.length >= State.config.maxShelterCapacity;
+        
+        if (isShelterFull) {
+            this.ui.showFeedback("REFUGIO LLENO: Debes tomar una decisión estratégica.", "yellow");
+            this.startNightPhase();
             return;
         }
 
         State.currentNPC = new NPC();
+        if (State.endingTriggered) return; // Doble check tras posible intrusion de final
+
         State.generatorCheckedThisTurn = false; // Resetear para cada nuevo NPC
         State.generator.emergencyEnergyGranted = false; // Resetear flag de energía gratis
 
@@ -318,14 +336,17 @@ class Game {
 
         this.ui.hideFeedback();
         this.ui.renderNPC(State.currentNPC);
+        this.ui.showScreen('game');
 
         if (State.currentNPC.isInfected) {
             State.infectedSeenCount++;
         }
-        if (State.interludesShown < 2 && Math.random() < 0.15) {
+        if (State.interludesShown < 2 && Math.random() < 0.15 && !State.endingTriggered) {
             State.interludesShown++;
             this.ui.showLore('intermediate', () => {
-                this.ui.showScreen('game');
+                if (!State.endingTriggered) {
+                    this.ui.showScreen('game');
+                }
             });
         }
         this.updateHUD();
@@ -460,34 +481,67 @@ class Game {
                 ? `HAS PERMITIDO QUE ${npc.name} SE MARCHE. SIENTES UN ESCALOFRÍO MIENTRAS DESAPARECE EN LA NIEBLA.`
                 : `HAS PERMITIDO QUE ${npc.name} SE MARCHE. LA INCERTIDUMBRE CRECE.`;
             
-            this.ui.showMessage(msg, null, npc.isInfected ? 'warning' : 'normal');
+            // Solo mostrar el modal si es infectado (siempre) o si es humano con baja probabilidad (20%)
+            if (npc.isInfected && Math.random() < 0.2) {
+                this.ui.showMessage(msg, null, npc.isInfected ? 'warning' : 'normal');
+            }
         }
 
         State.nextSubject();
-        this.attemptDayIntrusion();
         this.nextTurn();
         this.ui.updateRunStats(State);
     }
 
     openShelter() {
+        if (State.endingTriggered) return;
         if (!State.dayAfter) {
             State.dayAfter = { testsAvailable: State.config.dayAfterTestsDefault || 5 };
         }
         this.ui.hideFeedback();
+
+        // Configurar el botón inferior de retorno/no purga
+        if (State.isNight) {
+            this.ui.setNavLocked(true); // Bloquear sidebar
+            $('#nav-shelter').addClass('active').prop('disabled', false);
+            $('#btn-finalize-day-no-purge')
+                .off('click')
+                .on('click', () => this.startNightPhase());
+        } else {
+            // Durante el día, el botón vuelve al puesto de guardia
+            $('#btn-finalize-day-no-purge')
+                .off('click')
+                .on('click', () => {
+                    this.ui.setNavLocked(false);
+                    this.ui.showScreen('game');
+                });
+        }
+
+        // Determinar si se permite purgar (solo una vez por noche)
+        const canPurge = !State.isNight || !State.nightPurgePerformed;
+
         this.ui.renderShelterGrid(State.admittedNPCs, State.config.maxShelterCapacity,
-            // On Purge Confirm Logic (Not used directly here, modal handles it)
+            // On Purge Confirm Logic
             null,
             // On Detail Click
-            (npc, allowPurge) => {
+            (npc) => {
+                // allowPurge es true si no se ha purgado esta noche O si es de día
+                const allowPurge = canPurge;
+                
                 this.ui.openModal(npc, allowPurge, (target) => {
                     State.addPurged(target);
-                    // Notify morgue nav that a new purga exists
+                    if (State.isNight) {
+                        State.nightPurgePerformed = true;
+                    }
+
                     if (this.ui && this.ui.setNavItemStatus) {
                         this.ui.setNavItemStatus('nav-morgue', 3);
                     }
                     this.calculatePurgeConsequences(target);
-                    // If we are already at end of day, transition to Night after a purge
-                    if (State.isDayOver() && !State.isNight) {
+                    
+                    // Tras purgar en la noche, volvemos a la pantalla nocturna
+                    if (State.isNight) {
+                        this.startNightPhase();
+                    } else if (State.isDayOver()) {
                         this.startNightPhase();
                     } else {
                         this.openShelter();
@@ -500,6 +554,7 @@ class Game {
     }
 
     openRoom() {
+        if (State.endingTriggered) return;
         const items = State.securityItems;
         this.ui.renderSecurityRoom(items, (idx, item) => {
             State.securityItems[idx] = item;
@@ -508,6 +563,7 @@ class Game {
     }
 
     openMorgue() {
+        if (State.endingTriggered) return;
         // Mapeamos las listas del Estado a las secciones de la UI
         const purged = State.purgedNPCs || [];
         const escaped = State.ignoredNPCs || []; // Los ignorados cuentan como fugitivos/escapados
@@ -521,11 +577,13 @@ class Game {
     }
 
     openGenerator() {
+        if (State.endingTriggered) return;
         this.ui.renderGeneratorRoom();
         this.ui.showScreen('generator');
     }
 
     openLog() {
+        if (State.endingTriggered) return;
         this.ui.renderLog(State);
         this.ui.showScreen('log');
     }
@@ -699,8 +757,8 @@ class Game {
     handlePreCloseAction(action) {
         if (action === 'purge') {
             this.openShelter();
-        } else if (action === 'finalize') {
-            this.startNightPhase();
+        } else if (action === 'finalize' || action === 'sleep') {
+            this.sleep();
         } else if (action === 'stay') {
             // Se queda en el puesto de guardia, no hace nada especial
         } else if (action === 'escape') {
@@ -715,6 +773,9 @@ class Game {
         // 1. Reducir paranoia significativamente (sensación de nuevo comienzo)
         const paranoiaReduction = 30;
         State.updateParanoia(-paranoiaReduction);
+        
+        // Desbloquear navegación por si venimos de gestionar refugio
+        this.ui.setNavLocked(false);
 
         // 2. Perder a todos los refugiados actuales (se quedan atrás o se dispersan)
         const abandonedCount = State.admittedNPCs.length;
@@ -724,12 +785,15 @@ class Game {
         State.admittedNPCs = [];
 
         // 3. Efectos visuales y de sonido
-        this.audio.playSFXByKey('preclose_overlay_open', { volume: 0.8 }); // Reutilizar sonido o añadir uno nuevo
+        this.audio.playSFXByKey('preclose_overlay_open', { volume: 0.8 });
         State.addLogEntry('system', `MUDANZA: Sector abandonado. ${abandonedCount} sujetos dejados atrás.`);
-        this.ui.showFeedback(`MUDANZA COMPLETADA: Has abandonado el sector. ${abandonedCount} refugiados quedaron atrás. Paranoia reducida.`, "save");
-
-        // 4. Avanzar al siguiente día directamente, saltando la noche (porque ya no hay refugio que defender esa noche)
-        this.startNextDay();
+        
+        const msg = `MUDANZA COMPLETADA: Has abandonado el sector. ${abandonedCount} refugiados quedaron atrás. La paranoia ha disminuido.`;
+        
+        this.ui.showMessage(msg, () => {
+            // 4. Avanzar al siguiente día directamente, saltando la noche
+            this.startNextDay();
+        }, 'normal');
     }
 
     startNextDay() {
@@ -738,6 +802,7 @@ class Game {
         State.dayEnded = false;
         State.dayClosed = false;
         State.isNight = false;
+        State.nightPurgePerformed = false;
         State.lastNight.occurred = false;
         
         // Resetear recursos diarios
@@ -752,15 +817,41 @@ class Game {
     startNightPhase() {
         State.isNight = true;
         State.dayClosed = true;
+        
+        // Desbloquear navegación por si venimos de gestionar refugio
+        this.ui.setNavLocked(false);
+        $('#btn-finalize-day-no-purge').addClass('hidden');
+
         this.audio.playSFXByKey('night_transition', { volume: 0.5 });
         this.audio.playAmbientByKey('ambient_night_loop', { loop: true, volume: this.audio.levels.ambient, fadeIn: 800 });
-        this.processIntrusions();
-        this.ui.showScreen('night');
+        
+        // Solo procesar intrusiones si es el inicio de la fase nocturna (no tras volver de purga)
+        if (!State.lastNight.occurred) {
+            this.processIntrusions();
+            State.lastNight.occurred = true;
+        }
+
+        this.ui.renderNightScreen(State);
+
+        // Ocultar opción de gestionar si ya se purgó
+        if (State.nightPurgePerformed) {
+            $('#btn-night-shelter').addClass('hidden');
+            // Reajustar grid de botones si es necesario
+            $('#screen-night .grid').removeClass('sm:grid-cols-2').addClass('sm:grid-cols-1 max-w-sm');
+        } else {
+            $('#btn-night-shelter').removeClass('hidden');
+            $('#screen-night .grid').addClass('sm:grid-cols-2').removeClass('sm:grid-cols-1 max-w-sm');
+        }
     }
 
     triggerEnding(endingId) {
         // Bloquear cualquier otra acción
         this.isAnimating = true;
+        State.endingTriggered = true;
+
+        // Ocultar cualquier overlay o modal activo inmediatamente
+        $('#preclose-overlay').addClass('hidden').removeClass('flex');
+        $('.modal-overlay-base').addClass('hidden');
 
         // Guardar el final desbloqueado persistentemente
         State.unlockEnding(endingId);
@@ -774,11 +865,10 @@ class Game {
             if (this.ui.applyVHS) this.ui.applyVHS(1.0, 2000);
         }
 
-        // Mostrar el lore del final
-        this.ui.showLore(endingId, () => {
-            // Después del lore principal, mostrar la resonancia (post_final)
-            // Esto le da el toque "centralizado" y profesional que busca el usuario
-            this.ui.showLore('post_final', () => {
+        // Mostrar primero la resonancia (post_final) y luego el lore del final específico
+        // Esto asegura que la "Resonancia" actúe como una transición al final
+        this.ui.showLore('post_final', () => {
+            this.ui.showLore(endingId, () => {
                 this.endGame();
             });
         });
@@ -797,6 +887,12 @@ class Game {
     }
 
     sleep() {
+        // Efectos de transición integrados
+        State.isNight = true;
+        State.dayClosed = true;
+        this.audio.playSFXByKey('night_transition', { volume: 0.5 });
+        this.audio.playAmbientByKey('ambient_night_loop', { loop: true, volume: this.audio.levels.ambient, fadeIn: 800 });
+        
         const admitted = State.admittedNPCs;
         const count = admitted.length;
         const infectedInShelter = admitted.filter(n => n.isInfected);
@@ -957,10 +1053,21 @@ class Game {
         npc.revealedStats.push(s);
         npc.scanCount = 1;
         npc.history = npc.history || [];
-        npc.history.push(`Intrusión ${period} por ${via.type}.`);
-        npc.purgeLockedUntil = State.cycle + 1; // Penalización: No se puede purgar hasta el siguiente ciclo
+        
+        // Mensaje de log personalizado si entra por la alarma o si la alarma estaba activa
+        const logMessage = `Intrusión ${period} notificada por alarma.`;
+            
+        npc.history.push(logMessage);
+        npc.purgeLockedUntil = State.cycle + 1; 
         State.addLogEntry('system', `ALERTA: Intrusión detectada (${period}) vía ${via.type}.`);
         State.addAdmitted(npc);
+
+        // Si entró por la alarma, desactivar la alarma
+        if (via.type === 'alarma') {
+            const alarm = State.securityItems.find(i => i.type === 'alarma');
+            if (alarm) alarm.active = false;
+        }
+
         this.audio.playSFXByKey('intrusion_detected', { volume: 0.6, priority: 1 });
         if (via.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
 
@@ -980,8 +1087,17 @@ class Game {
         const alarm = items.find(i => i.type === 'alarma');
         const otherMethods = items.filter(i => i.type !== 'alarma');
         const unsecuredChannels = otherMethods.filter(i => !i.secured);
+        const sealedChannels = otherMethods.filter(i => i.secured);
         
         let via = null;
+        
+        // REGLA: Si hay entradas (puertas/ventanas) y están TODAS cerradas, NO puede entrar nadie.
+        // La alarma solo es un vector si no hay otros métodos o si hay huecos.
+        if (otherMethods.length > 0 && unsecuredChannels.length === 0) {
+            // Todas las entradas físicas están selladas
+            return;
+        }
+
         if (unsecuredChannels.length > 0) {
             via = unsecuredChannels[Math.floor(Math.random() * unsecuredChannels.length)];
         } else if (otherMethods.length === 0 && alarm) {
@@ -997,10 +1113,12 @@ class Game {
         if (via.type === 'alarma') {
             via.active = false;
             this.audio.playSFXByKey('alarm_activate', { volume: 0.8 });
-            this.ui.showMessage("ALARMA ACTIVADA: Se detectó intrusión. El sistema se ha desactivado.", () => { }, 'warning');
+            this.ui.showMessage("ALARMA ACTIVADA: Intrusión nocturna notificada por alarma.", () => { }, 'warning');
         } else if (alarm && alarm.active) {
-            // Si entra por otro lado pero la alarma estaba activa, avisa
-            this.ui.showMessage("ALARMA ACTIVADA: Se detectó intrusión durante la noche.", () => { }, 'warning');
+            // Si entra por otro lado pero la alarma estaba activa, avisa y desactiva la alarma (notificada)
+            alarm.active = false;
+            this.audio.playSFXByKey('alarm_activate', { volume: 0.8 });
+            this.ui.showMessage("ALARMA ACTIVADA: Intrusión nocturna notificada por alarma.", () => { }, 'warning');
         }
     }
 
@@ -1032,24 +1150,37 @@ class Game {
         if (State.nextIntrusionAt && State.dayTime >= State.nextIntrusionAt) {
             const items = State.securityItems;
             const alarm = items.find(i => i.type === 'alarma');
-            const channels = items.filter(i => i.type !== 'alarma' && !i.secured);
+            const otherMethods = items.filter(i => i.type !== 'alarma');
+            const unsecuredChannels = otherMethods.filter(i => !i.secured);
             const prob = State.config.dayIntrusionProbability * State.getIntrusionModifier();
 
-            // La desactivación ahora ocurre durante las acciones (checkSecurityDegradation),
-            // aquí solo comprobamos si entra alguien por los huecos dejados.
             if (Math.random() < prob) {
                 let via = null;
-                if (channels.length > 0) {
-                    via = channels[Math.floor(Math.random() * channels.length)];
-                } else if (alarm) {
+
+                // REGLA: Si hay entradas y están todas cerradas, no hay intrusión
+                if (otherMethods.length > 0 && unsecuredChannels.length === 0) {
+                    State.rescheduleIntrusion();
+                    return;
+                }
+
+                if (unsecuredChannels.length > 0) {
+                    via = unsecuredChannels[Math.floor(Math.random() * unsecuredChannels.length)];
+                } else if (otherMethods.length === 0 && alarm) {
                     via = alarm;
                 }
+
                 if (via) {
                     this.createIntrusion(via, 'diurna');
-                    const msg = alarm && alarm.active
-                        ? "ALARMA ACTIVADA: Intrusión detectada durante el día."
-                        : "";
-                    if (msg) this.ui.showMessage(msg, () => { }, 'warning');
+                    
+                    if (via.type === 'alarma') {
+                        via.active = false;
+                        this.audio.playSFXByKey('alarm_activate', { volume: 0.8 });
+                        this.ui.showMessage("ALARMA ACTIVADA: Intrusión diurna notificada por alarma.", () => { }, 'warning');
+                    } else if (alarm && alarm.active) {
+                        alarm.active = false;
+                        this.audio.playSFXByKey('alarm_activate', { volume: 0.8 });
+                        this.ui.showMessage("ALARMA ACTIVADA: Intrusión diurna notificada por alarma.", () => { }, 'warning');
+                    }
                 }
             }
             State.rescheduleIntrusion();
