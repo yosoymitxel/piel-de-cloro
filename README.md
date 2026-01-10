@@ -1,33 +1,64 @@
-# Piel de Cloro: El Ciclo de la Paranoia
+# Ruta 01: Piel de Cloro
 
-Un protocolo de vigilancia en un refugio que nunca descansa. La energía sostiene la noche; la duda sostiene el día.
+> *"El refugio no olvida. La noche revela lo que el día oculta."*
 
-## Lore
+**Piel de Cloro** es un juego de terror analógico, gestión de recursos y deducción social ambientado en un búnker post-apocalíptico. Como guardia del **Puesto de Control Ruta-01**, tu deber es decidir quién entra, quién se queda fuera y quién debe ser purgado, mientras mantienes la energía del generador y tu propia cordura.
 
-- Los piel de cloro son portadores. La piel se reseca, los ojos se dilatan, el pulso baja. El agua recuerda sus nombres.
-- La casa tiene garganta: susurros recorren las tuberías y devuelven respuestas que nadie hizo.
-- La luz UV no ilumina; revela. Donde antes había piel, ahora queda textura de sal y memoria húmeda.
-- Nadie es individuo. La radio interrumpe frases a mitad y las completa desde otro tiempo.
-- El refugio no olvida. Las decisiones dejan marcas invisibles que la noche ilumina con un verde frío.
-- La sobrecarga es un pacto: potencia breve a cambio de apagones y sombras que miran desde adentro.
-- Si la sed despierta tras beber, no bebas más. El cloro odia el mar y ama las grietas.
+## 🌑 Sinopsis
 
-## Protocolos
+El mundo exterior ha sido consumido por una "niebla" y una infección parasitaria conocida como **Piel de Cloro**. Los infectados imitan a los humanos, pero presentan anomalías fisiológicas sutiles: hipotermia, piel reactiva a la luz UV, pupilas dilatadas y falta de pulso.
 
-- Termómetro: registra frío interior. Cuando el mercurio cae, la respiración se ordena; cuando sube, el rumor crece.
-- Pulsos: los latidos lentos atraen silencios; los rápidos llaman a la alarma. Nadie puede fingir el ritmo el tiempo suficiente.
-- Pupilas: el tamaño del miedo. Las dilatadas ven el pasillo entero y aún así tropiezan con lo que estaba delante.
-- Decisión: admitir aumenta el riesgo; purgar reduce la amenaza pero sube la paranoia si era civil.
-- Noche: si hay cloro dentro, alguien cae. Si no, descanso y un rumor menor.
+Tú eres la última línea de defensa. Si dejas entrar a un infectado, el refugio caerá al caer la noche. Si rechazas a demasiados inocentes, el mando central te abandonará. Y si el generador falla... estarás solo en la oscuridad con *ellos*.
 
-## Energía
+## 👁️ Mecánicas Principales
 
-- ON: el refugio respira. Verde brillante en los instrumentos; la casa canta bajo.
-- AHORRO: menos luz, menos ruido, menos puertas abiertas.
-- NORMAL: operación estable, estadística falsa de calma.
-- SOBRECARGA: poder breve, glitch seguro. A veces el refugio parpadea y se acuerda de ti.
+### 1. El Ciclo Diario (Fase de Guardia)
+- **Inspección**: Utiliza herramientas limitadas (Termómetro, Linterna UV, Escáner de Pulso, Dilatador de Pupilas) para encontrar anomalías en los solicitantes.
+- **Interrogatorio**: Dialoga con los sujetos. Busca contradicciones, tics nerviosos o historias incoherentes.
+- **Gestión de Energía**: Cada test consume energía. El generador tiene una capacidad limitada por turno.
+- **Decisión**: ¿Admitir o Rechazar? Admitir requiere validar al sujeto al día siguiente. Rechazar aumenta la paranoia si era humano.
 
-## Notas
+### 2. El Generador
+El corazón del búnker. Debes gestionar sus modos de funcionamiento:
+- **Ahorro**: Bajo consumo, pero limita tus herramientas a 1 uso por turno.
+- **Normal**: Balance estándar.
+- **Sobrecarga**: Permite más tests, pero aumenta drásticamente el riesgo de apagón o explosión.
 
-- El manual no miente, pero no dice todo. Leerlo de noche es distinto que leerlo de día.
-- Los espejos del pasillo empañan cuando alguien miente sobre su piel.
+### 3. La Fase Nocturna
+Cuando cae la noche, el trabajo no termina:
+- **Gestión del Refugio**: Revisa a los admitidos. Si sospechas que cometiste un error, puedes **purgar** a un sujeto (eliminarlo), pero esto tiene un coste mental alto.
+- **Intrusiones**: Vigila la Sala de Seguridad. Asegura puertas, ventanas y tuberías. Si la alarma suena, algo intenta entrar.
+- **Dormir**: El momento más vulnerable. Si hay un infectado dentro, alguien morirá. Si el refugio está vacío, tu mente te jugará malas pasadas.
+
+### 4. Paranoia
+Tu salud mental es un recurso.
+- Sube al presenciar eventos horribles, purgar inocentes o sufrir apagones.
+- Si llega al 100%, sufres un colapso mental (Game Over).
+- Afecta a tu percepción: el texto se distorsiona, escuchas ruidos y ves cosas que no están ahí.
+
+## 📂 Estructura del Proyecto
+
+El juego está construido en **JavaScript (ES6)** modular sin dependencias externas pesadas (solo jQuery y FontAwesome para UI).
+
+- `js/Game.js`: Controlador principal del bucle de juego.
+- `js/State.js`: Gestión del estado global (persistencia, paranoia, NPCs).
+- `js/NPC.js`: Generación procedimental de personajes y sus atributos.
+- `js/DialogueEngine.js`: Sistema de árboles de diálogo con soporte para tags y estados.
+- `js/UIManager.js`: Manejo del DOM y efectos visuales (VHS, glitches).
+
+## 🛠️ Instalación y Ejecución
+
+Este es un proyecto web estático. No requiere compilación.
+
+1. Clona el repositorio.
+2. Abre `index.html` en tu navegador (preferiblemente Chrome o Firefox).
+   - *Nota: Debido a las políticas de CORS de los navegadores con módulos ES6, se recomienda usar un servidor local (ej. Live Server en VS Code o `python -m http.server`).*
+
+## 📖 Lore y Secretos
+
+> "Si la sed despierta tras beber, no bebas más. El cloro odia el mar y ama las grietas."
+
+El juego cuenta con un sistema de **Lore** fragmentado. Escucharás rumores, encontrarás notas y interceptarás transmisiones de radio que revelan la verdad sobre la infección y el destino de los otros refugios.
+
+---
+*Desarrollado para la jam... o quizás encontrado en un servidor abandonado.*

@@ -67,6 +67,15 @@ Se activan automáticamente cuando se cumplen ciertas condiciones críticas.
 
 ---
 
+## ⚙️ Implementación Técnica
+
+Al disparar un final:
+1.  Se establece `State.endingTriggered = true` para bloquear inputs.
+2.  Se guarda el ID en `State.unlockedEndings` (localStorage).
+3.  Se muestra la pantalla de Lore "Resonancia" (`post_final`) como transición.
+4.  Se carga el texto específico del final desde `LoreData[endingId]`.
+5.  Se calcula el resumen de estadísticas (NPCs salvados, infectados filtrados, etc.) y se muestra en `#screen-final-stats`.
+
 ## Verificación de Probabilidades
 
 | Final | Dificultad de obtención | Notas |
