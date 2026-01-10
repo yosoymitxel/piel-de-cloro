@@ -1179,7 +1179,7 @@ export class UIManager {
         const grid = $('#relocate-selection-grid');
         const countLabel = $('#relocate-count');
         const confirmBtn = $('#btn-relocate-confirm');
-        const restrictionLabel = $('#modal-relocate .bg-black/40 p.text-\\[10px\\]');
+        const restrictionLabel = $('#relocate-restrictions-text');
         
         // Dinámico: Máximo de la mitad de la capacidad O menos del total de sujetos que llegan al día
         // Aseguramos que siempre haya espacio para los nuevos sujetos del siguiente nivel
