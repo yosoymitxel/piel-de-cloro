@@ -179,6 +179,7 @@ export class UIManager {
         
         // Aplicar color al texto de diálogo si existe
         if (this.elements.dialogue) {
+            this.elements.dialogue.css('--paranoia-color', paranoiaColor);
             this.elements.dialogue.find('.npc-text').css('color', paranoiaColor);
             // También al nombre del NPC para que todo el bloque de diálogo se sienta "contaminado"
             this.elements.dialogue.find('.npc-name').css('color', paranoiaColor);
@@ -299,12 +300,21 @@ export class UIManager {
         const currentMode = State.generator.mode;
         const maxEnergy = State.config.generator.consumption[currentMode] || 2;
 
-        if (npc && npc.scanCount >= maxEnergy) {
+        if (npc && npc.optOut) {
+            // Caso Especial: Test omitido voluntariamente
+            this.elements.inspectionToolsContainer.removeClass('grid-cols-2 sm:grid-cols-2 lg:grid-cols-4').addClass('grid-cols-1');
+            this.elements.inspectionToolsContainer.html(`
+                <div class="horror-btn horror-btn-disabled w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed">
+                    <i class="fa-solid fa-comment-slash mr-2 text-warning"></i>
+                    TEST OMITIDO: PROCEDER CON DECISIÓN
+                </div>
+            `);
+        } else if (npc && npc.scanCount >= maxEnergy) {
             // Caso 3: Sin energías por el límite del modo actual
             this.elements.inspectionToolsContainer.removeClass('grid-cols-2 sm:grid-cols-2 lg:grid-cols-4').addClass('grid-cols-1');
             this.elements.inspectionToolsContainer.html(`
                 <div class="horror-btn horror-btn-disabled w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed">
-                    <i class="fa-solid fa-battery-empty mr-2"></i>
+                    <i class="fa-solid fa-battery-empty mr-2 text-alert"></i>
                     BATERÍAS AGOTADAS: SOLO DIÁLOGO O DECISIÓN
                 </div>
             `);
@@ -526,17 +536,32 @@ export class UIManager {
                 html: '&gt; Omitir por diálogo'
             });
             omitBtn.on('click', () => {
-                npc.optOut = true;
-                npc.scanCount = npc.maxScans;
+                this.handleOmitTest(npc);
                 npc.dialogueStarted = true; // También cuenta como interacción
-                if (!npc.history) npc.history = [];
-                npc.history.push({ text: 'Test omitido por diálogo.', type: 'warning' });
-                this.showFeedback('TEST OMITIDO POR DIÁLOGO', 'yellow');
-                this.updateInspectionTools();
-                this.elements.dialogueOptions.empty();
             });
             this.elements.dialogueOptions.append(omitBtn);
         }
+    }
+
+    handleOmitTest(npc) {
+        if (!npc) return;
+        npc.optOut = true;
+        // Agotamos las energías mecánicamente
+        npc.scanCount = 99; 
+        
+        if (!npc.history) npc.history = [];
+        npc.history.push({ 
+            text: 'Test omitido voluntariamente mediante protocolo de diálogo.', 
+            type: 'warning' 
+        });
+
+        this.showFeedback('TEST OMITIDO: SIN EVIDENCIA MÉDICA', 'yellow');
+        this.updateInspectionTools();
+        this.hideOmitOption();
+        this.elements.dialogueOptions.empty();
+        
+        // Actualizar estadísticas HUD
+        this.updateStats(State.paranoia, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
     }
 
     typeText(el, text, speed = 20) {
@@ -772,14 +797,8 @@ export class UIManager {
             overlay.addClass('hidden').removeClass('flex');
         });
         $('#btn-omit-test').off('click').on('click', () => {
-            npc.optOut = true;
-            npc.scanCount = npc.maxScans;
-            if (!npc.history) npc.history = [];
-            npc.history.push('El sujeto omitió el test mediante diálogo.');
+            this.handleOmitTest(npc);
             overlay.addClass('hidden').removeClass('flex');
-            this.updateStats(State.paranoia, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
-            this.showFeedback('TEST OMITIDO POR DIÁLOGO', 'yellow');
-            this.hideOmitOption();
         });
     }
 

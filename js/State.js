@@ -6,7 +6,7 @@ export const State = {
         maxShelterCapacity: 10,
         dayLength: 5, // Subjects per day
         difficulty: 'normal',
-        dayAfterTestsDefault: 5,
+        dayAfterTestsDefault: 3,
         // Seguridad / intrusiones
         securityItemsMin: 1,
         securityItemsMax: 5,
@@ -48,7 +48,7 @@ export const State = {
     verificationsCount: 0,
     infectedSeenCount: 0,
     interludesShown: 0,
-    dayAfter: { testsAvailable: 5 },
+    dayAfter: { testsAvailable: 3 },
     // Dialogue/pool tracking and flags
     dialoguePoolsUsed: [], // array of pool ids used this run
     dialoguePoolsLastUsed: {}, // map poolId -> dialoguesCount when last used

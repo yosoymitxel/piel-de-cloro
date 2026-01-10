@@ -46,6 +46,12 @@ class Game {
         $('#btn-start-game').on('click', () => { this.audio.unlock(); this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.startGame(); });
         $('#btn-settings-toggle').on('click', () => {
             this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            
+            // Cargar valores actuales en los inputs
+            $('#config-max-shelter').val(State.config.maxShelterCapacity);
+            $('#config-day-length').val(State.config.dayLength);
+            $('#config-dayafter-tests').val(State.config.dayAfterTestsDefault);
+            
             $('#config-volume-master').val(Math.round(this.audio.master * 100));
             $('#config-volume-ambient').val(Math.round(this.audio.levels.ambient * 100));
             $('#config-volume-lore').val(Math.round(this.audio.levels.lore * 100));
