@@ -71,6 +71,14 @@ export const State = {
         offStatus: '#ff2b2b'
     },
 
+    updateParanoia(amount) {
+        this.paranoia = Math.max(0, Math.min(100, this.paranoia + amount));
+        if (typeof document !== 'undefined') {
+            document.dispatchEvent(new CustomEvent('paranoia-updated', { detail: { value: this.paranoia } }));
+        }
+        return this.paranoia;
+    },
+
     // Seguridad por run
     securityItems: [],
     nextIntrusionAt: null,
@@ -197,8 +205,22 @@ export const State = {
         const max = this.config.securityItemsMax;
         const count = Math.max(min, Math.min(max, Math.floor(min + Math.random() * (max - min + 1))));
         const items = [];
+        let alarmCount = 0;
+
         for (let i = 0; i < count; i++) {
-            const t = types[Math.floor(Math.random() * types.length)];
+            let t = types[Math.floor(Math.random() * types.length)];
+            
+            // Garantizar solo 1 alarma
+            if (t === 'alarma') {
+                if (alarmCount >= 1) {
+                    // Si ya hay una alarma, elegir otro tipo aleatorio que no sea alarma
+                    const otherTypes = types.filter(type => type !== 'alarma');
+                    t = otherTypes[Math.floor(Math.random() * otherTypes.length)];
+                } else {
+                    alarmCount++;
+                }
+            }
+
             const isInitActive = Math.random() > 0.5;
             if (t === 'alarma') items.push({ type: t, active: isInitActive });
             else items.push({ type: t, secured: isInitActive });
@@ -268,16 +290,16 @@ export const State = {
         this.dayEnded = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
-        this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
+        
+        // Mantener el estado del generador (encendido/apagado) pero resetear flags temporales
+        this.generator.blackoutUntil = 0;
+        this.generator.emergencyEnergyGranted = false;
+        this.generator.restartLock = false;
+        
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight.occurred = true;
         this.addLogEntry('system', `Inicio del Ciclo ${this.cycle}.`);
         
-        // Reset dialogue pools for the new day to allow variety while keeping the short-term window
-        this.dialoguePoolsUsed = [];
-        this.dialoguePoolsLastUsed = {};
-        this.dialoguesCount = 0;
-
         this.purgedNPCs.forEach(n => {
             if (n.death) n.death.revealed = true;
         });

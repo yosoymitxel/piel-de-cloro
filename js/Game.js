@@ -230,6 +230,19 @@ class Game {
         // Actualizar estado del generador al pasar de turno
         this.updateGenerator();
 
+        // Si la paranoia es extrema, colapso mental inmediato
+        if (State.paranoia >= 100) {
+            this.audio.playSFXByKey('glitch_burst', { volume: 0.8 });
+            this.ui.showLore('final_death_paranoia', () => this.endGame());
+            return;
+        }
+
+        // Si se ignoran demasiados sujetos, el refugio se considera abandonado
+        if (State.ignoredNPCs && State.ignoredNPCs.length >= 15) {
+            this.gameOver("INCUMPLIMIENTO DE DEBER: Has permitido que demasiados sujetos se marchen sin procesar. El mando central ha bloqueado tu acceso y enviado una unidad de contención. Ya no eres necesario.");
+            return;
+        }
+
         // Check Day/Night Cycle
         if (State.isDayOver()) {
             this.ui.showPreCloseFlow((action) => {
@@ -390,6 +403,17 @@ class Game {
         } else if (action === 'ignore') {
             npc.exitCycle = State.cycle;
             State.ignoredNPCs.push(npc);
+            
+            // Consecuencia por ignorar: la paranoia aumenta porque no sabes qué has dejado fuera
+            // Si era infectado, la paranoia sube más
+            const amount = npc.isInfected ? 10 : 5;
+            State.updateParanoia(amount);
+            
+            const msg = npc.isInfected 
+                ? `HAS PERMITIDO QUE ${npc.name} SE MARCHE. SIENTES UN ESCALOFRÍO MIENTRAS DESAPARECE EN LA NIEBLA.`
+                : `HAS PERMITIDO QUE ${npc.name} SE MARCHE. LA INCERTIDUMBRE CRECE.`;
+            
+            this.ui.showMessage(msg, null, npc.isInfected ? 'warning' : 'normal');
         }
 
         State.nextSubject();
@@ -616,10 +640,10 @@ class Game {
 
     calculatePurgeConsequences(npc) {
         if (!npc.isInfected) {
-            State.paranoia += 20;
+            State.updateParanoia(20);
             this.ui.showMessage(`HAS PURGADO A UN HUMANO (${npc.name}). LA PARANOIA AUMENTA.`, null, 'warning');
         } else {
-            State.paranoia = Math.max(0, State.paranoia - 5);
+            State.updateParanoia(-5);
             this.ui.showMessage(`AMENAZA ELIMINADA (${npc.name}). BIEN HECHO.`, null, 'normal');
         }
         this.updateHUD();
@@ -666,7 +690,7 @@ class Game {
                 State.lastNight.victims = 0;
                 this.audio.playSFXByKey('sleep_begin', { volume: 0.4 });
                 this.ui.showLore('night_tranquil', () => {
-                    State.paranoia = Math.max(0, State.paranoia - 5);
+                    State.updateParanoia(-5);
                     this.continueDay();
                 });
                 return;
@@ -687,7 +711,7 @@ class Game {
                 State.lastNight.victims = 1;
                 this.audio.playSFXByKey('lore_night_civil_death', { volume: 0.5 });
                 this.ui.showLore('night_civil_death', () => {
-                    State.paranoia += 30;
+                    State.updateParanoia(30);
                     this.continueDay();
                 });
             } else {
@@ -701,9 +725,13 @@ class Game {
             return;
         }
 
-        // Sin infectados dentro: leve posibilidad de muerte del guardia
-        if (Math.random() < (State.config.noInfectedGuardDeathChance || 0.05)) {
-            State.lastNight.message = "Aunque no había cloro dentro, algo te encontró en la oscuridad.";
+        // Sin infectados dentro: posibilidad de muerte del guardia (escala con Paranoia)
+        const baseDeathChance = State.config.noInfectedGuardDeathChance || 0.05;
+        const paranoiaModifier = State.paranoia / 250; // +40% muerte a 100 paranoia
+        if (Math.random() < (baseDeathChance + paranoiaModifier)) {
+            State.lastNight.message = State.paranoia > 80 
+                ? "Tu mente finalmente cedió. Las sombras del refugio tomaron forma y te arrastraron al vacío."
+                : "Aunque no había cloro dentro, algo te encontró en la oscuridad.";
             State.lastNight.victims = 1;
             this.ui.showLore('night_player_death', () => {
                 this.endGame();
@@ -716,7 +744,7 @@ class Game {
         State.lastNight.victims = 0;
         this.audio.playSFXByKey('lore_night_tranquil', { volume: 0.4 });
         this.ui.showLore('night_tranquil', () => {
-            State.paranoia = Math.max(0, State.paranoia - 10);
+            State.updateParanoia(-10);
             this.continueDay();
         });
     }
@@ -741,6 +769,13 @@ class Game {
         const infectedCount = admitted.filter(n => n.isInfected).length;
         const allInfected = count > 0 && infectedCount === count;
 
+        // Final del generador apagado: No puedes abrir las puertas
+        if (!State.generator || !State.generator.isOn) {
+            this.audio.playSFXByKey('glitch_burst', { volume: 0.8 });
+            this.ui.showLore('final_generator_off', () => this.endGame());
+            return;
+        }
+
         // Refugio vacío: >90% muerte al escapar
         if (count === 0) {
             if (Math.random() < 0.92) {
@@ -750,8 +785,9 @@ class Game {
             }
         }
 
-        // Chequeo de muerte por paranoia antes de escapar
-        const chance = Math.min(0.10, State.paranoia / 100);
+        // Chequeo de muerte por paranoia antes de escapar (Escala con el nivel)
+        // A 100% paranoia, tienes un 66% de morir. A 150%+, es casi muerte segura.
+        const chance = Math.min(0.95, State.paranoia / 150);
         if (Math.random() < chance) {
             this.audio.playSFXByKey('escape_attempt', { volume: 0.6 });
             this.ui.showLore('final_death_paranoia', () => this.endGame());
@@ -766,12 +802,12 @@ class Game {
         }
 
         // Finales adicionales
-        if (count <= 1) {
-            this.ui.showLore('final_death_alone', () => this.endGame());
-            return;
-        }
         if (allInfected) {
             this.ui.showLore('final_death_all_infected', () => this.endGame());
+            return;
+        }
+        if (count <= 1) {
+            this.ui.showLore('final_death_alone', () => this.endGame());
             return;
         }
 
@@ -811,17 +847,30 @@ class Game {
         const prob = State.config.securityIntrusionProbability * State.getIntrusionModifier();
         if (State.isShelterFull()) return;
         if (Math.random() >= prob) return;
+        
         const alarm = items.find(i => i.type === 'alarma');
-        const channels = items.filter(i => i.type !== 'alarma' && !i.secured);
+        const otherMethods = items.filter(i => i.type !== 'alarma');
+        const unsecuredChannels = otherMethods.filter(i => !i.secured);
+        
         let via = null;
-        if (channels.length > 0) {
-            via = channels[Math.floor(Math.random() * channels.length)];
-        } else if (alarm) {
+        if (unsecuredChannels.length > 0) {
+            via = unsecuredChannels[Math.floor(Math.random() * unsecuredChannels.length)];
+        } else if (otherMethods.length === 0 && alarm) {
+            // Solo entra por la alarma si NO hay ningún otro método de defensa (puertas, etc)
             via = alarm;
         }
+
         if (!via) return;
+
         this.createIntrusion(via, 'nocturna');
-        if (alarm && alarm.active) {
+        
+        // Si entra por la alarma, se desactiva
+        if (via.type === 'alarma') {
+            via.active = false;
+            this.audio.playSFXByKey('alarm_activate', { volume: 0.8 });
+            this.ui.showMessage("ALARMA ACTIVADA: Se detectó intrusión. El sistema se ha desactivado.", () => { }, 'warning');
+        } else if (alarm && alarm.active) {
+            // Si entra por otro lado pero la alarma estaba activa, avisa
             this.ui.showMessage("ALARMA ACTIVADA: Se detectó intrusión durante la noche.", () => { }, 'warning');
         }
     }
@@ -894,6 +943,13 @@ class Game {
         if ($('#screen-room').is(':visible')) {
             this.ui.renderSecurityRoom(State.securityItems, (idx, it) => { State.securityItems[idx] = it; });
         }
+    }
+
+    gameOver(reason) {
+        this.audio.playSFXByKey('glitch_burst', { volume: 0.8 });
+        this.ui.showMessage(reason, () => {
+            this.endGame();
+        }, 'danger');
     }
 }
 

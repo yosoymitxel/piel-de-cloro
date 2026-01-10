@@ -87,9 +87,24 @@ export class Conversation {
         }
 
         // Apply madness/glitch modifier if paranoia high
-        if (State.paranoia > 65 || State.getGlitchModifier && State.getGlitchModifier() > 1.2) {
-            // degrade text visually a bit
-            out = out.split('').map((c, i) => (Math.random() < 0.03 ? '�' : c)).join('');
+        if (State.paranoia > 40 || (State.getGlitchModifier && State.getGlitchModifier() > 1.1)) {
+            const intensity = Math.min(0.5, (State.paranoia - 30) / 140); // Sube con la paranoia
+            const glitchedChars = ['$', '#', '@', '&', '%', '!', '?', '¿', '¡', '·', '*', '=', '+', ':', ';', '0', '1'];
+            
+            const words = out.split(' ');
+            out = words.map(word => {
+                // Glitch por palabra completa (reemplazo de bloques)
+                if (Math.random() < intensity * 0.5 && word.length > 2) {
+                    return word.split('').map(() => glitchedChars[Math.floor(Math.random() * glitchedChars.length)]).join('');
+                }
+                // Glitch por caracteres individuales
+                return word.split('').map(c => {
+                    if (Math.random() < intensity) {
+                        return glitchedChars[Math.floor(Math.random() * glitchedChars.length)];
+                    }
+                    return c;
+                }).join('');
+            }).join(' ');
         }
         return out;
     }

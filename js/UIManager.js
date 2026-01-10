@@ -149,10 +149,54 @@ export class UIManager {
         if (this.elements.genWarningGame) this.elements.genWarningGame.toggleClass('hidden', !needsCheck);
         if (this.elements.genWarningShelter) this.elements.genWarningShelter.toggleClass('hidden', !needsCheck);
 
-        if (paranoia > 70) {
-            this.elements.paranoia.removeClass('text-chlorine-light').addClass('text-alert');
+        // Actualizar colores de paranoia (texto e icono)
+        const paranoiaIcon = this.elements.paranoia.parent().find('i.fa-brain');
+        let paranoiaColor = '#a8d5a2'; // Default: chlorine-light
+
+        if (paranoia >= 100) {
+            paranoiaColor = '#ff0000';
+            this.elements.paranoia.addClass('animate-pulse');
+            paranoiaIcon.addClass('animate-pulse');
+        } else if (paranoia > 75) {
+            paranoiaColor = '#ff3333'; // Alert red
+            this.elements.paranoia.removeClass('animate-pulse');
+            paranoiaIcon.removeClass('animate-pulse');
+        } else if (paranoia > 50) {
+            paranoiaColor = '#ff8c00'; // Orange
+            this.elements.paranoia.removeClass('animate-pulse');
+            paranoiaIcon.removeClass('animate-pulse');
+        } else if (paranoia > 25) {
+            paranoiaColor = '#e2e254'; // Yellowish
+            this.elements.paranoia.removeClass('animate-pulse');
+            paranoiaIcon.removeClass('animate-pulse');
         } else {
-            this.elements.paranoia.removeClass('text-alert').addClass('text-chlorine-light');
+            this.elements.paranoia.removeClass('animate-pulse');
+            paranoiaIcon.removeClass('animate-pulse');
+        }
+
+        this.elements.paranoia.css('color', paranoiaColor);
+        paranoiaIcon.css('color', paranoiaColor);
+        
+        // Aplicar color al texto de diálogo si existe
+        if (this.elements.dialogue) {
+            this.elements.dialogue.find('.npc-text').css('color', paranoiaColor);
+            // También al nombre del NPC para que todo el bloque de diálogo se sienta "contaminado"
+            this.elements.dialogue.find('.npc-name').css('color', paranoiaColor);
+        }
+        
+        // Brillo sutil si la paranoia es alta
+        if (paranoia > 50) {
+            this.elements.paranoia.css('text-shadow', `0 0 8px ${paranoiaColor}`);
+            paranoiaIcon.css('filter', `drop-shadow(0 0 5px ${paranoiaColor})`);
+            if (this.elements.dialogue) {
+                this.elements.dialogue.css('text-shadow', `0 0 4px ${paranoiaColor}44`);
+            }
+        } else {
+            this.elements.paranoia.css('text-shadow', 'none');
+            paranoiaIcon.css('filter', 'none');
+            if (this.elements.dialogue) {
+                this.elements.dialogue.css('text-shadow', 'none');
+            }
         }
 
         // Update Energy
@@ -334,6 +378,10 @@ export class UIManager {
 
         const nameHtml = `<span class="npc-name font-bold text-chlorine">${baseName}</span>`;
         this.elements.dialogue.html(`${nameHtml} <span class="npc-text"></span>`);
+        
+        // Re-aplicar colores de paranoia al nuevo contenido del diálogo
+        this.updateStats(State.paranoia, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
+        
         const textEl = this.elements.dialogue.find('.npc-text');
         this.elements.dialogueOptions.empty();
 

@@ -119,5 +119,11 @@ export const LoreData = {
         content: 'Sentiste el cambio al ver la luz real. Tu piel no soportó el aire puro y se deshizo. No escapaste para salvarte, sino para expandirte. Tú eras la zona cero.',
         type: 'danger',
         sfx: 'glitch_burst'
+    },
+    final_generator_off: {
+        title: 'Oscuridad eterna',
+        content: 'El generador se detuvo y con él, la esperanza. Sin energía para abrir las compuertas hidráulicas, el refugio se convirtió en un sarcófago de hormigón. Moriste en la oscuridad total, escuchando cómo algo rascaba el metal desde el otro lado.',
+        type: 'danger',
+        sfx: 'glitch_burst'
     }
 };
