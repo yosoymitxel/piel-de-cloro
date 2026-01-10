@@ -2,7 +2,10 @@
 const act = {
     ignore: () => document.getElementById('btn-ignore') && document.getElementById('btn-ignore').click(),
     admit: () => document.getElementById('btn-admit') && document.getElementById('btn-admit').click(),
-    test: () => document.getElementById('btn-test') && document.getElementById('btn-test').click()
+    testUV: () => window.game && window.game.inspect('flashlight'),
+    testThermo: () => window.game && window.game.inspect('thermometer'),
+    testPulse: () => window.game && window.game.inspect('pulse'),
+    testPupils: () => window.game && window.game.inspect('pupils')
 };
 
 export const DialogueData = {
@@ -32,7 +35,6 @@ export const DialogueData = {
                     text: "*Se frota el antebrazo compulsivamente.* \"El agua de las duchas... pica hoy. ¿No lo sientes?\" *Su piel está enrojecida.*",
                     options: [
                         { id: 'gs_o1', label: 'Examinar brazo', next: 'gs_n2a' },
-                        { id: 'gs_o2', label: 'Ofrecer vendaje', next: 'gs_n2b' },
                         { id: 'gs_o3', label: '¡Deja de rascarte!', next: 'gs_n2c' }
                     ]
                 },
@@ -65,8 +67,8 @@ export const DialogueData = {
                     text: "*Al presionar, la piel cede de forma extraña, como si hubiera aire o líquido debajo.* \"¡Ay! ¡Cuidado! No lo despiertes...\"",
                     options: [
                         { id: 'gs_o3a', label: '¡Aléjate! Eso no es normal', next: null, resultText: "*Retrocede asustado.* \"¡No es nada, lo juro!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gs_o3d', label: 'Espera, voy a analizarte', next: null, resultText: "*Tiembla mientras preparas el equipo.* \"Hazlo rápido, por favor... pica mucho.\"", onclick: act.test },
-                        { id: 'gs_o3e', label: 'Evaluación de riesgo', next: 'gs_n4b' }
+                        { id: 'gs_o3d', label: 'Analizar movimiento subcutáneo', next: null, resultText: "*Tiembla mientras aplicas la luz.* \"Hazlo rápido... se agitan con la luz.\"", onclick: act.testUV, log: { text: 'Evidencia: Movimiento parasitario visible bajo la dermis al aplicar estrés.', icon: 'fa-bug' } },
+                        { id: 'gs_o3e', label: 'Suficiente', next: 'gs_n4b' }
                     ]
                 },
                 'gs_n3b': {
@@ -74,14 +76,14 @@ export const DialogueData = {
                     text: "*Se rasca hasta que brota una gota de sangre oscura.* \"Es el metal... el óxido del aire nos está cambiando.\"",
                     options: [
                         { id: 'gs_o3b', label: 'No puedo arriesgarme. Vete.', next: null, resultText: "*Se aleja rascándose con furia.* \"El óxido... todo es óxido...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gs_o3c', label: 'Déjame verificar esa sangre', next: null, resultText: "*Extiende el brazo sangrante.* \"Mira si quieres. La sangre no miente.\"", onclick: act.test, log: { text: 'Dato: El óxido del aire afecta la piel, pero los infectados describen "movimiento" bajo la dermis.', icon: 'fa-wind' } },
-                        { id: 'gs_o3f', label: 'Analizar riesgo', next: 'gs_n4b' }
+                        { id: 'gs_o3c', label: 'Verificar temperatura de la sangre', next: null, resultText: "*Extiende el brazo sangrante.* \"Mira si quieres. La sangre no miente.\"", onclick: act.testThermo, log: { text: 'Dato: La sangre infectada suele estar fría al tacto inmediatamente después de brotar.', icon: 'fa-temperature-low' } },
+                        { id: 'gs_o3f', label: 'Entendido', next: 'gs_n4b' }
                     ]
                 },
                 'gs_n4b': {
                     id: 'gs_n4b',
-                    text: "*Requiere análisis clínico para descartar infección parasitaria.*",
-                    options: [{ id: 'gs_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore }, { id: 'gs_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }]
+                    text: "*Sujeto listo. Usa la LINTERNA UV para buscar parásitos subcutáneos.*",
+                    options: []
                 }
             }
         },
@@ -120,8 +122,8 @@ export const DialogueData = {
                     text: "*Se frota la cara, extendiendo una mancha grisácea.* \"¿Por qué me miras así? ¿Tengo algo en la cara?\"",
                     options: [
                         { id: 'gl_o3a', label: 'Estás infectado. Largo.', next: null, resultText: "*Se va cubriéndose la cara.* \"Solo necesito colirio...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gl_o3b', label: 'Necesito verificar esa secreción', next: null, resultText: "*Se limpia la cara con la manga.* \"Espero que tengas algo para esto.\"", onclick: act.test, log: { text: 'Síntoma: Secreción ocular viscosa y oscura. No es conjuntivitis, parece aceite industrial.', icon: 'fa-eye' } },
-                        { id: 'gl_o3e', label: 'Evaluar riesgo ocular', next: 'gl_n4b' }
+                        { id: 'gl_o3b', label: 'Analizar secreción con UV', next: null, resultText: "*Se limpia la cara con la manga.* \"Espero que tengas algo para esto.\"", onclick: act.testUV, log: { text: 'Síntoma: Secreción ocular viscosa. Reacciona a la luz UV mostrando patrones sintéticos.', icon: 'fa-eye' } },
+                        { id: 'gl_o3e', label: 'Anotado', next: 'gl_n4b' }
                     ]
                 },
                 'gl_n3b': {
@@ -129,17 +131,14 @@ export const DialogueData = {
                     text: "*Parpadea lentamente.* \"Veo... manchas. Como aceite flotando en agua. ¿Tú no las ves?\"",
                     options: [
                         { id: 'gl_o3c', label: 'Estás alucinando. Fuera.', next: null, resultText: "*Se aleja tropezando.* \"Manchas... todo son manchas...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gl_o3d', label: 'Espera, déjame ver tus ojos', next: null, resultText: "*Se acerca a la luz.* \"Dime que no ves las manchas tú también.\"", onclick: act.test },
-                        { id: 'gl_o3f', label: 'Analizar visión', next: 'gl_n4b' }
+                        { id: 'gl_o3d', label: 'Examinar reacción pupilar', next: null, resultText: "*Se acerca a la luz.* \"Dime que no ves las manchas tú también.\"", onclick: act.testPupils },
+                        { id: 'gl_o3f', label: 'Silencio', next: 'gl_n4b' }
                     ]
                 },
                 'gl_n4b': {
                     id: 'gl_n4b',
-                    text: "*Secreción ocular anómala. Posible síntoma temprano.*",
-                    options: [
-                        { id: 'gl_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gl_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Secreción anómala. Usa el DILATADOR DE PUPILAS para verificar reacción.*",
+                    options: []
                 }
             }
         },
@@ -179,7 +178,7 @@ export const DialogueData = {
                     options: [
                         { id: 'gw_o3a', label: 'Eres inestable. Vete.', next: null, resultText: "*Se va tapándose los oídos.* \"¡Callaos! ¡Dejadme en paz!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gw_o3b', label: 'Intenta calmarte, voy a hacer un chequeo', next: null, resultText: "*Asiente, tenso.* \"Hazlo antes de que vuelvan a empezar.\"", onclick: act.test },
-                        { id: 'gw_o3e', label: 'Evaluar salud mental', next: 'gw_n4b' }
+                        { id: 'gw_o3e', label: 'Cálmate', next: 'gw_n4b' }
                     ]
                 },
                 'gw_n3b': {
@@ -188,16 +187,13 @@ export const DialogueData = {
                     options: [
                         { id: 'gw_o3c', label: 'No quiero locos aquí. Fuera.', next: null, resultText: "*Se aleja de puntillas.* \"Shhh... nos oirán si corremos.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gw_o3d', label: 'Silencio. Déjame trabajar.', next: null, resultText: "*Se tapa la boca.* \"Seré una tumba. Revisa lo que quieras.\"", onclick: act.test, log: { text: 'Comportamiento: Escuchan voces en las tuberías. Afirman que el sistema de agua "habla" con nombres.', icon: 'fa-ear-listen' } },
-                        { id: 'gw_o3f', label: 'Analizar psicosis', next: 'gw_n4b' }
+                        { id: 'gw_o3f', label: '...', next: 'gw_n4b' }
                     ]
                 },
                 'gw_n4b': {
                     id: 'gw_n4b',
-                    text: "*Paranoia auditiva. Común en aislamiento prolongado.*",
-                    options: [
-                        { id: 'gw_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gw_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Paranoia auditiva. Verifica PULSO y PUPILAS para descartar estrés extremo.*",
+                    options: []
                 }
             }
         },
@@ -234,8 +230,8 @@ export const DialogueData = {
                     text: "*Se toca el cuello.* \"Es... una erupción. Pica un poco. Nada que un poco de alcohol no cure.\"",
                     options: [
                         { id: 'gm_o3a', label: 'Eso es hongo. Aléjate.', next: null, resultText: "*Se va cabizbajo.* \"Nadie quiere lo que está roto...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gm_o3b', label: 'No te toques. Voy a analizar eso.', next: null, resultText: "*Baja las manos.* \"Ten cuidado, no quiero contagiarte si es malo.\"", onclick: act.test, log: { text: 'Dato: El moho no solo está en la ropa; crece sobre la piel. Buscan humedad para propagarse.', icon: 'fa-bacterium' } },
-                        { id: 'gm_o3e', label: 'Evaluar riesgo fúngico', next: 'gm_n4b' }
+                        { id: 'gm_o3b', label: 'Analizar esporas en piel', next: null, resultText: "*Baja las manos.* \"Ten cuidado, no quiero contagiarte si es malo.\"", onclick: act.testUV, log: { text: 'Evidencia: El moho no es superficial; las hifas penetran la dermis buscando el torrente sanguíneo.', icon: 'fa-bacterium' } },
+                        { id: 'gm_o3e', label: 'Quédate quieto', next: 'gm_n4b' }
                     ]
                 },
                 'gm_n3b': {
@@ -243,8 +239,8 @@ export const DialogueData = {
                     text: "*Te mira suplicante.* \"No me dejes fuera. La humedad me está comiendo vivo.\"",
                     options: [
                         { id: 'gm_o3c', label: 'Lo siento, es muy arriesgado.', next: null, resultText: "*Se aleja tosiendo esporas.* \"La humedad siempre gana...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gm_o3d', label: 'Quédate en la zona de contención.', next: null, resultText: "*Se pega al cristal.* \"Gracias... el aire aquí parece más seco.\"", onclick: act.test },
-                        { id: 'gm_o3f', label: 'Analizar esporas', next: 'gm_n4b' }
+                        { id: 'gm_o3d', label: 'Verificar temperatura corporal', next: null, resultText: "*Se pega al cristal.* \"Gracias... el aire aquí parece más seco.\"", onclick: act.testThermo },
+                        { id: 'gm_o3f', label: 'Veremos', next: 'gm_n4b' }
                     ]
                 },
                 'gm_n4b': {
@@ -290,8 +286,8 @@ export const DialogueData = {
                     text: "*Se toca un diente y este cae en su mano sin esfuerzo.* \"Oh no... otro más. Se me están cayendo solos.\"",
                     options: [
                         { id: 'gt_o3a', label: '¡Qué asco! Vete.', next: null, resultText: "*Se va llorando.* \"Mis dientes... mis bonitos dientes...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gt_o3b', label: 'Guarda eso. Necesito examinarte.', next: null, resultText: "*Guarda el diente en el bolsillo.* \"Dime que puedes arreglarme.\"", onclick: act.test, log: { text: 'Síntoma: Caída de dientes sin dolor ni sangrado. Las encías rechazan el hueso, indicando necrosis estructural.', icon: 'fa-tooth' } },
-                        { id: 'gt_o3e', label: 'Evaluar necrosis', next: 'gt_n4b' }
+                        { id: 'gt_o3b', label: 'Examinar encías (Necrosis)', next: null, resultText: "*Guarda el diente en el bolsillo.* \"Dime que puedes arreglarme.\"", onclick: act.testUV, log: { text: 'Síntoma: Caída de dientes sin dolor ni sangrado. Las encías rechazan el hueso, indicando necrosis estructural.', icon: 'fa-tooth' } },
+                        { id: 'gt_o3e', label: 'Abre la boca', next: 'gt_n4b' }
                     ]
                 },
                 'gt_n3b': {
@@ -299,17 +295,14 @@ export const DialogueData = {
                     text: "*Te mira con desesperación.* \"¿Crees que es por el agua? He bebido de los charcos... no tenía opción.\"",
                     options: [
                         { id: 'gt_o3c', label: 'Bebiste agua contaminada. Largo.', next: null, resultText: "*Escupe sangre al suelo.* \"Maldita agua... maldito lugar...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gt_o3d', label: 'Vamos a ver qué tienes. Espera.', next: null, resultText: "*Abre la boca con dificultad.* \"Mira rápido, duele abrirla.\"", onclick: act.test },
-                        { id: 'gt_o3f', label: 'Analizar riesgo tóxico', next: 'gt_n4b' }
+                        { id: 'gt_o3d', label: 'Medir fiebre por infección', next: null, resultText: "*Abre la boca con dificultad.* \"Mira rápido, duele abrirla.\"", onclick: act.testThermo },
+                        { id: 'gt_o3f', label: 'Veamos', next: 'gt_n4b' }
                     ]
                 },
                 'gt_n4b': {
                     id: 'gt_n4b',
-                    text: "*Necrosis gingival avanzada. Posible intoxicación o infección.*",
-                    options: [
-                        { id: 'gt_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gt_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Necrosis gingival. Revisa TEMPERATURA y PULSO para descartar fallo sistémico.*",
+                    options: []
                 }
             }
         },
@@ -347,7 +340,7 @@ export const DialogueData = {
                     options: [
                         { id: 'gsh_o3a', label: 'No aceptamos inestables. Vete.', next: null, resultText: "*Se va mirando atrás.* \"Están ahí... sé que me siguen.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gsh_o3b', label: 'Descansa un momento, voy a revisarte.', next: null, resultText: "*Se apoya en la pared.* \"Al menos aquí hay luz... revisa lo que quieras.\"", onclick: act.test },
-                        { id: 'gsh_o3e', label: 'Evaluar salud mental', next: 'gsh_n4b' }
+                        { id: 'gsh_o3e', label: 'Tranquilo', next: 'gsh_n4b' }
                     ]
                 },
                 'gsh_n3b': {
@@ -356,16 +349,13 @@ export const DialogueData = {
                     options: [
                         { id: 'gsh_o3c', label: 'Lo siento, no hay espacio.', next: null, resultText: "*Retrocede hacia la oscuridad.* \"No me dejes con ellas...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gsh_o3d', label: 'Ponte bajo la luz, déjame ver.', next: null, resultText: "*Se pone bajo el foco.* \"No dejes que se apague la luz mientras miras.\"", onclick: act.test, log: { text: 'Comportamiento: Fobia a la oscuridad. Afirman que las sombras persisten incluso bajo luz directa.', icon: 'fa-eye-slash' } },
-                        { id: 'gsh_o3f', label: 'Analizar trauma', next: 'gsh_n4b' }
+                        { id: 'gsh_o3f', label: 'Acércate', next: 'gsh_n4b' }
                     ]
                 },
                 'gsh_n4b': {
                     id: 'gsh_n4b',
-                    text: "*Estrés postraumático severo. Sin anomalías físicas.*",
-                    options: [
-                        { id: 'gsh_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gsh_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Estrés postraumático. Verifica PUPILAS para descartar alucinaciones inducidas.*",
+                    options: []
                 }
             }
         },
@@ -402,8 +392,8 @@ export const DialogueData = {
                     text: "*Te mira confundido.* \"Solo necesito entrar en calor. Unas horas. Por favor.\"",
                     options: [
                         { id: 'gc_o3a', label: 'No es un hotel. Vete.', next: null, resultText: "*Se va abrazándose a sí mismo.* \"Tanto frío... nunca se va...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gc_o3b', label: 'Vamos a medir tu temperatura, espera.', next: null, resultText: "*Tiembla violentamente.* \"Hazlo... necesito entrar al calor.\"", onclick: act.test },
-                        { id: 'gc_o3e', label: 'Evaluación de riesgo térmico', next: 'gc_n4b' }
+                        { id: 'gc_o3b', label: 'Medir temperatura corporal', next: null, resultText: "*Tiembla violentamente.* \"Hazlo... necesito entrar al calor.\"", onclick: act.testThermo },
+                        { id: 'gc_o3e', label: 'Espera', next: 'gc_n4b' }
                     ]
                 },
                 'gc_n3b': {
@@ -411,17 +401,14 @@ export const DialogueData = {
                     text: "*Sus dientes castañean.* \"No... no estoy enfermo. Solo tengo frío.\"",
                     options: [
                         { id: 'gc_o3c', label: 'Pareces enfermo. Aléjate.', next: null, resultText: "*Se aleja castañeteando los dientes.* \"No estoy enfermo... es el hielo...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gc_o3d', label: 'Si es solo frío, lo veremos pronto.', next: null, resultText: "*Intenta quedarse quieto.* \"Perdón... no puedo parar de temblar.\"", onclick: act.test, log: { text: 'Síntoma: Temperatura corporal incompatible con la vida. La sangre parece haberse detenido o helado.', icon: 'fa-snowflake' } },
-                        { id: 'gc_o3f', label: 'Analizar hipotermia', next: 'gc_n4b' }
+                        { id: 'gc_o3d', label: 'Verificar hipotermia', next: null, resultText: "*Intenta quedarse quieto.* \"Perdón... no puedo parar de temblar.\"", onclick: act.testThermo, log: { text: 'Síntoma: Temperatura corporal incompatible con la vida. La sangre parece haberse detenido o helado.', icon: 'fa-snowflake' } },
+                        { id: 'gc_o3f', label: 'Quieto', next: 'gc_n4b' }
                     ]
                 },
                 'gc_n4b': {
                     id: 'gc_n4b',
-                    text: "*Temperatura corporal baja. Signos de hipotermia o shock.*",
-                    options: [
-                        { id: 'gc_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gc_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Temperatura baja. Usa el TERMÓMETRO para confirmar si es hipotermia o infección.*",
+                    options: []
                 }
             }
         },
@@ -460,8 +447,8 @@ export const DialogueData = {
                     text: "*Te mira ofendido.* \"No sabes nada. El óxido alimenta.\"",
                     options: [
                         { id: 'gh_o3a', label: 'Estás loco. Largo.', next: null, resultText: "*Se va contando tornillos.* \"Uno, dos... ellos no entienden el valor...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gh_o3b', label: 'Deja eso ahí. Procedo a escanear.', next: null, resultText: "*Deja la chatarra en el suelo.* \"Cuidado con eso, es de primera calidad.\"", onclick: act.test, log: { text: 'Conducta: Recolección obsesiva de metal oxidado. Creen que el óxido "alimenta".', icon: 'fa-screwdriver' } },
-                        { id: 'gh_o3e', label: 'Evaluar soborno', next: 'gh_n4b' }
+                        { id: 'gh_o3b', label: 'Deja eso ahí. Procedo a escanear.', next: null, resultText: "*Deja la chatarra en el suelo.* \"Cuidado con eso, es de primera calidad.\"", onclick: act.testPulse, log: { text: 'Conducta: Recolección obsesiva de metal oxidado. Creen que el óxido "alimenta".', icon: 'fa-screwdriver' } },
+                        { id: 'gh_o3e', label: 'Manos arriba', next: 'gh_n4b' }
                     ]
                 },
                 'gh_n3b': {
@@ -469,17 +456,14 @@ export const DialogueData = {
                     text: "*Guarda sus cosas.* \"Solo déjame entrar. Puedo arreglar cosas. Soy útil.\"",
                     options: [
                         { id: 'gh_o3c', label: 'No necesitamos chatarreros.', next: null, resultText: "*Recoge sus cosas ofendido.* \"Me llevaré mi talento a otra parte.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gh_o3d', label: 'Veremos si eres útil. Espera.', next: null, resultText: "*Se endereza.* \"Verás que estoy sano como una tubería nueva.\"", onclick: act.test },
-                        { id: 'gh_o3f', label: 'Analizar riesgo conductual', next: 'gh_n4b' }
+                        { id: 'gh_o3d', label: 'Veremos si eres útil. Espera.', next: null, resultText: "*Se endereza.* \"Verás que estoy sano como una tubería nueva.\"", onclick: act.testPulse },
+                        { id: 'gh_o3f', label: 'Espera', next: 'gh_n4b' }
                     ]
                 },
                 'gh_n4b': {
                     id: 'gh_n4b',
-                    text: "*Posible riesgo de tétanos. Conducta obsesiva.*",
-                    options: [
-                        { id: 'gh_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gh_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Conducta obsesiva. Verifica PULSO para detectar manía.*",
+                    options: []
                 }
             }
         },
@@ -518,7 +502,7 @@ export const DialogueData = {
                     options: [
                         { id: 'ge_o3a', label: 'Me das mala espina. Vete.', next: null, resultText: "*Imita tu gesto.* \"Vete... vete... adiós.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'ge_o3b', label: 'Solo... quédate quieto un segundo.', next: null, resultText: "*Se queda inmóvil.* \"Quieto... quieto... esperando.\"", onclick: act.test },
-                        { id: 'ge_o3e', label: 'Evaluar patrón de habla', next: 'ge_n4b' }
+                        { id: 'ge_o3e', label: '...', next: 'ge_n4b' }
                     ]
                 },
                 'ge_n3b': {
@@ -527,16 +511,13 @@ export const DialogueData = {
                     options: [
                         { id: 'ge_o3c', label: 'No. No puedes pasar.', next: null, resultText: "*Se aleja.* \"Pasar... no pasar... no pasar...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'ge_o3d', label: 'Voy a procesar tu solicitud, espera.', next: null, resultText: "*Asiente al ritmo de un reloj invisible.* \"Procesando... procesando...\"", onclick: act.test, log: { text: 'Síntoma: Ecolalia y retraso en respuesta. Posiblemente procesando señales de una mente colmena.', icon: 'fa-comments' } },
-                        { id: 'ge_o3f', label: 'Analizar respuesta retardada', next: 'ge_n4b' }
+                        { id: 'ge_o3f', label: 'Espera', next: 'ge_n4b' }
                     ]
                 },
                 'ge_n4b': {
                     id: 'ge_n4b',
-                    text: "*Patrones de habla atípicos. Posible afasia o disociación.*",
-                    options: [
-                        { id: 'ge_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'ge_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Patrones de habla atípicos. Usa LINTERNA UV para buscar marcas en el cuello.*",
+                    options: []
                 }
             }
         },
@@ -575,7 +556,7 @@ export const DialogueData = {
                     options: [
                         { id: 'gsl_o3a', label: 'Estás paranoico. Vete.', next: null, resultText: "*Se tambalea.* \"Dormiré... cuando esté muerto...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gsl_o3b', label: 'Tranquilo. Déjame hacer unas pruebas.', next: null, resultText: "*Abre mucho los ojos.* \"Hazlo rápido, antes de que me duerma de pie.\"", onclick: act.test },
-                        { id: 'gsl_o3e', label: 'Evaluar riesgo de psicosis', next: 'gsl_n4b' }
+                        { id: 'gsl_o3e', label: 'Rápido', next: 'gsl_n4b' }
                     ]
                 },
                 'gsl_n3b': {
@@ -584,16 +565,13 @@ export const DialogueData = {
                     options: [
                         { id: 'gsl_o3c', label: 'No tenemos sitio. Lo siento.', next: null, resultText: "*Se arrastra lejos.* \"Solo quería cerrar los ojos un momento...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gsl_o3d', label: 'Aguanta un poco más, voy a revisar.', next: null, resultText: "*Se apoya en el marco.* \"Despierto... sigo despierto... revisa.\"", onclick: act.test, log: { text: 'Dato: Los infectados evitan dormir. Dicen que al cerrar los ojos "algo se acerca".', icon: 'fa-bed' } },
-                        { id: 'gsl_o3f', label: 'Analizar privación del sueño', next: 'gsl_n4b' }
+                        { id: 'gsl_o3f', label: 'Aguanta', next: 'gsl_n4b' }
                     ]
                 },
                 'gsl_n4b': {
                     id: 'gsl_n4b',
-                    text: "*Privación de sueño severa. Alucinaciones leves.*",
-                    options: [
-                        { id: 'gsl_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gsl_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Privación de sueño. Verifica PUPILAS para descartar estimulantes o infección.*",
+                    options: []
                 }
             }
         },
@@ -630,8 +608,8 @@ export const DialogueData = {
                     text: "*Notas un bulto duro bajo la piel, cerca de la columna.* \"¡Ay! No aprietes ahí.\"",
                     options: [
                         { id: 'gtw_o3a', label: 'Eso no es normal. Fuera.', next: null, resultText: "*Se aleja con movimientos bruscos.* \"No puedo controlarlo... ¡no puedo!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gtw_o3b', label: 'No te muevas, por favor.', next: null, resultText: "*Aprieta los dientes.* \"Intentaré no moverme... lo juro.\"", onclick: act.test, log: { text: 'Anomalía: Bultos móviles bajo la piel. Posible parásito o reconfiguración muscular.', icon: 'fa-circle-dot' } },
-                        { id: 'gtw_o3e', label: 'Evaluar bulto subcutáneo', next: 'gtw_n4b' }
+                        { id: 'gtw_o3b', label: 'Analizar bulto con UV', next: null, resultText: "*Aprieta los dientes.* \"Intentaré no moverme... lo juro.\"", onclick: act.testUV, log: { text: 'Anomalía: Bultos móviles bajo la piel. Posible parásito o reconfiguración muscular.', icon: 'fa-circle-dot' } },
+                        { id: 'gtw_o3e', label: 'Quieto', next: 'gtw_n4b' }
                     ]
                 },
                 'gtw_n3b': {
@@ -639,17 +617,14 @@ export const DialogueData = {
                     text: "*Respira hondo.* \"¿Puedo pasar? Necesito sentarme.\"",
                     options: [
                         { id: 'gtw_o3c', label: 'No estás en condiciones. Vete.', next: null, resultText: "*Se marcha tropezando.* \"Nadie me quiere así...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gtw_o3d', label: 'Siéntate ahí, voy a verificar.', next: null, resultText: "*Se sienta en el suelo.* \"Aquí estoy más estable. Procede.\"", onclick: act.test },
-                        { id: 'gtw_o3f', label: 'Analizar espasmos musculares', next: 'gtw_n4b' }
+                        { id: 'gtw_o3d', label: 'Siéntate ahí, voy a verificar.', next: null, resultText: "*Se sienta en el suelo.* \"Aquí estoy más estable. Procede.\"", onclick: act.testPulse },
+                        { id: 'gtw_o3f', label: 'Siéntate', next: 'gtw_n4b' }
                     ]
                 },
                 'gtw_n4b': {
                     id: 'gtw_n4b',
-                    text: "*Espasmos musculares involuntarios. Posible daño neurológico.*",
-                    options: [
-                        { id: 'gtw_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gtw_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Espasmos musculares. Usa LINTERNA UV para buscar movimiento subcutáneo.*",
+                    options: []
                 }
             }
         },
@@ -688,7 +663,7 @@ export const DialogueData = {
                     options: [
                         { id: 'ghu_o3a', label: 'Si no te gusta, vete.', next: null, resultText: "*Se aleja con su melodía.* \"Mmmm... mmmm... el ruido me protege...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'ghu_o3b', label: 'Guarda silencio un momento, por favor.', next: null, resultText: "*Cierra la boca.* \"(Golpea el suelo con el pie rítmicamente)\"", onclick: act.test },
-                        { id: 'ghu_o3e', label: 'Analizar patrón de conducta', next: 'ghu_n4b' }
+                        { id: 'ghu_o3e', label: 'Silencio', next: 'ghu_n4b' }
                     ]
                 },
                 'ghu_n3b': {
@@ -697,13 +672,13 @@ export const DialogueData = {
                     options: [
                         { id: 'ghu_o3c', label: 'Ese ruido es insoportable. Fuera.', next: null, resultText: "*Sube el volumen de su tarareo al irse.* \"¡MMMM! ¡MMMM!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'ghu_o3d', label: 'Voy a revisarte mientras esperas.', next: null, resultText: "*Tararea muy bajito.* \"Es para calmarme... no te molestará.\"", onclick: act.test, log: { text: 'Conducta: Tarareo en frecuencias bajas. Parece un intento de sincronizarse con el zumbido del generador.', icon: 'fa-music' } },
-                        { id: 'ghu_o3f', label: 'Evaluar sincronía acústica', next: 'ghu_n4b' }
+                        { id: 'ghu_o3f', label: 'Adelante', next: 'ghu_n4b' }
                     ]
                 },
                 'ghu_n4b': {
                     id: 'ghu_n4b',
-                    text: "*Conducta repetitiva. Mecanismo de defensa ante estrés.*",
-                    options: [{ id: 'ghu_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore }, { id: 'ghu_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }]
+                    text: "*Conducta repetitiva. Verifica PULSO para detectar anomalías rítmicas.*",
+                    options: []
                 }
             }
         },
@@ -742,7 +717,7 @@ export const DialogueData = {
                     options: [
                         { id: 'gsr_o3a', label: 'No aceptamos mendigos.', next: null, resultText: "*Sigue buscando mientras se aleja.* \"Tiene que estar por aquí...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gsr_o3b', label: 'Ya buscaremos luego. Ahora el chequeo.', next: null, resultText: "*Se sacude el polvo.* \"Bien, bien. Pero si ves algo brillante, avísame.\"", onclick: act.test, log: { text: 'Conducta: Búsqueda de objetos brillantes. Posible atracción por la luz o reflejos.', icon: 'fa-key' } },
-                        { id: 'gsr_o3e', label: 'Evaluar fijación obsesiva', next: 'gsr_n4b' }
+                        { id: 'gsr_o3e', label: 'Levántate', next: 'gsr_n4b' }
                     ]
                 },
                 'gsr_n3b': {
@@ -751,16 +726,13 @@ export const DialogueData = {
                     options: [
                         { id: 'gsr_o3c', label: 'Cuidado con lo que dices. Fuera.', next: null, resultText: "*Se marcha enfadado.* \"Ladrones... todos sois ladrones...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gsr_o3d', label: 'Nadie te va a robar. Espera.', next: null, resultText: "*Te vigila de reojo.* \"No toques mis bolsillos durante el escaneo.\"", onclick: act.test },
-                        { id: 'gsr_o3f', label: 'Analizar paranoia y hostilidad', next: 'gsr_n4b' }
+                        { id: 'gsr_o3f', label: 'Tranquilo', next: 'gsr_n4b' }
                     ]
                 },
                 'gsr_n4b': {
                     id: 'gsr_n4b',
-                    text: "*Sujeto desorientado. Sin posesiones de valor.*",
-                    options: [
-                        { id: 'gsr_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gsr_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Sujeto desorientado. Verifica PUPILAS para descartar ceguera por luz.*",
+                    options: []
                 }
             }
         },
@@ -799,7 +771,7 @@ export const DialogueData = {
                     options: [
                         { id: 'gmp_o3b', label: 'No quiero gente rara aquí.', next: null, resultText: "*Se aleja trazando líneas.* \"Tendré que buscar otra ruta en el mapa...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gmp_o3a', label: 'Interesante. Déjame ver tus constantes.', next: null, resultText: "*Muestra sus brazos.* \"Lee mi piel. Todo está escrito ahí.\"", onclick: act.test },
-                        { id: 'gmp_o3e', label: 'Evaluar toxicidad de pigmentos', next: 'gmp_n4b' }
+                        { id: 'gmp_o3e', label: 'Veamos', next: 'gmp_n4b' }
                     ]
                 },
                 'gmp_n3b': {
@@ -808,16 +780,13 @@ export const DialogueData = {
                     options: [
                         { id: 'gmp_o3c', label: 'Aquí ya no hay esperanza. Vete.', next: null, resultText: "*Baja los brazos.* \"La esperanza también se pierde, supongo.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gmp_o3d', label: 'Mantén la esperanza. Voy a revisar.', next: null, resultText: "*Asiente.* \"Gracias. Aún queda camino por recorrer.\"", onclick: act.test },
-                        { id: 'gmp_o3f', label: 'Analizar estado cognitivo', next: 'gmp_n4b' }
+                        { id: 'gmp_o3f', label: 'Adelante', next: 'gmp_n4b' }
                     ]
                 },
                 'gmp_n4b': {
                     id: 'gmp_n4b',
-                    text: "*Tinta no tóxica. Sujeto estable.*",
-                    options: [
-                        { id: 'gmp_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gmp_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Tinta en piel. Usa LINTERNA UV para ver si los mapas ocultan algo.*",
+                    options: []
                 }
             }
         },
@@ -851,25 +820,22 @@ export const DialogueData = {
                     text: "*Retrocede un paso.* \"Vale, vale... solo haz tu trabajo.\"",
                     options: [
                         { id: 'gwt_o3b', label: 'No tolero amenazas. Largo.', next: null, cssClass: 'horror-btn-dismiss', resultText: "*Golpea la puerta.* \"¡Maldita burocracia! ¡Nos matarán a todos!\"", onclick: act.ignore },
-                        { id: 'gwt_o3a', label: 'Cálmate o no entras. Voy a empezar.', next: null, resultText: "*Resopla impaciente.* \"Venga, acaba con esto de una vez.\"", onclick: act.test },
-                        { id: 'gwt_o3e', label: 'Evaluar riesgo de agresión', next: 'gwt_n4b' }
+                        { id: 'gwt_o3a', label: 'Cálmate o no entras. Voy a empezar.', next: null, resultText: "*Resopla impaciente.* \"Venga, acaba con esto de una vez.\"", onclick: act.testPulse },
+                        { id: 'gwt_o3e', label: 'Silencio', next: 'gwt_n4b' }
                     ]
                 },
                 'gwt_n3b': {
                     id: 'gwt_n3b',
                     text: "*Cruza los brazos.* \"Rápido.\"",
                     options: [
-                        { id: 'gwt_o3c', label: 'Será rápido si colaboras.', next: null, resultText: "*Mira su muñeca desnuda.* \"Tic, tac. El tiempo corre.\"", onclick: act.test },
-                        { id: 'gwt_o3f', label: 'Analizar inestabilidad emocional', next: 'gwt_n4b' }
+                        { id: 'gwt_o3c', label: 'Será rápido si colaboras.', next: null, resultText: "*Mira su muñeca desnuda.* \"Tic, tac. El tiempo corre.\"", onclick: act.testPulse },
+                        { id: 'gwt_o3f', label: 'Empecemos', next: 'gwt_n4b' }
                     ]
                 },
                 'gwt_n4b': {
                     id: 'gwt_n4b',
-                    text: "*Signos de estrés y malnutrición. Sin infección.*",
-                    options: [
-                        { id: 'gwt_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gwt_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Sujeto impaciente. Verifica PULSO para descartar agitación viral.*",
+                    options: []
                 }
             }
         },
@@ -904,7 +870,7 @@ export const DialogueData = {
                     options: [
                         { id: 'glo_o3b', label: 'No puedes entrar sin autorización.', next: null, cssClass: 'horror-btn-dismiss', resultText: "*Se da la vuelta.* \"Seguiré buscando... tiene que estar en algún lado.\"", onclick: act.ignore },
                         { id: 'glo_o3a', label: 'Primero el protocolo. Espera.', next: null, resultText: "*Guarda el papel.* \"Haz lo que debas, pero déjame pasar luego.\"", onclick: act.test, log: { text: 'Dato: Desapariciones en Sector 4. Se rumorea que es un nido.', icon: 'fa-map-location-dot' } },
-                        { id: 'glo_o3e', label: 'Evaluar estado de desorientación', next: 'glo_n4b' }
+                        { id: 'glo_o3e', label: 'Espera', next: 'glo_n4b' }
                     ]
                 },
                 'glo_n3b': {
@@ -912,16 +878,13 @@ export const DialogueData = {
                     text: "\"Solo déjame pasar. No molestaré.\"",
                     options: [
                         { id: 'glo_o3c', label: 'Veremos qué se puede hacer. Un momento.', next: null, resultText: "*Junta las manos.* \"Gracias... solo quiero encontrarlo.\"", onclick: act.test },
-                        { id: 'glo_o3f', label: 'Analizar riesgo por extravío', next: 'glo_n4b' }
+                        { id: 'glo_o3f', label: 'Un momento', next: 'glo_n4b' }
                     ]
                 },
                 'glo_n4b': {
                     id: 'glo_n4b',
-                    text: "*Sujeto sano. Desorientado.*",
-                    options: [
-                        { id: 'glo_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'glo_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Sujeto desorientado. Usa LINTERNA UV para buscar rastros de contacto.*",
+                    options: []
                 }
             }
         },
@@ -945,7 +908,7 @@ export const DialogueData = {
                     text: "\"Adelante. No tengo nada que ocultar.\"",
                     options: [
                         { id: 'gqt_o2a', label: 'Bien, procedo a la inspección.', next: null, resultText: "*Se mantiene firme.* \"Estoy listo. Haz tu trabajo.\"", onclick: act.test },
-                        { id: 'gqt_o2c', label: 'Evaluar riesgo por omisión', next: 'gqt_n4b' }
+                        { id: 'gqt_o2c', label: 'Adelante', next: 'gqt_n4b' }
                     ]
                 },
                 'gqt_n2b': {
@@ -953,16 +916,13 @@ export const DialogueData = {
                     text: "\"Cansancio. Hambre. Lo normal.\"",
                     options: [
                         { id: 'gqt_o2b', label: 'Entendido. Iniciando escaneo.', next: null, resultText: "*Asiente.* \"Proceda con el escaneo.\"", onclick: act.test },
-                        { id: 'gqt_o2d', label: 'Analizar estoicismo excesivo', next: 'gqt_n4b' }
+                        { id: 'gqt_o2d', label: 'Proceda', next: 'gqt_n4b' }
                     ]
                 },
                 'gqt_n4b': {
                     id: 'gqt_n4b',
-                    text: "*Constantes vitales normales.*",
-                    options: [
-                        { id: 'gqt_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gqt_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Sujeto estoico. Verifica PULSO para confirmar calma real.*",
+                    options: []
                 }
             }
         },
@@ -986,7 +946,7 @@ export const DialogueData = {
                     text: "\"Gracias a Dios. He oído historias horribles de los otros refugios.\"",
                     options: [
                         { id: 'gsc_o2a', label: 'Relájate, voy a revisarte.', next: null, resultText: "*Sonríe temblando.* \"Gracias... me siento más seguro si revisas.\"", onclick: act.test, log: { text: 'Lore: Otros refugios han caído. El aislamiento es nuestra única defensa.', icon: 'fa-house-crack' } },
-                        { id: 'gsc_o2c', label: 'Evaluación de riesgo', next: 'gsc_n4b' }
+                        { id: 'gsc_o2c', label: 'Tranquilo', next: 'gsc_n4b' }
                     ]
                 },
                 'gsc_n2b': {
@@ -994,16 +954,13 @@ export const DialogueData = {
                     text: "*Traga saliva.* \"Bueno... mejor que fuera seguro que es.\"",
                     options: [
                         { id: 'gsc_o2b', label: 'No temas. Espera un segundo.', next: null, resultText: "*Se seca el sudor.* \"Vale... vale. Estoy listo.\"", onclick: act.test },
-                        { id: 'gsc_o2d', label: 'Analizar riesgo', next: 'gsc_n4b' }
+                        { id: 'gsc_o2d', label: 'Espera', next: 'gsc_n4b' }
                     ]
                 },
                 'gsc_n4b': {
                     id: 'gsc_n4b',
-                    text: "*Taquicardia leve por ansiedad. Sin infección.*",
-                    options: [
-                        { id: 'gsc_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gsc_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Ansiedad visible. Verifica PULSO y PUPILAS para descartar infección.*",
+                    options: []
                 }
             }
         },
@@ -1042,8 +999,8 @@ export const DialogueData = {
                     text: "*Se toca la cara.* \"Si me dejas entrar, puedo optimizar el código. O al menos... descansar hasta el parche.\"",
                     options: [
                         { id: 'gg_o3a', label: 'Error 404: Acceso denegado.', next: null, resultText: "*Parpadea erráticamente.* \"Conexión rechazada... reintentando en otro servidor...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gg_o3b', label: 'Voy a escanear tu hardware.', next: null, resultText: "*Adopta pose en T.* \"Iniciando diagnóstico de sistema...\"", onclick: act.test, log: { text: 'Anomalía: Percepción alterada. Ven la realidad como datos corruptos. ¿Efecto del gas?', icon: 'fa-bug' } },
-                        { id: 'gg_o3e', label: 'Evaluar integridad de datos', next: 'gg_n4b' }
+                        { id: 'gg_o3b', label: 'Escanear "hardware" (Pupilas)', next: null, resultText: "*Adopta pose en T.* \"Iniciando diagnóstico de sistema...\"", onclick: act.testPupils, log: { text: 'Anomalía: Percepción alterada. Ven la realidad como datos corruptos. ¿Efecto del gas?', icon: 'fa-bug' } },
+                        { id: 'gg_o3e', label: 'Escaneando', next: 'gg_n4b' }
                     ]
                 },
                 'gg_n3b': {
@@ -1051,17 +1008,14 @@ export const DialogueData = {
                     text: "\"No puedo reiniciar. Si me apago, quizás no vuelva a cargar.\"",
                     options: [
                         { id: 'gg_o3c', label: 'Ese no es mi problema.', next: null, resultText: "*Se congela.* \"Apagando sistema...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gg_o3d', label: 'Déjame ver tus ojos.', next: null, resultText: "*Abre los ojos al máximo.* \"Escanea mis datos. Busca el error.\"", onclick: act.test },
-                        { id: 'gg_o3f', label: 'Analizar glitch', next: 'gg_n4b' }
+                        { id: 'gg_o3d', label: 'Déjame ver tus ojos.', next: null, resultText: "*Abre los ojos al máximo.* \"Escanea mis datos. Busca el error.\"", onclick: act.testPupils },
+                        { id: 'gg_o3f', label: 'Mírame', next: 'gg_n4b' }
                     ]
                 },
                 'gg_n4b': {
                     id: 'gg_n4b',
-                    text: "*Disociación severa. Posible intoxicación neurológica.*",
-                    options: [
-                        { id: 'gg_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gg_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Disociación severa. Verifica PUPILAS para buscar patrones de error.*",
+                    options: []
                 }
             }
         },
@@ -1100,8 +1054,8 @@ export const DialogueData = {
                     text: "\"Déjame pasar. Traigo la palabra del nuevo mundo.\"",
                     options: [
                         { id: 'gp_o3a', label: 'Aquí no queremos tu religión.', next: null, resultText: "*Escupe.* \"¡Herejes! ¡Os ahogaréis en vuestra ignorancia!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gp_o3b', label: 'Voy a ver si esa "luz" es fiebre.', next: null, resultText: "*Levanta la barbilla.* \"Examina mi carne. Verás la verdad escrita en ella.\"", onclick: act.test, log: { text: 'Lore: Culto a la Niebla. Creen que el cloro es un "bautismo" que filtra a los débiles.', icon: 'fa-book-quran' } },
-                        { id: 'gp_o3e', label: 'Evaluar fanatismo', next: 'gp_n4b' }
+                        { id: 'gp_o3b', label: 'Voy a ver si esa "luz" es fiebre.', next: null, resultText: "*Levanta la barbilla.* \"Examina mi carne. Verás la verdad escrita en ella.\"", onclick: act.testThermo, log: { text: 'Lore: Culto a la Niebla. Creen que el cloro es un "bautismo" que filtra a los débiles.', icon: 'fa-book-quran' } },
+                        { id: 'gp_o3e', label: 'Veremos', next: 'gp_n4b' }
                     ]
                 },
                 'gp_n3b': {
@@ -1109,8 +1063,8 @@ export const DialogueData = {
                     text: "\"No puedes detener la marea con una puerta de metal.\"",
                     options: [
                         { id: 'gp_o3c', label: 'Puedo y lo haré. Largo.', next: null, resultText: "*Se aleja riendo.* \"¡La marea llega! ¡La marea llega para todos!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gp_o3d', label: 'Cállate y déjame escanearte.', next: null, resultText: "*Te mira con lástima.* \"Pobre alma ciega... haz tus pruebas inútiles.\"", onclick: act.test },
-                        { id: 'gp_o3f', label: 'Analizar riesgo ideológico', next: 'gp_n4b' }
+                        { id: 'gp_o3d', label: 'Cállate y déjame escanearte.', next: null, resultText: "*Te mira con lástima.* \"Pobre alma ciega... haz tus pruebas inútiles.\"", onclick: act.testPupils },
+                        { id: 'gp_o3f', label: 'Silencio', next: 'gp_n4b' }
                     ]
                 },
                 'gp_n4b': {
@@ -1159,7 +1113,7 @@ export const DialogueData = {
                     options: [
                         { id: 'gsi_o3a', label: 'Estás loco. Vete.', next: null, resultText: "*Recoge la nota y huye despavorido.*", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gsi_o3b', label: 'Entiendo. Déjame revisarte en silencio.', next: null, resultText: "*Asiente lentamente y te ofrece el brazo en silencio.*", onclick: act.test, log: { text: 'Lore: "Los que escuchan". Entidades en las tuberías que reaccionan al sonido de la voz humana.', icon: 'fa-note-sticky' } },
-                        { id: 'gsi_o3e', label: 'Evaluación de riesgo', next: 'gsi_n4b' }
+                        { id: 'gsi_o3e', label: '...', next: 'gsi_n4b' }
                     ]
                 },
                 'gsi_n3b': {
@@ -1168,16 +1122,13 @@ export const DialogueData = {
                     options: [
                         { id: 'gsi_o3c', label: 'Demasiado inestable. Fuera.', next: null, resultText: "*Huye sin hacer ruido, con los ojos llenos de pánico.*", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gsi_o3d', label: 'Voy a medir tu pulso.', next: null, resultText: "*Extiende la muñeca temblando, sin emitir sonido.*", onclick: act.test },
-                        { id: 'gsi_o3f', label: 'Analizar mutismo', next: 'gsi_n4b' }
+                        { id: 'gsi_o3f', label: 'Calma', next: 'gsi_n4b' }
                     ]
                 },
                 'gsi_n4b': {
                     id: 'gsi_n4b',
-                    text: "*Estrés extremo. Mudez psicógena o voluntaria.*",
-                    options: [
-                        { id: 'gsi_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gsi_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Mudez voluntaria. Verifica PULSO para detectar estrés extremo.*",
+                    options: []
                 }
             }
         },
@@ -1216,8 +1167,8 @@ export const DialogueData = {
                     text: "\"Es información vital. Vale por una cama caliente, ¿no?\"",
                     options: [
                         { id: 'gbr_o3a', label: 'Información insuficiente. Vete.', next: null, resultText: "*Golpea el cristal.* \"¡Te arrepentirás! ¡Esa información valía oro!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gbr_o3b', label: 'Veremos. Primero el chequeo.', next: null, resultText: "*Se cruza de brazos.* \"Bien. Revisa. Pero recuerda lo del moho.\"", onclick: act.test, log: { text: 'Lore: El moho negro es una red neuronal. Se extiende por ventilación. El fuego es lo único que lo detiene.', icon: 'fa-fire' } },
-                        { id: 'gbr_o3e', label: 'Evaluar soborno', next: 'gbr_n4b' }
+                        { id: 'gbr_o3b', label: 'Veremos. Primero el chequeo.', next: null, resultText: "*Se cruza de brazos.* \"Bien. Revisa. Pero recuerda lo del moho.\"", onclick: act.testPulse, log: { text: 'Lore: El moho negro es una red neuronal. Se extiende por ventilación. El fuego es lo único que lo detiene.', icon: 'fa-fire' } },
+                        { id: 'gbr_o3e', label: 'Veremos', next: 'gbr_n4b' }
                     ]
                 },
                 'gbr_n3b': {
@@ -1225,17 +1176,14 @@ export const DialogueData = {
                     text: "\"¡Te estoy haciendo un favor! ¡Maldito burócrata!\"",
                     options: [
                         { id: 'gbr_o3c', label: 'No tolero insultos. Largo.', next: null, resultText: "*Se aleja maldiciendo.* \"¡Ojalá se te pudra el filtro de aire!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gbr_o3d', label: 'Cállate y coopera.', next: null, resultText: "*Bufa.* \"Venga, acaba ya. Tengo cosas que hacer.\"", onclick: act.test },
-                        { id: 'gbr_o3f', label: 'Analizar riesgo conductual', next: 'gbr_n4b' }
+                        { id: 'gbr_o3d', label: 'Cállate y coopera.', next: null, resultText: "*Bufa.* \"Venga, acaba ya. Tengo cosas que hacer.\"", onclick: act.testPulse },
+                        { id: 'gbr_o3f', label: 'Silencio', next: 'gbr_n4b' }
                     ]
                 },
                 'gbr_n4b': {
                     id: 'gbr_n4b',
-                    text: "*Sujeto manipulador. Posiblemente sano pero conflictivo.*",
-                    options: [
-                        { id: 'gbr_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gbr_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Sujeto manipulador. Usa LINTERNA UV para verificar si oculta algo.*",
+                    options: []
                 }
             }
         },
@@ -1275,7 +1223,7 @@ export const DialogueData = {
                     options: [
                         { id: 'gj_o3a', label: 'Demasiado ruido. Fuera.', next: null, resultText: "*Se aleja riendo a carcajadas.* \"¡El chiste eres tú! ¡Tú eres el chiste!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gj_o3b', label: 'Veamos si esa risa es síntoma.', next: null, resultText: "*Se muerde el labio.* \"Ji... ji... vale, me pongo serio. Serio como una tumba.\"", onclick: act.test, log: { text: 'Síntoma: Risa incontrolable. Posible daño cerebral por hipoxia o toxinas.', icon: 'fa-face-grin-squint' } },
-                        { id: 'gj_o3e', label: 'Evaluar salud mental', next: 'gj_n4b' }
+                        { id: 'gj_o3e', label: 'Serio', next: 'gj_n4b' }
                     ]
                 },
                 'gj_n3b': {
@@ -1284,16 +1232,13 @@ export const DialogueData = {
                     options: [
                         { id: 'gj_o3c', label: 'Estás loco. Largo.', next: null, resultText: "*Hace una reverencia burlona.* \"¡Hasta la próxima función!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gj_o3d', label: 'Quédate quieto. Voy a escanear.', next: null, resultText: "*Pone cara de estatua.* \"¿Así? ¿Estoy bastante quieto para su majestad?\"", onclick: act.test },
-                        { id: 'gj_o3f', label: 'Analizar psicosis', next: 'gj_n4b' }
+                        { id: 'gj_o3f', label: 'Quieto', next: 'gj_n4b' }
                     ]
                 },
                 'gj_n4b': {
                     id: 'gj_n4b',
-                    text: "*Euforia maníaca. Posible hipoxia o intoxicación.*",
-                    options: [
-                        { id: 'gj_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gj_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Euforia maníaca. Verifica PUPILAS para descartar intoxicación.*",
+                    options: []
                 }
             }
         },
@@ -1332,8 +1277,8 @@ export const DialogueData = {
                     text: "*Tose discretamente en su puño.* \"Negativo. La máscara aguantó... casi todo el tiempo.\"",
                     options: [
                         { id: 'gso_o3a', label: 'Mentira. Estás contaminado.', next: null, resultText: "*Aprieta los dientes.* \"Error táctico. Se arrepentirá de perder a un combatiente.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gso_o3b', label: 'Déjame verificar tus pulmones.', next: null, resultText: "*Levanta la barbilla.* \"Proceda. Mis pulmones son de acero.\"", onclick: act.test, log: { text: 'Lore: Hostiles gaseosos. La infección se mueve con el viento y vuelve a los aliados en contra.', icon: 'fa-mask' } },
-                        { id: 'gso_o3e', label: 'Evaluar aptitud', next: 'gso_n4b' }
+                        { id: 'gso_o3b', label: 'Verificar pulmones (Pulso)', next: null, resultText: "*Levanta la barbilla.* \"Proceda. Mis pulmones son de acero.\"", onclick: act.testPulse, log: { text: 'Lore: Hostiles gaseosos. La infección se mueve con el viento y vuelve a los aliados en contra.', icon: 'fa-mask' } },
+                        { id: 'gso_o3e', label: 'Proceda', next: 'gso_n4b' }
                     ]
                 },
                 'gso_n3b': {
@@ -1341,17 +1286,14 @@ export const DialogueData = {
                     text: "\"Solo rasguños. Daños colaterales. Soy apto para el servicio.\"",
                     options: [
                         { id: 'gso_o3c', label: 'Demasiado riesgo. Retírese.', next: null, resultText: "*Se da media vuelta.* \"Retirada estratégica. Buscaré otro puesto.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gso_o3d', label: 'Inspección de heridas. Ahora.', next: null, resultText: "*Se descubre las heridas.* \"Solo son rasguños de guerra. Nada que no cure.\"", onclick: act.test },
-                        { id: 'gso_o3f', label: 'Analizar riesgo de combate', next: 'gso_n4b' }
+                        { id: 'gso_o3d', label: 'Inspección de heridas. Ahora.', next: null, resultText: "*Se descubre las heridas.* \"Solo son rasguños de guerra. Nada que no cure.\"", onclick: act.testUV },
+                        { id: 'gso_o3f', label: 'Inspección', next: 'gso_n4b' }
                     ]
                 },
                 'gso_n4b': {
                     id: 'gso_n4b',
-                    text: "*Heridas superficiales infectadas. Signos de fatiga de combate.*",
-                    options: [
-                        { id: 'gso_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gso_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Heridas superficiales. Usa LINTERNA UV para descartar infección en cortes.*",
+                    options: []
                 }
             }
         },
@@ -1390,8 +1332,8 @@ export const DialogueData = {
                     text: "*Entreabre los trapos. Ves algo que brilla húmedamente, quizás carne, quizás metal.* \"¿Ves? Es precioso.\"",
                     options: [
                         { id: 'gca_o3a', label: 'Eso no es humano. Fuera.', next: null, resultText: "*Cubre el bulto.* \"¡No le mires! ¡No eres digno!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gca_o3b', label: 'Necesito escanear eso.', next: null, resultText: "*Te mira con odio.* \"Si le haces daño... te mataré.\"", onclick: act.test, log: { text: 'Lore: Portadores de biomasa. Protegen bultos de carne como si fueran hijos. Es el futuro de la plaga.', icon: 'fa-biohazard' } },
-                        { id: 'gca_o3e', label: 'Evaluar riesgo biológico', next: 'gca_n4b' }
+                        { id: 'gca_o3b', label: 'Escanear biomasa con UV', next: null, resultText: "*Te mira con odio.* \"Si le haces daño... te mataré.\"", onclick: act.testUV, log: { text: 'Lore: Portadores de biomasa. Protegen bultos de carne como si fueran hijos. Es el futuro de la plaga.', icon: 'fa-biohazard' } },
+                        { id: 'gca_o3e', label: 'Cuidado', next: 'gca_n4b' }
                     ]
                 },
                 'gca_n3b': {
@@ -1399,8 +1341,8 @@ export const DialogueData = {
                     text: "\"Era... antes. Ahora es mejor. No necesita comer, solo... calor.\"",
                     options: [
                         { id: 'gca_o3c', label: 'Qué horror. Largo de aquí.', next: null, resultText: "*Arrulla al bulto.* \"Vámonos, pequeño... aquí no nos quieren.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gca_o3d', label: 'Déjame ver si es contagioso.', next: null, resultText: "*Acerca el bulto.* \"Mira... ¿ves cómo late? Es fuerte.\"", onclick: act.test },
-                        { id: 'gca_o3f', label: 'Analizar parásito', next: 'gca_n4b' }
+                        { id: 'gca_o3d', label: 'Déjame ver si es contagioso.', next: null, resultText: "*Acerca el bulto.* \"Mira... ¿ves cómo late? Es fuerte.\"", onclick: act.testUV },
+                        { id: 'gca_o3f', label: 'Veamos', next: 'gca_n4b' }
                     ]
                 },
                 'gca_n4b': {
@@ -1447,8 +1389,8 @@ export const DialogueData = {
                     text: "*Retrocede, pero sigue mirando tu cuello.* \"Tranquilo... puedo controlarme. Si me das raciones dobles.\"",
                     options: [
                         { id: 'ghn_o3a', label: 'Ni hablar. Largo.', next: null, resultText: "*Se va relamiéndose.* \"Encontraré algo... o a alguien...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'ghn_o3b', label: 'Voy a revisarte. Mantén la boca cerrada.', next: null, resultText: "*Sonríe mostrando dientes afilados.* \"Cerrada... por ahora.\"", onclick: act.test },
-                        { id: 'ghn_o3e', label: 'Evaluar instinto depredador', next: 'ghn_n4b' }
+                        { id: 'ghn_o3b', label: 'Verificar pulso (Agitación)', next: null, resultText: "*Sonríe mostrando dientes afilados.* \"Cerrada... por ahora.\"", onclick: act.testPulse },
+                        { id: 'ghn_o3e', label: 'Atrás', next: 'ghn_n4b' }
                     ]
                 },
                 'ghn_n3b': {
@@ -1456,17 +1398,14 @@ export const DialogueData = {
                     text: "\"Es la naturaleza. El fuerte come al débil. ¿Me dejarás entrar o serás comida?\"",
                     options: [
                         { id: 'ghn_o3c', label: 'Eres una amenaza. Vete.', next: null, resultText: "*Gruñe.* \"La carne se desperdicia...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'ghn_o3d', label: 'Déjame ver si esa hambre es parásita.', next: null, resultText: "*Abre la boca.* \"Mira dentro si te atreves.\"", onclick: act.test, log: { text: 'Síntoma: Polifagia agresiva. Posible alteración metabólica por el parásito.', icon: 'fa-utensils' } },
-                        { id: 'ghn_o3f', label: 'Analizar metabolismo', next: 'ghn_n4b' }
+                        { id: 'ghn_o3d', label: 'Analizar metabolismo (Termómetro)', next: null, resultText: "*Abre la boca.* \"Mira dentro si te atreves.\"", onclick: act.testThermo, log: { text: 'Síntoma: Polifagia agresiva. Posible alteración metabólica por el parásito.', icon: 'fa-utensils' } },
+                        { id: 'ghn_o3f', label: 'Quieto', next: 'ghn_n4b' }
                     ]
                 },
                 'ghn_n4b': {
                     id: 'ghn_n4b',
-                    text: "*Metabolismo acelerado. Signos de canibalismo potencial.*",
-                    options: [
-                        { id: 'ghn_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'ghn_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Metabolismo acelerado. Verifica PULSO y TEMPERATURA para confirmar estado depredador.*",
+                    options: []
                 }
             }
         },
@@ -1505,7 +1444,7 @@ export const DialogueData = {
                     options: [
                         { id: 'gcl_o3a', label: 'Estás obsesionado. Vete.', next: null, resultText: "*Sigue frotando mientras se aleja.* \"Sucio... todo sucio...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gcl_o3b', label: 'Deja de frotar y déjame ver.', next: null, resultText: "*Extiende las manos en carne viva.* \"¿Ves la grasa? ¿La ves?\"", onclick: act.test },
-                        { id: 'gcl_o3e', label: 'Evaluar daño epidérmico', next: 'gcl_n4b' }
+                        { id: 'gcl_o3e', label: 'Para', next: 'gcl_n4b' }
                     ]
                 },
                 'gcl_n3b': {
@@ -1514,16 +1453,13 @@ export const DialogueData = {
                     options: [
                         { id: 'gcl_o3c', label: 'No necesitamos limpieza obsesiva.', next: null, resultText: "*Escupe al suelo.* \"Os pudriréis en vuestra mugre.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gcl_o3d', label: 'Veremos si estás limpio por dentro.', next: null, resultText: "*Asiente frenéticamente.* \"Por dentro estoy impoluto. Lo juro.\"", onclick: act.test, log: { text: 'Conducta: Ablutomanía extrema. Se han arrancado capas de piel intentando "limpiarse".', icon: 'fa-soap' } },
-                        { id: 'gcl_o3f', label: 'Analizar neurosis', next: 'gcl_n4b' }
+                        { id: 'gcl_o3f', label: 'Veremos', next: 'gcl_n4b' }
                     ]
                 },
                 'gcl_n4b': {
                     id: 'gcl_n4b',
-                    text: "*Dermatitis por fricción. Trastorno obsesivo-compulsivo.*",
-                    options: [
-                        { id: 'gcl_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gcl_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Dermatitis por fricción. Usa LINTERNA UV para ver si hay infección bajo las heridas.*",
+                    options: []
                 }
             }
         },
@@ -1562,7 +1498,7 @@ export const DialogueData = {
                     options: [
                         { id: 'gfg_o3a', label: 'Buen punto. Vete.', next: null, resultText: "*Se aleja tocándose la cara.* \"¿Quién soy...?\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gfg_o3b', label: 'Tus constantes me dirán quién eres.', next: null, resultText: "*Baja la mano.* \"Espero que la máquina sepa más que yo.\"", onclick: act.test },
-                        { id: 'gfg_o3e', label: 'Evaluar identidad', next: 'gfg_n4b' }
+                        { id: 'gfg_o3e', label: 'Veamos', next: 'gfg_n4b' }
                     ]
                 },
                 'gfg_n3b': {
@@ -1571,16 +1507,13 @@ export const DialogueData = {
                     options: [
                         { id: 'gfg_o3c', label: 'No admitimos ecos. Fuera.', next: null, resultText: "*Se desvanece en la oscuridad.* \"Solo un eco...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gfg_o3d', label: 'Déjame comprobar si eres real.', next: null, resultText: "*Se acerca al cristal.* \"Comprueba. Tócame. ¿Soy real?\"", onclick: act.test, log: { text: 'Síntoma: Despersonalización. El sujeto cree haber sido reemplazado o haber muerto.', icon: 'fa-user-slash' } },
-                        { id: 'gfg_o3f', label: 'Analizar disociación', next: 'gfg_n4b' }
+                        { id: 'gfg_o3f', label: 'Acércate', next: 'gfg_n4b' }
                     ]
                 },
                 'gfg_n4b': {
                     id: 'gfg_n4b',
-                    text: "*Amnesia disociativa. Sin signos físicos de reemplazo.*",
-                    options: [
-                        { id: 'gfg_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gfg_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Amnesia disociativa. Verifica PUPILAS para descartar daño cerebral.*",
+                    options: []
                 }
             }
         },
@@ -1619,7 +1552,7 @@ export const DialogueData = {
                     options: [
                         { id: 'gfv_o3a', label: 'Ese sudor no es normal. Vete.', next: null, resultText: "*Se marcha tambaleándose.* \"Solo es calor... mucho calor...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gfv_o3b', label: 'Déjame medir tu temperatura.', next: null, resultText: "*Se apoya en la pared.* \"Vale, pero rápido. Me mareo.\"", onclick: act.test },
-                        { id: 'gfv_o3e', label: 'Evaluar síntomas', next: 'gfv_n4b' }
+                        { id: 'gfv_o3e', label: 'Espera', next: 'gfv_n4b' }
                     ]
                 },
                 'gfv_n3b': {
@@ -1628,16 +1561,13 @@ export const DialogueData = {
                     options: [
                         { id: 'gfv_o3c', label: 'Buen punto, pero no me fío.', next: null, resultText: "*Escupe al suelo.* \"Paranoicos...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gfv_o3d', label: 'A ver esos ojos. Acércate.', next: null, resultText: "*Se acerca, sus pupilas oscilan.* \"¿Ves? Normales.\"", onclick: act.test },
-                        { id: 'gfv_o3f', label: 'Analizar resistencia', next: 'gfv_n4b' }
+                        { id: 'gfv_o3f', label: 'Acércate', next: 'gfv_n4b' }
                     ]
                 },
                 'gfv_n4b': {
                     id: 'gfv_n4b',
-                    text: "*Hipertermia. Posible infección viral común o fase incubación.*",
-                    options: [
-                        { id: 'gfv_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gfv_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Hipertermia. Usa el TERMÓMETRO para confirmar fiebre o infección.*",
+                    options: []
                 }
             }
         },
@@ -1676,7 +1606,7 @@ export const DialogueData = {
                     options: [
                         { id: 'geu_o3a', label: 'Estás delirando. Fuera.', next: null, resultText: "*Se va saltando.* \"¡Aire puro! ¡Vida pura!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'geu_o3b', label: 'Quieto. Voy a escanearte.', next: null, resultText: "*Abre los brazos.* \"Escanea. Verás la perfección.\"", onclick: act.test, log: { text: 'Síntoma: Euforia química. El parásito libera dopamina para asegurar la cooperación del huésped.', icon: 'fa-face-grin-stars' } },
-                        { id: 'geu_o3e', label: 'Evaluar estado alterado', next: 'geu_n4b' }
+                        { id: 'geu_o3e', label: 'Quieto', next: 'geu_n4b' }
                     ]
                 },
                 'geu_n3b': {
@@ -1684,17 +1614,13 @@ export const DialogueData = {
                     text: "\"El peso de ser... frágil. Ahora me siento fuerte. Resistente.\"",
                     options: [
                         { id: 'geu_o3c', label: 'Eso es síntoma de infección. Largo.', next: null, resultText: "*Te mira con lástima.* \"Te quedas atrás en la evolución...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'geu_o3d', label: 'Veamos qué te hace tan fuerte.', next: null, resultText: "*Muestra sus músculos tensos.* \"Mira. Acero orgánico.\"", onclick: act.test },
-                        { id: 'geu_o3f', label: 'Analizar vitalidad anómala', next: 'geu_n4b' }
+                        { id: 'geu_o3f', label: 'Veamos', next: 'geu_n4b' }
                     ]
                 },
                 'geu_n4b': {
                     id: 'geu_n4b',
-                    text: "*Niveles de endorfinas anormales. Posible intoxicación o mejora parasitaria.*",
-                    options: [
-                        { id: 'geu_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'geu_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Euforia anómala. Verifica PULSO para detectar sobrecarga química.*",
+                    options: []
                 }
             }
         },
@@ -1733,7 +1659,7 @@ export const DialogueData = {
                     options: [
                         { id: 'gth_o3a', label: 'No. Vete a buscar agua fuera.', next: null, resultText: "*Se arrastra.* \"Agua... necesito agua...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gth_o3b', label: 'Espera. Voy a ver si estás deshidratado.', next: null, resultText: "*Asiente débilmente.* \"Rápido... me estoy secando.\"", onclick: act.test },
-                        { id: 'gth_o3e', label: 'Evaluar deshidratación', next: 'gth_n4b' }
+                        { id: 'gth_o3e', label: 'Espera', next: 'gth_n4b' }
                     ]
                 },
                 'gth_n3b': {
@@ -1742,16 +1668,13 @@ export const DialogueData = {
                     options: [
                         { id: 'gth_o3c', label: 'Solo para residentes sanos.', next: null, resultText: "*Llora sin lágrimas.* \"Por favor... solo un trago...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                         { id: 'gth_o3d', label: 'Comprobemos si estás sano.', next: null, resultText: "*Se lame los labios.* \"Lo que digas. Pero dame agua luego.\"", onclick: act.test, log: { text: 'Dato: La sed extrema puede ser deshidratación o el parásito consumiendo los fluidos corporales.', icon: 'fa-glass-water' } },
-                        { id: 'gth_o3f', label: 'Analizar niveles de fluidos', next: 'gth_n4b' }
+                        { id: 'gth_o3f', label: 'Comprobemos', next: 'gth_n4b' }
                     ]
                 },
                 'gth_n4b': {
                     id: 'gth_n4b',
-                    text: "*Deshidratación severa. Piel con textura de pergamino.*",
-                    options: [
-                        { id: 'gth_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                        { id: 'gth_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
-                    ]
+                    text: "*Deshidratación severa. Usa LINTERNA UV para verificar textura de la piel.*",
+                    options: []
                 }
             }
         }
