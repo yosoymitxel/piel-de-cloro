@@ -13,7 +13,11 @@ export const DialogueData = {
         'confused',
         'fanatic',
         'broken',
-        'body_horror'],
+        'body_horror',
+        'paranoid',
+        'obsessive',
+        'manic',
+        'sick'],
     // Pools of dialogues (each pool is an independent tree of nodes)
     pools: {
         // 1. THE SCRATCHER (El que se rasca)
@@ -142,7 +146,7 @@ export const DialogueData = {
         // 3. THE LISTENER (El que escucha)
         "gen_whisper": {
             id: 'gen_whisper',
-            tags: ['paranoid', 'generic'],
+            tags: ['paranoid'],
             unique: false,
             root: 'gw_n1',
             nodes: {
@@ -820,7 +824,7 @@ export const DialogueData = {
         // 15. THE IMPATIENT (El impaciente)
         "gen_wait": {
             id: 'gen_wait',
-            tags: ['aggressive', 'generic'],
+            tags: ['aggressive'],
             unique: false,
             root: 'gwt_n1',
             nodes: {
@@ -872,7 +876,7 @@ export const DialogueData = {
         // 16. THE LOST (El perdido)
         "gen_lost": {
             id: 'gen_lost',
-            tags: ['confused', 'generic'],
+            tags: ['confused'],
             unique: false,
             root: 'glo_n1',
             nodes: {
@@ -924,7 +928,7 @@ export const DialogueData = {
         // 17. THE STOIC (El estoico)
         "gen_quiet": {
             id: 'gen_quiet',
-            tags: ['stoic', 'generic'],
+            tags: ['stoic'],
             unique: false,
             root: 'gqt_n1',
             nodes: {
@@ -965,7 +969,7 @@ export const DialogueData = {
         // 18. THE SCARED (El asustado)
         "gen_scared": {
             id: 'gen_scared',
-            tags: ['nervous', 'generic'],
+            tags: ['nervous'],
             unique: false,
             root: 'gsc_n1',
             nodes: {
@@ -1409,30 +1413,346 @@ export const DialogueData = {
                 }
             }
         },
-
-        // Test pool generic_01 for unit tests
-        "generic_01": {
-            id: 'generic_01',
-            tags: ['test'],
-            unique: true,
-            root: 'g1_n1',
+        // 26. THE HUNGRY (El hambriento)
+        "gen_hungry": {
+            id: 'gen_hungry',
+            tags: ['aggressive', 'body_horror'],
+            unique: false,
+            root: 'ghn_n1',
             nodes: {
-                'g1_n1': { id: 'g1_n1', text: "*Hola* {rumor}", options: [{ id: 'g1_o1', label: 'Ask health', next: 'g1_n2a', sets: ['asked_health'] }, { id: 'g1_o2', label: 'Ignore', next: null }] },
-                'g1_n2a': { id: 'g1_n2a', text: "Follow up", options: [{ id: 'g1_o2a', label: 'Next', next: 'g1_n3a' }] },
-                'g1_n3a': { id: 'g1_n3a', text: "Then", options: [{ id: 'g1_o3a', label: 'Next', next: 'g1_n4a' }] },
-                'g1_n4a': { id: 'g1_n4a', text: "End", options: [] }
+                'ghn_n1': {
+                    id: 'ghn_n1',
+                    text: "*Se lame los labios secos constantemente.* \"El olor... aquí huele a comida. A carne caliente.\"",
+                    options: [
+                        { id: 'ghn_o1', label: 'No hay comida aquí', next: 'ghn_n2a' },
+                        { id: 'ghn_o2', label: '¿Qué hueles?', next: 'ghn_n2b' }
+                    ]
+                },
+                'ghn_n2a': {
+                    id: 'ghn_n2a',
+                    text: "\"Mientes. Huelo la circulación. La sangre bajo la piel. Es... apetitoso.\"",
+                    options: [
+                        { id: 'ghn_o2a', label: 'Amenazar', next: 'ghn_n3a' }
+                    ]
+                },
+                'ghn_n2b': {
+                    id: 'ghn_n2b',
+                    text: "\"Huelo... vida. Fuera todo está seco. Muerto. Aquí dentro hay jugo.\"",
+                    options: [
+                        { id: 'ghn_o2b', label: 'Qué asco', next: 'ghn_n3b' }
+                    ]
+                },
+                'ghn_n3a': {
+                    id: 'ghn_n3a',
+                    text: "*Retrocede, pero sigue mirando tu cuello.* \"Tranquilo... puedo controlarme. Si me das raciones dobles.\"",
+                    options: [
+                        { id: 'ghn_o3a', label: 'Ni hablar. Largo.', next: null, resultText: "*Se va relamiéndose.* \"Encontraré algo... o a alguien...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'ghn_o3b', label: 'Voy a revisarte. Mantén la boca cerrada.', next: null, resultText: "*Sonríe mostrando dientes afilados.* \"Cerrada... por ahora.\"", onclick: act.test },
+                        { id: 'ghn_o3e', label: 'Evaluar instinto depredador', next: 'ghn_n4b' }
+                    ]
+                },
+                'ghn_n3b': {
+                    id: 'ghn_n3b',
+                    text: "\"Es la naturaleza. El fuerte come al débil. ¿Me dejarás entrar o serás comida?\"",
+                    options: [
+                        { id: 'ghn_o3c', label: 'Eres una amenaza. Vete.', next: null, resultText: "*Gruñe.* \"La carne se desperdicia...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'ghn_o3d', label: 'Déjame ver si esa hambre es parásita.', next: null, resultText: "*Abre la boca.* \"Mira dentro si te atreves.\"", onclick: act.test, log: { text: 'Síntoma: Polifagia agresiva. Posible alteración metabólica por el parásito.', icon: 'fa-utensils' } },
+                        { id: 'ghn_o3f', label: 'Analizar metabolismo', next: 'ghn_n4b' }
+                    ]
+                },
+                'ghn_n4b': {
+                    id: 'ghn_n4b',
+                    text: "*Metabolismo acelerado. Signos de canibalismo potencial.*",
+                    options: [
+                        { id: 'ghn_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'ghn_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
+                    ]
+                }
             }
         },
-
-        // Test pool generic_02 for requires
-        "generic_02": {
-            id: 'generic_02',
-            tags: ['test'],
-            unique: true,
-            root: 'g2_n4a',
+        // 27. THE CLEANER (El limpiador)
+        "gen_clean": {
+            id: 'gen_clean',
+            tags: ['obsessive', 'nervous'],
+            unique: false,
+            root: 'gcl_n1',
             nodes: {
-                'g2_n4a': { id: 'g2_n4a', text: "Require test", options: [{ id: 'g2_o1', label: 'Require noted', requires: ['noted_voice'], next: 'g2_n5a' }, { id: 'g2_o2', label: 'No', next: null }] },
-                'g2_n5a': { id: 'g2_n5a', text: "After require", options: [] }
+                'gcl_n1': {
+                    id: 'gcl_n1',
+                    text: "*Se frota las manos con un trapo inexistente.* \"Está sucio... todo está sucio. El aire deja grasa en la piel.\"",
+                    options: [
+                        { id: 'gcl_o1', label: 'Cálmate', next: 'gcl_n2a' },
+                        { id: 'gcl_o2', label: '¿Qué grasa?', next: 'gcl_n2b' }
+                    ]
+                },
+                'gcl_n2a': {
+                    id: 'gcl_n2a',
+                    text: "\"No puedo calmarme hasta que esté limpio. ¿Tenéis duchas de descontaminación? ¿Ácido?\"",
+                    options: [
+                        { id: 'gcl_o2a', label: 'Tenemos agua', next: 'gcl_n3a' }
+                    ]
+                },
+                'gcl_n2b': {
+                    id: 'gcl_n2b',
+                    text: "\"La que sueltan ellos. Los infectados. Respiran y el aire se vuelve aceite. Lo siento en mis poros.\"",
+                    options: [
+                        { id: 'gcl_o2b', label: 'Interesante teoría', next: 'gcl_n3b' }
+                    ]
+                },
+                'gcl_n3a': {
+                    id: 'gcl_n3a',
+                    text: "*Mira sus manos rojas de tanto frotar.* \"El agua no basta. Necesito raspar. Quitar la capa de arriba.\"",
+                    options: [
+                        { id: 'gcl_o3a', label: 'Estás obsesionado. Vete.', next: null, resultText: "*Sigue frotando mientras se aleja.* \"Sucio... todo sucio...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'gcl_o3b', label: 'Deja de frotar y déjame ver.', next: null, resultText: "*Extiende las manos en carne viva.* \"¿Ves la grasa? ¿La ves?\"", onclick: act.test },
+                        { id: 'gcl_o3e', label: 'Evaluar daño epidérmico', next: 'gcl_n4b' }
+                    ]
+                },
+                'gcl_n3b': {
+                    id: 'gcl_n3b',
+                    text: "\"No es teoría. Es higiene. Si me dejas entrar, limpiaré. Limpiaré todo.\"",
+                    options: [
+                        { id: 'gcl_o3c', label: 'No necesitamos limpieza obsesiva.', next: null, resultText: "*Escupe al suelo.* \"Os pudriréis en vuestra mugre.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'gcl_o3d', label: 'Veremos si estás limpio por dentro.', next: null, resultText: "*Asiente frenéticamente.* \"Por dentro estoy impoluto. Lo juro.\"", onclick: act.test, log: { text: 'Conducta: Ablutomanía extrema. Se han arrancado capas de piel intentando "limpiarse".', icon: 'fa-soap' } },
+                        { id: 'gcl_o3f', label: 'Analizar neurosis', next: 'gcl_n4b' }
+                    ]
+                },
+                'gcl_n4b': {
+                    id: 'gcl_n4b',
+                    text: "*Dermatitis por fricción. Trastorno obsesivo-compulsivo.*",
+                    options: [
+                        { id: 'gcl_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'gcl_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
+                    ]
+                }
+            }
+        },
+        // 28. THE FORGOTTEN (El olvidado)
+        "gen_forget": {
+            id: 'gen_forget',
+            tags: ['confused', 'stoic'],
+            unique: false,
+            root: 'gfg_n1',
+            nodes: {
+                'gfg_n1': {
+                    id: 'gfg_n1',
+                    text: "*Mira su reflejo en el cristal.* \"Ese... ¿ese soy yo? No me reconozco. Parezco más viejo.\"",
+                    options: [
+                        { id: 'gfg_o1', label: '¿Cómo te llamas?', next: 'gfg_n2a' },
+                        { id: 'gfg_o2', label: 'El viaje cambia a todos', next: 'gfg_n2b' }
+                    ]
+                },
+                'gfg_n2a': {
+                    id: 'gfg_n2a',
+                    text: "\"Creo que... era Jaren. O tal vez Soren. Se me ha olvidado. La niebla se lleva los nombres.\"",
+                    options: [
+                        { id: 'gfg_o2a', label: 'Amnesia', next: 'gfg_n3a' }
+                    ]
+                },
+                'gfg_n2b': {
+                    id: 'gfg_n2b',
+                    text: "\"No es solo cambio. Es sustitución. Siento que alguien más usa mi cara.\"",
+                    options: [
+                        { id: 'gfg_o2b', label: 'Síndrome de Capgras', next: 'gfg_n3b' }
+                    ]
+                },
+                'gfg_n3a': {
+                    id: 'gfg_n3a',
+                    text: "*Se toca la cara.* \"Si no sé quién soy, ¿cómo sabes tú si debo entrar?\"",
+                    options: [
+                        { id: 'gfg_o3a', label: 'Buen punto. Vete.', next: null, resultText: "*Se aleja tocándose la cara.* \"¿Quién soy...?\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'gfg_o3b', label: 'Tus constantes me dirán quién eres.', next: null, resultText: "*Baja la mano.* \"Espero que la máquina sepa más que yo.\"", onclick: act.test },
+                        { id: 'gfg_o3e', label: 'Evaluar identidad', next: 'gfg_n4b' }
+                    ]
+                },
+                'gfg_n3b': {
+                    id: 'gfg_n3b',
+                    text: "\"A veces pienso que el verdadero yo murió en el túnel. Y yo soy solo el eco.\"",
+                    options: [
+                        { id: 'gfg_o3c', label: 'No admitimos ecos. Fuera.', next: null, resultText: "*Se desvanece en la oscuridad.* \"Solo un eco...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'gfg_o3d', label: 'Déjame comprobar si eres real.', next: null, resultText: "*Se acerca al cristal.* \"Comprueba. Tócame. ¿Soy real?\"", onclick: act.test, log: { text: 'Síntoma: Despersonalización. El sujeto cree haber sido reemplazado o haber muerto.', icon: 'fa-user-slash' } },
+                        { id: 'gfg_o3f', label: 'Analizar disociación', next: 'gfg_n4b' }
+                    ]
+                },
+                'gfg_n4b': {
+                    id: 'gfg_n4b',
+                    text: "*Amnesia disociativa. Sin signos físicos de reemplazo.*",
+                    options: [
+                        { id: 'gfg_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'gfg_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
+                    ]
+                }
+            }
+        },
+        // 29. THE FEVERISH (El afiebrado)
+        "gen_fever": {
+            id: 'gen_fever',
+            tags: ['sick', 'generic'],
+            unique: false,
+            root: 'gfv_n1',
+            nodes: {
+                'gfv_n1': {
+                    id: 'gfv_n1',
+                    text: "*Suda profusamente y se abanica con la mano.* \"Uf... hace un calor infernal en los túneles hoy. ¿No lo notáis?\"",
+                    options: [
+                        { id: 'gfv_o1', label: 'La temperatura es normal', next: 'gfv_n2a' },
+                        { id: 'gfv_o2', label: 'Estás ardiendo', next: 'gfv_n2b' }
+                    ]
+                },
+                'gfv_n2a': {
+                    id: 'gfv_n2a',
+                    text: "\"Será que he caminado rápido. Llevo prisa. Solo necesito agua y un sitio fresco.\"",
+                    options: [
+                        { id: 'gfv_o2a', label: 'Parece fiebre', next: 'gfv_n3a' }
+                    ]
+                },
+                'gfv_n2b': {
+                    id: 'gfv_n2b',
+                    text: "\"Es solo una gripe. Me mojé ayer y cogí frío. Nada que no se cure durmiendo.\"",
+                    options: [
+                        { id: 'gfv_o2b', label: 'Dudar', next: 'gfv_n3b' }
+                    ]
+                },
+                'gfv_n3a': {
+                    id: 'gfv_n3a',
+                    text: "*Se seca el sudor, que parece ligeramente viscoso.* \"No es nada contagioso, lo prometo. Solo agotamiento.\"",
+                    options: [
+                        { id: 'gfv_o3a', label: 'Ese sudor no es normal. Vete.', next: null, resultText: "*Se marcha tambaleándose.* \"Solo es calor... mucho calor...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'gfv_o3b', label: 'Déjame medir tu temperatura.', next: null, resultText: "*Se apoya en la pared.* \"Vale, pero rápido. Me mareo.\"", onclick: act.test },
+                        { id: 'gfv_o3e', label: 'Evaluar síntomas', next: 'gfv_n4b' }
+                    ]
+                },
+                'gfv_n3b': {
+                    id: 'gfv_n3b',
+                    text: "\"Mira, si fuera 'eso', ya estaría muerto, ¿no? Llevo así dos días y sigo en pie.\"",
+                    options: [
+                        { id: 'gfv_o3c', label: 'Buen punto, pero no me fío.', next: null, resultText: "*Escupe al suelo.* \"Paranoicos...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'gfv_o3d', label: 'A ver esos ojos. Acércate.', next: null, resultText: "*Se acerca, sus pupilas oscilan.* \"¿Ves? Normales.\"", onclick: act.test },
+                        { id: 'gfv_o3f', label: 'Analizar resistencia', next: 'gfv_n4b' }
+                    ]
+                },
+                'gfv_n4b': {
+                    id: 'gfv_n4b',
+                    text: "*Hipertermia. Posible infección viral común o fase incubación.*",
+                    options: [
+                        { id: 'gfv_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'gfv_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
+                    ]
+                }
+            }
+        },
+        // 30. THE EUPHORIC (El eufórico)
+        "gen_euphoria": {
+            id: 'gen_euphoria',
+            tags: ['manic', 'energetic'],
+            unique: false,
+            root: 'geu_n1',
+            nodes: {
+                'geu_n1': {
+                    id: 'geu_n1',
+                    text: "*Tiene los ojos muy abiertos y una sonrisa fija.* \"¡Qué día tan maravilloso! El aire huele a... a limpio. A nuevo.\"",
+                    options: [
+                        { id: 'geu_o1', label: 'El aire está viciado', next: 'geu_n2a' },
+                        { id: 'geu_o2', label: '¿Te encuentras bien?', next: 'geu_n2b' }
+                    ]
+                },
+                'geu_n2a': {
+                    id: 'geu_n2a',
+                    text: "\"¡Para nada! Nunca había respirado tan bien. Siento que mis pulmones se han expandido.\"",
+                    options: [
+                        { id: 'geu_o2a', label: 'Eso suena sospechoso', next: 'geu_n3a' }
+                    ]
+                },
+                'geu_n2b': {
+                    id: 'geu_n2b',
+                    text: "\"¡Mejor que bien! Me siento... evolucionado. Como si me hubiera quitado un peso de encima.\"",
+                    options: [
+                        { id: 'geu_o2b', label: '¿Qué peso?', next: 'geu_n3b' }
+                    ]
+                },
+                'geu_n3a': {
+                    id: 'geu_n3a',
+                    text: "*Inspira profundamente.* \"Quizás es que tú no estás acostumbrado a la pureza. Deberías probarlo.\"",
+                    options: [
+                        { id: 'geu_o3a', label: 'Estás delirando. Fuera.', next: null, resultText: "*Se va saltando.* \"¡Aire puro! ¡Vida pura!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'geu_o3b', label: 'Quieto. Voy a escanearte.', next: null, resultText: "*Abre los brazos.* \"Escanea. Verás la perfección.\"", onclick: act.test, log: { text: 'Síntoma: Euforia química. El parásito libera dopamina para asegurar la cooperación del huésped.', icon: 'fa-face-grin-stars' } },
+                        { id: 'geu_o3e', label: 'Evaluar estado alterado', next: 'geu_n4b' }
+                    ]
+                },
+                'geu_n3b': {
+                    id: 'geu_n3b',
+                    text: "\"El peso de ser... frágil. Ahora me siento fuerte. Resistente.\"",
+                    options: [
+                        { id: 'geu_o3c', label: 'Eso es síntoma de infección. Largo.', next: null, resultText: "*Te mira con lástima.* \"Te quedas atrás en la evolución...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'geu_o3d', label: 'Veamos qué te hace tan fuerte.', next: null, resultText: "*Muestra sus músculos tensos.* \"Mira. Acero orgánico.\"", onclick: act.test },
+                        { id: 'geu_o3f', label: 'Analizar vitalidad anómala', next: 'geu_n4b' }
+                    ]
+                },
+                'geu_n4b': {
+                    id: 'geu_n4b',
+                    text: "*Niveles de endorfinas anormales. Posible intoxicación o mejora parasitaria.*",
+                    options: [
+                        { id: 'geu_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'geu_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
+                    ]
+                }
+            }
+        },
+        // 31. THE THIRSTY (El sediento)
+        "gen_thirst": {
+            id: 'gen_thirst',
+            tags: ['weak', 'generic'],
+            unique: false,
+            root: 'gth_n1',
+            nodes: {
+                'gth_n1': {
+                    id: 'gth_n1',
+                    text: "*Tiene la voz rasposa y los labios agrietados.* \"Agua... por favor. Llevo días sin beber nada seguro.\"",
+                    options: [
+                        { id: 'gth_o1', label: 'Dar agua', next: 'gth_n2a' },
+                        { id: 'gth_o2', label: '¿Por qué no bebiste?', next: 'gth_n2b' }
+                    ]
+                },
+                'gth_n2a': {
+                    id: 'gth_n2a',
+                    text: "*Bebe desesperadamente, derramando agua.* \"Más... necesito más. Siento que me seco por dentro.\"",
+                    options: [
+                        { id: 'gth_o2a', label: 'Es suficiente', next: 'gth_n3a' }
+                    ]
+                },
+                'gth_n2b': {
+                    id: 'gth_n2b',
+                    text: "\"Todo sabe a metal. O a cloro. No me atreví. Pero ya no aguanto más.\"",
+                    options: [
+                        { id: 'gth_o2b', label: 'Entiendo', next: 'gth_n3b' }
+                    ]
+                },
+                'gth_n3a': {
+                    id: 'gth_n3a',
+                    text: "*Se toca la garganta.* \"Aún pica. Como si tuviera polvo en el esófago. ¿Me dejas entrar al baño?\"",
+                    options: [
+                        { id: 'gth_o3a', label: 'No. Vete a buscar agua fuera.', next: null, resultText: "*Se arrastra.* \"Agua... necesito agua...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'gth_o3b', label: 'Espera. Voy a ver si estás deshidratado.', next: null, resultText: "*Asiente débilmente.* \"Rápido... me estoy secando.\"", onclick: act.test },
+                        { id: 'gth_o3e', label: 'Evaluar deshidratación', next: 'gth_n4b' }
+                    ]
+                },
+                'gth_n3b': {
+                    id: 'gth_n3b',
+                    text: "\"Si entro, podré beber del grifo, ¿verdad? Dicen que aquí el agua es pura.\"",
+                    options: [
+                        { id: 'gth_o3c', label: 'Solo para residentes sanos.', next: null, resultText: "*Llora sin lágrimas.* \"Por favor... solo un trago...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'gth_o3d', label: 'Comprobemos si estás sano.', next: null, resultText: "*Se lame los labios.* \"Lo que digas. Pero dame agua luego.\"", onclick: act.test, log: { text: 'Dato: La sed extrema puede ser deshidratación o el parásito consumiendo los fluidos corporales.', icon: 'fa-glass-water' } },
+                        { id: 'gth_o3f', label: 'Analizar niveles de fluidos', next: 'gth_n4b' }
+                    ]
+                },
+                'gth_n4b': {
+                    id: 'gth_n4b',
+                    text: "*Deshidratación severa. Piel con textura de pergamino.*",
+                    options: [
+                        { id: 'gth_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                        { id: 'gth_o4b1', label: 'Admitir', next: null, sets: ['admitted'], onclick: act.admit }
+                    ]
+                }
             }
         }
     },
