@@ -154,46 +154,31 @@ export class ModalManager {
     }
 
     renderModalStats(npc, allowPurge, state) {
+        if (!this.modalAnimating) this.modalAnimating = false;
         if (!npc.dayAfter) {
             npc.dayAfter = { dermis: false, pupils: false, temperature: false, pulse: false, usedNightTests: 0, validated: false };
         }
 
-        const makeStatItem = (label, value, isUnknown) => `
-            <div class="dossier-stat-item">
-                <span class="dossier-stat-label">${label}</span>
-                <span class="dossier-stat-value ${isUnknown ? 'text-gray-600' : ''}">${value}</span>
-            </div>
-        `;
+        const statsGrid = this.elements.modalStats;
+        const testsGrid = this.elements.modalTests;
+        statsGrid.empty();
+        testsGrid.empty().addClass('hidden');
 
-        const getStat = (key, label, value) => {
-            const knownByDay = npc.revealedStats && npc.revealedStats.includes(key);
-            const knownByNight = npc.dayAfter && npc.dayAfter[key];
-            const isUnknown = !(knownByDay || knownByNight);
-            return makeStatItem(label, isUnknown ? '???' : value, isUnknown);
+        const renderStat = (label, value, key) => {
+            const isRevealed = (npc.revealedStats && npc.revealedStats.includes(key)) || (npc.dayAfter && npc.dayAfter[key]);
+            const display = isRevealed ? value : '???';
+            statsGrid.append(`
+                <div class="flex justify-between items-center border-b border-chlorine/10 py-2 px-1 hover:bg-white/5 transition-colors">
+                    <span class="text-[10px] opacity-60 uppercase font-mono">${label}</span>
+                    <span class="font-mono text-sm ${isRevealed ? 'text-white' : 'text-gray-600 italic'}">${display}</span>
+                </div>
+            `);
         };
 
-        const dermisTxt = this.ui.translateValue('skinTexture', npc.attributes.skinTexture);
-        const pupilsTxt = this.ui.translateValue('pupils', npc.attributes.pupils);
-        const stayCycles = npc.enterCycle != null && npc.death ?
-            Math.max(0, npc.death.cycle - npc.enterCycle) :
-            (npc.enterCycle != null ? Math.max(0, state.cycle - npc.enterCycle) : 0);
-
-        let extraInfo = '';
-        if (npc.death) {
-            extraInfo += makeStatItem('CICLO MUERTE', npc.death.cycle, false);
-        }
-        extraInfo += makeStatItem('TIEMPO EN REFUGIO', `${stayCycles} CICLOS`, false);
-
-        this.elements.modalStats.html(`
-            ${getStat('temperature', 'TEMPERATURA', `${npc.attributes.temperature}°C`)}
-            ${getStat('pulse', 'PULSO', `${npc.attributes.pulse} BPM`)}
-            ${getStat('skinTexture', 'DERMIS', dermisTxt)}
-            ${getStat('pupils', 'PUPILAS', pupilsTxt)}
-            ${extraInfo}
-        `);
-
-        const testsGrid = $('#modal-tests-grid');
-        testsGrid.empty().addClass('hidden');
+        renderStat('Dermis', this.ui.translateValue('skinTexture', npc.attributes.skinTexture), 'skinTexture');
+        renderStat('Pupilas', this.ui.translateValue('pupils', npc.attributes.pupils), 'pupils');
+        renderStat('Temperatura', `${npc.attributes.temperature}°C`, 'temperature');
+        renderStat('Pulso', `${npc.attributes.pulse} BPM`, 'pulse');
 
         if (allowPurge) {
             testsGrid.removeClass('hidden');
@@ -234,43 +219,73 @@ export class ModalManager {
                         html: `<i class="fa-solid ${icon}"></i><span>${label}</span>`
                     });
 
-                    if (knownByDay) {
+                    if (knownByDay || this.modalAnimating) {
                         btn.prop('disabled', true);
                     }
 
                     btn.on('click', () => {
-                        if (knownByDay) return;
+                        if (knownByDay || this.modalAnimating) return;
                         if (npc.dayAfter.usedNightTests >= 1) return;
                         if (state.dayAfter.testsAvailable <= 0) return;
 
-                        state.dayAfter.testsAvailable--;
-                        npc.dayAfter[key] = true;
-                        npc.dayAfter.usedNightTests++;
+                        this.modalAnimating = true;
+                        this.renderModalStats(npc, allowPurge, state); // Re-render to disable buttons
 
+                        state.dayAfter.testsAvailable--;
                         this.elements.dayafterTestsLeft.text(state.dayAfter.testsAvailable);
 
                         // Ejecutar animación en el contenedor visual del modal
                         const visualContainer = $('#modal-visual-container');
+                        let duration = 1000;
+
                         if (typeof this.ui[animMethod] === 'function') {
                             // Mapeo de valores para la animación
                             let val = null;
-                            if (key === 'temperature') val = npc.attributes.temperature;
-                            if (key === 'skinTexture') val = npc.attributes.skinTexture;
-                            if (key === 'pulse') val = npc.attributes.pulse;
-                            if (key === 'pupils') val = npc.attributes.pupils;
+                            if (key === 'temperature') {
+                                val = npc.attributes.temperature;
+                                duration = 2200;
+                            }
+                            if (key === 'skinTexture') {
+                                val = npc.attributes.skinTexture;
+                                duration = 900;
+                            }
+                            if (key === 'pulse') {
+                                val = npc.attributes.pulse;
+                                duration = 2600;
+                            }
+                            if (key === 'pupils') {
+                                val = npc.attributes.pupils;
+                                duration = 2700;
+                            }
 
                             // Llamar a la animación pasando el contenedor del modal e infección
                             this.ui[animMethod](val, visualContainer, npc.isInfected);
+
+                            // Audio feedback
+                            const audioKey = {
+                                'temperature': 'tool_thermometer_beep',
+                                'skinTexture': 'tool_uv_toggle',
+                                'pulse': 'tool_pulse_beep',
+                                'pupils': 'tool_pupils_lens'
+                            }[key];
+                            if (this.audio && audioKey) this.audio.playSFXByKey(audioKey, { volume: 0.6 });
                         } else {
                             console.error(`ModalManager Error: El método de animación '${animMethod}' no existe en UIManager.`);
                         }
 
-                        // Re-render stats
-                        const complete = npc.dayAfter.dermis && npc.dayAfter.pupils && npc.dayAfter.temperature && npc.dayAfter.pulse;
-                        npc.dayAfter.validated = complete;
-                        this.ui.updateDayAfterSummary(state.admittedNPCs);
-                        this.renderModalStats(npc, allowPurge, state);
-                        this.clearModalError();
+                        setTimeout(() => {
+                            npc.dayAfter[key] = true;
+                            npc.dayAfter.usedNightTests++;
+
+                            // Re-render stats
+                            const complete = npc.dayAfter.dermis && npc.dayAfter.pupils && npc.dayAfter.temperature && npc.dayAfter.pulse;
+                            npc.dayAfter.validated = complete;
+                            this.ui.updateDayAfterSummary(state.admittedNPCs);
+
+                            this.modalAnimating = false;
+                            this.renderModalStats(npc, allowPurge, state);
+                            this.clearModalError();
+                        }, duration);
                     });
                     return btn;
                 };

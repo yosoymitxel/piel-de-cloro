@@ -58,6 +58,7 @@ export class UIManager {
             modalStats: $('#modal-npc-stats-content'),
             modalLog: $('#modal-npc-log'),
             modalPurgeBtn: $('#btn-modal-purge'),
+            modalTests: $('#modal-tests-grid'),
             modalError: $('#modal-error'),
 
             // Generator warnings
@@ -386,9 +387,18 @@ export class UIManager {
 
         // Build option buttons
         if (convNode && convNode.options && convNode.options.length) {
+            const optionsCount = convNode.options.length;
+            this.elements.dialogueOptions.removeClass('grid-cols-1 grid-cols-2');
+            
+            if (optionsCount === 2) {
+                this.elements.dialogueOptions.addClass('grid grid-cols-2 gap-2');
+            } else {
+                this.elements.dialogueOptions.addClass('flex flex-col gap-2');
+            }
+
             convNode.options.forEach((opt, idx) => {
                 const btn = $('<button>', {
-                    class: `horror-btn-dialogue ${opt.cssClass || ''}`,
+                    class: `horror-btn-dialogue ${opt.cssClass || ''} w-full`,
                     html: `&gt; ${escapeHtml(opt.label)}`
                 });
 
@@ -460,8 +470,11 @@ export class UIManager {
 
         // Omit option: show if no tests performed yet (allow during dialogue)
         if (!npc.optOut && npc.scanCount === 0) {
+            const optionsCount = convNode && convNode.options ? convNode.options.length : 0;
+            const spanClass = optionsCount === 2 ? 'col-span-2' : '';
+            
             const omitBtn = $('<button>', {
-                class: 'horror-btn-dialogue option-omit',
+                class: `horror-btn-dialogue option-omit w-full mt-2 ${spanClass}`,
                 html: '&gt; Omitir por diálogo'
             });
             omitBtn.on('click', () => {
@@ -1242,14 +1255,16 @@ export class UIManager {
         // Limpiar animaciones previas
         container.find('.pupil-overlay-local').remove();
 
+        const pingColor = isInfected ? 'border-chlorine/30' : 'border-white/20';
+
         const overlay = $('<div>', {
             class: 'pupil-overlay-local absolute inset-0 z-20 flex items-center justify-center bg-black/40',
             html: `
                 <div class="pupil-eye-container relative scale-0 transition-transform duration-500">
                     <div class="giant-eye border-4 border-white/20 rounded-full w-48 h-48 flex items-center justify-center overflow-hidden bg-black shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-                        <div class="giant-pupil w-24 h-24 bg-white rounded-full transition-all duration-700 shadow-[0_0_15px_rgba(255,255,255,0.8)]"></div>
+                        <div class="giant-pupil w-24 h-24 rounded-full transition-all duration-700" style="background: #4a2610;"></div>
                     </div>
-                    <div class="absolute inset-0 border-2 border-chlorine/30 rounded-full animate-ping"></div>
+                    <div class="absolute inset-0 border-2 ${pingColor} rounded-full animate-ping"></div>
                 </div>
             `
         });
@@ -1270,12 +1285,14 @@ export class UIManager {
                 const size = type === 'dilated' ? '42px' : '40px';
                 pupil.css({ width: size, height: size });
 
-                // Efecto de parpadeo/reacción
-                if (type === 'dilated' && isInfected) {
+                // Efecto de parpadeo/reacción - Solo cambia a verde si está infectado Y tiene anomalía (dilatadas)
+                if (isInfected && type === 'dilated') {
                     pupil.addClass('animate-pulse');
-                    pupil.css('background', 'radial-gradient(circle, #3b0707 0%, #3bd853ff 100%)');
+                    // Gradiente de marrón a verde cloro fluorescente
+                    pupil.css('background', 'radial-gradient(circle, #4a2610 0%, #3bd853 100%)');
                 } else {
-                    pupil.css('background', '#3b0707');
+                    // Reacción normal o infectado sin anomalía visual en pupila: se mantiene marrón
+                    pupil.css('background', '#4a2610');
                 }
             }, 600);
         }, 50);
