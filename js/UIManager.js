@@ -424,8 +424,7 @@ export class UIManager {
                     }
 
                     const res = npc.conversation.getNextDialogue(idx);
-                    State.dialoguesCount++;
-
+                    
                     if (res.error) {
                         this.showMessage(res.error, () => { }, 'warning');
                         return;
@@ -1175,12 +1174,15 @@ export class UIManager {
         }, 120);
     }
 
-    animateToolThermometer(value, container = this.elements.npcDisplay) {
+    animateToolThermometer(value, container = null, isInfected = null) {
+        if (!container) container = this.elements.npcDisplay;
+        if (isInfected === null) {
+            isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
+        }
         container.css('position', 'relative');
         container.find('.tool-thermo').remove();
         const overlay = $('<div>', { class: 'tool-thermo', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
         const tube = $('<div>', { css: { width: '20px', height: '120px', background: '#0a0a0a', border: '1px solid #555', position: 'relative', boxShadow: 'inset 0 0 8px #000' } });
-        const isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
 
         // Colores dinámicos basados en infección (cloro)
         const fillColor = value < 35
@@ -1227,7 +1229,7 @@ export class UIManager {
         setTimeout(() => overlay.remove(), 2200);
     }
 
-    animateToolPupils(type = 'normal', container = null) {
+    animateToolPupils(type = 'normal', container = null, isInfected = false) {
         if (!container) container = this.elements.npcDisplay;
 
         if (!container || (container.jquery && container.length === 0)) {
@@ -1269,7 +1271,7 @@ export class UIManager {
                 pupil.css({ width: size, height: size });
 
                 // Efecto de parpadeo/reacción
-                if (type === 'dilated') {
+                if (type === 'dilated' && isInfected) {
                     pupil.addClass('animate-pulse');
                     pupil.css('background', 'radial-gradient(circle, #3b0707 0%, #3bd853ff 100%)');
                 } else {
@@ -1288,7 +1290,8 @@ export class UIManager {
         }, 2200);
     }
 
-    animateToolFlashlight(skinTexture, container = this.elements.npcDisplay) {
+    animateToolFlashlight(skinTexture, container = null) {
+        if (!container) container = this.elements.npcDisplay;
         container.css('position', 'relative');
         container.find('.tool-flash').remove();
         const flash = $('<div>', { class: 'tool-flash', css: { position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.18)', mixBlendMode: 'screen', pointerEvents: 'none', zIndex: 10 } });
@@ -1310,12 +1313,15 @@ export class UIManager {
         }, 900);
     }
 
-    animateToolPulse(bpm, container = this.elements.npcDisplay) {
+    animateToolPulse(bpm, container = null, isInfected = null) {
+        if (!container) container = this.elements.npcDisplay;
+        if (isInfected === null) {
+            isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
+        }
         container.css('position', 'relative');
         container.find('.tool-pulse').remove();
         const overlay = $('<div>', { class: 'tool-pulse', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
         const svg = $(document.createElementNS('http://www.w3.org/2000/svg', 'svg')).attr({ width: 220, height: 40 });
-        const isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
 
         // Color de pulso: verde sutil si es cloro
         const strokeColor = isInfected ? State.colors.chlorineSutil : State.colors.safe;

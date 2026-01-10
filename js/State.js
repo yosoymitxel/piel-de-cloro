@@ -272,6 +272,12 @@ export const State = {
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight.occurred = true;
         this.addLogEntry('system', `Inicio del Ciclo ${this.cycle}.`);
+        
+        // Reset dialogue pools for the new day to allow variety while keeping the short-term window
+        this.dialoguePoolsUsed = [];
+        this.dialoguePoolsLastUsed = {};
+        this.dialoguesCount = 0;
+
         this.purgedNPCs.forEach(n => {
             if (n.death) n.death.revealed = true;
         });

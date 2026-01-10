@@ -346,7 +346,7 @@ class Game {
                 result = `PUPILAS: ${this.ui.translateValue('pupils', npc.attributes.pupils)}`;
                 if (!npc.revealedStats.includes('pupils')) npc.revealedStats.push('pupils');
                 this.ui.applyVHS(0.6, 800);
-                this.ui.animateToolPupils(npc.attributes.pupils);
+                this.ui.animateToolPupils(npc.attributes.pupils, null, npc.isInfected);
                 this.audio.playSFXByKey('tool_pupils_lens', { volume: 0.6 });
                 break;
             case 'pulse':

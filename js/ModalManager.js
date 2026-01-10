@@ -211,7 +211,7 @@ export class ModalManager {
                     msg = "PROTOCOLO DE SEGURIDAD: SUJETO RECIENTE (BLOQUEADO)";
                     icon = "fa-lock";
                 } else if (alreadyTested) {
-                    msg = "LÍMITE DE TEST DIARIO ALCANZADO";
+                    msg = "SUJETO YA EVALUADO";
                     icon = "fa-ban";
                 } else {
                     msg = "SIN REACTIVOS DISPONIBLES";
@@ -251,20 +251,18 @@ export class ModalManager {
 
                         // Ejecutar animación en el contenedor visual del modal
                         const visualContainer = $('#modal-visual-container');
-                        if (this.ui[animMethod]) {
+                        if (typeof this.ui[animMethod] === 'function') {
                             // Mapeo de valores para la animación
                             let val = null;
                             if (key === 'temperature') val = npc.attributes.temperature;
-                            if (key === 'skinTexture') val = npc.attributes.skinTexture; // Necesita skinColor también, pero el método lo saca del DOM o args
+                            if (key === 'skinTexture') val = npc.attributes.skinTexture;
                             if (key === 'pulse') val = npc.attributes.pulse;
                             if (key === 'pupils') val = npc.attributes.pupils;
 
-                            // Llamar a la animación pasando el contenedor del modal
-                            if (typeof this.ui[animMethod] === 'function') {
-                                this.uianimMethod;
-                            } else {
-                                console.error(`ModalManager Error: El método de animación '${animMethod}' no existe en UIManager.`);
-                            }
+                            // Llamar a la animación pasando el contenedor del modal e infección
+                            this.ui[animMethod](val, visualContainer, npc.isInfected);
+                        } else {
+                            console.error(`ModalManager Error: El método de animación '${animMethod}' no existe en UIManager.`);
                         }
 
                         // Re-render stats
