@@ -247,8 +247,8 @@ export class UIManager {
         }
     }
 
-    renderAvatar(npc, sizeClass = 'lg') {
-        return AvatarRenderer.render(npc, sizeClass);
+    renderAvatar(npc, sizeClass = 'lg', modifier = 'normal') {
+        return AvatarRenderer.render(npc, sizeClass, modifier);
     }
 
     translateValue(type, value) {
@@ -866,7 +866,7 @@ export class UIManager {
                 class: `${bgClass} border ${borderClass} p-2 flex flex-col items-center cursor-pointer hover:border-chlorine-light hover:bg-[#111] transition-all relative`
             });
 
-            const avatar = this.renderAvatar(npc, 'sm');
+            const avatar = this.renderAvatar(npc, 'sm', isValidated ? 'perimeter' : 'normal');
             const name = $('<span>', { text: npc.name, class: 'mt-2 text-xs' });
 
             if (statusIcon) card.append($(statusIcon));
@@ -968,7 +968,7 @@ export class UIManager {
                     class: `self-start relative p-2 border bg-black/40 flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 group ${statusColorClass} ${hoverClass}`
                 });
 
-                const avatar = this.renderAvatar(npc, 'sm');
+                const avatar = this.renderAvatar(npc, 'sm', 'perimeter');
 
                 if (isRevealedInfected) {
                     avatar.addClass('infected');
@@ -1173,6 +1173,73 @@ export class UIManager {
             btn.html('<i class="fa-solid fa-lock mr-2"></i> PURGA BLOQUEADA (INTRUSO RECIENTE)');
             this.showModalError("Protocolo de seguridad: Los intrusos recientes deben ser procesados en el siguiente ciclo.");
         }
+    }
+
+    openRelocationModal(npcs, onConfirm) {
+        const grid = $('#relocate-selection-grid');
+        const countLabel = $('#relocate-count');
+        const confirmBtn = $('#btn-relocate-confirm');
+        const restrictionLabel = $('#modal-relocate .bg-black/40 p.text-\\[10px\\]');
+        
+        // Dinámico: Máximo de la mitad de la capacidad O menos del total de sujetos que llegan al día
+        // Aseguramos que siempre haya espacio para los nuevos sujetos del siguiente nivel
+        const halfCapacity = Math.floor(State.config.maxShelterCapacity / 2);
+        const nextDaySpace = State.config.maxShelterCapacity - State.config.dayLength;
+        const maxSelection = Math.min(halfCapacity, nextDaySpace);
+        
+        let selected = [];
+
+        grid.empty();
+        countLabel.text(`0 / ${maxSelection}`);
+        confirmBtn.prop('disabled', false); 
+        
+        // Actualizar el texto de restricciones dinámicamente
+        restrictionLabel.text(`RESTRICCIONES: El transporte es limitado. Solo puedes llevar contigo a un máximo de ${maxSelection} sujetos. Los no seleccionados serán abandonados en el sector actual.`);
+
+        npcs.forEach((npc, index) => {
+            const isValidated = npc.dayAfter && npc.dayAfter.validated;
+            const card = $('<div>', {
+                class: 'bg-black/60 border border-chlorine/20 p-2 flex flex-col items-center gap-2 cursor-pointer hover:border-warning/50 transition-all group relative',
+                html: `
+                    <div class="relocate-avatar-container scale-75 origin-top"></div>
+                    <span class="text-[10px] font-mono text-gray-400 group-hover:text-white truncate w-full text-center">${npc.name}</span>
+                    <div class="selection-indicator absolute top-1 right-1 w-4 h-4 border border-warning/30 flex items-center justify-center">
+                        <i class="fa-solid fa-check text-[10px] text-warning opacity-0"></i>
+                    </div>
+                `
+            });
+
+            const avatar = this.renderAvatar(npc, 'sm', isValidated ? 'perimeter' : 'normal');
+            card.find('.relocate-avatar-container').append(avatar);
+
+            card.on('click', () => {
+                const idx = selected.indexOf(npc);
+                if (idx > -1) {
+                    selected.splice(idx, 1);
+                    card.removeClass('border-warning selected-card bg-warning/10');
+                    card.find('.fa-check').addClass('opacity-0');
+                } else if (selected.length < maxSelection) {
+                    selected.push(npc);
+                    card.addClass('border-warning selected-card bg-warning/10');
+                    card.find('.fa-check').removeClass('opacity-0');
+                }
+
+                countLabel.text(`${selected.length} / ${maxSelection}`);
+            });
+
+            grid.append(card);
+        });
+
+        $('#modal-relocate').removeClass('hidden').addClass('flex');
+
+        // Desvincular eventos previos y vincular el nuevo
+        confirmBtn.off('click').on('click', () => {
+            onConfirm(selected);
+        });
+        
+        $('#btn-relocate-cancel').off('click').on('click', () => {
+            $('#modal-relocate').addClass('hidden').removeClass('flex');
+        });
     }
 
     closeModal(silent = false) {
@@ -1384,19 +1451,15 @@ export class UIManager {
         const flash = $('<div>', { class: 'tool-flash', css: { position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.18)', mixBlendMode: 'screen', pointerEvents: 'none', zIndex: 10 } });
         container.append(flash);
         const avatar = container.find('.pixel-avatar');
-        const head = avatar.find('.avatar-head');
-        const neck = avatar.find('.avatar-neck');
-        const origHead = head.css('background-color');
-        const origNeck = neck.css('background-color');
-        if (skinTexture === 'dry') {
-            const tint = 'hue-rotate(90deg) contrast(115%) saturate(110%)';
-            avatar.css('filter', tint);
-        }
+        
+        // Guardar estado actual y aplicar estado UV
+        const currentModifier = avatar.attr('class').split(' ').find(c => c.startsWith('state-')) || 'state-normal';
+        avatar.removeClass(currentModifier).addClass('state-uv');
+        
         setTimeout(() => {
             flash.remove();
-            avatar.css('filter', 'none');
-            head.css('background-color', origHead);
-            neck.css('background-color', origNeck);
+            // Restaurar estado previo
+            avatar.removeClass('state-uv').addClass(currentModifier);
         }, 900);
     }
 

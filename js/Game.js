@@ -40,7 +40,7 @@ class Game {
         $('#tool-thermo, #tool-flash, #tool-pulse, #tool-pupils, #btn-admit, #btn-ignore').addClass('btn-interactive');
         
         // Fullscreen Toggle
-        $('#btn-toggle-fullscreen').on('click', () => this.toggleFullscreen());
+        $('#btn-toggle-fullscreen, #btn-pause-fullscreen').on('click', () => this.toggleFullscreen());
 
         // Start & Settings
         $('#btn-start-game').on('click', () => { this.audio.unlock(); this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.startGame(); });
@@ -188,6 +188,15 @@ class Game {
         $('#btn-night-relocate').on('click', () => this.relocateShelter());
         $('#btn-night-shelter').on('click', () => this.openShelter());
 
+        // Relocation Modal Events
+        $('#btn-relocate-cancel').on('click', () => {
+            $('#modal-relocate').addClass('hidden');
+        });
+
+        $('#btn-relocate-confirm').on('click', () => {
+            this.confirmRelocation();
+        });
+
         // Log notification animation
         $(document).on('log-added', () => {
             const btn = $('#btn-open-log');
@@ -247,8 +256,12 @@ class Game {
         State.admittedNPCs = [];
         State.purgedNPCs = [];
         State.ignoredNPCs = [];
+        State.departedNPCs = [];
+        State.isNight = false;
         State.dayClosed = false;
         State.dayEnded = false;
+        State.endingTriggered = false;
+        State.nightPurgePerformed = false;
         State.generatorCheckedThisTurn = false;
         State.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
         
@@ -769,7 +782,21 @@ class Game {
     }
 
     relocateShelter() {
-        // Lógica de mudanza:
+        // Mudanza con selección de compañeros
+        if (State.admittedNPCs.length === 0) {
+            // Si no hay nadie, mudanza directa
+            this.confirmRelocation([]);
+            return;
+        }
+
+        // Abrir modal de selección
+        this.ui.openRelocationModal(State.admittedNPCs, (selectedNPCs) => {
+            this.confirmRelocation(selectedNPCs);
+        });
+    }
+
+    confirmRelocation(selectedNPCs = []) {
+        // Lógica de mudanza final:
         // 1. Reducir paranoia significativamente (sensación de nuevo comienzo)
         const paranoiaReduction = 30;
         State.updateParanoia(-paranoiaReduction);
@@ -777,19 +804,28 @@ class Game {
         // Desbloquear navegación por si venimos de gestionar refugio
         this.ui.setNavLocked(false);
 
-        // 2. Perder a todos los refugiados actuales (se quedan atrás o se dispersan)
-        const abandonedCount = State.admittedNPCs.length;
-        State.admittedNPCs.forEach(npc => {
+        // 2. Filtrar los que se quedan y los que se van
+        const abandoned = State.admittedNPCs.filter(npc => !selectedNPCs.includes(npc));
+        const abandonedCount = abandoned.length;
+        
+        abandoned.forEach(npc => {
             State.departedNPCs.push(npc);
         });
-        State.admittedNPCs = [];
+
+        // Los seleccionados se mantienen
+        State.admittedNPCs = selectedNPCs;
 
         // 3. Efectos visuales y de sonido
         this.audio.playSFXByKey('preclose_overlay_open', { volume: 0.8 });
-        State.addLogEntry('system', `MUDANZA: Sector abandonado. ${abandonedCount} sujetos dejados atrás.`);
+        State.addLogEntry('system', `MUDANZA: Sector abandonado. ${abandonedCount} sujetos dejados atrás. ${selectedNPCs.length} mantenidos.`);
         
-        const msg = `MUDANZA COMPLETADA: Has abandonado el sector. ${abandonedCount} refugiados quedaron atrás. La paranoia ha disminuido.`;
+        let msg = `MUDANZA COMPLETADA: Has abandonado el sector. `;
+        if (abandonedCount > 0) msg += `${abandonedCount} refugiados quedaron atrás. `;
+        if (selectedNPCs.length > 0) msg += `Te llevas contigo a ${selectedNPCs.length} sujetos. `;
+        msg += `La paranoia ha disminuido.`;
         
+        $('#modal-relocate').addClass('hidden');
+
         this.ui.showMessage(msg, () => {
             // 4. Avanzar al siguiente día directamente, saltando la noche
             this.startNextDay();

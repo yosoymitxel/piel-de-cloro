@@ -7,10 +7,14 @@ export class NPC {
         // Default: ~40% infectados (Math.random() > 0.6)
         // Sesgo configurable: usar infectedChance como probabilidad directa
         this.isInfected = infectedChance != null ? (Math.random() < infectedChance) : (Math.random() > 0.6);
-        this.name = this.generateName();
+        
+        // Género aleatorio (influye en nombres y avatar)
+        this.gender = Math.random() > 0.5 ? 'male' : 'female';
+        
+        this.name = this.generateName(this.gender);
         this.occupation = this.generateOccupation();
         this.attributes = this.generateAttributes(this.isInfected);
-        this.visualFeatures = this.generateVisualFeatures(this.isInfected);
+        this.visualFeatures = this.generateVisualFeatures(this.isInfected, this.gender);
         this.personality = this.pickPersonality();
         this.isLore = opts.isLore || false;
         this.loreId = opts.loreId || null;
@@ -27,28 +31,51 @@ export class NPC {
         this.dayAfter = null; // Will be initialized if admitted
     }
 
-    generateName() {
-        // Spanish-friendly exotic-ish names, simple to read
-        const firsts = ['Ariel', 'Marin', 'Ciro', 'Noa', 'Elo', 'Bruno', 'Iker', 'Pablo', 'Enzo', 'Mateo', 'Julián', 'Luca', 'Sofía', 'Luna', 'Mía', 'Emma', 'Valeria', 'Camila', 'Renata', 'Elena'];
-        const lasts = ['Maro', 'Sierra', 'Vega', 'Luz', 'Rojas', 'Sol', 'Mora', 'Rivera', 'Ortega', 'Campos', 'Valle', 'Cruz', 'Rey', 'Luna'];
+    generateName(gender) {
+        // Spanish-friendly names grouped by gender
+        const names = {
+            male: ['Ariel', 'Ciro', 'Bruno', 'Iker', 'Pablo', 'Enzo', 'Mateo', 'Julián', 'Luca', 'Adrián', 'Hugo', 'Leo', 'Marcos', 'Saúl', 'Óscar', 'Víctor', 'Iván', 'Erick', 'Dante', 'Axel'],
+            female: ['Noa', 'Elo', 'Sofía', 'Luna', 'Mía', 'Emma', 'Valeria', 'Camila', 'Renata', 'Elena', 'Alba', 'Julia', 'Sara', 'Clara', 'Nora', 'Olivia', 'Maya', 'Inés', 'Zoe', 'Lola']
+        };
+        const lasts = ['Maro', 'Sierra', 'Vega', 'Luz', 'Rojas', 'Sol', 'Mora', 'Rivera', 'Ortega', 'Campos', 'Valle', 'Cruz', 'Rey', 'Luna', 'Blanco', 'Guerra', 'Santos', 'Pons', 'Vidal', 'Bosc'];
+        
         const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-        return `${pick(firsts)} ${pick(lasts)}`;
+        return `${pick(names[gender])} ${pick(lasts)}`;
     }
 
     generateOccupation() {
         const jobs = [
             'Mantenimiento', 'Hidroponía', 'Seguridad', 'Médico', 'Ingeniero',
             'Civil', 'Recolector', 'Electricista', 'Cocinero', 'Transportista',
-            'Desempleado', 'Mecánico', 'Minero', 'Filtrador', 'Cartógrafo'
+            'Desempleado', 'Mecánico', 'Minero', 'Filtrador', 'Cartógrafo',
+            'Suturador', 'Operario', 'Analista', 'Vigía', 'Mensajero'
         ];
         return jobs[Math.floor(Math.random() * jobs.length)];
     }
 
     getEpithet() {
         // Dynamic epithet based on infection or global paranoia
-        const infectedEpithets = ['Se lo ve con la piel pálida', 'Ves que sus manos están sucias'];
-        const paranoiaEpithets = ['Ves que tu iembla', 'Ves que sus manos están sucias', 'No está haciendo contacto visual', 'Parece nervioso', 'Suda ligeramente'];
-        const neutralEpithets = ['Porta una ropa peculiar', 'Está sin refugio', 'Se encuentra de paso', 'Tiene la mirada perdida', 'Lleva un accesorio llamativo'];
+        const infectedEpithets = [
+            'Se lo ve con la piel pálida', 
+            'Ves que sus manos están sucias', 
+            'Tiene un tic constante en el ojo',
+            'Despide un olor metálico'
+        ];
+        const paranoiaEpithets = [
+            'Ves que tiembla', 
+            'No está haciendo contacto visual', 
+            'Parece extremadamente nervioso', 
+            'Suda ligeramente',
+            'Habla entre dientes'
+        ];
+        const neutralEpithets = [
+            'Porta una ropa peculiar', 
+            'Está sin refugio', 
+            'Se encuentra de paso', 
+            'Tiene la mirada perdida', 
+            'Lleva un accesorio llamativo',
+            'Parece cansado del viaje'
+        ];
 
         if (this.isInfected) return infectedEpithets[Math.floor(Math.random() * infectedEpithets.length)];
         if (State.paranoia > 60) return paranoiaEpithets[Math.floor(Math.random() * paranoiaEpithets.length)];
@@ -71,21 +98,32 @@ export class NPC {
         };
     }
 
-    generateVisualFeatures(infected) {
-        const hairStyles = ['bald', 'short', 'long', 'punk'];
-        const accessories = ['none', 'glasses', 'mask', 'scar'];
-        const eyeTypes = ['normal', 'narrow', 'big', 'tired'];
-        const mouthTypes = ['smile', 'frown', 'open'];
+    generateVisualFeatures(infected, gender) {
+        // Expanded styles
+        const hairStyles = {
+            male: ['bald', 'short', 'punk', 'mohawk', 'shaved', 'wild'],
+            female: ['short', 'long', 'punk', 'bob', 'ponytail', 'bun', 'wild']
+        };
+        const accessories = ['none', 'glasses', 'mask', 'scar', 'patch', 'earring', 'hood'];
+        const eyeTypes = ['normal', 'narrow', 'big', 'tired', 'squint'];
+        const mouthTypes = ['smile', 'frown', 'open', 'tight', 'crooked'];
+        const facialHair = gender === 'male' ? ['none', 'beard', 'stubble', 'mustache'] : ['none'];
+        const clothesStyles = ['worker', 'civilian', 'scavenger', 'suit', 'rags'];
 
         // Skin tones
         const skins = ['var(--avatar-skin-1)', 'var(--avatar-skin-2)', 'var(--avatar-skin-3)', 'var(--avatar-skin-4)', 'var(--avatar-skin-5)'];
 
+        const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
         return {
-            hair: hairStyles[Math.floor(Math.random() * hairStyles.length)],
-            accessory: accessories[Math.floor(Math.random() * accessories.length)],
-            eyeType: eyeTypes[Math.floor(Math.random() * eyeTypes.length)],
-            mouthType: mouthTypes[Math.floor(Math.random() * mouthTypes.length)],
-            skinColor: skins[Math.floor(Math.random() * skins.length)],
+            gender: gender,
+            hair: pick(hairStyles[gender]),
+            facialHair: pick(facialHair),
+            clothes: pick(clothesStyles),
+            accessory: pick(accessories),
+            eyeType: pick(eyeTypes),
+            mouthType: pick(mouthTypes),
+            skinColor: pick(skins),
             glitchChance: infected ? 0.3 : 0.01
         };
     }

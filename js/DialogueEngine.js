@@ -87,23 +87,30 @@ export class Conversation {
         }
 
         // Apply madness/glitch modifier if paranoia high
-        if (State.paranoia > 40 || (State.getGlitchModifier && State.getGlitchModifier() > 1.1)) {
-            const intensity = Math.min(0.5, (State.paranoia - 30) / 140); // Sube con la paranoia
+        if (State.paranoia > 30 || (State.getGlitchModifier && State.getGlitchModifier() > 1.0)) {
+            // Intensidad gradual: de 0.05 a 0.4 según paranoia (30-100)
+            const baseIntensity = Math.min(0.4, (State.paranoia - 20) / 180); 
             const glitchedChars = ['$', '#', '@', '&', '%', '!', '?', '¿', '¡', '·', '=', '+', ':', ';', '0', '1'];
             
             const words = out.split(' ');
             out = words.map(word => {
-                // Glitch por palabra completa (reemplazo de bloques)
-                if (Math.random() < intensity * 0.5 && word.length > 2) {
-                    return word.split('').map(() => glitchedChars[Math.floor(Math.random() * glitchedChars.length)]).join('');
+                // Solo glitcheamos palabras de cierta longitud para mantener legibilidad mínima
+                if (word.length <= 1) return word;
+
+                // Probabilidad de glitchear esta palabra específica
+                const wordGlitchChance = baseIntensity * 0.8;
+                
+                if (Math.random() < wordGlitchChance) {
+                    return word.split('').map(c => {
+                        // Glitchear caracteres individuales con una probabilidad menor
+                        // para que la palabra sea "reconocible" pero corrupta
+                        if (Math.random() < baseIntensity * 0.6) {
+                            return glitchedChars[Math.floor(Math.random() * glitchedChars.length)];
+                        }
+                        return c;
+                    }).join('');
                 }
-                // Glitch por caracteres individuales
-                return word.split('').map(c => {
-                    if (Math.random() < intensity) {
-                        return glitchedChars[Math.floor(Math.random() * glitchedChars.length)];
-                    }
-                    return c;
-                }).join('');
+                return word;
             }).join(' ');
         }
         return out;

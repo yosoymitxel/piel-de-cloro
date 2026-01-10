@@ -660,6 +660,9 @@
                         <i class="fa-solid fa-skull"></i> NUEVA PARTIDA
                     </button>
                 </div>
+                <button id="btn-pause-fullscreen" class="pause-menu-btn sm text-sm">
+                    <i class="fa-solid fa-expand"></i> PANTALLA COMPLETA
+                </button>
             </div>
 
             <footer
@@ -774,6 +777,38 @@
             <div id="lore-content" class="font-mono text-sm text-gray-300"></div>
             <div class="flex justify-center">
                 <button id="btn-lore-continue" class="horror-btn horror-btn-primary px-10 py-3">CONTINUAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: MUDANZA (RELOCATE) SELECTION -->
+    <div id="modal-relocate" class="modal-overlay-base hidden z-[150]">
+        <div class="horror-panel w-[90%] max-w-[600px] p-6 flex flex-col gap-6 animate__animated animate__fadeIn">
+            <header class="text-center border-b border-warning/30 pb-4">
+                <h3 class="text-3xl font-mono tracking-[0.2em] text-warning glitch-effect" data-text="PROTOCOLOS DE MUDANZA">
+                    PROTOCOLOS DE MUDANZA</h3>
+                <p class="text-xs font-mono text-gray-400 mt-2 uppercase">Selecciona a los sujetos que mantendrás en el nuevo refugio</p>
+            </header>
+
+            <div class="bg-black/40 border border-warning/20 p-4">
+                <p class="text-[10px] font-mono text-warning/70 mb-4 leading-relaxed">
+                    RESTRICCIONES: El transporte es limitado. Solo puedes llevar contigo a un número limitado de sujetos. Los no seleccionados serán abandonados en el sector actual.
+                </p>
+                
+                <div id="relocate-selection-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto custom-scroll p-1">
+                    <!-- NPCs to select will be injected here -->
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <div class="flex justify-between items-center px-2 text-[10px] font-mono text-gray-500">
+                    <span>SUJETOS SELECCIONADOS:</span>
+                    <span id="relocate-count">0 / -</span>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <button id="btn-relocate-cancel" class="horror-btn border-gray-600 text-gray-400 py-3 text-xs uppercase tracking-widest hover:bg-white/5">CANCELAR</button>
+                    <button id="btn-relocate-confirm" class="horror-btn horror-btn-primary py-3 text-xs uppercase tracking-widest bg-warning/20 border-warning text-warning hover:bg-warning hover:text-black disabled:opacity-30 disabled:grayscale disabled:pointer-events-none" disabled>INICIAR MUDANZA</button>
+                </div>
             </div>
         </div>
     </div>

@@ -91,11 +91,14 @@ export class ModalManager {
         // Limpiar todo excepto los overlays fijos (título y cerrar)
         visualContainer.children().not('.absolute').remove();
 
-        const avatar = this.ui.renderAvatar(npc, 'lg');
+        const isRevealedInfected = (npc.death && npc.death.revealed && npc.isInfected) || 
+                                   (npc.dayAfter && npc.dayAfter.validated && npc.isInfected);
+        const modifier = (npc.dayAfter && npc.dayAfter.validated) || (npc.death && npc.death.revealed) ? 'perimeter' : 'normal';
+        const avatar = this.ui.renderAvatar(npc, 'lg', modifier);
         visualContainer.append(avatar);
 
         const avatarEl = avatar; // Referencia para efectos
-        if (npc.death && npc.death.revealed && npc.isInfected) {
+        if (isRevealedInfected) {
             avatarEl.addClass('infected');
         }
 

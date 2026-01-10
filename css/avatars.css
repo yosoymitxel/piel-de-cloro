@@ -155,14 +155,135 @@
     left: 40%;
 }
 
-/* CLOTHES */
-.avatar-clothes {
+.hair-style.mohawk {
+    width: 10%;
+    height: 60%;
+    background: #000;
     position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 20px 20px 0 0;
-    background: #334455;
+    top: -20%;
+    left: 45%;
+}
+
+.hair-style.shaved {
+    background: rgba(0,0,0,0.3);
+    height: 20%;
+    top: 28px;
+    border-radius: 10px 10px 0 0;
+    width: 38%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.hair-style.wild {
+    background: #4a3728;
+    height: 50%;
+    width: 60%;
+    top: 5px;
+    left: 20%;
+    border-radius: 30% 30% 10% 10%;
+    position: absolute;
+    z-index: -1;
+}
+
+.hair-style.bob {
+    background: #222;
+    height: 35%;
+    width: 45%;
+    top: 25px;
+    left: 27.5%;
+    border-radius: 10px 10px 0 0;
+    position: absolute;
+    z-index: -1;
+}
+
+.hair-style.ponytail {
+    background: #222;
+    height: 25%;
+    width: 38%;
+    top: 28px;
+    left: 31%;
+    border-radius: 10px 10px 0 0;
+    position: absolute;
+}
+.hair-style.ponytail::after {
+    content: '';
+    position: absolute;
+    right: -10px;
+    top: 5px;
+    width: 15px;
+    height: 30px;
+    background: #222;
+    border-radius: 0 10px 10px 0;
+}
+
+.hair-style.bun {
+    background: #222;
+    height: 25%;
+    width: 38%;
+    top: 28px;
+    left: 31%;
+    border-radius: 10px 10px 0 0;
+    position: absolute;
+}
+.hair-style.bun::after {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 15px;
+    height: 15px;
+    background: #222;
+    border-radius: 50%;
+}
+
+/* FACIAL HAIR */
+.facial-hair {
+    position: absolute;
+    bottom: 10%;
+    width: 80%;
+    height: 30%;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.facial-hair.beard {
+    background: rgba(0,0,0,0.5);
+    border-radius: 0 0 10px 10px;
+}
+
+.facial-hair.stubble {
+    background: repeating-linear-gradient(45deg, rgba(0,0,0,0.2), rgba(0,0,0,0.2) 2px, transparent 2px, transparent 4px);
+    border-radius: 0 0 10px 10px;
+}
+
+.facial-hair.mustache {
+    width: 60%;
+    height: 4px;
+    background: #000;
+    top: 55%;
+    left: 20%;
+    border-radius: 2px;
+}
+
+/* CLOTHES */
+.avatar-body.worker { background: #d35400; }
+.avatar-body.civilian { background: #2980b9; }
+.avatar-body.scavenger { background: #2c3e50; }
+.avatar-body.suit { background: #1a1a1a; }
+.avatar-body.rags { background: #7f8c8d; }
+
+.avatar-body.suit .clothes-detail {
+    background: #fff;
+    width: 10%;
+}
+
+.avatar-body.worker .clothes-detail {
+    background: rgba(255,255,255,0.1);
+    width: 40%;
+    border-left: 2px solid rgba(0,0,0,0.2);
+    border-right: 2px solid rgba(0,0,0,0.2);
 }
 
 .clothes-detail {
@@ -212,7 +333,31 @@
 .pixel-avatar.sm .avatar-mouth { height: 1px; margin-top: 4px; }
 .pixel-avatar.sm .avatar-eyes.big .eye { width: 5px; height: 5px; }
 
-/* INFECTION HINTS (Subtle) */
+/* INFECTION STATES & MODIFIERS */
+.pixel-avatar.state-normal.infected {
+    /* Subtle infection hint in normal state if desired, otherwise leave empty to hide */
+}
+
+/* UV Dermis Test Effect */
+.pixel-avatar.state-uv {
+    filter: brightness(0.8) sepia(0.3) hue-rotate(240deg) saturate(2); /* Purple/UV light base */
+}
+
+.pixel-avatar.state-uv.infected {
+    filter: brightness(0.9) hue-rotate(90deg) contrast(1.2) saturate(1.5); /* The "dry" texture reveal */
+}
+
+/* Perimeter Day-After Visuals */
+.pixel-avatar.state-perimeter.infected .avatar-head,
+.pixel-avatar.state-perimeter.infected .avatar-neck {
+    filter: hue-rotate(20deg) saturate(0.8) brightness(0.95); /* Slightly sickly/pale skin */
+}
+
+.pixel-avatar.state-perimeter.infected .avatar-eyes .eye {
+    background-color: #1a0000; /* Darker, sunken eyes */
+}
+
+/* Remove the old simple infected filter if it was too obvious */
 .pixel-avatar.infected .avatar-head {
-    filter: hue-rotate(90deg) grayscale(0.3);
+    /* filter: none; */ /* We handle this via states now */
 }

@@ -1,5 +1,5 @@
 export class AvatarRenderer {
-    static render(npc, sizeClass = 'lg') {
+    static render(npc, sizeClass = 'lg', modifier = 'normal') {
         let accessoryHTML = '';
         if (npc.visualFeatures.accessory !== 'none') {
             accessoryHTML = `
@@ -9,9 +9,14 @@ export class AvatarRenderer {
             `;
         }
 
+        let facialHairHTML = '';
+        if (npc.visualFeatures.facialHair && npc.visualFeatures.facialHair !== 'none') {
+            facialHairHTML = `<div class="facial-hair ${npc.visualFeatures.facialHair}"></div>`;
+        }
+
         const html = `
-            <div class="pixel-avatar ${sizeClass}">
-                <div class="avatar-body">
+            <div class="pixel-avatar ${sizeClass} ${npc.isInfected ? 'infected' : ''} state-${modifier}">
+                <div class="avatar-body ${npc.visualFeatures.clothes || 'civilian'}">
                     <div class="clothes-detail"></div>
                 </div>
                 <div class="avatar-neck" style="background-color: ${npc.visualFeatures.skinColor};"></div>
@@ -20,6 +25,7 @@ export class AvatarRenderer {
                         <div class="eye"></div>
                         <div class="eye"></div>
                     </div>
+                    ${facialHairHTML}
                     <div class="avatar-mouth ${npc.visualFeatures.mouthType}"></div>
                 </div>
                 <div class="avatar-hair">
