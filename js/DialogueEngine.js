@@ -89,7 +89,7 @@ export class Conversation {
         // Apply madness/glitch modifier if paranoia high
         if (State.paranoia > 40 || (State.getGlitchModifier && State.getGlitchModifier() > 1.1)) {
             const intensity = Math.min(0.5, (State.paranoia - 30) / 140); // Sube con la paranoia
-            const glitchedChars = ['$', '#', '@', '&', '%', '!', '?', '¿', '¡', '·', '*', '=', '+', ':', ';', '0', '1'];
+            const glitchedChars = ['$', '#', '@', '&', '%', '!', '?', '¿', '¡', '·', '=', '+', ':', ';', '0', '1'];
             
             const words = out.split(' ');
             out = words.map(word => {
