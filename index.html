@@ -83,10 +83,26 @@
                 <div class="italic text-center text-sm opacity-60 font-mono mt-4">
                     "Identifica a los infectados. Protege el refugio."
                 </div>
-                <button id="btn-start-game" class="horror-btn horror-btn-primary py-4 px-12 text-2xl mt-8">
-                    INICIAR TURNO
-                </button>
-            </section>
+                <div class="flex flex-col gap-4 w-full max-w-[300px] mt-8">
+                    <button id="btn-start-game" class="horror-btn horror-btn-primary p-6 text-2xl group relative overflow-hidden">
+                        <span class="relative z-10">INICIAR TURNO</span>
+                        <div class="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform"></div>
+                    </button>
+                    
+                    <button id="btn-toggle-fullscreen" class="text-[10px] font-mono text-gray-500 hover:text-white transition-colors uppercase tracking-widest">
+                            <i class="fa-solid fa-expand mr-1"></i> Pantalla Completa
+                        </button>
+                    </div>
+
+                    <!-- Record de finales -->
+                    <div id="endings-record" class="mt-12 text-[10px] font-mono opacity-40 hover:opacity-100 transition-opacity">
+                        <span class="uppercase tracking-[0.2em]">Archivos Recuperados:</span>
+                        <span id="endings-count" class="text-white ml-2">0/0</span>
+                        <div id="endings-dots" class="flex justify-center gap-1 mt-2">
+                            <!-- Dots dinámicos -->
+                        </div>
+                    </div>
+                </section>
 
             <!-- SCREEN 2: GAME (Guard Post) -->
             <section id="screen-game" class="h-full flex flex-col p-4 gap-4 hidden">
@@ -423,13 +439,18 @@
                             </div>
                         </div>
                         <div class="p-4 bg-black border border-chlorine flex flex-col gap-2">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[10px] font-mono opacity-50">ARCHIVO DESBLOQUEADO:</span>
+                                <span id="final-stat-ending-title" class="text-xs font-bold text-white uppercase tracking-wider">---</span>
+                            </div>
                             <div class="flex justify-between items-center mb-2">
-                                <span class="text-xs font-mono">ESTADO FINAL:</span>
+                                <span class="text-xs font-mono">ESTADO OPERATIVO:</span>
                                 <span id="final-stat-outcome"
                                     class="font-bold text-chlorine tracking-widest uppercase">COMPLETADO</span>
                             </div>
-                            <button id="btn-final-to-start" class="horror-btn horror-btn-primary w-full py-3">VOLVER AL
-                                INICIO</button>
+                            <button id="btn-final-to-start" class="horror-btn horror-btn-primary p-3 text-sm">
+                                REINICIAR TERMINAL
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -707,26 +728,47 @@
         </div>
     </div>
 
+    <!-- MODAL: FIN DE TURNO / DECISIÓN ESTRATÉGICA -->
     <div id="preclose-overlay" class="modal-overlay-base hidden">
-        <div class="horror-panel w-[90%] max-w-[520px] p-8 flex flex-col gap-6 text-center">
-            <div id="preclose-step1" class="flex flex-col gap-4">
-                <h3 class="text-2xl font-bold">Antes de cerrar el día</h3>
-                <p class="font-mono text-sm text-gray-300">Primero puedes purgar desde el Refugio.</p>
-                <div class="flex gap-4 justify-center">
-                    <button id="btn-preclose-open-shelter" class="horror-btn horror-btn-alert px-6 py-3">ABRIR
-                        REFUGIO</button>
-                    <button id="btn-preclose-continue"
-                        class="horror-btn horror-btn-primary px-6 py-3">CONTINUAR</button>
+        <div class="horror-panel w-[95%] max-w-[600px] p-8 flex flex-col gap-8 text-center bg-black/95 border-2 border-chlorine/30 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+            <div class="space-y-2">
+                <h3 class="text-3xl font-bold text-glow tracking-tighter uppercase">Protocolo de Cierre</h3>
+                <p class="font-mono text-xs text-gray-400">SECTOR RUTA-01 | ESTADO DE CAPACIDAD: <span id="preclose-shelter-status" class="text-white">--/--</span></p>
+            </div>
+
+            <div id="preclose-options" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- ESCAPAR: Solo si lleno -->
+                <div id="preclose-opt-escape" class="group relative flex flex-col p-4 border border-white/10 bg-white/5 hover:bg-white/10 transition-all cursor-pointer opacity-50 grayscale pointer-events-none">
+                    <i class="fa-solid fa-person-running text-3xl mb-3 text-white"></i>
+                    <span class="font-bold uppercase text-sm">Escapar</span>
+                    <p class="text-[10px] mt-2 opacity-60">Solo disponible con refugio lleno. Termina la partida.</p>
+                    <div class="absolute inset-0 border-2 border-white/0 group-hover:border-white/20 transition-all"></div>
+                </div>
+
+                <!-- DORMIR: Siempre disponible -->
+                <div id="preclose-opt-sleep" class="group relative flex flex-col p-4 border border-save/30 bg-save/5 hover:bg-save/10 transition-all cursor-pointer">
+                    <i class="fa-solid fa-moon text-3xl mb-3 text-save"></i>
+                    <span class="font-bold uppercase text-sm">Dormir</span>
+                    <p class="text-[10px] mt-2 opacity-60">Pasa a la fase nocturna. El refugio consume recursos.</p>
+                    <div class="absolute inset-0 border-2 border-save/0 group-hover:border-save/40 transition-all"></div>
+                </div>
+
+                <!-- MUDARSE: Nueva opción -->
+                <div id="preclose-opt-relocate" class="group relative flex flex-col p-4 border border-warning/30 bg-warning/5 hover:bg-warning/10 transition-all cursor-pointer">
+                    <i class="fa-solid fa-truck-ramp-box text-3xl mb-3 text-warning"></i>
+                    <span class="font-bold uppercase text-sm">Mudarse</span>
+                    <p class="text-[10px] mt-2 opacity-60">Busca una nueva ubicación. Reduce paranoia pero pierdes el refugio actual.</p>
+                    <div class="absolute inset-0 border-2 border-warning/0 group-hover:border-warning/40 transition-all"></div>
                 </div>
             </div>
-            <div id="preclose-step2" class="flex flex-col gap-4 hidden">
-                <h3 class="text-2xl font-bold">¿Finalizar sesión o permanecer?</h3>
-                <p class="font-mono text-sm text-gray-300">Puedes finalizar la sesión o permanecer para la noche.</p>
-                <div class="flex gap-4 justify-center">
-                    <button id="btn-preclose-finish" class="horror-btn horror-btn-primary px-6 py-3">FINALIZAR
-                        SESIÓN</button>
-                    <button id="btn-preclose-stay" class="horror-btn horror-btn-warning px-6 py-3">PERMANECER</button>
-                </div>
+
+            <div class="flex flex-col gap-3">
+                <button id="btn-preclose-open-shelter" class="text-[10px] font-mono uppercase tracking-widest text-gray-500 hover:text-alert transition-colors">
+                    <i class="fa-solid fa-skull-crossbones mr-1"></i> Gestionar Purgas antes de decidir
+                </button>
+                <button id="btn-preclose-stay" class="text-[10px] font-mono uppercase tracking-widest text-gray-500 hover:text-white transition-colors">
+                    Volver al puesto de guardia
+                </button>
             </div>
         </div>
     </div>

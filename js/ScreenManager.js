@@ -1,3 +1,5 @@
+import { LoreData } from './LoreData.js';
+
 export class ScreenManager {
     constructor(uiManager) {
         this.ui = uiManager;
@@ -9,6 +11,13 @@ export class ScreenManager {
         Object.values(this.screens).forEach(s => s.addClass('hidden'));
         if (this.screens[screenName]) {
             this.screens[screenName].removeClass('hidden');
+        }
+
+        // Asegurarse de ocultar overlays de fin de turno al cambiar de pantalla
+        $('#preclose-overlay').addClass('hidden').removeClass('flex');
+
+        if (screenName === 'start') {
+            this.updateEndingsRecord(state);
         }
 
         // Logic 1: Settings button only on start screen
@@ -37,6 +46,19 @@ export class ScreenManager {
 
         if (screenName === 'morgue' && state) {
             this.renderMorgue(state);
+        }
+
+        if (screenName === 'night' && state) {
+            const count = state.admittedNPCs.length;
+            const max = state.config.maxShelterCapacity;
+            const isFull = count >= max;
+            
+            const btnEscape = $('#btn-night-escape');
+            if (isFull) {
+                btnEscape.removeClass('opacity-30 grayscale pointer-events-none');
+            } else {
+                btnEscape.addClass('opacity-30 grayscale pointer-events-none');
+            }
         }
     }
 
@@ -127,7 +149,27 @@ export class ScreenManager {
         if (state.departedNPCs) state.departedNPCs.forEach(npc => departedContainer.append(createCard(npc, 'departed')));
     }
 
-    renderFinalStats(state) {
+    updateEndingsRecord(state) {
+        const totalEndings = Object.keys(LoreData).filter(key => key.startsWith('final_')).length;
+        const unlocked = state.unlockedEndings.length;
+        
+        $('#endings-count').text(`${unlocked}/${totalEndings}`);
+        
+        const dotsContainer = $('#endings-dots');
+        dotsContainer.empty();
+        
+        // Crear puntos para cada final posible
+        Object.keys(LoreData).filter(key => key.startsWith('final_')).forEach(key => {
+            const isUnlocked = state.unlockedEndings.includes(key);
+            const dot = $('<div>', {
+                class: `w-1.5 h-1.5 rounded-full ${isUnlocked ? 'bg-white shadow-[0_0_5px_#fff]' : 'bg-white/10'}`,
+                title: isUnlocked ? LoreData[key].title : '???'
+            });
+            dotsContainer.append(dot);
+        });
+    }
+
+    renderFinalStats(state, endingId) {
         const totalProcesados = state.admittedNPCs.length + state.ignoredNPCs.length + state.purgedNPCs.length + state.departedNPCs.length;
         const admitted = state.admittedNPCs.length;
         const purged = state.purgedNPCs.length;
@@ -145,21 +187,32 @@ export class ScreenManager {
         $('#final-stat-leaked').text(leaked);
         $('#final-stat-deaths').text(deaths);
 
+        // Mostrar título del final
+        const endingTitle = LoreData[endingId]?.title || 'ARCHIVO DESCONOCIDO';
+        $('#final-stat-ending-title').text(endingTitle);
+
         const notes = $('#final-stat-notes');
         notes.empty();
         const addNote = (txt) => notes.append(`<p>> ${txt}</p>`);
 
         if (leaked > 0) addNote(`ALERTA: Se han detectado ${leaked} brechas biológicas en el perímetro.`);
-        else addNote("PROTOCOLO DE CONTENCIÓN: ÉXITO TOTAL. No hay rastros de infección.");
+        else if (endingId === 'final_clean') addNote("PROTOCOLO DE CONTENCIÓN: ÉXITO TOTAL. No hay rastros de infección.");
 
         if (deaths > 0) addNote(`Bajas civiles confirmadas: ${deaths}. Daños colaterales dentro de los márgenes.`);
         if (state.paranoia > 80) addNote("ADVERTENCIA: Niveles de estrés post-traumático críticos en el operador.");
 
         const outcome = $('#final-stat-outcome');
-        if (leaked > 2 || state.playerInfected) {
-            outcome.text("FALLIDO").addClass('text-alert').removeClass('text-chlorine');
+        outcome.removeClass('text-chlorine text-alert text-warning text-save');
+
+        // Determinar el estado basado en el final
+        if (endingId === 'final_clean') {
+            outcome.text("ÉXITO OPERATIVO").addClass('text-save');
+        } else if (endingId === 'final_corrupted' || endingId === 'final_player_infected_escape') {
+            outcome.text("COMPROMETIDO").addClass('text-warning');
+        } else if (endingId && (endingId.includes('death') || endingId.includes('off') || endingId.includes('abandonment'))) {
+            outcome.text("OPERATIVO ELIMINADO").addClass('text-alert');
         } else {
-            outcome.text("COMPLETADO").addClass('text-chlorine').removeClass('text-alert');
+            outcome.text("MISIÓN FALLIDA").addClass('text-alert');
         }
 
         this.showScreen('finalStats', state);

@@ -96,6 +96,13 @@ h3 {
     text-shadow: 0 0 5px var(--color-chlorine), 0 0 10px var(--color-chlorine);
 }
 
+.text-alert { color: var(--color-alert); }
+.text-warning { color: var(--color-warning); }
+.text-save { color: var(--color-save); }
+.text-safe { color: var(--color-safe); }
+.text-chlorine { color: var(--color-chlorine); }
+.text-chlorine-light { color: var(--color-chlorine-light); }
+
 .text-alert-glow {
     text-shadow: 0 0 5px var(--color-alert), 0 0 10px var(--color-alert);
 }

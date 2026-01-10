@@ -7,6 +7,9 @@ import { AudioManager } from './AudioManager.js';
 class Game {
     constructor() {
         this.audio = new AudioManager();
+        State.loadPersistentData();
+        this.applySavedAudioSettings();
+        
         this.ui = new UIManager(this.audio);
         this.stats = new StatsManager();
         this.isAnimating = false; // Bloquear acciones durante animaciones
@@ -15,8 +18,30 @@ class Game {
         this.initStats();
     }
 
+    applySavedAudioSettings() {
+        const s = State.audioSettings;
+        this.audio.setMasterVolume(s.master);
+        this.audio.setChannelLevel('ambient', s.ambient);
+        this.audio.setChannelLevel('lore', s.lore);
+        this.audio.setChannelLevel('sfx', s.sfx);
+    }
+
+    syncAudioPersistence() {
+        State.audioSettings = {
+            master: this.audio.master,
+            ambient: this.audio.levels.ambient,
+            lore: this.audio.levels.lore,
+            sfx: this.audio.levels.sfx
+        };
+        State.savePersistentData();
+    }
+
     bindEvents() {
         $('#tool-thermo, #tool-flash, #tool-pulse, #tool-pupils, #btn-admit, #btn-ignore').addClass('btn-interactive');
+        
+        // Fullscreen Toggle
+        $('#btn-toggle-fullscreen').on('click', () => this.toggleFullscreen());
+
         // Start & Settings
         $('#btn-start-game').on('click', () => { this.audio.unlock(); this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); this.startGame(); });
         $('#btn-settings-toggle').on('click', () => {
@@ -32,14 +57,21 @@ class Game {
             State.config.maxShelterCapacity = parseInt($('#config-max-shelter').val());
             State.config.dayLength = parseInt($('#config-day-length').val());
             State.config.dayAfterTestsDefault = parseInt($('#config-dayafter-tests').val());
+            
             const mv = Math.max(0, Math.min(100, parseInt($('#config-volume-master').val()))) / 100;
             const av = Math.max(0, Math.min(100, parseInt($('#config-volume-ambient').val()))) / 100;
             const lv = Math.max(0, Math.min(100, parseInt($('#config-volume-lore').val()))) / 100;
             const sv = Math.max(0, Math.min(100, parseInt($('#config-volume-sfx').val()))) / 100;
+            
             this.audio.setMasterVolume(mv);
             this.audio.setChannelLevel('ambient', av);
             this.audio.setChannelLevel('lore', lv);
             this.audio.setChannelLevel('sfx', sv);
+
+            // Persist audio settings
+            State.audioSettings = { master: mv, ambient: av, lore: lv, sfx: sv };
+            State.savePersistentData();
+
             if (State.cycle === 1 && State.dayTime === 1) this.ui.showScreen('start');
             else this.ui.showScreen('game');
         });
@@ -109,6 +141,7 @@ class Game {
                 this.audio.setChannelLevel('ambient', prev.ambient);
                 this.audio.setChannelLevel('lore', prev.lore);
             }
+            this.syncAudioPersistence();
         });
         $('#toggle-mute-sfx').on('change', (e) => {
             const checked = $(e.target).is(':checked');
@@ -118,6 +151,7 @@ class Game {
             } else {
                 this.audio.setChannelLevel('sfx', this.prevSfxLevel ?? 1.0);
             }
+            this.syncAudioPersistence();
         });
 
         // Game Actions (Delegated to handle dynamic updates if any)
@@ -162,7 +196,7 @@ class Game {
         // Finalize day without purge (visible only at end of day in Shelter)
         $('#btn-finalize-day-no-purge').on('click', () => {
             if (State.isDayOver() && !State.isNight) {
-                this.startNightPhase();
+                this.ui.showPreCloseFlow(State, (action) => this.handlePreCloseAction(action));
             }
         });
     }
@@ -179,6 +213,18 @@ class Game {
         panel.toggleClass('hidden', !hidden);
         btn.toggleClass('active', hidden);
         if (hidden) this.audio.playSFXByKey('stats_panel_open', { volume: 0.5 });
+    }
+
+    toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.warn(`Error al intentar activar pantalla completa: ${err.message}`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
     }
 
     startGame() {
@@ -230,30 +276,31 @@ class Game {
         // Actualizar estado del generador al pasar de turno
         this.updateGenerator();
 
+        // Primero verificamos si el refugio está lleno. 
+        // Si está lleno, forzamos el flujo de cierre para que el jugador tome una decisión estratégica.
+        const isShelterFull = State.admittedNPCs.length >= State.config.maxShelterCapacity;
+        
+        if (isShelterFull) {
+            this.ui.showFeedback("REFUGIO LLENO: Debes tomar una decisión estratégica.", "yellow");
+            this.ui.showPreCloseFlow(State, (action) => this.handlePreCloseAction(action));
+            return;
+        }
+
         // Si la paranoia es extrema, colapso mental inmediato
         if (State.paranoia >= 100) {
-            this.audio.playSFXByKey('glitch_burst', { volume: 0.8 });
-            this.ui.showLore('final_death_paranoia', () => this.endGame());
+            this.triggerEnding('final_death_paranoia');
             return;
         }
 
         // Si se ignoran demasiados sujetos, el refugio se considera abandonado
         if (State.ignoredNPCs && State.ignoredNPCs.length >= 15) {
-            this.gameOver("INCUMPLIMIENTO DE DEBER: Has permitido que demasiados sujetos se marchen sin procesar. El mando central ha bloqueado tu acceso y enviado una unidad de contención. Ya no eres necesario.");
+            this.triggerEnding('final_abandonment');
             return;
         }
 
         // Check Day/Night Cycle
         if (State.isDayOver()) {
-            this.ui.showPreCloseFlow((action) => {
-                if (action === 'purge') {
-                    this.openShelter();
-                } else if (action === 'finalize') {
-                    this.startNightPhase();
-                } else if (action === 'stay') {
-                    this.startNightPhase();
-                }
-            });
+            this.ui.showPreCloseFlow(State, (action) => this.handlePreCloseAction(action));
             return;
         }
 
@@ -509,7 +556,7 @@ class Game {
         if (mode === 'overload') {
             // Probabilidad de muerte por sobrecarga si hay pocos civiles
             if (State.admittedNPCs.length < 3 && Math.random() < 0.1) {
-                this.gameOver("MUERTE POR SOBRECARGA: El sistema eléctrico colapsó violentamente. La falta de personal para estabilizar los núcleos provocó una explosión térmica.");
+                this.triggerEnding('final_overload_death');
                 return;
             }
             State.generator.overloadRiskTurns = 2; // Activa el riesgo para los próximos 2 turnos
@@ -649,6 +696,59 @@ class Game {
         this.updateHUD();
     }
 
+    handlePreCloseAction(action) {
+        if (action === 'purge') {
+            this.openShelter();
+        } else if (action === 'finalize') {
+            this.startNightPhase();
+        } else if (action === 'stay') {
+            // Se queda en el puesto de guardia, no hace nada especial
+        } else if (action === 'escape') {
+            this.finishRun();
+        } else if (action === 'relocate') {
+            this.relocateShelter();
+        }
+    }
+
+    relocateShelter() {
+        // Lógica de mudanza:
+        // 1. Reducir paranoia significativamente (sensación de nuevo comienzo)
+        const paranoiaReduction = 30;
+        State.updateParanoia(-paranoiaReduction);
+
+        // 2. Perder a todos los refugiados actuales (se quedan atrás o se dispersan)
+        const abandonedCount = State.admittedNPCs.length;
+        State.admittedNPCs.forEach(npc => {
+            State.departedNPCs.push(npc);
+        });
+        State.admittedNPCs = [];
+
+        // 3. Efectos visuales y de sonido
+        this.audio.playSFXByKey('preclose_overlay_open', { volume: 0.8 }); // Reutilizar sonido o añadir uno nuevo
+        State.addLogEntry('system', `MUDANZA: Sector abandonado. ${abandonedCount} sujetos dejados atrás.`);
+        this.ui.showFeedback(`MUDANZA COMPLETADA: Has abandonado el sector. ${abandonedCount} refugiados quedaron atrás. Paranoia reducida.`, "save");
+
+        // 4. Avanzar al siguiente día directamente, saltando la noche (porque ya no hay refugio que defender esa noche)
+        this.startNextDay();
+    }
+
+    startNextDay() {
+        State.cycle++;
+        State.dayTime = 1;
+        State.dayEnded = false;
+        State.dayClosed = false;
+        State.isNight = false;
+        State.lastNight.occurred = false;
+        
+        // Resetear recursos diarios
+        State.dayAfter.testsAvailable = State.config.dayAfterTestsDefault;
+        
+        // Limpiar registros temporales
+        State.ignoredNPCs = []; // Opcional: resetear ignores diarios
+
+        this.nextTurn();
+    }
+
     startNightPhase() {
         State.isNight = true;
         State.dayClosed = true;
@@ -658,14 +758,40 @@ class Game {
         this.ui.showScreen('night');
     }
 
+    triggerEnding(endingId) {
+        // Bloquear cualquier otra acción
+        this.isAnimating = true;
+
+        // Guardar el final desbloqueado persistentemente
+        State.unlockEnding(endingId);
+        this.lastEndingId = endingId;
+
+        // Si es un final de peligro, añadir efecto visual
+        const isDanger = endingId.includes('death') || endingId.includes('corrupted') || endingId.includes('off') || endingId.includes('abandonment');
+        
+        if (isDanger) {
+            this.audio.playSFXByKey('glitch_burst', { volume: 0.8 });
+            if (this.ui.applyVHS) this.ui.applyVHS(1.0, 2000);
+        }
+
+        // Mostrar el lore del final
+        this.ui.showLore(endingId, () => {
+            // Después del lore principal, mostrar la resonancia (post_final)
+            // Esto le da el toque "centralizado" y profesional que busca el usuario
+            this.ui.showLore('post_final', () => {
+                this.endGame();
+            });
+        });
+    }
+
     endGame() {
         this.audio.stopAmbient({ fadeOut: 1000 });
         if (typeof this.ui.renderFinalStats === 'function') {
-            this.ui.renderFinalStats(State);
+            this.ui.renderFinalStats(State, this.lastEndingId);
         } else {
             const proto = Object.getPrototypeOf(this.ui);
             if (typeof proto.renderFinalStats === 'function') {
-                proto.renderFinalStats.call(this.ui, State);
+                proto.renderFinalStats.call(this.ui, State, this.lastEndingId);
             }
         }
     }
@@ -683,7 +809,7 @@ class Game {
                 State.lastNight.message = "Dormiste sin compañía. El refugio no te protegió.";
                 State.lastNight.victims = 1;
                 this.audio.playSFXByKey('sleep_begin', { volume: 0.5 });
-                this.ui.showLore('night_player_death', () => this.endGame());
+                this.triggerEnding('night_player_death');
                 return;
             } else {
                 State.lastNight.message = "Te mantuviste en vela. Nadie llegó.";
@@ -718,9 +844,7 @@ class Game {
                 State.lastNight.message = "No quedaban civiles. El guardia fue víctima del cloro.";
                 State.lastNight.victims = 1;
                 this.audio.playSFXByKey('lore_night_player_death', { volume: 0.5 });
-                this.ui.showLore('night_player_death', () => {
-                    this.endGame();
-                });
+                this.triggerEnding('night_player_death');
             }
             return;
         }
@@ -733,9 +857,7 @@ class Game {
                 ? "Tu mente finalmente cedió. Las sombras del refugio tomaron forma y te arrastraron al vacío."
                 : "Aunque no había cloro dentro, algo te encontró en la oscuridad.";
             State.lastNight.victims = 1;
-            this.ui.showLore('night_player_death', () => {
-                this.endGame();
-            });
+            this.triggerEnding('night_player_death');
             return;
         }
 
@@ -766,13 +888,20 @@ class Game {
     finishRun() {
         const admitted = State.admittedNPCs;
         const count = admitted.length;
+        const max = State.config.maxShelterCapacity;
         const infectedCount = admitted.filter(n => n.isInfected).length;
         const allInfected = count > 0 && infectedCount === count;
 
+        // NUEVA REGLA: Escapar solo es posible con el refugio lleno
+        if (count < max) {
+            this.ui.showFeedback(`SISTEMA BLOQUEADO: No puedes abandonar tu puesto hasta que el refugio esté lleno (${count}/${max}).`, "alert");
+            this.audio.playSFXByKey('glitch_low', { volume: 0.5 });
+            return;
+        }
+
         // Final del generador apagado: No puedes abrir las puertas
         if (!State.generator || !State.generator.isOn) {
-            this.audio.playSFXByKey('glitch_burst', { volume: 0.8 });
-            this.ui.showLore('final_generator_off', () => this.endGame());
+            this.triggerEnding('final_generator_off');
             return;
         }
 
@@ -780,7 +909,7 @@ class Game {
         if (count === 0) {
             if (Math.random() < 0.92) {
                 this.audio.playSFXByKey('escape_attempt', { volume: 0.6 });
-                this.ui.showLore('final_death_alone', () => this.endGame());
+                this.triggerEnding('final_death_alone');
                 return;
             }
         }
@@ -790,33 +919,33 @@ class Game {
         const chance = Math.min(0.95, State.paranoia / 150);
         if (Math.random() < chance) {
             this.audio.playSFXByKey('escape_attempt', { volume: 0.6 });
-            this.ui.showLore('final_death_paranoia', () => this.endGame());
+            this.triggerEnding('final_death_paranoia');
             return;
         }
 
         // Jugador infectado: final personalizado
         if (State.playerInfected) {
             this.audio.playSFXByKey('escape_attempt', { volume: 0.6 });
-            this.ui.showLore('final_player_infected_escape', () => this.endGame());
+            this.triggerEnding('final_player_infected_escape');
             return;
         }
 
         // Finales adicionales
         if (allInfected) {
-            this.ui.showLore('final_death_all_infected', () => this.endGame());
+            this.triggerEnding('final_death_all_infected');
             return;
         }
         if (count <= 1) {
-            this.ui.showLore('final_death_alone', () => this.endGame());
+            this.triggerEnding('final_death_alone');
             return;
         }
 
         // Finales originales
         this.ui.showLore('pre_final', () => {
             if (infectedCount === 0) {
-                this.ui.showLore('final_clean', () => this.endGame());
+                this.triggerEnding('final_clean');
             } else {
-                this.ui.showLore('final_corrupted', () => this.endGame());
+                this.triggerEnding('final_corrupted');
             }
         });
     }

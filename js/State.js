@@ -54,6 +54,40 @@ export const State = {
     dialoguePoolsLastUsed: {}, // map poolId -> dialoguesCount when last used
     dialogueFlags: {},      // persistent flags set by conversation choices
     dialogueMemory: [],     // recorded events for rumor/flags
+    unlockedEndings: [],    // persistent unlocked endings
+    audioSettings: {
+        master: 1.0,
+        ambient: 0.3,
+        lore: 0.25,
+        sfx: 0.6
+    },
+
+    savePersistentData() {
+        const data = {
+            unlockedEndings: this.unlockedEndings,
+            audioSettings: this.audioSettings
+        };
+        localStorage.setItem('ruta01_persistence', JSON.stringify(data));
+    },
+
+    loadPersistentData() {
+        try {
+            const data = JSON.parse(localStorage.getItem('ruta01_persistence'));
+            if (data) {
+                if (data.unlockedEndings) this.unlockedEndings = data.unlockedEndings;
+                if (data.audioSettings) this.audioSettings = data.audioSettings;
+            }
+        } catch (e) {
+            console.warn('Error loading persistence:', e);
+        }
+    },
+
+    unlockEnding(endingId) {
+        if (!this.unlockedEndings.includes(endingId)) {
+            this.unlockedEndings.push(endingId);
+            this.savePersistentData();
+        }
+    },
 
     // Colores centralizados
     colors: {

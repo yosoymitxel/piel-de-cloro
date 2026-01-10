@@ -124,8 +124,8 @@ export class UIManager {
         this.screenManager.showScreen(screenName, State);
     }
 
-    renderFinalStats(state) {
-        this.screenManager.renderFinalStats(state);
+    renderFinalStats(state, endingId) {
+        this.screenManager.renderFinalStats(state, endingId);
     }
 
     applyVHS(intensity = 0.6, duration = 1000) {
@@ -785,32 +785,58 @@ export class UIManager {
 
     showLore(type, onClose) { return this.modules.lore.showLore(type, onClose); }
 
-    showPreCloseFlow(onAction) {
+    showPreCloseFlow(state, onAction) {
         const overlay = $('#preclose-overlay');
-        const step1 = $('#preclose-step1');
-        const step2 = $('#preclose-step2');
-        step2.addClass('hidden');
-        step1.removeClass('hidden');
+        const statusText = $('#preclose-shelter-status');
+        const optEscape = $('#preclose-opt-escape');
+        const optSleep = $('#preclose-opt-sleep');
+        const optRelocate = $('#preclose-opt-relocate');
+        
+        const count = state.admittedNPCs.length;
+        const max = state.config.maxShelterCapacity;
+        const isFull = count >= max;
+
+        // Actualizar UI de capacidad
+        statusText.text(`${count}/${max}`);
+        if (isFull) {
+            statusText.removeClass('text-white').addClass('text-alert animate-pulse');
+            optEscape.removeClass('opacity-50 grayscale pointer-events-none').addClass('border-white/40');
+        } else {
+            statusText.removeClass('text-alert animate-pulse').addClass('text-white');
+            optEscape.addClass('opacity-50 grayscale pointer-events-none').removeClass('border-white/40');
+        }
+
         overlay.removeClass('hidden').addClass('flex');
         if (this.audio) this.audio.playSFXByKey('preclose_overlay_open', { volume: 0.5 });
-        // Hide sidebar while end-of-day flow is active
+        
+        // Ocultar sidebar mientras el flujo está activo
         this.elements.sidebar.addClass('hidden');
+
+        // Configurar botones
         $('#btn-preclose-open-shelter').off('click').on('click', () => {
             overlay.addClass('hidden').removeClass('flex');
             if (onAction) onAction('purge');
         });
-        // Skip intermediate step: continue goes straight to Night
-        $('#btn-preclose-continue').off('click').on('click', () => {
-            overlay.addClass('hidden').removeClass('flex');
-            if (onAction) onAction('finalize');
-        });
-        $('#btn-preclose-finish').off('click').on('click', () => {
-            overlay.addClass('hidden').removeClass('flex');
-            if (onAction) onAction('finalize');
-        });
+
         $('#btn-preclose-stay').off('click').on('click', () => {
             overlay.addClass('hidden').removeClass('flex');
             if (onAction) onAction('stay');
+        });
+
+        optSleep.off('click').on('click', () => {
+            overlay.addClass('hidden').removeClass('flex');
+            if (onAction) onAction('finalize'); // Equivale a dormir
+        });
+
+        optRelocate.off('click').on('click', () => {
+            overlay.addClass('hidden').removeClass('flex');
+            if (onAction) onAction('relocate');
+        });
+
+        optEscape.off('click').on('click', () => {
+            if (!isFull) return;
+            overlay.addClass('hidden').removeClass('flex');
+            if (onAction) onAction('escape');
         });
     }
 

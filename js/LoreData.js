@@ -125,5 +125,17 @@ export const LoreData = {
         content: 'El generador se detuvo y con él, la esperanza. Sin energía para abrir las compuertas hidráulicas, el refugio se convirtió en un sarcófago de hormigón. Moriste en la oscuridad total, escuchando cómo algo rascaba el metal desde el otro lado.',
         type: 'danger',
         sfx: 'glitch_burst'
+    },
+    final_abandonment: {
+        title: 'Incumplimiento de Deber',
+        content: 'Has permitido que demasiados sujetos se marchen sin procesar. El mando central ha bloqueado tu acceso y enviado una unidad de contención. Ya no eres necesario en este puesto. Tu reemplazo llegará cuando la zona sea "desinfectada".',
+        type: 'danger',
+        sfx: 'glitch_burst'
+    },
+    final_overload_death: {
+        title: 'Muerte por Sobrecarga',
+        content: 'El sistema eléctrico colapsó violentamente. La falta de personal para estabilizar los núcleos provocó una explosión térmica. El refugio ahora es una tumba de metal fundido y estática.',
+        type: 'danger',
+        sfx: 'glitch_burst'
     }
 };
