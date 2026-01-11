@@ -1255,6 +1255,8 @@ class Game {
     }
 }
 
+export { Game };
+
 // Initialize when DOM is ready (jQuery style)
 $(document).ready(() => {
     window.game = new Game();

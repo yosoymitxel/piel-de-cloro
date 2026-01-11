@@ -83,6 +83,12 @@ beforeAll(async () => {
     ({ UIManager } = await import('../js/UIManager.js'));
     ({ parseDialogueMarkup } = await import('../js/markup.js'));
     ({ State } = await import('../js/State.js'));
+
+    // Stub window and game to avoid ReferenceError in UIManager click handlers
+    global.window = global;
+    global.window.game = {
+        checkSecurityDegradation: jest.fn()
+    };
 });
 
 beforeEach(() => {
@@ -96,6 +102,18 @@ beforeEach(() => {
         global.requestAnimationFrame = (cb) => setTimeout(() => cb(typeof performance !== 'undefined' ? performance.now() : Date.now()), 0);
         global.cancelAnimationFrame = (id) => clearTimeout(id);
     }
+
+    // Mock elements that UIManager expects
+    const ui = new UIManager();
+    ui.elements = {
+        paranoia: $('#stat-paranoia'),
+        cycle: $('#stat-cycle'),
+        time: $('#stat-time'),
+        dialogue: $('#npc-dialogue'),
+        genWarningGame: $('#gen-warning-game'),
+        genWarningShelter: $('#gen-warning-shelter')
+    };
+    global.__uiInstance = ui;
 
     // Make typing deterministic in tests by overriding the heavy animation path
     // Save original to restore if needed
@@ -115,10 +133,14 @@ beforeEach(() => {
 
 });
 
-test('UIManager renders dialogue markup and plays node audio (no real DOM)', () => {
+test('UIManager renders dialogue markup and plays node audio (no real DOM)', async () => {
+    const ui = global.__uiInstance;
     const audioStub = { playSFXByKey: jest.fn() };
-    const ui = Object.create(UIManager.prototype);
     ui.audio = audioStub;
+    
+    // Stub updateStats to avoid paranoia parent issues in this simple test
+    ui.updateStats = jest.fn();
+
     ui.elements = {
         dialogue: $('#npc-dialogue'),
         dialogueOptions: $('#dialogue-options'),
@@ -135,7 +157,7 @@ test('UIManager renders dialogue markup and plays node audio (no real DOM)', () 
         }
     };
 
-    ui.updateDialogueBox(npc);
+    await ui.updateDialogueBox(npc);
 
     // Node audio played on enter
     expect(audioStub.playSFXByKey).toHaveBeenCalledWith('ui_node_audio', expect.any(Object));
@@ -170,8 +192,9 @@ test('UIManager renders dialogue markup and plays node audio (no real DOM)', () 
 
 test('Actions show instantly, speeches type, rumors fade; name vs epithet displayed once', (done) => {
     const audioStub = { playSFXByKey: jest.fn(), channels: { sfx: { pause: jest.fn() } } };
-    const ui = Object.create(UIManager.prototype);
+    const ui = global.__uiInstance;
     ui.audio = audioStub;
+    ui.updateStats = jest.fn(); // avoid nested DOM issues in stub
     ui.elements = {
         dialogue: $('#npc-dialogue'),
         dialogueOptions: $('#dialogue-options'),

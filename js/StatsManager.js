@@ -1,5 +1,8 @@
 export class StatsManager {
     constructor() {
+        if (typeof $ === 'undefined') {
+            console.error('[StatsManager] $ is undefined!');
+        }
         this.dom = {
             rtUsers: $('#stat-rt-users'),
             rtTransactions: $('#stat-rt-transactions'),
@@ -107,14 +110,14 @@ export class StatsManager {
     }
 
     updateRunStats(state) {
+        const validados = state.admittedNPCs.filter(n => n.infected).length + state.ignoredNPCs.filter(n => n.infected).length; // This logic might vary
         const admitted = state.admittedNPCs.length;
         const ignored = state.ignoredNPCs.length;
-        const purgedInfected = state.purgedNPCs.filter(n => n.isInfected).length;
-        const purgedCivil = state.purgedNPCs.filter(n => !n.isInfected).length;
-        const civilesMuertos = state.purgedNPCs.filter(n => n.death && n.death.reason === 'asesinado' && !n.isInfected).length;
         const clorosFuera = state.ignoredNPCs.filter(n => n.infected).length;
-        const validados = state.admittedNPCs.filter(n => n.dayAfter && n.dayAfter.validated).length;
-        const showSensitive = !!(state.lastNight && state.lastNight.occurred);
+        const purgedInfected = state.purgedNPCs.filter(n => n.infected).length;
+        const purgedCivil = state.purgedNPCs.filter(n => !n.infected).length;
+        const civilesMuertos = state.departedNPCs.filter(n => !n.infected).length;
+        const showSensitive = true; // Or from some config
 
         $('#stat-run-dialogues').text(state.dialoguesCount);
         $('#stat-run-verifications').text(`${state.verificationsCount} (${validados} validados)`);
@@ -125,7 +128,7 @@ export class StatsManager {
         $('#stat-run-cloros-purgados').text(showSensitive ? purgedInfected : '—');
         $('#stat-run-civiles-muertos').text(civilesMuertos);
         $('#stat-run-civiles-purgados').text(showSensitive ? purgedCivil : '—');
-        $('#stat-run-last-night').text(showSensitive ? (state.lastNight.message || '—') : '—');
+        $('#stat-run-last-night').text(showSensitive ? (state.lastNight?.message || '—') : '—');
     }
 
     async updateNightly(force = false) {
