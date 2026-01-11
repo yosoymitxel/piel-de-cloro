@@ -129,9 +129,11 @@ export class AudioManager {
     }
     setChannelLevel(name, v) {
         if (!this.levels[name]) this.levels[name] = 0.3;
-        this.levels[name] = Math.max(0, Math.min(1, v));
+        const level = Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : this.levels[name];
+        this.levels[name] = level;
         if (this.channels[name]) {
-            this.channels[name].volume = this.levels[name] * this.master;
+            const vol = level * this.master;
+            this.channels[name].volume = Number.isFinite(vol) ? vol : 0;
         }
     }
     unlock() {
@@ -146,10 +148,18 @@ export class AudioManager {
         }
     }
     setMasterVolume(v) {
-        this.master = Math.max(0, Math.min(1, v));
-        this.channels.ambient.volume = this.levels.ambient * this.master;
-        this.channels.lore.volume = this.levels.lore * this.master;
-        this.channels.sfx.volume = this.levels.sfx * this.master;
+        this.master = Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 1.0;
+        
+        const updateVol = (name) => {
+            if (this.channels[name]) {
+                const vol = this.levels[name] * this.master;
+                this.channels[name].volume = Number.isFinite(vol) ? vol : 0;
+            }
+        };
+
+        updateVol('ambient');
+        updateVol('lore');
+        updateVol('sfx');
     }
     playAmbient(src, { loop = true, volume = 0.3, fadeIn = 0 } = {}) {
         if (this.desiredPlay.lore) this.stopLore(Math.max(200, fadeIn));
@@ -157,15 +167,18 @@ export class AudioManager {
         const ch = this.channels.ambient;
         ch.loop = loop;
         if (ch.src !== src) ch.src = src;
+
+        const vol = Number.isFinite(volume) ? Math.max(0, Math.min(1, volume)) : 0.3;
+        this.levels.ambient = vol;
+
         if (fadeIn > 0) {
             ch.volume = 0;
             ch.play().then(() => this.log('[ambient] play ok')).catch(e => this.log('[ambient] play failed', { error: e?.message }));
-            this.fade(ch, Math.max(0, Math.min(1, volume)) * this.master, fadeIn, 'ambient');
-            this.levels.ambient = Math.max(0, Math.min(1, volume));
+            this.fade(ch, vol * this.master, fadeIn, 'ambient');
         } else {
-            ch.volume = Math.max(0, Math.min(1, volume)) * this.master;
+            const finalVol = vol * this.master;
+            ch.volume = Number.isFinite(finalVol) ? finalVol : 0;
             ch.play().then(() => this.log('[ambient] play ok')).catch(e => this.log('[ambient] play failed', { error: e?.message }));
-            this.levels.ambient = Math.max(0, Math.min(1, volume));
         }
     }
     playAmbientByKey(key, opts = {}) {
@@ -186,8 +199,10 @@ export class AudioManager {
         if (ch.src !== src) ch.src = src;
         ch.volume = 0;
         ch.play().then(() => this.log('[lore] play ok')).catch(e => this.log('[lore] play failed', { error: e?.message }));
-        this.fade(ch, Math.max(0, Math.min(1, volume)) * this.master, crossfade, 'lore');
-        this.levels.lore = Math.max(0, Math.min(1, volume));
+        
+        const vol = Number.isFinite(volume) ? Math.max(0, Math.min(1, volume)) : 0.25;
+        this.levels.lore = vol;
+        this.fade(ch, vol * this.master, crossfade, 'lore');
     }
     playLoreByKey(key, opts = {}) {
         return this.playLore(this.getUrl(key), opts);
@@ -211,11 +226,15 @@ export class AudioManager {
         this.desiredPlay.sfx = true;
         ch.src = src;
         ch.playbackRate = rate;
-        ch.volume = Math.max(0, Math.min(1, volume)) * this.master;
+
+        const vol = Number.isFinite(volume) ? Math.max(0, Math.min(1, volume)) : 0.6;
+        this.levels.sfx = vol;
+        const finalVol = vol * this.master;
+        ch.volume = Number.isFinite(finalVol) ? finalVol : 0;
+        
         ch.currentTime = 0;
         ch.play().then(() => this.log('[sfx] play ok')).catch(e => this.log('[sfx] play failed', { error: e?.message }));
         setTimeout(() => { this.desiredPlay.sfx = false; }, 300);
-        this.levels.sfx = Math.max(0, Math.min(1, volume));
     }
     playSFXByKey(key, opts = {}) {
         return this.playSFX(this.getUrl(key), opts);
@@ -234,8 +253,8 @@ export class AudioManager {
     }
     fade(audio, target, ms, key, onDone) {
         if (!audio) return;
-        target = Math.max(0, Math.min(1, target));
-        const start = audio.volume || 0;
+        target = Number.isFinite(target) ? Math.max(0, Math.min(1, target)) : 0;
+        const start = Number.isFinite(audio.volume) ? audio.volume : 0;
         const delta = target - start;
         const token = { cancel: false, id: null };
         if (this.fadeTimers[key] && this.fadeTimers[key].id != null) {
@@ -245,8 +264,11 @@ export class AudioManager {
         const startTime = (typeof performance !== 'undefined' ? performance.now() : Date.now());
         const step = (now) => {
             if (token.cancel) return;
-            const t = Math.max(0, Math.min(1, (now - startTime) / Math.max(1, ms)));
-            audio.volume = start + delta * t;
+            const duration = Math.max(1, ms);
+            const t = Math.max(0, Math.min(1, (now - startTime) / duration));
+            const currentVol = start + delta * t;
+            audio.volume = Number.isFinite(currentVol) ? currentVol : target;
+            
             if (t >= 1) {
                 audio.volume = target;
                 this.fadeTimers[key] = null;
