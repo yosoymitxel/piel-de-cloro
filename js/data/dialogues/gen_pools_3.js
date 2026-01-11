@@ -92,8 +92,7 @@ export const gen_silent = {
             text: "*Escribe rápido en el papel: \"LOS QUE ESCUCHAN EN LAS TUBERÍAS\".*",
             options: [
                 { id: 'gsi_o3a', label: 'Estás loco. Vete.', next: null, resultText: "*Recoge la nota y huye despavorido.*", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gsi_o3b', label: 'Entiendo. Déjame revisarte en silencio.', next: null, resultText: "*Asiente lentamente y te ofrece el brazo en silencio.*", onclick: act.test, log: { text: 'Lore: "Los que escuchan". Entidades en las tuberías que reaccionan al sonido de la voz humana.', icon: 'fa-note-sticky' } },
-                { id: 'gsi_o3e', label: '...', next: 'gsi_n4b' }
+                { id: 'gsi_o3b', label: 'Entiendo. Déjame revisarte en silencio.', next: null, resultText: "*Asiente lentamente y te ofrece el brazo en silencio.*", onclick: act.test, log: { text: 'Lore: "Los que escuchan". Entidades en las tuberías que reaccionan al sonido de la voz humana.', icon: 'fa-note-sticky' } }
             ]
         },
         'gsi_n3b': {
@@ -101,8 +100,7 @@ export const gen_silent = {
             text: "*Te muestra el cuello. Las venas están hinchadas, como si quisiera gritar pero se contuviera.*",
             options: [
                 { id: 'gsi_o3c', label: 'Demasiado inestable. Fuera.', next: null, resultText: "*Huye sin hacer ruido, con los ojos llenos de pánico.*", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gsi_o3d', label: 'Voy a medir tu pulso.', next: null, resultText: "*Extiende la muñeca temblando, sin emitir sonido.*", onclick: act.test },
-                { id: 'gsi_o3f', label: 'Calma', next: 'gsi_n4b' }
+                { id: 'gsi_o3d', label: 'Voy a medir tu pulso.', next: null, resultText: "*Extiende la muñeca temblando, sin emitir sonido.*", onclick: act.test }
             ]
         },
         'gsi_n4b': {
@@ -147,8 +145,7 @@ export const gen_bribe = {
             text: "\"Es información vital. Vale por una cama caliente, ¿no?\"",
             options: [
                 { id: 'gbr_o3a', label: 'Información insuficiente. Vete.', next: null, resultText: "*Golpea el cristal.* \"¡Te arrepentirás! ¡Esa información valía oro!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gbr_o3b', label: 'Veremos. Primero el chequeo.', next: null, resultText: "*Se cruza de brazos.* \"Bien. Revisa. Pero recuerda lo del moho.\"", onclick: act.testPulse, log: { text: 'Lore: El moho negro es una red neuronal. Se extiende por ventilación. El fuego es lo único que lo detiene.', icon: 'fa-fire' } },
-                { id: 'gbr_o3e', label: 'Veremos', next: 'gbr_n4b' }
+                { id: 'gbr_o3b', label: 'Veremos. Primero el chequeo.', next: null, resultText: "*Se cruza de brazos.* \"Bien. Revisa. Pero recuerda lo del moho.\"", onclick: act.testPulse, log: { text: 'Lore: El moho negro es una red neuronal. Se extiende por ventilación. El fuego es lo único que lo detiene.', icon: 'fa-fire' } }
             ]
         },
         'gbr_n3b': {
@@ -156,8 +153,7 @@ export const gen_bribe = {
             text: "\"¡Te estoy haciendo un favor! ¡Maldito burócrata!\"",
             options: [
                 { id: 'gbr_o3c', label: 'No tolero insultos. Largo.', next: null, resultText: "*Se aleja maldiciendo.* \"¡Ojalá se te pudra el filtro de aire!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gbr_o3d', label: 'Cállate y coopera.', next: null, resultText: "*Bufa.* \"Venga, acaba ya. Tengo cosas que hacer.\"", onclick: act.testPulse },
-                { id: 'gbr_o3f', label: 'Silencio', next: 'gbr_n4b' }
+                { id: 'gbr_o3d', label: 'Cállate y coopera.', next: null, resultText: "*Bufa.* \"Venga, acaba ya. Tengo cosas que hacer.\"", onclick: act.testPulse }
             ]
         },
         'gbr_n4b': {

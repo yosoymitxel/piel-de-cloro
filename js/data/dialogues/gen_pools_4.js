@@ -34,8 +34,7 @@ export const gen_jester = {
             text: "*Se tapa la boca, pero los hombros le tiemblan.* \"Mmm-hmm. Serio. Soy serio. Como un cadáver.\"",
             options: [
                 { id: 'gj_o3a', label: 'Demasiado ruido. Fuera.', next: null, resultText: "*Se aleja riendo a carcajadas.* \"¡El chiste eres tú! ¡Tú eres el chiste!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gj_o3b', label: 'Veamos si esa risa es síntoma.', next: null, resultText: "*Se muerde el labio.* \"Ji... ji... vale, me pongo serio. Serio como una tumba.\"", onclick: act.test, log: { text: 'Síntoma: Risa incontrolable. Posible daño cerebral por hipoxia o toxinas.', icon: 'fa-face-grin-squint' } },
-                { id: 'gj_o3e', label: 'Serio', next: 'gj_n4b' }
+                { id: 'gj_o3b', label: 'Veamos si esa risa es síntoma.', next: null, resultText: "*Se muerde el labio.* \"Ji... ji... vale, me pongo serio. Serio como una tumba.\"", onclick: act.test, log: { text: 'Síntoma: Risa incontrolable. Posible daño cerebral por hipoxia o toxinas.', icon: 'fa-face-grin-squint' } }
             ]
         },
         'gj_n3b': {
@@ -43,8 +42,7 @@ export const gen_jester = {
             text: "\"Lo siento... el gas de la risa, ¿sabes? O quizás solo perdí el juicio en el Sector 4.\"",
             options: [
                 { id: 'gj_o3c', label: 'Estás loco. Largo.', next: null, resultText: "*Hace una reverencia burlona.* \"¡Hasta la próxima función!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gj_o3d', label: 'Quédate quieto. Voy a escanear.', next: null, resultText: "*Pone cara de estatua.* \"¿Así? ¿Estoy bastante quieto para su majestad?\"", onclick: act.test },
-                { id: 'gj_o3f', label: 'Quieto', next: 'gj_n4b' }
+                { id: 'gj_o3d', label: 'Quédate quieto. Voy a escanear.', next: null, resultText: "*Pone cara de estatua.* \"¿Así? ¿Estoy bastante quieto para su majestad?\"", onclick: act.test }
             ]
         },
         'gj_n4b': {
@@ -89,8 +87,7 @@ export const gen_soldier = {
             text: "*Tose discretamente en su puño.* \"Negativo. La máscara aguantó... casi todo el tiempo.\"",
             options: [
                 { id: 'gso_o3a', label: 'Mentira. Estás contaminado.', next: null, resultText: "*Aprieta los dientes.* \"Error táctico. Se arrepentirá de perder a un combatiente.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gso_o3b', label: 'Verificar pulmones (Pulso)', next: null, resultText: "*Levanta la barbilla.* \"Proceda. Mis pulmones son de acero.\"", onclick: act.testPulse, log: { text: 'Lore: Hostiles gaseosos. La infección se mueve con el viento y vuelve a los aliados en contra.', icon: 'fa-mask' } },
-                { id: 'gso_o3e', label: 'Proceda', next: 'gso_n4b' }
+                { id: 'gso_o3b', label: 'Verificar pulmones (Pulso)', next: null, resultText: "*Levanta la barbilla.* \"Proceda. Mis pulmones son de acero.\"", onclick: act.testPulse, log: { text: 'Lore: Hostiles gaseosos. La infección se mueve con el viento y vuelve a los aliados en contra.', icon: 'fa-mask' } }
             ]
         },
         'gso_n3b': {
@@ -98,8 +95,7 @@ export const gen_soldier = {
             text: "\"Solo rasguños. Daños colaterales. Soy apto para el servicio.\"",
             options: [
                 { id: 'gso_o3c', label: 'Demasiado riesgo. Retírese.', next: null, resultText: "*Se da media vuelta.* \"Retirada estratégica. Buscaré otro puesto.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gso_o3d', label: 'Inspección de heridas. Ahora.', next: null, resultText: "*Se descubre las heridas.* \"Solo son rasguños de guerra. Nada que no cure.\"", onclick: act.testUV },
-                { id: 'gso_o3f', label: 'Inspección', next: 'gso_n4b' }
+                { id: 'gso_o3d', label: 'Inspección de heridas. Ahora.', next: null, resultText: "*Se descubre las heridas.* \"Solo son rasguños de guerra. Nada que no cure.\"", onclick: act.testUV }
             ]
         },
         'gso_n4b': {

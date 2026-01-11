@@ -33,8 +33,7 @@ export const gen_fever = {
             text: "*Se seca el sudor, que parece ligeramente viscoso.* \"No es nada contagioso, lo prometo. Solo agotamiento.\"",
             options: [
                 { id: 'gfv_o3a', label: 'Ese sudor no es normal. Vete.', next: null, resultText: "*Se marcha tambaleándose.* \"Solo es calor... mucho calor...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gfv_o3b', label: 'Déjame medir tu temperatura.', next: null, resultText: "*Se apoya en la pared.* \"Vale, pero rápido. Me mareo.\"", onclick: act.test },
-                { id: 'gfv_o3e', label: 'Espera', next: 'gfv_n4b' }
+                { id: 'gfv_o3b', label: 'Déjame medir tu temperatura.', next: null, resultText: "*Se apoya en la pared.* \"Vale, pero rápido. Me mareo.\"", onclick: act.test }
             ]
         },
         'gfv_n3b': {
@@ -42,8 +41,7 @@ export const gen_fever = {
             text: "\"Mira, si fuera 'eso', ya estaría muerto, ¿no? Llevo así dos días y sigo en pie.\"",
             options: [
                 { id: 'gfv_o3c', label: 'Buen punto, pero no me fío.', next: null, resultText: "*Escupe al suelo.* \"Paranoicos...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gfv_o3d', label: 'A ver esos ojos. Acércate.', next: null, resultText: "*Se acerca, sus pupilas oscilan.* \"¿Ves? Normales.\"", onclick: act.test },
-                { id: 'gfv_o3f', label: 'Acércate', next: 'gfv_n4b' }
+                { id: 'gfv_o3d', label: 'A ver esos ojos. Acércate.', next: null, resultText: "*Se acerca, sus pupilas oscilan.* \"¿Ves? Normales.\"", onclick: act.test }
             ]
         },
         'gfv_n4b': {
@@ -87,8 +85,7 @@ export const gen_euphoria = {
             text: "*Inspira profundamente.* \"Quizás es que tú no estás acostumbrado a la pureza. Deberías probarlo.\"",
             options: [
                 { id: 'geu_o3a', label: 'Estás delirando. Fuera.', next: null, resultText: "*Se va saltando.* \"¡Aire puro! ¡Vida pura!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'geu_o3b', label: 'Quieto. Voy a escanearte.', next: null, resultText: "*Abre los brazos.* \"Escanea. Verás la perfection.\"", onclick: act.test, log: { text: 'Síntoma: Euforia química. El parásito libera dopamina para asegurar la cooperación del huésped.', icon: 'fa-face-grin-stars' } },
-                { id: 'geu_o3e', label: 'Quieto', next: 'geu_n4b' }
+                { id: 'geu_o3b', label: 'Quieto. Voy a escanearte.', next: null, resultText: "*Abre los brazos.* \"Escanea. Verás la perfection.\"", onclick: act.test, log: { text: 'Síntoma: Euforia química. El parásito libera dopamina para asegurar la cooperación del huésped.', icon: 'fa-face-grin-stars' } }
             ]
         },
         'geu_n3b': {
@@ -140,8 +137,7 @@ export const gen_thirst = {
             text: "*Se toca la garganta.* \"Aún pica. Como si tuviera polvo en el esófago. ¿Me dejas entrar al baño?\"",
             options: [
                 { id: 'gth_o3a', label: 'No. Vete a buscar agua fuera.', next: null, resultText: "*Se arrastra.* \"Agua... necesito agua...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gth_o3b', label: 'Espera. Voy a ver si estás deshidratado.', next: null, resultText: "*Asiente débilmente.* \"Rápido... me estoy secando.\"", onclick: act.test },
-                { id: 'gth_o3e', label: 'Espera', next: 'gth_n4b' }
+                { id: 'gth_o3b', label: 'Espera. Voy a ver si estás deshidratado.', next: null, resultText: "*Asiente débilmente.* \"Rápido... me estoy secando.\"", onclick: act.test }
             ]
         },
         'gth_n3b': {
@@ -149,8 +145,7 @@ export const gen_thirst = {
             text: "\"Si entro, podré beber del grifo, ¿verdad? Dicen que aquí el agua es pura.\"",
             options: [
                 { id: 'gth_o3c', label: 'Solo para residentes sanos.', next: null, resultText: "*Llora sin lágrimas.* \"Por favor... solo un trago...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gth_o3d', label: 'Comprobemos si estás sano.', next: null, resultText: "*Se lame los labios.* \"Lo que digas. Pero dame agua luego.\"", onclick: act.test, log: { text: 'Dato: La sed extrema puede ser deshidratación o el parásito consumiendo los fluidos corporales.', icon: 'fa-glass-water' } },
-                { id: 'gth_o3f', label: 'Comprobemos', next: 'gth_n4b' }
+                { id: 'gth_o3d', label: 'Comprobemos si estás sano.', next: null, resultText: "*Se lame los labios.* \"Lo que digas. Pero dame agua luego.\"", onclick: act.test, log: { text: 'Dato: La sed extrema puede ser deshidratación o el parásito consumiendo los fluidos corporales.', icon: 'fa-glass-water' } }
             ]
         },
         'gth_n4b': {

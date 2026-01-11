@@ -33,8 +33,7 @@ export const gen_hungry = {
             text: "*Retrocede, pero sigue mirando tu cuello.* \"Tranquilo... puedo controlarme. Si me das raciones dobles.\"",
             options: [
                 { id: 'ghn_o3a', label: 'Ni hablar. Largo.', next: null, resultText: "*Se va relamiéndose.* \"Encontraré algo... o a alguien...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'ghn_o3b', label: 'Verificar pulso (Agitación)', next: null, resultText: "*Sonríe mostrando dientes afilados.* \"Cerrada... por ahora.\"", onclick: act.testPulse },
-                { id: 'ghn_o3e', label: 'Atrás', next: 'ghn_n4b' }
+                { id: 'ghn_o3b', label: 'Verificar pulso (Agitación)', next: null, resultText: "*Sonríe mostrando dientes afilados.* \"Cerrada... por ahora.\"", onclick: act.testPulse }
             ]
         },
         'ghn_n3b': {
@@ -42,8 +41,7 @@ export const gen_hungry = {
             text: "\"Es la naturaleza. El fuerte come al débil. ¿Me dejarás entrar o serás comida?\"",
             options: [
                 { id: 'ghn_o3c', label: 'Eres una amenaza. Vete.', next: null, resultText: "*Gruñe.* \"La carne se desperdicia...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'ghn_o3d', label: 'Analizar metabolismo (Termómetro)', next: null, resultText: "*Abre la boca.* \"Mira dentro si te atreves.\"", onclick: act.testThermo, log: { text: 'Síntoma: Polifagia agresiva. Posible alteración metabólica por el parásito.', icon: 'fa-utensils' } },
-                { id: 'ghn_o3f', label: 'Quieto', next: 'ghn_n4b' }
+                { id: 'ghn_o3d', label: 'Analizar metabolismo (Termómetro)', next: null, resultText: "*Abre la boca.* \"Mira dentro si te atreves.\"", onclick: act.testThermo, log: { text: 'Síntoma: Polifagia agresiva. Posible alteración metabólica por el parásito.', icon: 'fa-utensils' } }
             ]
         },
         'ghn_n4b': {
@@ -87,8 +85,7 @@ export const gen_clean = {
             text: "*Mira sus manos rojas de tanto frotar.* \"El agua no basta. Necesito raspar. Quitar la capa de arriba.\"",
             options: [
                 { id: 'gcl_o3a', label: 'Estás obsesionado. Vete.', next: null, resultText: "*Sigue frotando mientras se aleja.* \"Sucio... todo sucio...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gcl_o3b', label: 'Deja de frotar y déjame ver.', next: null, resultText: "*Extiende las manos en carne viva.* \"¿Ves la grasa? ¿La ves?\"", onclick: act.test },
-                { id: 'gcl_o3e', label: 'Para', next: 'gcl_n4b' }
+                { id: 'gcl_o3b', label: 'Deja de frotar y déjame ver.', next: null, resultText: "*Extiende las manos en carne viva.* \"¿Ves la grasa? ¿La ves?\"", onclick: act.test }
             ]
         },
         'gcl_n3b': {
@@ -96,8 +93,7 @@ export const gen_clean = {
             text: "\"No es teoría. Es higiene. Si me dejas entrar, limpiaré. Limpiaré todo.\"",
             options: [
                 { id: 'gcl_o3c', label: 'No necesitamos limpieza obsesiva.', next: null, resultText: "*Escupe al suelo.* \"Os pudriréis en vuestra mugre.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gcl_o3d', label: 'Veremos si estás limpio por dentro.', next: null, resultText: "*Asiente frenéticamente.* \"Por dentro estoy impoluto. Lo juro.\"", onclick: act.test, log: { text: 'Conducta: Ablutomanía extrema. Se han arrancado capas de piel intentando "limpiarse".', icon: 'fa-soap' } },
-                { id: 'gcl_o3f', label: 'Veremos', next: 'gcl_n4b' }
+                { id: 'gcl_o3d', label: 'Veremos si estás limpio por dentro.', next: null, resultText: "*Asiente frenéticamente.* \"Por dentro estoy impoluto. Lo juro.\"", onclick: act.test, log: { text: 'Conducta: Ablutomanía extrema. Se han arrancado capas de piel intentando "limpiarse".', icon: 'fa-soap' } }
             ]
         },
         'gcl_n4b': {
@@ -141,8 +137,7 @@ export const gen_forget = {
             text: "*Se toca la cara.* \"Si no sé quién soy, ¿cómo sabes tú si debo entrar?\"",
             options: [
                 { id: 'gfg_o3a', label: 'Buen punto. Vete.', next: null, resultText: "*Se aleja tocándose la cara.* \"¿Quién soy...?\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gfg_o3b', label: 'Tus constantes me dirán quién eres.', next: null, resultText: "*Baja la mano.* \"Espero que la máquina sepa más que yo.\"", onclick: act.test },
-                { id: 'gfg_o3e', label: 'Veamos', next: 'gfg_n4b' }
+                { id: 'gfg_o3b', label: 'Tus constantes me dirán quién eres.', next: null, resultText: "*Baja la mano.* \"Espero que la máquina sepa más que yo.\"", onclick: act.test }
             ]
         },
         'gfg_n3b': {
@@ -150,8 +145,7 @@ export const gen_forget = {
             text: "\"A veces pienso que el verdadero yo murió en el túnel. Y yo soy solo el eco.\"",
             options: [
                 { id: 'gfg_o3c', label: 'No admitimos ecos. Fuera.', next: null, resultText: "*Se desvanece en la oscuridad.* \"Solo un eco...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                { id: 'gfg_o3d', label: 'Déjame comprobar si eres real.', next: null, resultText: "*Se acerca al cristal.* \"Comprueba. Tócame. ¿Soy real?\"", onclick: act.test, log: { text: 'Síntoma: Despersonalización. El sujeto cree haber sido reemplazado o haber muerto.', icon: 'fa-user-slash' } },
-                { id: 'gfg_o3f', label: 'Acércate', next: 'gfg_n4b' }
+                { id: 'gfg_o3d', label: 'Déjame comprobar si eres real.', next: null, resultText: "*Se acerca al cristal.* \"Comprueba. Tócame. ¿Soy real?\"", onclick: act.test, log: { text: 'Síntoma: Despersonalización. El sujeto cree haber sido reemplazado o haber muerto.', icon: 'fa-user-slash' } }
             ]
         },
         'gfg_n4b': {
