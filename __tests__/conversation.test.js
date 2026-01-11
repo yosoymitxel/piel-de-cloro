@@ -72,17 +72,17 @@ describe('Dialogue system', () => {
         let res = conv.getNextDialogue(0);
         expect(conv.currentId).toBe('gs_n2a');
 
-        // Choose option 0 -> gs_n3a
+        // Choose option 1 -> gs_n3a
         res = conv.getNextDialogue(0);
         expect(conv.currentId).toBe('gs_n3a');
 
-        // Choose option 2 -> gs_n4b (index 2 is 'gs_o3e')
-        res = conv.getNextDialogue(2);
-        expect(conv.currentId).toBe('gs_n4b');
+        // Choose option 1 -> null (end of dialogue via testUV)
+        res = conv.getNextDialogue(1);
+        expect(conv.currentId).toBeNull();
 
-        // No further options -> getCurrentNode should exist but options length 0
+        // No further options -> getCurrentNode should be null or similar
         node = conv.getCurrentNode();
-        expect(node.options.length).toBe(0);
+        expect(node).toBeNull();
     });
 
     test('Rumor injection uses dialogue memory and placeholder replaced', () => {

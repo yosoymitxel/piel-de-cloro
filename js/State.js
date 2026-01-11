@@ -326,27 +326,30 @@ export const State = {
 
         const canLeave = this.admittedNPCs.length;
         if (canLeave > 0) {
-            const leaveCount = Math.max(1, Math.min(3, Math.floor(1 + Math.random() * 3)));
+            // Permitir que entre 0 y 3 personas se vayan, pero con mayor probabilidad de que se queden
+            const leaveCount = Math.floor(Math.random() * 4); // 0, 1, 2 o 3
             const actual = Math.min(leaveCount, canLeave);
             const leftNames = [];
             
-            for (let i = 0; i < actual; i++) {
-                const idx = Math.floor(Math.random() * this.admittedNPCs.length);
-                const [npc] = this.admittedNPCs.splice(idx, 1);
-                if (npc) {
-                    npc.left = { cycle: this.cycle };
-                    this.departedNPCs.push(npc);
-                    leftNames.push(npc.name);
+            if (actual > 0) {
+                for (let i = 0; i < actual; i++) {
+                    const idx = Math.floor(Math.random() * this.admittedNPCs.length);
+                    const [npc] = this.admittedNPCs.splice(idx, 1);
+                    if (npc) {
+                        npc.left = { cycle: this.cycle };
+                        this.departedNPCs.push(npc);
+                        leftNames.push(npc.name);
+                    }
                 }
-            }
-            
-            const msg = actual === 1 
-                ? UI_STRINGS.NIGHT_DEPARTURE_SINGLE(leftNames[0]) 
-                : UI_STRINGS.NIGHT_DEPARTURE_MULTIPLE(actual);
                 
-            this.lastNight.message = this.lastNight.message 
-                ? `${this.lastNight.message} ${msg}` 
-                : msg;
+                const msg = actual === 1 
+                    ? UI_STRINGS.NIGHT_DEPARTURE_SINGLE(leftNames[0]) 
+                    : UI_STRINGS.NIGHT_DEPARTURE_MULTIPLE(actual);
+                    
+                this.lastNight.message = this.lastNight.message 
+                    ? `${this.lastNight.message} ${msg}` 
+                    : msg;
+            }
         }
     },
 

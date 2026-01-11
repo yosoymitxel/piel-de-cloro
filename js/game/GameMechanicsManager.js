@@ -213,7 +213,8 @@ export class GameMechanicsManager {
 
         const baseDeathChance = State.config.noInfectedGuardDeathChance || 0.05;
         const paranoiaModifier = State.paranoia / 250;
-        if (Math.random() < (baseDeathChance + paranoiaModifier)) {
+        const roll = Math.random();
+        if (roll < (baseDeathChance + paranoiaModifier)) {
             State.lastNight.message = State.paranoia > 80 
                 ? "Tu mente finalmente cedió. Las sombras del refugio tomaron forma y te arrastraron al vacío."
                 : "Aunque no había cloro dentro, algo te encontró en la oscuridad.";
