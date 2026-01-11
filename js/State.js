@@ -1,42 +1,30 @@
+import { CONFIG, COLORS, UI_STRINGS } from './Constants.js';
+
 export const State = {
     paranoia: 0,
     cycle: 1,
     dayTime: 1, // Current subject count in the day
     config: {
-        maxShelterCapacity: 10,
-        dayLength: 5, // Subjects per day
-        difficulty: 'normal',
-        dayAfterTestsDefault: 3,
-        // Seguridad / intrusiones
-        securityItemsMin: 1,
-        securityItemsMax: 5,
-        securityIntrusionProbability: 0.25,
-        // Entradas aleatorias al iniciar la run
-        initialEntrantProbability: 0.2,
-        initialEntrantMaxFraction: 0.5,
-        // Intrusiones diurnas
-        dayIntrusionIntervalMin: 1,
-        dayIntrusionIntervalMax: 3,
-        dayIntrusionProbability: 0.8,
-        dayIntrusionInfectedChance: 0.65,
-        dayDeactivationProbability: 0.9,
-        // Jugador infectado
-        playerInfectedProbability: 0.15,
-        // Noche sin infectados: prob de muerte del guardia
-        noInfectedGuardDeathChance: 0.05,
-        // Generador
+        maxShelterCapacity: CONFIG.MAX_SHELTER_CAPACITY,
+        dayLength: CONFIG.DAY_LENGTH,
+        difficulty: CONFIG.DIFFICULTY,
+        dayAfterTestsDefault: CONFIG.DAY_AFTER_TESTS_DEFAULT,
+        securityItemsMin: CONFIG.SECURITY_ITEMS_MIN,
+        securityItemsMax: CONFIG.SECURITY_ITEMS_MAX,
+        securityIntrusionProbability: CONFIG.SECURITY_INTRUSION_PROBABILITY,
+        initialEntrantProbability: CONFIG.INITIAL_ENTRANT_PROBABILITY,
+        initialEntrantMaxFraction: CONFIG.INITIAL_ENTRANT_MAX_FRACTION,
+        dayIntrusionIntervalMin: CONFIG.DAY_INTRUSION_INTERVAL_MIN,
+        dayIntrusionIntervalMax: CONFIG.DAY_INTRUSION_INTERVAL_MAX,
+        dayIntrusionProbability: CONFIG.DAY_INTRUSION_PROBABILITY,
+        dayIntrusionInfectedChance: CONFIG.DAY_INTRUSION_INFECTED_CHANCE,
+        dayDeactivationProbability: CONFIG.DAY_DEACTIVATION_PROBABILITY,
+        playerInfectedProbability: CONFIG.PLAYER_INFECTED_PROBABILITY,
+        noInfectedGuardDeathChance: CONFIG.NO_INFECTED_GUARD_DEATH_CHANCE,
         generator: {
-            consumption: {
-                save: 1,    // Ahorro: 1 energía/turno
-                normal: 2,  // Normal: 2 energía/turno
-                overload: 3 // Sobrecarga: 3 energía/turno
-            },
-            failureChance: {
-                save: 0.0,    // Ahorro: No se apaga
-                normal: 0.08, // Normal: Probabilidad estándar
-                overload: 0.2 // Sobrecarga: Alta probabilidad
-            },
-            breakdownChance: 0.1
+            consumption: CONFIG.GENERATOR.CONSUMPTION,
+            failureChance: CONFIG.GENERATOR.FAILURE_CHANCE,
+            breakdownChance: CONFIG.GENERATOR.BREAKDOWN_CHANCE
         }
     },
     admittedNPCs: [],
@@ -74,8 +62,8 @@ export const State = {
         try {
             const data = JSON.parse(localStorage.getItem('ruta01_persistence'));
             if (data) {
-                if (data.unlockedEndings) this.unlockedEndings = data.unlockedEndings;
-                if (data.audioSettings) this.audioSettings = data.audioSettings;
+                this.unlockedEndings = data.unlockedEndings ?? this.unlockedEndings;
+                this.audioSettings = { ...this.audioSettings, ...data.audioSettings };
             }
         } catch (e) {
             console.warn('Error loading persistence:', e);
@@ -90,20 +78,7 @@ export const State = {
     },
 
     // Colores centralizados
-    colors: {
-        chlorine: '#2d5a27',
-        chlorineLight: '#a8d5a2',
-        chlorineSutil: '#3d7a36',
-        chlorineDark: '#1b571b',
-        alert: '#ff3333',
-        safe: '#00FF00',
-        warning: '#ffcc66',
-        energy: '#00FF00',
-        save: '#00ced1',
-        overload: '#ffaa00',
-        off: '#333333',
-        offStatus: '#ff2b2b'
-    },
+    colors: COLORS,
 
     updateParanoia(amount) {
         this.paranoia = Math.max(0, Math.min(100, this.paranoia + amount));
@@ -168,7 +143,17 @@ export const State = {
         this.dialogueStarted = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
-        this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
+        this.generator = { 
+            isOn: true, 
+            mode: 'normal', 
+            power: CONFIG.GENERATOR.MAX_POWER, 
+            blackoutUntil: 0, 
+            overclockCooldown: false, 
+            emergencyEnergyGranted: false, 
+            maxModeCapacityReached: 2, 
+            restartLock: false,
+            overloadRiskTurns: 0
+        };
         this.playerInfected = Math.random() < this.config.playerInfectedProbability;
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight = { occurred: false, victims: 0, message: '' };
@@ -179,7 +164,7 @@ export const State = {
         this.dialogueFlags = {};
         this.dialogueMemory = [];
         this.gameLog = [];
-        this.addLogEntry('system', 'Sistema RUTA-01 inicializado. Ciclo 1.');
+        this.addLogEntry('system', UI_STRINGS.SYSTEM_INIT);
     },
 
     addLogEntry(type, text, meta = {}) {
@@ -197,7 +182,7 @@ export const State = {
     },
 
     addAdmitted(npc) {
-        if (!npc.enterCycle) npc.enterCycle = this.cycle;
+        npc.enterCycle ??= this.cycle;
         this.admittedNPCs.push(npc);
     },
 
@@ -223,25 +208,22 @@ export const State = {
         this.dayTime++;
         this.generatorCheckedThisTurn = false;
         this.dialogueStarted = false;
-        if (this.generator.overclockCooldown) {
-            this.generator.overclockCooldown = false;
-        }
+        this.generator.overclockCooldown = false;
     },
 
     randomIntrusionInterval() {
-        const min = this.config.dayIntrusionIntervalMin;
-        const max = this.config.dayIntrusionIntervalMax;
+        const { dayIntrusionIntervalMin: min, dayIntrusionIntervalMax: max } = this.config;
         return Math.floor(min + Math.random() * (max - min + 1));
     },
+    
     rescheduleIntrusion() {
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
     },
 
     generateSecurityItems() {
         const types = ['alarma', 'puerta', 'ventana', 'tuberias'];
-        const min = this.config.securityItemsMin;
-        const max = this.config.securityItemsMax;
-        const count = Math.max(min, Math.min(max, Math.floor(min + Math.random() * (max - min + 1))));
+        const { securityItemsMin: min, securityItemsMax: max } = this.config;
+        const count = Math.clamp?.(min, max, Math.floor(min + Math.random() * (max - min + 1))) ?? Math.max(min, Math.min(max, Math.floor(min + Math.random() * (max - min + 1))));
         const items = [];
         let alarmCount = 0;
 
@@ -249,14 +231,11 @@ export const State = {
             let t = types[Math.floor(Math.random() * types.length)];
             
             // Garantizar solo 1 alarma
-            if (t === 'alarma') {
-                if (alarmCount >= 1) {
-                    // Si ya hay una alarma, elegir otro tipo aleatorio que no sea alarma
-                    const otherTypes = types.filter(type => type !== 'alarma');
-                    t = otherTypes[Math.floor(Math.random() * otherTypes.length)];
-                } else {
-                    alarmCount++;
-                }
+            if (t === 'alarma' && alarmCount >= 1) {
+                const otherTypes = types.filter(type => type !== 'alarma');
+                t = otherTypes[Math.floor(Math.random() * otherTypes.length)];
+            } else if (t === 'alarma') {
+                alarmCount++;
             }
 
             const isInitActive = Math.random() > 0.5;
@@ -270,12 +249,11 @@ export const State = {
     markDialogueUsed(id) {
         if (!this.dialoguePoolsUsed.includes(id)) this.dialoguePoolsUsed.push(id);
         // record last used logical time (dialoguesCount)
-        this.dialoguePoolsLastUsed[id] = this.dialoguesCount || 0;
+        this.dialoguePoolsLastUsed[id] = this.dialoguesCount ?? 0;
     },
 
     /**
      * Returns true if the pool was used within the last `window` dialogues
-     * (uses `dialoguesCount` as logical time to avoid relying on wall-clock time in tests)
      */
     wasDialogueUsedRecently(id, window = 5) {
         const last = this.dialoguePoolsLastUsed[id];
@@ -296,28 +274,31 @@ export const State = {
     },
 
     recordDialogueMemory(entry) {
-        if (!this.dialogueMemory) this.dialogueMemory = [];
+        this.dialogueMemory ??= [];
         this.dialogueMemory.push(entry);
         // Keep last 200
-        if (this.dialogueMemory.length > 200) this.dialogueMemory.splice(0, this.dialogueMemory.length - 200);
+        if (this.dialogueMemory.length > 200) {
+            this.dialogueMemory.splice(0, this.dialogueMemory.length - 200);
+        }
     },
 
     recallDialogueHistory() {
-        return this.dialogueMemory || [];
+        return this.dialogueMemory ?? [];
     },
 
     getRandomRumor() {
-        const mem = this.dialogueMemory || [];
+        const mem = this.dialogueMemory ?? [];
         if (!mem.length) return '';
-        // Build a human-friendly rumor using fragments; prefer entries with npc names
+        
         const entry = mem[Math.floor(Math.random() * mem.length)];
         const verbOptions = ['falleció', 'desapareció', 'mintió', 'fue visto', 'murió', 'cayó'];
         const verb = verbOptions[Math.floor(Math.random() * verbOptions.length)];
-        // pick a previous name if available (purged or departed)
-        const namedPool = (this.purgedNPCs.concat(this.departedNPCs)).filter(n => n && n.name);
-        const prev = namedPool.length ? namedPool[Math.floor(Math.random() * namedPool.length)].name : (entry.npc || 'alguien');
-        const whoMentioned = entry.npc || 'alguien';
-        return `${whoMentioned} comentaba que ${prev} ${verb} en la oscuridad.`;
+        
+        const namedPool = [...this.purgedNPCs, ...this.departedNPCs].filter(n => n?.name);
+        const prev = namedPool.length ? namedPool[Math.floor(Math.random() * namedPool.length)].name : (entry.npc ?? 'alguien');
+        const whoMentioned = entry.npc ?? 'alguien';
+        
+        return UI_STRINGS.RUMOR_TEMPLATE(whoMentioned, prev, verb);
     },
 
     startNextDay() {
@@ -330,34 +311,42 @@ export const State = {
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
         
-        // Mantener el estado del generador (encendido/apagado) pero resetear flags temporales
+        // Mantener el estado del generador
         this.generator.blackoutUntil = 0;
         this.generator.emergencyEnergyGranted = false;
         this.generator.restartLock = false;
         
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight.occurred = true;
-        this.addLogEntry('system', `Inicio del Ciclo ${this.cycle}.`);
+        this.addLogEntry('system', UI_STRINGS.NEW_CYCLE(this.cycle));
         
         this.purgedNPCs.forEach(n => {
             if (n.death) n.death.revealed = true;
         });
+
         const canLeave = this.admittedNPCs.length;
         if (canLeave > 0) {
             const leaveCount = Math.max(1, Math.min(3, Math.floor(1 + Math.random() * 3)));
             const actual = Math.min(leaveCount, canLeave);
             const leftNames = [];
+            
             for (let i = 0; i < actual; i++) {
                 const idx = Math.floor(Math.random() * this.admittedNPCs.length);
-                const npc = this.admittedNPCs.splice(idx, 1)[0];
+                const [npc] = this.admittedNPCs.splice(idx, 1);
                 if (npc) {
                     npc.left = { cycle: this.cycle };
                     this.departedNPCs.push(npc);
                     leftNames.push(npc.name);
                 }
             }
-            const msg = actual === 1 ? `Durante la noche, ${leftNames[0]} abandonó la comuna.` : `Durante la noche, ${actual} integrantes abandonaron la comuna.`;
-            this.lastNight.message = this.lastNight.message ? `${this.lastNight.message} ${msg}` : msg;
+            
+            const msg = actual === 1 
+                ? UI_STRINGS.NIGHT_DEPARTURE_SINGLE(leftNames[0]) 
+                : UI_STRINGS.NIGHT_DEPARTURE_MULTIPLE(actual);
+                
+            this.lastNight.message = this.lastNight.message 
+                ? `${this.lastNight.message} ${msg}` 
+                : msg;
         }
     },
 
@@ -366,7 +355,9 @@ export const State = {
         if (!this.generator.isOn) m *= 1.35;
         if (this.generator.mode === 'save') m *= 0.9;
         if (this.generator.mode === 'overload') m *= 1.2;
-        if (this.generator.blackoutUntil && ((typeof performance !== 'undefined' ? performance.now() : Date.now()) < this.generator.blackoutUntil)) {
+        
+        const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        if (this.generator.blackoutUntil && now < this.generator.blackoutUntil) {
             m *= 1.5;
         }
         return m;

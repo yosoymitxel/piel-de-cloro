@@ -143,7 +143,7 @@ export class ModalManager {
             if (npc.death && npc.death.revealed) {
                 if (npc.death.reason === 'purga') {
                     statusText = npc.isInfected ? 'PURGADO — CLORO' : 'PURGADO — CIVIL';
-                    color = npc.isInfected ? this.colors.chlorine : "#cccccc";
+                    color = npc.isInfected ? this.colors.CHLORINE : "#cccccc";
                 } else if (npc.death.reason === 'asesinado') {
                     statusText = npc.isInfected ? 'ASESINADO — CLORO' : 'ASESINADO — CIVIL';
                     color = npc.isInfected ? this.colors.chlorine : "#cccccc";

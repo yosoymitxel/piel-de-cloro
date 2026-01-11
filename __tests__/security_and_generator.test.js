@@ -18,6 +18,9 @@ beforeAll(async () => {
                 css(k, v) { if (typeof k === 'string') { this._css[k] = v; } else Object.assign(this._css, k); return this; },
                 prop() { return this; },
                 html() { return this; },
+                empty() { return this; },
+                append() { return this; },
+                text() { return this; },
                 find() { return { css: () => this }; },
                 length: 1
             };
@@ -61,15 +64,21 @@ beforeEach(() => {
     global.__fakeDOM = {};
 });
 
-test('renderSecurityRoom marks nav-room warning while unsecured items exist and clears when secured', () => {
+test('renderSecurityRoom marks nav-room warning while unsecured items exist and clears when secured', async () => {
+    const { SectorRenderer } = await import('../js/ui/SectorRenderer.js');
     const ui = Object.create(UIManager.prototype);
     ui.setNavItemStatus = jest.fn();
+    ui.elements = {
+        securityGrid: $('#security-grid'),
+        securityCount: $('#security-count'),
+        roomPowerWarning: $('#room-power-warning')
+    };
+    ui.sectorRenderer = new SectorRenderer(ui);
 
     // Two items, one secured and one unsecured
     const items = [{ type: 'puerta', secured: true }, { type: 'ventana', secured: false }];
 
     // Call renderSecurityRoom
-    ui.elements = { securityGrid: { empty() { }, append() { } }, securityCount: { text() { } } };
     UIManager.prototype.renderSecurityRoom.call(ui, items, (idx, item) => {
         // Simulate toggling securing
         items[idx].secured = true;
@@ -87,7 +96,11 @@ test('renderSecurityRoom marks nav-room warning while unsecured items exist and 
 
 test('Generator updateToggleButton applies btn-off/btn-on and sets button color and icon color', () => {
     const ui = Object.create(UIManager.prototype);
-    ui.colors = { safe: '#1aff1a', off: '#333333' };
+    ui.colors = { safe: '#1aff1a', off: '#333333', chlorineDark: '#004400' };
+    ui.elements = {
+        generatorPowerBar: $('#generator-power-bar'),
+        generatorModeLabel: $('#generator-mode-label')
+    };
 
     // Ensure btn exists in fake DOM
     const btn = $('#btn-gen-toggle');

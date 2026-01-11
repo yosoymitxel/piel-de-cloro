@@ -1,17 +1,18 @@
+import { GeneratorRenderer } from './ui/GeneratorRenderer.js';
+
 export class GeneratorManager {
     constructor(uiManager, audioManager) {
         this.ui = uiManager;
         this.audio = audioManager;
         this.elements = uiManager.elements;
+        this.renderer = new GeneratorRenderer(uiManager.elements, uiManager.colors);
     }
 
     renderGeneratorRoom(state) {
         state.generatorCheckedThisTurn = true;
 
         // Update warnings immediately
-        if (this.elements.genWarningGame) this.elements.genWarningGame.addClass('hidden');
-        if (this.elements.genWarningShelter) this.elements.genWarningShelter.addClass('hidden');
-        if (this.elements.genWarningPanel) this.elements.genWarningPanel.addClass('hidden');
+        this.renderer.hideWarnings();
 
         // Update nav status based on state (Persistent Status)
         if (this.ui && this.ui.setNavItemStatus) {
@@ -29,29 +30,32 @@ export class GeneratorManager {
         this.ui.updateInspectionTools();
         this.ui.updateStats(state.paranoia, state.cycle, state.dayTime, state.config.dayLength, state.currentNPC);
 
-        const bar = this.elements.generatorPowerBar;
-        const modeLabel = this.elements.generatorModeLabel;
         const power = Math.max(0, Math.min(100, state.generator.power));
-
-        let color = state.generator.isOn ? this.ui.colors.energy : this.ui.colors.off;
+        let color = state.generator.isOn ? this.ui.colors.ENERGY : this.ui.colors.OFF;
 
         if (state.generator.isOn) {
             switch (state.generator.mode) {
-                case 'save': color = this.ui.colors.save; break;
-                case 'normal': color = this.ui.colors.energy; break;
-                case 'overload': color = this.ui.colors.overload; break;
+                case 'save': color = this.ui.colors.SAVE; break;
+                case 'normal': color = this.ui.colors.ENERGY; break;
+                case 'overload': color = this.ui.colors.OVERLOAD; break;
             }
         }
 
-        this.renderPowerBar(bar, power, state.generator.isOn, color);
-
-        modeLabel.text(state.generator.isOn ? state.generator.mode.toUpperCase() : 'APAGADO');
-        modeLabel.css('color', color);
-
+        this.renderer.renderPowerBar(power, state.generator.isOn, color, state.generator.mode);
+        this.renderer.updateModeLabel(state.generator.isOn, state.generator.mode, color);
         this.updateToggleButton(state);
-        this.updateStatusSummary(state);
+        this.renderer.updateStatusSummary(state.generator.isOn, state.generator.mode);
+        
+        const npc = state.currentNPC;
+        const actionTaken = (npc && npc.scanCount > 0) || state.dialogueStarted || state.generator.restartLock;
+        this.renderer.updateModeButtons(state.generator.mode, actionTaken, state.generator.maxModeCapacityReached, state.generator.overclockCooldown);
+
         this.setupModeButtons(state);
         this.setupToggleEvent(state);
+    }
+
+    updateToggleButton(state) {
+        this.renderer.updateToggleButton(state.generator.isOn, state.generator.blackoutUntil);
     }
 
     setupToggleEvent(state) {
@@ -119,21 +123,6 @@ export class GeneratorManager {
         btnSave.off('click').on('click', () => handleModeSwitch('save', 1));
         btnNormal.off('click').on('click', () => handleModeSwitch('normal', 2));
 
-        // Helper para actualizar estado visual de botones
-        const updateBtnState = (btn, targetCap, isCooldown = false) => {
-            const isBlocked = (actionTaken && targetCap > currentMax) || isCooldown;
-            if (isBlocked) {
-                btn.prop('disabled', true).addClass('opacity-30 grayscale cursor-not-allowed border-dashed');
-                btn.attr('title', isCooldown ? 'BLOQUEADO: Enfriamiento' : 'BLOQUEADO: Restricción de potencia');
-            } else {
-                btn.prop('disabled', false).removeClass('opacity-30 grayscale cursor-not-allowed border-dashed');
-                btn.attr('title', '');
-            }
-        };
-
-        updateBtnState(btnNormal, 2);
-        updateBtnState(btnOver, 3, state.generator.overclockCooldown);
-
         btnOver.off('click').on('click', () => {
             if (state.generator.overclockCooldown) return;
 
@@ -147,111 +136,8 @@ export class GeneratorManager {
             }
         });
 
-        btnSave.toggleClass('horror-btn-save-active', state.generator.mode === 'save');
-        btnNormal.toggleClass('horror-btn-normal-active', state.generator.mode === 'normal');
-        btnOver.toggleClass('horror-btn-overload-active', state.generator.mode === 'overload');
-
         $('#btn-gen-manual-toggle').off('click').on('click', () => {
             $('#generator-manual').toggleClass('hidden');
         });
-    }
-
-    renderPowerBar(bar, power, isOn, color) {
-        bar.empty();
-        bar.css({
-            background: '#050505',
-            border: '1px solid #333',
-            position: 'relative',
-            display: 'flex',
-            gap: '2px',
-            padding: '2px',
-            overflow: 'hidden'
-        });
-
-        const totalBlocks = 20;
-        const activeBlocks = Math.ceil((power / 100) * totalBlocks);
-
-        for (let i = 0; i < totalBlocks; i++) {
-            const opacity = i < activeBlocks ? 1 : 0.1;
-            const blockColor = isOn ? color : '#333';
-            const delay = i * 30;
-
-            const block = $('<div>', {
-                css: {
-                    flex: '1',
-                    height: '100%',
-                    background: blockColor,
-                    opacity: 0,
-                    boxShadow: i < activeBlocks && isOn ? `0 0 8px ${color}` : 'none',
-                    transition: 'all 0.3s ease',
-                    transform: 'scaleY(0.5)'
-                }
-            });
-
-            bar.append(block);
-
-            setTimeout(() => {
-                block.css({
-                    opacity: opacity,
-                    transform: 'scaleY(1)'
-                });
-
-                if (isOn && i < activeBlocks) {
-                    this.startFlicker(block);
-                }
-            }, delay);
-        }
-    }
-
-    startFlicker(block) {
-        const flicker = () => {
-            // Check global state if generator still on - ideally passed or accessed via state
-            // For now, simple random flicker
-            if (Math.random() > 0.98) {
-                block.css('opacity', 0.5);
-                setTimeout(() => block.css('opacity', 1), 50 + Math.random() * 100);
-            }
-            setTimeout(flicker, 1000 + Math.random() * 3000);
-        };
-        flicker();
-    }
-
-    updateToggleButton(state) {
-        const toggleBtn = $('#btn-gen-toggle');
-        const isLocked = state.generator.blackoutUntil > Date.now();
-
-        if (isLocked) {
-            toggleBtn.prop('disabled', true).addClass('opacity-50 grayscale cursor-wait');
-            toggleBtn.html('<i class="fa-solid fa-plug-circle-exclamation"></i> BLOQUEADO');
-            setTimeout(() => this.renderGeneratorRoom(state), state.generator.blackoutUntil - Date.now() + 100);
-        } else {
-            toggleBtn.prop('disabled', false).removeClass('opacity-50 grayscale cursor-wait');
-            toggleBtn.html(state.generator.isOn ? '<i class="fa-solid fa-power-off"></i> APAGAR' : '<i class="fa-solid fa-bolt"></i> ENCENDER');
-        }
-
-        toggleBtn.toggleClass('horror-btn-primary', state.generator.isOn);
-        toggleBtn.removeClass('btn-off btn-on');
-
-        // Ensure button text color updates reliably along with icon and background for good contrast
-        if (state.generator.isOn) {
-            toggleBtn.addClass('btn-on');
-            toggleBtn.css('color', '#000');
-            toggleBtn.find('i').css('color', this.ui.colors.chlorineDark);
-        } else {
-            toggleBtn.addClass('btn-off');
-            toggleBtn.css('color', '#000');
-            toggleBtn.find('i').css('color', this.ui.colors.off);
-        }
-    }
-
-    updateStatusSummary(state) {
-        const statusSummary = $('#generator-status-summary');
-        if (statusSummary.length) {
-            const statusHtml = `
-                <span>ESTADO: <span class="${state.generator.isOn ? 'text-chlorine-light' : 'text-alert'}">${state.generator.isOn ? 'OPERATIVO' : 'OFF'}</span></span>
-                <span>MODO: <span class="text-white">${state.generator.isOn ? state.generator.mode.toUpperCase() : 'N/A'}</span></span>
-            `;
-            statusSummary.html(statusHtml);
-        }
     }
 }

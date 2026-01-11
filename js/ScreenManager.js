@@ -64,6 +64,15 @@ export class ScreenManager {
             const max = state.config.maxShelterCapacity;
             const isFull = count >= max;
             
+            $('#night-shelter-status').text(`${count}/${max}`);
+            $('#night-paranoia-status').text(`${Math.round(state.paranoia)}%`);
+            
+            if (isFull) {
+                $('#night-shelter-status').removeClass('text-white').addClass('text-alert animate-pulse');
+            } else {
+                $('#night-shelter-status').removeClass('text-alert animate-pulse').addClass('text-white');
+            }
+
             const btnEscape = $('#btn-night-escape');
             if (isFull) {
                 btnEscape.removeClass('opacity-30 grayscale pointer-events-none');

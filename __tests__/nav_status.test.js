@@ -36,8 +36,10 @@ beforeEach(() => {
     global.__fakeDOM = {};
 });
 
-test('setNavItemStatus applies per-item class and removes global sidebar status', () => {
+test('setNavItemStatus applies per-item class and removes global sidebar status', async () => {
+    const { NavManager } = await import('../js/ui/NavManager.js');
     const ui = Object.create(UIManager.prototype);
+    ui.navManager = new NavManager();
 
     // Simulate a pre-existing global sidebar alert
     const sidebar = $('#sidebar-left');

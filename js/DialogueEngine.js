@@ -20,7 +20,7 @@ export function selectDialogueSet({ personality = null, infected = false, isLore
     // Generic pools: pick by personality tag (if any)
     let candidates = Object.values(DialogueData.pools);
     if (personality) {
-        const filtered = candidates.filter(p => (p.tags || []).includes(personality) || (p.tags || []).includes('generic'));
+        const filtered = candidates.filter(p => p.tags?.includes(personality) || p.tags?.includes('generic'));
         // Fallback: Si el filtro nos deja sin opciones, volvemos a usar todos los candidatos para asegurar que haya diálogo
         if (filtered.length > 0) {
             candidates = filtered;
@@ -39,8 +39,7 @@ export function selectDialogueSet({ personality = null, infected = false, isLore
 
     // fallback: prefer unused ones
     const unused = candidates.filter(p => !State.isDialogueUsed(p.id));
-    const pick = unused.length ? unused[Math.floor(Math.random() * unused.length)] : candidates[Math.floor(Math.random() * candidates.length)];
-    return pick;
+    return (unused.length ? unused : candidates)[Math.floor(Math.random() * (unused.length || candidates.length))];
 }
 
 export class Conversation {
@@ -51,49 +50,48 @@ export class Conversation {
         this.history = [];
         this.loggedNodes = new Set(); // Evitar duplicados en el log
         // Count this dialogue start (logical time) and mark as used immediately to prevent reuse
-        State.dialoguesCount = (State.dialoguesCount || 0) + 1;
+        State.dialoguesCount = (State.dialoguesCount ?? 0) + 1;
         State.markDialogueUsed(dialogueSet.id);
     }
 
     getRawTreeForCompatibility() {
         // Return a shallow mapping for compatibility if needed
-        const obj = {};
-        Object.values(this.set.nodes).forEach(n => obj[n.id] = n);
-        return obj;
+        return Object.fromEntries(Object.values(this.set.nodes).map(n => [n.id, n]));
     }
 
     _injectTemplate(text, nodeId) {
         if (!text) return '';
         // Simple templating: replace {generatorStatus} {paranoia} {npcName} {prevChoiceLabel}
-        let out = text.replace(/\{npcName\}/g, this.npc.getDisplayName ? this.npc.getDisplayName() : this.npc.name);
+        let out = text.replace(/\{npcName\}/g, this.npc.getDisplayName?.() ?? this.npc.name);
         out = out.replace(/\{paranoia\}/g, `${State.paranoia}%`);
+        
         const genStatus = (!State.generator || !State.generator.isOn) ? 'apagado' : (State.generator.power < 20 ? 'inestable' : 'estable');
         out = out.replace(/\{generatorStatus\}/g, genStatus);
+        
         // prevChoiceLabel from history
-        const last = this.history.length ? this.history[this.history.length - 1] : null;
-        out = out.replace(/\{prevChoiceLabel\}/g, last ? (last.choiceLabel || '') : '');
+        const last = this.history.at(-1);
+        out = out.replace(/\{prevChoiceLabel\}/g, last?.choiceLabel ?? '');
 
         // Rumor injection (from global dialogue memory)
         if (out.includes('{rumor}')) {
             out = out.replace(/\{rumor\}/g, () => {
-                const r = (typeof State.getRandomRumor === 'function') ? State.getRandomRumor() : '';
+                const r = State.getRandomRumor?.() ?? '';
                 // Log rumor if not logged for this node
-                if (nodeId && !this.loggedNodes.has(nodeId + '_rumor')) {
+                if (nodeId && !this.loggedNodes.has(`${nodeId}_rumor`)) {
                     State.addLogEntry('note', `Rumor escuchado: "${r}"`);
-                    this.loggedNodes.add(nodeId + '_rumor');
+                    this.loggedNodes.add(`${nodeId}_rumor`);
                 }
                 return r;
             });
         }
 
         // Apply madness/glitch modifier if paranoia high
-        if (State.paranoia > 30 || (State.getGlitchModifier && State.getGlitchModifier() > 1.0)) {
+        if (State.paranoia > 30 || (State.getGlitchModifier?.() ?? 1.0) > 1.0) {
             // Intensidad gradual: de 0.05 a 0.4 según paranoia (30-100)
             const baseIntensity = Math.min(0.4, (State.paranoia - 20) / 180); 
             const glitchedChars = ['$', '#', '@', '&', '%', '!', '?', '¿', '¡', '·', '=', '+', ':', ';', '0', '1'];
             
-            const words = out.split(' ');
-            out = words.map(word => {
+            out = out.split(' ').map(word => {
                 // Solo glitcheamos palabras de cierta longitud para mantener legibilidad mínima
                 if (word.length <= 1) return word;
 
@@ -104,10 +102,9 @@ export class Conversation {
                     return word.split('').map(c => {
                         // Glitchear caracteres individuales con una probabilidad menor
                         // para que la palabra sea "reconocible" pero corrupta
-                        if (Math.random() < baseIntensity * 0.6) {
-                            return glitchedChars[Math.floor(Math.random() * glitchedChars.length)];
-                        }
-                        return c;
+                        return Math.random() < baseIntensity * 0.6 
+                            ? glitchedChars[Math.floor(Math.random() * glitchedChars.length)] 
+                            : c;
                     }).join('');
                 }
                 return word;
@@ -120,18 +117,18 @@ export class Conversation {
         const node = this.set.nodes[this.currentId];
         if (!node) return null;
         const text = this._injectTemplate(node.text, node.id);
-        const options = (node.options || []).map(o => ({
+        const options = (node.options ?? []).map(o => ({
             id: o.id,
             label: o.label,
             next: o.next,
-            requires: o.requires || [],
-            sets: o.sets || [],
-            audio: o.audio || null,
-            cssClass: o.cssClass || '',
-            onclick: o.onclick || null,
-            log: o.log || null
+            requires: Array.isArray(o.requires) ? o.requires : (o.requires ? [o.requires] : []),
+            sets: Array.isArray(o.sets) ? o.sets : (o.sets ? [o.sets] : []),
+            audio: o.audio ?? null,
+            cssClass: o.cssClass ?? '',
+            onclick: o.onclick ?? null,
+            log: o.log ?? null
         }));
-        return { id: node.id, text, options, audio: node.audio || null, meta: node.meta || {} };
+        return { id: node.id, text, options, audio: node.audio ?? null, meta: node.meta ?? {} };
     }
 
     /**
@@ -140,26 +137,24 @@ export class Conversation {
     getNextDialogue(choice) {
         const node = this.set.nodes[this.currentId];
         if (!node) return { error: 'Nodo no encontrado' };
-        let opt = null;
-        if (typeof choice === 'number') {
-            opt = (node.options || [])[choice];
-        } else {
-            opt = (node.options || []).find(o => o.id === choice);
-        }
+        
+        const options = node.options ?? [];
+        const opt = typeof choice === 'number' ? options[choice] : options.find(o => o.id === choice);
+        
         if (!opt) return { error: 'Opción inválida' };
 
         // Validate requires
         if (opt.requires) {
-            for (const r of opt.requires) {
-                if (!State.hasFlag(r)) return { error: 'Requisitos no satisfechos' };
+            const requirements = Array.isArray(opt.requires) ? opt.requires : [opt.requires];
+            if (requirements.some(r => !State.hasFlag(r))) {
+                return { error: 'Requisitos no satisfechos' };
             }
         }
 
         // Apply sets (flags)
         if (opt.sets) {
-            for (const s of opt.sets) {
-                State.setFlag(s, true);
-            }
+            const sets = Array.isArray(opt.sets) ? opt.sets : [opt.sets];
+            sets.forEach(s => State.setFlag(s, true));
         }
 
         // Record history entry
@@ -167,18 +162,26 @@ export class Conversation {
         State.recordDialogueMemory({ npc: this.npc.name, node: node.id, choice: opt.id, time: Date.now() });
 
         // Audio trigger
-        const audio = opt.audio || node.onChooseAudio || node.audio || null;
+        const audio = opt.audio ?? node.onChooseAudio ?? node.audio ?? null;
 
         // Next node
         if (!opt.next) {
             // End of branch
             this.currentId = null;
-            return { end: true, audio, message: opt.resultText || null };
+            return { end: true, audio, message: opt.resultText ?? null };
         }
+        
         this.currentId = opt.next;
         const nextNodeRaw = this.set.nodes[this.currentId];
         const text = this._injectTemplate(nextNodeRaw.text, nextNodeRaw.id);
-        return { node: { id: nextNodeRaw.id, text, options: (nextNodeRaw.options || []).map(o => ({ id: o.id, label: o.label })) }, audio };
+        return { 
+            node: { 
+                id: nextNodeRaw.id, 
+                text, 
+                options: (nextNodeRaw.options ?? []).map(o => ({ id: o.id, label: o.label })) 
+            }, 
+            audio 
+        };
     }
 }
 

@@ -98,6 +98,29 @@
 .avatar-eyes.tired .eye { border-bottom: 2px solid #000; background: transparent; border-radius: 0; }
 .avatar-eyes.robot .eye { background: #f00; box-shadow: 0 0 2px red; }
 
+/* UV REVEAL EFFECT */
+.pixel-avatar.uv-reveal {
+    filter: brightness(1.5) saturate(2) hue-rotate(45deg);
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
+    transition: all 0.3s ease;
+}
+
+.pixel-avatar.uv-reveal .avatar-head {
+    background-color: #8a2be2 !important; /* Force UV purple on skin */
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.pixel-avatar.uv-reveal.infected .avatar-head {
+    background-color: #ff00ff !important; /* More intense for infected */
+    animation: pulse-uv 0.5s infinite alternate;
+}
+
+@keyframes pulse-uv {
+    from { filter: brightness(1); }
+    to { filter: brightness(1.5); }
+}
+
+
 .avatar-mouth {
     width: 20%;
     height: 2px;

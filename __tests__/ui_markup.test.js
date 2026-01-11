@@ -1,6 +1,9 @@
 let UIManager, parseDialogueMarkup, State;
 
 beforeAll(async () => {
+    // Minimal window stub
+    global.window = global;
+    
     // Minimal '$' stub to emulate jQuery-like API used by UIManager.updateDialogueBox
     global.$ = function (sel, attrs) {
         // Create a fake element for selectors like '#npc-dialogue' or '#dialogue-options'
@@ -8,57 +11,92 @@ beforeAll(async () => {
             const id = sel.slice(1);
             // Ensure a registry so multiple calls to the same selector return same object
             global.__fakeDOM = global.__fakeDOM || {};
-            if (!global.__fakeDOM[id]) {
-                global.__fakeDOM[id] = {
-                    _html: '',
-                    _children: [],
-                    _inner: '',
-                    html(h) {
-                        if (h === undefined) {
-                            // If there's an inner .npc-text set, inject it into the stored HTML
-                            if (this._html && this._html.includes('<span class="npc-text"></span>')) {
-                                return (this._html && this._inner) ? this._html.replace('<span class="npc-text"></span>', `<span class="npc-text">${this._inner}</span>`) : this._html;
-                            }
-                            return this._html;
-                        }
-                        // If we are setting html after a find into .npc-text, set _inner instead of replacing whole html
-                        if (this._lastFind && this._lastFind.includes('.npc-text')) {
-                            this._inner = h;
-                            this._lastFind = null;
-                            return this;
-                        }
-                        this._html = h;
-                        return this;
-                    },
-                    find(sel) {
-                        // Special-case the .npc-text child to expose a child-like API so repeated html() calls affect inner content
-                        if (sel && sel.includes('.npc-text')) {
-                            const parent = this;
-                            return {
-                                html(h) {
-                                    if (h === undefined) return parent._inner;
-                                    parent._inner = h;
-                                    return this;
-                                },
-                                // Support text() for plain text typing path
-                                text(t) {
-                                    if (t === undefined) return parent._innerText || '';
-                                    parent._innerText = t;
-                                    parent._inner = t;
-                                    return this;
+                if (!global.__fakeDOM[id]) {
+                    global.__fakeDOM[id] = {
+                        _html: '',
+                        _children: [],
+                        _inner: '',
+                        _npcName: '',
+                        _text: '',
+                        html(h) {
+                            if (h === undefined) {
+                                let out = this._html || '';
+                                if (out.includes('<span class="npc-text"></span>')) {
+                                    out = out.replace('<span class="npc-text"></span>', `<span class="npc-text">${this._inner || ''}</span>`);
                                 }
+                                if (out.includes('<span class="npc-name"></span>')) {
+                                    out = out.replace('<span class="npc-name"></span>', `<span class="npc-name">${this._npcName || ''}</span>`);
+                                }
+                                return out;
+                            }
+                            // If we are setting html after a find into .npc-text, set _inner instead of replacing whole html
+                            if (this._lastFind && this._lastFind.includes('.npc-text')) {
+                                this._inner = h;
+                                this._lastFind = null;
+                                return this;
+                            }
+                            this._html = h;
+                            return this;
+                        },
+                        find(sel) {
+                            // Special-case certain children to expose a child-like API
+                            const parent = this;
+                            
+                            if (sel && (sel.includes('.npc-text') || sel.includes('.npc-name'))) {
+                                const isName = sel.includes('.npc-name');
+                                return {
+                                    html(h) {
+                                        if (h === undefined) return isName ? parent._npcName : parent._inner;
+                                        if (isName) parent._npcName = h;
+                                        else parent._inner = h;
+                                        return this;
+                                    },
+                                    text(t) {
+                                        if (t === undefined) return isName ? parent._npcName : parent._inner;
+                                        if (isName) parent._npcName = t;
+                                        else parent._inner = t;
+                                        return this;
+                                    },
+                                    addClass() { return this; },
+                                    removeClass() { return this; },
+                                    toggleClass() { return this; },
+                                    css() { return this; },
+                                    on() { return this; },
+                                    parent() { return parent; },
+                                    length: 1
+                                };
+                            }
+                            
+                            // Support nested finds for paranoia icon etc
+                            const child = {
+                                html: () => child,
+                                text: () => child,
+                                addClass: () => child,
+                                removeClass: () => child,
+                                toggleClass: () => child,
+                                css: () => child,
+                                on: () => child,
+                                parent: () => parent,
+                                length: 1
                             };
-                        }
-                        // Remember last selector so html(h) knows where to inject for legacy behavior
-                        this._lastFind = sel;
-                        return this;
-                    },
-                    empty() { this._html = ''; this._children = []; this._inner = ''; return this; },
-                    append(node) { this._children.push(node); return this; },
-                    on() { return this; },
-                    addClass() { return this; }, removeClass() { return this; }, toggleClass() { return this; }, css() { return this; }, text(t) { if (t === undefined) return this._text; this._text = t; return this; }, length: 1
-                };
-            }
+                            return child;
+                        },
+                        empty() { this._html = ''; this._children = []; this._inner = ''; this._npcName = ''; return this; },
+                        append(node) { this._children.push(node); return this; },
+                        on() { return this; },
+                        addClass() { return this; }, 
+                        removeClass() { return this; }, 
+                        toggleClass() { return this; }, 
+                        css() { return this; }, 
+                        text(t) { 
+                            if (t === undefined) return this._text; 
+                            this._text = t; 
+                            return this; 
+                        },
+                        parent() { return this; },
+                        length: 1
+                    };
+                }
             return global.__fakeDOM[id];
         }
 
@@ -67,7 +105,12 @@ beforeAll(async () => {
             const obj = {
                 _click: null,
                 on(evt, handler) { if (evt === 'click') this._click = handler; return this; },
-                html(h) { this._html = h; return this; }
+                html(h) { this._html = h; return this; },
+                addClass() { return this; },
+                removeClass() { return this; },
+                toggleClass() { return this; },
+                css() { return this; },
+                text() { return this; }
             };
             // Apply attrs
             if (attrs) {
@@ -77,7 +120,21 @@ beforeAll(async () => {
         }
 
         // Fallback simple object
-        return { html: () => '', find: () => ({ html: () => '' }), empty: () => { }, append: () => { }, on: () => { }, addClass: () => { }, removeClass: () => { }, toggleClass: () => { }, css: () => { }, text: () => '', length: 0 };
+        const fallback = { 
+            html: () => '', 
+            find: () => fallback, 
+            empty: () => fallback, 
+            append: () => fallback, 
+            on: () => fallback, 
+            addClass: () => fallback, 
+            removeClass: () => fallback, 
+            toggleClass: () => fallback, 
+            css: () => fallback, 
+            text: () => '', 
+            parent: () => fallback,
+            length: 0 
+        };
+        return fallback;
     };
 
     ({ UIManager } = await import('../js/UIManager.js'));
@@ -85,7 +142,7 @@ beforeAll(async () => {
     ({ State } = await import('../js/State.js'));
 });
 
-beforeEach(() => {
+beforeEach(async () => {
     // Reset fake DOM
     global.__fakeDOM = {};
     State.reset();
@@ -99,10 +156,11 @@ beforeEach(() => {
 
     // Make typing deterministic in tests by overriding the heavy animation path
     // Save original to restore if needed
-    if (!UIManager.prototype._typeText_original) {
-        UIManager.prototype._typeText_original = UIManager.prototype.typeText;
+    const { TypingEngine } = await import('../js/ui/TypingEngine.js');
+    if (!TypingEngine.prototype._typeText_original) {
+        TypingEngine.prototype._typeText_original = TypingEngine.prototype.typeText;
     }
-    UIManager.prototype.typeText = function (el, text) {
+    TypingEngine.prototype.typeText = function (el, text) {
         // Simple immediate rendering: if HTML, set as HTML; else set plain text
         const containsHtml = /<[^>]+>/.test(text);
         if (containsHtml && el && typeof el.html === 'function') el.html(text);
@@ -112,18 +170,32 @@ beforeEach(() => {
             try { this.audio.channels.sfx.pause(); } catch (e) { }
         }
     };
-
 });
 
-test('UIManager renders dialogue markup and plays node audio (no real DOM)', () => {
+test('UIManager renders dialogue markup and plays node audio (no real DOM)', async () => {
+    const { DialogueRenderer } = await import('../js/ui/DialogueRenderer.js');
+    const { TypingEngine } = await import('../js/ui/TypingEngine.js');
     const audioStub = { playSFXByKey: jest.fn() };
     const ui = Object.create(UIManager.prototype);
     ui.audio = audioStub;
-    ui.elements = {
-        dialogue: $('#npc-dialogue'),
-        dialogueOptions: $('#dialogue-options'),
-        feedback: $('#inspection-feedback')
+    ui.interactionRenderer = { 
+        showFeedback: jest.fn(),
+        updateGameActions: jest.fn(),
+        updateInspectionTools: jest.fn()
     };
+    ui.updateInspectionTools = () => ui.interactionRenderer.updateInspectionTools();
+    ui.showFeedback = (t, c) => ui.interactionRenderer.showFeedback(t, c);
+    ui.elements = {
+        dialogue: $('#npc-dialogue').html('<span class="npc-name"></span><span class="npc-text"></span>'),
+        dialogueOptions: $('#dialogue-options'),
+        feedback: $('#inspection-feedback'),
+        paranoia: $('#paranoia-level'),
+        cycle: $('#cycle-count'),
+        time: $('#time-display'),
+        tools: []
+    };
+    ui.typingEngine = new TypingEngine(audioStub);
+    ui.dialogueRenderer = new DialogueRenderer(ui, ui.typingEngine);
 
     const npc = {
         name: 'UI_NPC',
@@ -168,15 +240,30 @@ test('UIManager renders dialogue markup and plays node audio (no real DOM)', () 
 });
 
 
-test('Actions show instantly, speeches type, rumors fade; name vs epithet displayed once', (done) => {
+test('Actions show instantly, speeches type, rumors fade; name vs epithet displayed once', async () => {
+    const { DialogueRenderer } = await import('../js/ui/DialogueRenderer.js');
+    const { TypingEngine } = await import('../js/ui/TypingEngine.js');
     const audioStub = { playSFXByKey: jest.fn(), channels: { sfx: { pause: jest.fn() } } };
     const ui = Object.create(UIManager.prototype);
     ui.audio = audioStub;
-    ui.elements = {
-        dialogue: $('#npc-dialogue'),
-        dialogueOptions: $('#dialogue-options'),
-        feedback: $('#inspection-feedback')
+    ui.interactionRenderer = { 
+        showFeedback: jest.fn(),
+        updateGameActions: jest.fn(),
+        updateInspectionTools: jest.fn()
     };
+    ui.updateInspectionTools = () => ui.interactionRenderer.updateInspectionTools();
+    ui.showFeedback = (t, c) => ui.interactionRenderer.showFeedback(t, c);
+    ui.elements = {
+        dialogue: $('#npc-dialogue').html('<span class="npc-name"></span><span class="npc-text"></span>'),
+        dialogueOptions: $('#dialogue-options'),
+        feedback: $('#inspection-feedback'),
+        paranoia: $('#paranoia-level'),
+        cycle: $('#cycle-count'),
+        time: $('#time-display'),
+        tools: []
+    };
+    ui.typingEngine = new TypingEngine(audioStub);
+    ui.dialogueRenderer = new DialogueRenderer(ui, ui.typingEngine);
 
     const npc = {
         name: 'Ciro Sierra',
@@ -204,14 +291,16 @@ test('Actions show instantly, speeches type, rumors fade; name vs epithet displa
 
     // The action spans should be present (instant epithets/actions are flushed synchronously)
     // but some parts like speech/rumor may take a tick; wait briefly to observe the full rendered content
-    setTimeout(() => {
-        const htmlNow = $('#npc-dialogue').html();
-        const innerNowMatch = htmlNow.match(/<span class=\"npc-text\">([\s\S]*?)<\/span>/);
-        const innerNow = innerNowMatch ? innerNowMatch[1] : '';
-        console.log('DEBUG after tick inner:', innerNow);
-        // Ensure something was rendered inside npc-text and typing sfx was paused
-        expect(innerNow.length).toBeGreaterThan(0);
-        expect(audioStub.channels.sfx.pause).toHaveBeenCalled();
-        done();
-    }, 500);
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            const htmlNow = $('#npc-dialogue').html();
+            const innerNowMatch = htmlNow.match(/<span class=\"npc-text\">([\s\S]*?)<\/span>/);
+            const innerNow = innerNowMatch ? innerNowMatch[1] : '';
+            // console.log('DEBUG after tick inner:', innerNow);
+            // Ensure something was rendered inside npc-text and typing sfx was paused
+            expect(innerNow.length).toBeGreaterThan(0);
+            expect(audioStub.channels.sfx.pause).toHaveBeenCalled();
+            resolve();
+        }, 500);
+    });
 });
