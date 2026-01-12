@@ -6,7 +6,7 @@ import { AvatarRenderer } from './AvatarRenderer.js';
 import { ScreenManager } from './ScreenManager.js';
 import { GeneratorManager } from './GeneratorManager.js';
 import { StatsManager } from './StatsManager.js';
-import { ToolsRenderer } from '../migrable/tool_animations/ToolsRenderer.js';
+import { ToolsRenderer } from './ToolsRenderer.js';
 import { parseDialogueMarkup, escapeHtml } from './markup.js';
 
 export class UIManager {

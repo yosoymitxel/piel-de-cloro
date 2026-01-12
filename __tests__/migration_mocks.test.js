@@ -1,13 +1,13 @@
 /**
- * Mocks de Migración y Validación de Estructura Modular
- * Este archivo simula la implementación de los nuevos módulos en 'migrable/'
+ * Mocks de Validación de Estructura Modular
+ * Este archivo simula la implementación de los nuevos módulos
  * para asegurar que la lógica de negocio sea compatible con un entorno desacoplado.
  */
 
 import { NPC } from '../js/NPC.js';
 import { State } from '../js/State.js';
 
-// Simulación de un ActionHandler desacoplado (como el que está en migrable/core_logic/)
+// Simulación de un ActionHandler desacoplado (como el que está en js/)
 class MockActionHandler {
     constructor(dependencies) {
         this.audio = dependencies.audio;
