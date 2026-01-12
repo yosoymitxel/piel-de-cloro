@@ -1,5 +1,6 @@
 import { LoreData } from './LoreData.js';
 import { State } from './State.js';
+import { CONSTANTS } from './Constants.js';
 
 export class LoreManager {
     constructor(uiManager, audioManager) {
@@ -38,6 +39,8 @@ export class LoreManager {
 
             this.playIntermediateAudio(pick.kind);
             State.addLogEntry('lore', `${label}: ${pick.text}`, { icon: icon });
+            // Notificar bitácora
+            this.ui.setNavItemStatus(CONSTANTS.NAV_ITEMS.LOG, 2);
         } else {
             titleText = data.title;
             contentHtml = data.content;
@@ -46,8 +49,13 @@ export class LoreManager {
             isDanger = data.type === 'danger';
             isCalm = data.type === 'calm';
 
-            if (audioKey && this.audio) {
-                this.audio.playLoreByKey(audioKey, { loop: false, volume: 0.22, crossfade: 600 });
+            // Reproducir música de lore si tiene, o simplemente atenuar ambiente
+            if (this.audio) {
+                if (audioKey) {
+                    this.audio.playLoreByKey(audioKey, { loop: true, volume: 0.25, duckAmbient: true });
+                } else {
+                    this.audio.duckAmbient(0.1, 800);
+                }
             }
             if (sfxKey && this.audio) {
                 this.audio.playSFXByKey(sfxKey, { volume: 0.5 });
@@ -55,6 +63,8 @@ export class LoreManager {
 
             // Registrar en Bitácora
             State.addLogEntry('lore', `Archivo desbloqueado: ${titleText}`);
+            // Notificar bitácora
+            this.ui.setNavItemStatus(CONSTANTS.NAV_ITEMS.LOG, 2);
         }
 
         if (isDanger) {
@@ -69,12 +79,10 @@ export class LoreManager {
         this.elements.content.html(contentHtml);
 
         this.ui.showScreen('lore');
-        if (this.audio) this.audio.duckAmbient(0.12);
 
         this.elements.continueBtn.off('click').on('click', () => {
             if (this.audio) {
                 this.audio.stopLore({ fadeOut: this.ui.timings.loreFadeOut });
-                this.audio.unduckAmbient(300, 0.28);
             }
             if (onClose) onClose();
             else this.ui.showScreen('game');

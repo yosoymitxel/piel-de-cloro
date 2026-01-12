@@ -107,7 +107,11 @@ describe('Migration Integration Testing Suite', () => {
             matchMedia: jest.fn().mockReturnValue({ matches: false, addEventListener: jest.fn(), removeEventListener: jest.fn() }),
             scrollTo: jest.fn(),
             location: { reload: jest.fn() },
-            requestAnimationFrame: jest.fn(cb => { cb(); return 1; }),
+            requestAnimationFrame: jest.fn(cb => { 
+                // Don't execute immediately to avoid infinite recursion in animation loops
+                setTimeout(cb, 0); 
+                return 1; 
+            }),
             cancelAnimationFrame: jest.fn()
         };
         global.requestAnimationFrame = global.window.requestAnimationFrame;
@@ -159,6 +163,10 @@ describe('Migration Integration Testing Suite', () => {
         State.config.initialEntrantProbability = 0; // Disable random entrants
         State.config.dayIntrusionProbability = 0; // Disable intrusions during day
         State.config.securityIntrusionProbability = 0; // Disable night intrusions
+        
+        // Mock Math.random to be deterministic for tests
+        jest.spyOn(Math, 'random').mockReturnValue(0.5);
+
         jest.clearAllMocks();
         jest.useFakeTimers();
         
@@ -203,24 +211,24 @@ describe('Migration Integration Testing Suite', () => {
         // Default mode is 'normal', so 2 scans allowed
         expect(State.generator.mode).toBe('normal');
         
-        game.inspect('flashlight');
+        game.actions.inspect('flashlight');
         jest.runAllTimers(); // Advance animation timers
         expect(npc.scanCount).toBe(1);
         expect(game.updateHUD).toHaveBeenCalled();
 
         game.isAnimating = false; // Reset animation lock for test
-        game.inspect('thermometer');
+        game.actions.inspect('thermometer');
         jest.runAllTimers();
         expect(npc.scanCount).toBe(2);
         
         // Attempt 3rd scan - should be blocked by energy logic in real game
         game.isAnimating = false;
-        game.inspect('pulse');
+        game.actions.inspect('pulse');
         // It will be blocked by line 397 because scanCount(2) >= maxEnergy(2)
         expect(npc.scanCount).toBe(2); 
 
         // 4. Admit NPC
-        game.handleDecision('admit');
+        game.actions.handleDecision('admit');
         expect(State.admittedNPCs.length).toBe(1);
         expect(State.admittedNPCs[0]).toBe(npc);
         expect(State.currentNPC).not.toBe(npc); // New NPC should be generated
@@ -232,13 +240,13 @@ describe('Migration Integration Testing Suite', () => {
         expect(State.isDayOver()).toBe(true);
 
         // 6. Transition to Night
-        game.startNightPhase();
+        game.mechanics.startNightPhase();
         expect(State.isNight).toBe(true);
         expect(State.dayClosed).toBe(true);
         expect(game.ui.renderNightScreen).toHaveBeenCalled();
 
         // 7. Start Next Day
-        game.startNextDay();
+        game.mechanics.startNextDay();
         expect(State.cycle).toBe(2);
         expect(State.dayTime).toBe(1);
         expect(State.isNight).toBe(false);

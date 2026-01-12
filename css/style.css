@@ -37,6 +37,7 @@
 .status-level-2 {
     --color-chlorine: #6b8c21;
     --color-chlorine-light: #d4e8a2;
+    animation: navPulseGreen 2s infinite;
 }
 
 /* Precaución (Verde amarillento) */
@@ -49,9 +50,29 @@
 .status-level-4 {
     --color-chlorine: #ff3333;
     --color-chlorine-light: #ffaaaa;
+    animation: navPulse 1.2s infinite;
 }
 
 /* Crítico (Rojo) */
+.status-level-5 {
+    --color-chlorine: #ff0000;
+    --color-chlorine-light: #ffffff;
+    animation: navPulse 0.6s infinite;
+}
+
+.nav-btn.nav-locked {
+    opacity: 0.2 !important;
+    cursor: not-allowed !important;
+    filter: grayscale(1) !important;
+    pointer-events: none !important;
+}
+
+/* Animación de pulso para niveles críticos */
+@keyframes navPulse {
+    0% { box-shadow: none; }
+    50% { box-shadow: 0 0 12px rgba(255, 51, 51, 0.6); }
+    100% { box-shadow: none; }
+}
 
 /* Base & Typography */
 body {
@@ -138,11 +159,16 @@ h3 {
     background: var(--color-dark);
     color: var(--color-chlorine);
     position: relative;
-    overflow: hidden;
+    overflow: visible; /* Cambiado de hidden para permitir sombras */
     min-height: 44px;
     will-change: transform, box-shadow;
     /* Jagged edges */
     clip-path: polygon(2% 0, 100% 0, 100% 90%, 98% 100%, 0 100%, 0 10%);
+}
+
+.horror-btn.rounded-full {
+    clip-path: none;
+    overflow: visible;
 }
 
 .horror-btn:hover {
@@ -260,15 +286,6 @@ h3 {
     box-shadow: 0 0 10px var(--color-alert);
 }
 
-.horror-btn-tool {
-    font-family: var(--font-term);
-    font-size: 1.1em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px;
-}
 
 .horror-btn.btn-disabled {
     opacity: 0.3;
@@ -313,6 +330,22 @@ h3 {
 .nav-btn.status-level-2 {
     border-left-color: var(--color-chlorine);
     color: var(--color-chlorine-light);
+    animation: navPulseGreen 2s infinite;
+}
+
+@keyframes navPulseGreen {
+    0% { 
+        box-shadow: 0 0 5px rgba(107, 140, 33, 0.3); 
+        background-color: rgba(107, 140, 33, 0);
+    }
+    50% { 
+        box-shadow: 0 0 20px rgba(107, 140, 33, 0.8); 
+        background-color: rgba(107, 140, 33, 0.4);
+    }
+    100% { 
+        box-shadow: 0 0 5px rgba(107, 140, 33, 0.3); 
+        background-color: rgba(107, 140, 33, 0);
+    }
 }
 
 .nav-btn.status-level-3 {
@@ -534,9 +567,6 @@ body.paused .game-container {
         padding: 12px;
     }
 
-    .horror-btn-tool {
-        font-size: 1rem;
-    }
 }
 
 /* Security item visual states (Sala de Vigilancia) */
@@ -1288,9 +1318,6 @@ input[type=number].horror-input {
         min-height: 52px;
     }
 
-    .horror-btn-tool i {
-        font-size: 1.1rem;
-    }
 }
 
 @media (min-width: 1024px) {
@@ -1406,6 +1433,15 @@ input[type=number].horror-input {
     text-transform: uppercase;
 }
 
+@keyframes logHighlight {
+    0% { background-color: rgba(255, 255, 255, 0.25); filter: brightness(1.5); }
+    100% { background-color: transparent; filter: brightness(1); }
+}
+
+.log-entry-new {
+    animation: logHighlight 2s ease-out forwards;
+}
+
 @keyframes fadeInEntry {
     from {
         opacity: 0;
@@ -1424,21 +1460,18 @@ input[type=number].horror-input {
 
 @keyframes glowPulse {
     0% {
-        box-shadow: 0 0 15px rgba(45, 90, 39, 0.5);
-        border-color: var(--color-chlorine);
+        box-shadow: 0 0 15px rgba(107, 140, 33, 0.5);
+        background-color: rgba(107, 140, 33, 0);
         transform: scale(1);
     }
-
     50% {
-        box-shadow: 0 0 25px var(--color-chlorine-light);
-        border-color: var(--color-chlorine-light);
-        color: #fff;
-        transform: scale(1.15);
+        box-shadow: 0 0 30px rgba(107, 140, 33, 1);
+        background-color: rgba(107, 140, 33, 0.6);
+        transform: scale(1.2);
     }
-
     100% {
-        box-shadow: 0 0 15px rgba(45, 90, 39, 0.5);
-        border-color: var(--color-chlorine);
+        box-shadow: 0 0 15px rgba(107, 140, 33, 0.5);
+        background-color: rgba(107, 140, 33, 0);
         transform: scale(1);
     }
 }

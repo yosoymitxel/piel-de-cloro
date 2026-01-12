@@ -4,10 +4,13 @@ if (typeof global.jest === 'undefined') {
         fn(impl) {
             const f = function (...args) {
                 f.mock.calls.push(args);
+                if (f._return !== undefined) return f._return;
                 if (typeof f._impl === 'function') return f._impl.apply(this, args);
-                return f._return;
+                return undefined;
             };
             f._isMockFunction = true;
+            f._impl = impl;
+            f._return = undefined;
             f.mock = { calls: [] };
             f.getMockName = () => f._name || 'mockFunction';
             f.mockName = (name) => { f._name = name; return f; };
@@ -128,6 +131,7 @@ const createJQueryMock = () => {
         show: jest.fn().mockReturnThis(),
         fadeIn: jest.fn().mockReturnThis(),
         fadeOut: jest.fn().mockReturnThis(),
+        is: jest.fn().mockReturnValue(false),
         ready: jest.fn().mockImplementation(fn => fn()),
         length: 1,
         [0]: { scrollHeight: 100, scrollTop: 0 }

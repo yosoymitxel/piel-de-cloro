@@ -1,15 +1,18 @@
 import { State } from './State.js';
+import { CONSTANTS } from './Constants.js';
 import { LoreManager } from './LoreManager.js';
 import { ModalManager } from './ModalManager.js';
 import { AvatarRenderer } from './AvatarRenderer.js';
 import { ScreenManager } from './ScreenManager.js';
 import { GeneratorManager } from './GeneratorManager.js';
 import { StatsManager } from './StatsManager.js';
+import { ToolsRenderer } from '../migrable/tool_animations/ToolsRenderer.js';
 import { parseDialogueMarkup, escapeHtml } from './markup.js';
 
 export class UIManager {
-    constructor(audio = null) {
+    constructor(audio = null, customModules = {}) {
         this.audio = audio;
+        this.game = customModules.game || null;
         this.screens = {
             start: $('#screen-start'),
             game: $('#screen-game'),
@@ -23,9 +26,9 @@ export class UIManager {
             finalStats: $('#screen-final-stats'),
             log: $('#screen-log')
         };
-
         this.elements = {
             paranoia: $('#paranoia-level'),
+            sanity: $('#sanity-level'),
             cycle: $('#cycle-count'),
             time: $('#time-display'),
             feedback: $('#inspection-feedback'),
@@ -92,6 +95,7 @@ export class UIManager {
         };
         this.infectionEffectActive = false;
         this.typingTimer = null;
+        this.typingAudio = null;
 
         this.timings = {
             vhsDuration: 1000,
@@ -103,20 +107,25 @@ export class UIManager {
 
         this.colors = State.colors;
 
-        // Initialize Specialized Managers
-        this.avatarRenderer = AvatarRenderer; // Static class
-        this.screenManager = new ScreenManager(this);
-        this.loreManager = new LoreManager(this, audio);
-        this.modalManager = new ModalManager(this, audio);
-        this.generatorManager = new GeneratorManager(this, audio);
-        this.statsManager = new StatsManager();
+        // Initialize Specialized Managers (Allowing Injection)
+        this.avatarRenderer = customModules.avatarRenderer || AvatarRenderer;
+        this.screenManager = customModules.screenManager || new ScreenManager(this);
+        this.loreManager = customModules.loreManager || new LoreManager(this, audio);
+        this.modalManager = customModules.modalManager || new ModalManager(this, audio);
+        this.generatorManager = customModules.generatorManager || new GeneratorManager(this, audio, this.game);
+        this.statsManager = customModules.statsManager || new StatsManager();
+        this.toolsRenderer = new ToolsRenderer({
+            npcDisplay: this.elements.npcDisplay,
+            gameScreen: this.screens.game
+        });
 
         // For backward compatibility while refactoring
         this.modules = {
             lore: this.loreManager,
             modal: this.modalManager,
             generator: this.generatorManager,
-            screen: this.screenManager
+            screen: this.screenManager,
+            tools: this.toolsRenderer
         };
     }
 
@@ -137,8 +146,33 @@ export class UIManager {
         setTimeout(() => target.removeClass('vhs-active'), duration);
     }
 
-    updateStats(paranoia, cycle, dayTime, dayLength, currentNPC) {
+    applySanityEffects(sanity) {
+        const intensity = (30 - sanity) / 30; // 0 a 1
+        if (Math.random() < intensity * 0.1) {
+            const hue = Math.random() * 20 - 10;
+            const saturate = 1 + Math.random() * intensity;
+            const contrast = 1 + Math.random() * intensity * 0.5;
+            $('body').css('filter', `hue-rotate(${hue}deg) saturate(${saturate}) contrast(${contrast})`);
+            
+            // Glitch auditivo ocasional si hay AudioManager
+            if (this.audio && Math.random() < 0.05) {
+                this.audio.playSFXByKey('glitch_burst', { volume: 0.1 * intensity });
+            }
+        }
+    }
+
+    updateStats(paranoia, sanity, cycle, dayTime, dayLength, currentNPC) {
         this.elements.paranoia.text(`${paranoia}%`);
+        if (this.elements.sanity) {
+            this.elements.sanity.text(`${Math.floor(sanity)}%`);
+            if (sanity < 30) {
+                this.elements.sanity.addClass('animate-pulse text-rose-600').removeClass('text-rose-300');
+                this.applySanityEffects(sanity);
+            } else {
+                this.elements.sanity.removeClass('animate-pulse text-rose-600').addClass('text-rose-300');
+                $('body').css('filter', 'none');
+            }
+        }
         this.elements.cycle.text(cycle);
         this.elements.time.text(`${dayTime}/${dayLength}`);
 
@@ -293,6 +327,7 @@ export class UIManager {
                 </button>
             `);
 
+            // Event handled by delegation in GameEventManager
             return;
         }
 
@@ -335,16 +370,16 @@ export class UIManager {
 
             this.elements.inspectionToolsContainer.html(`
                 ${extraLabel}
-                <button id="tool-thermo" class="horror-btn horror-btn-tool btn-interactive ${npc && npc.revealedStats.includes('temperature') ? 'btn-disabled opacity-20 grayscale' : ''}">
+                <button id="tool-thermo" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('temperature') ? 'btn-disabled opacity-20 grayscale' : ''}">
                     <i class="fa-solid fa-temperature-half"></i> TERMÓMETRO
                 </button>
-                <button id="tool-flash" class="horror-btn horror-btn-tool btn-interactive ${npc && npc.revealedStats.includes('skinTexture') ? 'btn-disabled opacity-20 grayscale' : ''}">
+                <button id="tool-flash" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('skinTexture') ? 'btn-disabled opacity-20 grayscale' : ''}">
                     <i class="fa-solid fa-lightbulb"></i> LINTERNA UV
                 </button>
-                <button id="tool-pulse" class="horror-btn horror-btn-tool btn-interactive ${npc && npc.revealedStats.includes('pulse') ? 'btn-disabled opacity-20 grayscale' : ''}">
+                <button id="tool-pulse" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('pulse') ? 'btn-disabled opacity-20 grayscale' : ''}">
                     <i class="fa-solid fa-heart-pulse"></i> PULSO
                 </button>
-                <button id="tool-pupils" class="horror-btn horror-btn-tool btn-interactive ${npc && npc.revealedStats.includes('pupils') ? 'btn-disabled opacity-20 grayscale' : ''}">
+                <button id="tool-pupils" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('pupils') ? 'btn-disabled opacity-20 grayscale' : ''}">
                     <i class="fa-solid fa-eye"></i> PUPILAS
                 </button>
             `);
@@ -365,6 +400,12 @@ export class UIManager {
         this.elements.npcDisplay.append(avatar);
 
         // Initial Dialogue (Conversation engine)
+        if (npc.history && npc.history.length === 0 && npc.conversation) {
+            const initialNode = npc.conversation.getCurrentNode();
+            if (initialNode) {
+                npc.history.push({ speaker: 'npc', text: initialNode.text });
+            }
+        }
         this.updateDialogueBox(npc);
 
         // Glitch
@@ -377,6 +418,12 @@ export class UIManager {
 
     updateDialogueBox(npc) {
         if (!npc || !npc.conversation) return;
+        
+        // Reset tools animation flag if it's a completely new NPC interaction (no history)
+        if (npc.history && npc.history.length === 0) {
+            npc._toolsAnimated = false;
+        }
+
         const convNode = npc.conversation.getCurrentNode();
         const nodeText = convNode ? convNode.text : '...';
 
@@ -390,7 +437,7 @@ export class UIManager {
         this.elements.dialogue.html(`${nameHtml} <span class="npc-text"></span>`);
         
         // Re-aplicar colores de paranoia al nuevo contenido del diálogo
-        this.updateStats(State.paranoia, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
+        this.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
         
         const textEl = this.elements.dialogue.find('.npc-text');
         this.elements.dialogueOptions.empty();
@@ -428,6 +475,30 @@ export class UIManager {
             this.audio.playSFXByKey(convNode.audio, { volume: 0.5 });
         }
 
+        // Ocultar herramientas inicialmente para sincronizar (si el generador está OK)
+        if (this.elements.inspectionToolsContainer && !npc._toolsAnimated && State.generator.isOn) {
+            this.elements.inspectionToolsContainer.css('opacity', '0');
+        } else if (this.elements.inspectionToolsContainer) {
+            this.elements.inspectionToolsContainer.css('opacity', '1');
+        }
+
+        // Botones de acción (Admitir/Ignorar) y Diálogo siempre visibles
+        if (this.elements.gameActionsContainer) {
+            this.elements.gameActionsContainer.css('opacity', '1');
+        }
+        this.elements.dialogueOptions.css('opacity', '1');
+
+        const showActions = () => {
+            // Animación de entrada solo para las herramientas (si el generador está OK)
+            if (this.elements.inspectionToolsContainer && !npc._toolsAnimated && State.generator.isOn) {
+                this.elements.inspectionToolsContainer.css('opacity', '1').addClass('animate-button-in');
+                npc._toolsAnimated = true;
+                setTimeout(() => this.elements.inspectionToolsContainer.removeClass('animate-button-in'), 400);
+            } else if (this.elements.inspectionToolsContainer) {
+                this.elements.inspectionToolsContainer.css('opacity', '1');
+            }
+        };
+
         const needsMarkup = /\*.*?\*|".*?"|Se dice que|Dicen que|comentaba que/.test(raw);
         if (needsMarkup) {
             parsed = (typeof parseDialogueMarkup === 'function') ? parseDialogueMarkup(raw) : raw;
@@ -435,12 +506,12 @@ export class UIManager {
                 parsed = `<span class="npc-epithet"> ${escapeHtml(epithet)}</span> ` + parsed;
             }
             // Use sequenced rendering that respects actions/speeches/rumors
-            this.typeText(textEl, parsed, 18);
+            this.typeText(textEl, parsed, 18, showActions);
         } else {
             // Plain text: optionally include epithet
             let finalText = raw;
             if (epithet && !raw.includes(epithet)) finalText = `— ${epithet} ${raw}`;
-            this.typeText(textEl, finalText, 18);
+            this.typeText(textEl, finalText, 18, showActions);
         }
 
         // Build option buttons
@@ -455,9 +526,25 @@ export class UIManager {
             }
 
             convNode.options.forEach((opt, idx) => {
+                // Determinar si es un botón de tooltip (inspección)
+                const isTooltip = opt.onclick && (
+                    opt.onclick.name === 'testUV' || 
+                    opt.onclick.name === 'testThermo' || 
+                    opt.onclick.name === 'testPulse' || 
+                    opt.onclick.name === 'testPupils' ||
+                    opt.onclick.name === 'test'
+                );
+
+                const tooltipIcon = isTooltip ? (
+                    opt.onclick.name === 'testThermo' ? 'fa-temperature-half' :
+                    opt.onclick.name === 'testPulse' ? 'fa-heart-pulse' :
+                    opt.onclick.name === 'testPupils' ? 'fa-eye' : 'fa-lightbulb'
+                ) : null;
+
                 const btn = $('<button>', {
-                    class: `horror-btn-dialogue ${opt.cssClass || ''} w-full`,
-                    html: `&gt; ${escapeHtml(opt.label)}`
+                    class: `${isTooltip ? 'horror-tool-btn horror-tool-btn--dialogue' : 'horror-btn-dialogue'} ${opt.cssClass || ''} animate-dialogue-in w-full`,
+                    html: `${tooltipIcon ? `<i class="fa-solid ${tooltipIcon}"></i>` : '&gt; '} ${escapeHtml(opt.label)}`,
+                    style: `animation-delay: ${idx * 0.1}s`
                 });
 
                 btn.on('click', () => {
@@ -465,18 +552,21 @@ export class UIManager {
                     npc.dialogueStarted = true;
 
                     // Riesgo de degradación de seguridad durante el diálogo
-                    if (window.game && typeof window.game.checkSecurityDegradation === 'function') {
-                        window.game.checkSecurityDegradation();
+                    const game = this.game || window.game;
+                    if (game && game.mechanics && typeof game.mechanics.checkSecurityDegradation === 'function') {
+                        game.mechanics.checkSecurityDegradation();
                     }
 
                     // Registrar evidencia en bitácora si la opción lo requiere
                     if (opt.log) {
                         State.addLogEntry('evidence', opt.log.text, { icon: opt.log.icon });
+                        this.setNavItemStatus('btn-open-log', 2);
                     }
 
-                    // Log choice to NPC history
+                    // Log choice to NPC history - Filtrar acciones (*texto*) para el historial
                     if (!npc.history) npc.history = [];
-                    npc.history.push(`> ${opt.label}`);
+                    const cleanLabel = opt.label.replace(/\*.*?\*/g, '').trim();
+                    npc.history.push({ speaker: 'user', text: `> ${cleanLabel}` });
 
                     // Play optional sfx tied to option
                     if (opt.audio && this.audio) this.audio.playSFXByKey(opt.audio, { volume: 0.6 });
@@ -484,7 +574,7 @@ export class UIManager {
                     // Execute custom onclick if defined
                     if (opt.onclick) {
                         try {
-                            opt.onclick();
+                            opt.onclick(this.game || window.game);
                         } catch (e) {
                             console.warn("Dialogue onclick failed:", e);
                         }
@@ -506,6 +596,9 @@ export class UIManager {
                         if (res.message) {
                             const parsedMsg = (typeof parseDialogueMarkup === 'function') ? parseDialogueMarkup(res.message) : res.message;
                             this.typeText(textEl, parsedMsg, 18);
+                            // Filtrar acciones (*texto*) para el historial
+                            const cleanMsg = res.message.replace(/\*.*?\*/g, '').trim();
+                            if (cleanMsg) npc.history.push({ speaker: 'npc', text: cleanMsg });
                         }
                         // update inspection tools after final choice
                         this.updateInspectionTools();
@@ -514,6 +607,13 @@ export class UIManager {
 
                     // Otherwise render the next node
                     this.updateDialogueBox(npc);
+                    
+                    const nextNode = npc.conversation.getCurrentNode();
+                    if (nextNode) {
+                        // Filtrar acciones (*texto*) para el historial
+                        const cleanNext = nextNode.text.replace(/\*.*?\*/g, '').trim();
+                        if (cleanNext) npc.history.push({ speaker: 'npc', text: cleanNext });
+                    }
 
                     // Slight VHS effect if paranoia high
                     if (State.paranoia > 70) this.applyVHS(0.6, 600);
@@ -561,21 +661,42 @@ export class UIManager {
         this.elements.dialogueOptions.empty();
         
         // Actualizar estadísticas HUD
-        this.updateStats(State.paranoia, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
+        this.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
     }
 
-    typeText(el, text, speed = 20) {
+    typeText(el, text, speed = 20, onComplete = null) {
         // Cancel any ongoing typing
         if (this.typingTimer) {
             cancelAnimationFrame(this.typingTimer);
             this.typingTimer = null;
         }
 
+        const stopTypingSFX = () => {
+            if (this.typingAudio) {
+                try {
+                    this.typingAudio.pause();
+                    this.typingAudio.currentTime = 0;
+                } catch (e) { }
+                this.typingAudio = null;
+            }
+        };
+
+        const finish = () => {
+            this.typingTimer = null;
+            stopTypingSFX();
+            if (onComplete) onComplete();
+        };
+
+        // Stop any previous typing audio
+        stopTypingSFX();
+
+        // Handle typing SFX as a loop
+        if (this.audio) {
+            this.typingAudio = this.audio.playSFXByKey('ui_dialogue_type', { volume: 0.3, loop: true, lockMs: 0 });
+        }
+
         // Helper to detect if the incoming text is HTML (from parseDialogueMarkup)
         const containsHtml = /<[^>]+>/.test(text);
-
-        // If there's an audio manager, start the typing sfx (long sfx may need to be stopped on finish)
-        if (this.audio) this.audio.playSFXByKey('ui_dialogue_type', { volume: 0.4 });
 
         // If text is plain (no markup), keep the old behaviour (char-by-char)
         if (!containsHtml) {
@@ -591,11 +712,7 @@ export class UIManager {
                     i++;
                 }
                 if (i >= text.length) {
-                    this.typingTimer = null;
-                    // Stop typing sfx when finished
-                    if (this.audio && this.audio.channels && this.audio.channels.sfx) {
-                        try { this.audio.channels.sfx.pause(); this.audio.log && this.audio.log('[sfx] typing paused'); } catch (e) { }
-                    }
+                    finish();
                     return;
                 }
                 this.typingTimer = requestAnimationFrame(step);
@@ -757,11 +874,7 @@ export class UIManager {
             }
 
             if (tokenIdx >= tokens.length) {
-                this.typingTimer = null;
-                // Stop typing sfx
-                if (this.audio && this.audio.channels && this.audio.channels.sfx) {
-                    try { this.audio.channels.sfx.pause(); this.audio.log && this.audio.log('[sfx] typing paused'); } catch (e) { }
-                }
+                finish();
                 return;
             }
 
@@ -820,6 +933,17 @@ export class UIManager {
 
         // Enable/Disable escape button
         $('#btn-night-escape').prop('disabled', !isFull);
+
+        // Hide manage option if already purged
+        if (state.nightPurgePerformed) {
+            $('#btn-night-shelter').addClass('hidden');
+            $('#screen-night .grid').removeClass('sm:grid-cols-2').addClass('sm:grid-cols-1 max-w-sm');
+        } else {
+            $('#btn-night-shelter').removeClass('hidden');
+            $('#screen-night .grid').addClass('sm:grid-cols-2').removeClass('sm:grid-cols-1 max-w-sm');
+        }
+
+        $('#btn-finalize-day-no-purge').addClass('hidden');
         
         this.showScreen('night');
     }
@@ -827,7 +951,11 @@ export class UIManager {
     showFeedback(text, color = 'yellow') {
         const colorMap = {
             'yellow': 'text-warning',
+            'warning': 'text-warning',
             'red': 'text-alert',
+            'alert': 'text-alert',
+            'green': 'text-green-400',
+            'success': 'text-green-400',
             '#aaffaa': 'text-green-400'
         };
 
@@ -928,7 +1056,10 @@ export class UIManager {
                     class: 'horror-btn horror-btn-alert px-3 py-2 text-xs flex items-center justify-center gap-2 animate-pulse mt-2 w-full',
                     html: '<i class="fa-solid fa-bolt"></i> IR AL GENERADOR'
                 }).on('click', () => {
-                    if (window.game) window.game.openGenerator();
+                    const game = this.game || window.game;
+                    if (game && game.events && typeof game.events.navigateToGenerator === 'function') {
+                        game.events.navigateToGenerator();
+                    }
                 });
                 testsPanel.append(btn);
             }
@@ -1108,6 +1239,9 @@ export class UIManager {
         const container = this.elements.logContainer;
         container.empty();
 
+        // Al abrir la bitácora, quitamos la animación de notificación
+        this.setNavItemStatus('btn-open-log', null);
+
         if (!state.gameLog || state.gameLog.length === 0) {
             container.append($('<div>', { class: 'text-gray-500 italic text-center p-4', text: 'Sin registros disponibles.' }));
             return;
@@ -1123,8 +1257,11 @@ export class UIManager {
                     entry.type === 'system' ? 'fa-terminal' : 'fa-pen';
             }
 
+            const isNew = entry.isNew ? 'log-entry-new' : '';
+            if (entry.isNew) delete entry.isNew;
+
             const html = `
-                <div class="log-entry ${typeClass}">
+                <div class="log-entry ${typeClass} ${isNew} animate__animated animate__fadeInUp animate__faster">
                     <div class="log-meta flex justify-between">
                         <span><i class="fa-solid ${icon} mr-1"></i> CICLO ${entry.cycle} // HORA ${entry.dayTime}</span>
                     </div>
@@ -1134,7 +1271,7 @@ export class UIManager {
             container.append(html);
         });
 
-        // Auto-scroll al final para ver lo más nuevo (ya que el orden es cronológico)
+        // Auto-scroll al final
         container.scrollTop(container[0].scrollHeight);
     }
 
@@ -1174,8 +1311,7 @@ export class UIManager {
     }
 
     clearAllNavStatuses() {
-        const navItems = ['nav-guard', 'nav-room', 'nav-shelter', 'nav-morgue', 'nav-generator', 'btn-open-log'];
-        navItems.forEach(id => this.setNavItemStatus(id, null));
+        Object.values(CONSTANTS.NAV_ITEMS).forEach(id => this.setNavItemStatus(id, null));
     }
 
     // Modal management delegators
@@ -1257,8 +1393,12 @@ export class UIManager {
         });
         
         $('#btn-relocate-cancel').off('click').on('click', () => {
-            $('#modal-relocate').addClass('hidden').removeClass('flex');
+            this.closeRelocationModal();
         });
+    }
+
+    closeRelocationModal() {
+        $('#modal-relocate').addClass('hidden').removeClass('flex');
     }
 
     closeModal(silent = false) {
@@ -1295,19 +1435,66 @@ export class UIManager {
         requestAnimationFrame(step);
     }
 
-    setNavLocked(locked) {
+    setNavStatus(level) {
+        if (!this.elements.sidebar) return;
+        const el = this.elements.sidebar;
+        el.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5');
+        if (level) {
+            el.addClass(`status-level-${level}`);
+            el.attr('data-status', level);
+        } else {
+            el.removeAttr('data-status');
+        }
+    }
+
+    setNavItemStatus(navId, level) {
+        const btn = $(`#${navId}`);
+        if (!btn.length) return;
+        
+        // Clear any global sidebar status to prefer per-item indicators
+        if (this.elements.sidebar) {
+            this.elements.sidebar.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5');
+            this.elements.sidebar.removeAttr('data-status');
+        }
+
+        // Si es el botón de log, manejar la animación específica
+        if (navId === 'btn-open-log') {
+            if (level === 2) {
+                btn.addClass('log-notify-active');
+            } else {
+                btn.removeClass('log-notify-active');
+            }
+        }
+
+        btn.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5');
+        if (level) {
+            btn.addClass(`status-level-${level}`);
+            btn.attr('data-status', level);
+        } else {
+            btn.removeAttr('data-status');
+        }
+        // Ensure icons take current color (clear any inline color)
+        btn.find('i').css('color', '');
+    }
+
+    clearAllNavStatuses() {
         const navItems = ['nav-guard', 'nav-room', 'nav-shelter', 'nav-morgue', 'nav-generator', 'btn-open-log'];
-        navItems.forEach(id => {
+        navItems.forEach(id => this.setNavItemStatus(id, null));
+    }
+
+    setNavLocked(locked) {
+        State.navLocked = locked;
+        Object.values(CONSTANTS.NAV_ITEMS).forEach(id => {
             const $el = $(`#${id}`);
             if (locked) {
                 // Durante el bloqueo en la noche (gestión de refugio), solo permitimos interactuar con el refugio
-                if (id === 'nav-shelter' && State.isNight) {
-                    $el.prop('disabled', false).removeClass('opacity-40 grayscale pointer-events-none').addClass('active');
+                if (id === CONSTANTS.NAV_ITEMS.SHELTER && State.isNight) {
+                    $el.prop('disabled', false).removeClass('nav-locked').addClass('active');
                 } else {
-                    $el.prop('disabled', true).addClass('opacity-40 grayscale pointer-events-none transition-all duration-300');
+                    $el.prop('disabled', true).addClass('nav-locked').removeClass('active');
                 }
             } else {
-                $el.prop('disabled', false).removeClass('opacity-40 grayscale pointer-events-none active');
+                $el.prop('disabled', false).removeClass('nav-locked active');
             }
         });
         
@@ -1344,186 +1531,18 @@ export class UIManager {
     }
 
     animateToolThermometer(value, container = null, isInfected = null) {
-        if (!container) container = this.elements.npcDisplay;
-        if (isInfected === null) {
-            isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
-        }
-        container.css('position', 'relative');
-        container.find('.tool-thermo').remove();
-        const overlay = $('<div>', { class: 'tool-thermo', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
-        const tube = $('<div>', { css: { width: '20px', height: '120px', background: '#0a0a0a', border: '1px solid #555', position: 'relative', boxShadow: 'inset 0 0 8px #000' } });
-
-        // Colores dinámicos basados en infección (cloro)
-        const fillColor = value < 35
-            ? (isInfected ? State.colors.chlorineSutil : State.colors.safe)
-            : (isInfected ? State.colors.chlorineLight : '#a83232');
-
-        const fill = $('<div>', { css: { position: 'absolute', bottom: '0px', left: 0, width: '100%', height: '0%', background: fillColor, filter: isInfected ? `drop-shadow(0 0 4px ${State.colors.chlorineSutil})` : 'none' } });
-        const ticks = $('<div>', { css: { position: 'absolute', inset: 0 } });
-        for (let i = 0; i <= 6; i++) {
-            ticks.append($('<div>', { css: { position: 'absolute', left: '20px', bottom: `${i * 20}px`, width: '10px', height: '1px', background: '#444' } }));
-        }
-        tube.append(fill, ticks);
-        overlay.append(tube);
-        container.append(overlay);
-        const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-        const target = Math.max(0, Math.min(100, Math.round((value / 45) * 100)));
-        const step = (now) => {
-            const t = Math.min(1, (now - start) / 1800);
-            const h = Math.floor(target * t);
-            fill.css('height', `${h}%`);
-            if (t < 1) requestAnimationFrame(step);
-        };
-        requestAnimationFrame(step);
-        if (isInfected) {
-            const bubbleLayer = $('<div>', { css: { position: 'absolute', inset: 0, overflow: 'hidden' } });
-            overlay.append(bubbleLayer);
-            const bubbles = [];
-            for (let i = 0; i < 6; i++) {
-                const b = $('<div>', { css: { position: 'absolute', bottom: '0', left: `${2 + Math.random() * 14}px`, width: '3px', height: '3px', background: '#2d5a27', borderRadius: '50%', opacity: 0.0 } });
-                bubbles.push(b);
-                bubbleLayer.append(b);
-            }
-            const bStart = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-            const bStep = (now) => {
-                const elapsed = now - bStart;
-                bubbles.forEach((b, idx) => {
-                    const y = (elapsed / 12 + idx * 20) % 120;
-                    b.css({ bottom: `${y}px`, opacity: y > 20 ? 0.25 : 0.0 });
-                });
-                if (elapsed < 2000) requestAnimationFrame(bStep);
-            };
-            requestAnimationFrame(bStep);
-        }
-        setTimeout(() => overlay.remove(), 2200);
+        this.toolsRenderer.animateToolThermometer(value, container, isInfected);
     }
 
     animateToolPupils(type = 'normal', container = null, isInfected = false) {
-        if (!container) container = this.elements.npcDisplay;
-
-        if (!container || (container.jquery && container.length === 0)) {
-            console.error("animateToolPupils Error: Contenedor de animación no encontrado o inválido.", container);
-            return;
-        }
-
-        container.css('position', 'relative');
-
-        // Limpiar animaciones previas
-        container.find('.pupil-overlay-local').remove();
-
-        const pingColor = isInfected ? 'border-chlorine/30' : 'border-white/20';
-
-        const overlay = $('<div>', {
-            class: 'pupil-overlay-local absolute inset-0 z-20 flex items-center justify-center bg-black/40',
-            html: `
-                <div class="pupil-eye-container relative scale-0 transition-transform duration-500">
-                    <div class="giant-eye border-4 border-white/20 rounded-full w-48 h-48 flex items-center justify-center overflow-hidden bg-black shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-                        <div class="giant-pupil w-24 h-24 rounded-full transition-all duration-700" style="background: #4a2610;"></div>
-                    </div>
-                    <div class="absolute inset-0 border-2 ${pingColor} rounded-full animate-ping"></div>
-                </div>
-            `
-        });
-
-        container.append(overlay);
-        const eyeContainer = overlay.find('.pupil-eye-container');
-        const pupil = overlay.find('.giant-pupil');
-
-        // Reset pupila
-        pupil.css({ width: '40px', height: '40px' });
-
-        // Animación de aparición
-        setTimeout(() => {
-            eyeContainer.removeClass('scale-0').addClass('scale-100');
-
-            // Reacción de la pupila
-            setTimeout(() => {
-                const size = type === 'dilated' ? '42px' : '40px';
-                pupil.css({ width: size, height: size });
-
-                // Efecto de parpadeo/reacción - Solo cambia a verde si está infectado Y tiene anomalía (dilatadas)
-                if (isInfected && type === 'dilated') {
-                    pupil.addClass('animate-pulse');
-                    // Gradiente de marrón a verde cloro fluorescente
-                    pupil.css('background', 'radial-gradient(circle, #4a2610 0%, #3bd853 100%)');
-                } else {
-                    // Reacción normal o infectado sin anomalía visual en pupila: se mantiene marrón
-                    pupil.css('background', '#4a2610');
-                }
-            }, 600);
-        }, 50);
-
-        // Desvanecimiento
-        setTimeout(() => {
-            eyeContainer.removeClass('scale-100').addClass('scale-0');
-            setTimeout(() => {
-                overlay.remove();
-                pupil.removeClass('animate-pulse').css('background', '#3b0707');
-            }, 500);
-        }, 2200);
+        this.toolsRenderer.animateToolPupils(type, container, isInfected);
     }
 
-    animateToolFlashlight(skinTexture, container = null) {
-        if (!container) container = this.elements.npcDisplay;
-        container.css('position', 'relative');
-        container.find('.tool-flash').remove();
-        const flash = $('<div>', { class: 'tool-flash', css: { position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.18)', mixBlendMode: 'screen', pointerEvents: 'none', zIndex: 10 } });
-        container.append(flash);
-        const avatar = container.find('.pixel-avatar');
-        
-        // Guardar estado actual y aplicar estado UV
-        const currentModifier = avatar.attr('class').split(' ').find(c => c.startsWith('state-')) || 'state-normal';
-        avatar.removeClass(currentModifier).addClass('state-uv');
-        
-        setTimeout(() => {
-            flash.remove();
-            // Restaurar estado previo
-            avatar.removeClass('state-uv').addClass(currentModifier);
-        }, 900);
+    animateToolFlashlight(skinTexture, container = null, isInfected = null) {
+        this.toolsRenderer.animateToolFlashlight(skinTexture, container, isInfected);
     }
 
     animateToolPulse(bpm, container = null, isInfected = null) {
-        if (!container) container = this.elements.npcDisplay;
-        if (isInfected === null) {
-            isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
-        }
-        container.css('position', 'relative');
-        container.find('.tool-pulse').remove();
-        const overlay = $('<div>', { class: 'tool-pulse', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
-        const svg = $(document.createElementNS('http://www.w3.org/2000/svg', 'svg')).attr({ width: 220, height: 40 });
-
-        // Color de pulso: verde sutil si es cloro
-        const strokeColor = isInfected ? State.colors.chlorineSutil : State.colors.safe;
-
-        const path = $(document.createElementNS('http://www.w3.org/2000/svg', 'path')).attr({ d: 'M0 20 L20 20 L25 10 L30 30 L35 20 L220 20', stroke: strokeColor, 'stroke-width': 2, fill: 'none' });
-        path.css({ filter: `drop-shadow(0 0 4px ${strokeColor})`, transform: isInfected ? 'scaleY(1.08)' : 'none', transformOrigin: 'center' });
-        svg.append(path);
-        if (isInfected) {
-            const pathGhost = $(document.createElementNS('http://www.w3.org/2000/svg', 'path')).attr({ d: 'M0 20 L20 20 L25 11 L30 29 L35 20 L220 20', stroke: '#79ff79', 'stroke-width': 1, fill: 'none', opacity: 0.3 });
-            svg.append(pathGhost);
-        }
-        const dash = 260;
-        path.attr({ 'stroke-dasharray': dash, 'stroke-dashoffset': dash });
-        overlay.append(svg);
-        container.append(overlay);
-        const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-        const baseInterval = Math.max(280, Math.min(900, Math.round(60000 / Math.max(40, Math.min(160, bpm)))));
-        let lastBeat = start;
-        const step = (now) => {
-            const elapsedSinceBeat = now - lastBeat;
-            const t = Math.min(1, (now - start) / 2400);
-            const offset = dash * (1 - t);
-            path.attr({ 'stroke-dashoffset': offset });
-            const variance = isInfected ? (Math.random() * 120 - 60) : 0;
-            const intervalMs = Math.max(240, baseInterval + variance);
-            if (elapsedSinceBeat >= intervalMs) {
-                svg.css('opacity', 0.9);
-                setTimeout(() => svg.css('opacity', 1), 120);
-                lastBeat = now;
-            }
-            if (t < 1) requestAnimationFrame(step);
-        };
-        requestAnimationFrame(step);
-        setTimeout(() => overlay.remove(), 2600);
+        this.toolsRenderer.animateToolPulse(bpm, container, isInfected);
     }
 }

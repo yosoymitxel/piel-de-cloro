@@ -38,6 +38,9 @@ beforeEach(() => {
 
 test('setNavItemStatus applies per-item class and removes global sidebar status', () => {
     const ui = Object.create(UIManager.prototype);
+    ui.elements = {
+        sidebar: $('#sidebar-left')
+    };
 
     // Simulate a pre-existing global sidebar alert
     const sidebar = $('#sidebar-left');

@@ -148,3 +148,5 @@ obj/
 *.userosscache
 *.sln.docstates
 node_modules/
+migrable/
+MAPEO_DEPENDENCIAS.md

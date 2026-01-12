@@ -6,18 +6,37 @@ export class AudioManager {
             lore: this.createChannel({ loop: true, volume: 0.25 }),
             sfx: this.createChannel({ loop: false, volume: 0.6 })
         };
+        this.sfxPool = []; // Pool for overlapping SFX
+        this.maxPoolSize = 10;
         this.unlocked = false;
         this.fadeTimers = {};
         this.logs = [];
-        this.enableConsole = false; // Desactivado temporalmente
+        this.enableConsole = false; 
         this.desiredPlay = { ambient: false, lore: false, sfx: false };
         this.ctx = null;
         this.manifest = {};
+        this.preloadedAssets = {}; // Cache for preloaded audio blobs or objects
         this.levels = { ambient: 0.3, lore: 0.25, sfx: 0.6 };
+        this.mutedChannels = { ambient: false, lore: false, sfx: false };
         this.sfxLockUntil = 0;
         this.sfxPriority = 0;
         this.attachDiagnostics();
     }
+
+    _clampVolume(v) {
+        if (typeof v !== 'number' || !Number.isFinite(v)) return 0;
+        return Math.max(0, Math.min(1, v));
+    }
+
+    _safeSetVolume(audio, v) {
+        if (!audio) return;
+        try {
+            audio.volume = this._clampVolume(v);
+        } catch (e) {
+            // Silently fail to prevent crash
+        }
+    }
+
     createChannel({ loop = false, volume = 1.0 } = {}) {
         const audio = new Audio();
         audio.loop = loop;
@@ -25,6 +44,61 @@ export class AudioManager {
         audio.crossOrigin = 'anonymous';
         audio.volume = 0;
         return audio;
+    }
+
+    /**
+     * Preloads all audio assets from the manifest.
+     * Returns a promise that resolves when all are loaded or fail.
+     */
+    async preloadAll(onProgress) {
+        const entries = Object.entries(this.manifest);
+        const total = entries.length;
+        let loaded = 0;
+
+        if (total === 0) {
+            if (onProgress) onProgress(1);
+            return;
+        }
+
+        this.log('starting preload', { total });
+
+        const promises = entries.map(async ([key, url]) => {
+            try {
+                // If already preloaded (or attempted), skip
+                if (this.preloadedAssets[key]) {
+                    loaded++;
+                    if (onProgress) onProgress(loaded / total);
+                    return;
+                }
+
+                const audio = new Audio();
+                audio.src = url;
+                audio.preload = 'auto';
+                
+                await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => reject(new Error('timeout')), 10000);
+                    audio.oncanplaythrough = () => {
+                        clearTimeout(timeout);
+                        resolve();
+                    };
+                    audio.onerror = () => {
+                        clearTimeout(timeout);
+                        reject(new Error('load error'));
+                    };
+                    audio.load();
+                });
+
+                this.preloadedAssets[key] = url; // Mark as loaded
+            } catch (e) {
+                this.log(`failed to preload ${key}`, { error: e.message });
+            } finally {
+                loaded++;
+                if (onProgress) onProgress(loaded / total);
+            }
+        });
+
+        await Promise.all(promises);
+        this.log('preload finished', { loaded, total });
     }
     attachDiagnostics() {
         Object.entries(this.channels).forEach(([name, audio]) => {
@@ -129,10 +203,16 @@ export class AudioManager {
     }
     setChannelLevel(name, v) {
         if (!this.levels[name]) this.levels[name] = 0.3;
-        this.levels[name] = Math.max(0, Math.min(1, v));
+        this.levels[name] = this._clampVolume(v);
         if (this.channels[name]) {
-            this.channels[name].volume = this.levels[name] * this.master;
+            const effectiveVolume = this.mutedChannels[name] ? 0 : this.levels[name] * this.master;
+            this._safeSetVolume(this.channels[name], effectiveVolume);
         }
+    }
+    muteChannel(name, isMuted) {
+        if (this.mutedChannels[name] === undefined) return;
+        this.mutedChannels[name] = isMuted;
+        this.setChannelLevel(name, this.levels[name]);
     }
     unlock() {
         if (this.unlocked) return;
@@ -146,10 +226,11 @@ export class AudioManager {
         }
     }
     setMasterVolume(v) {
-        this.master = Math.max(0, Math.min(1, v));
-        this.channels.ambient.volume = this.levels.ambient * this.master;
-        this.channels.lore.volume = this.levels.lore * this.master;
-        this.channels.sfx.volume = this.levels.sfx * this.master;
+        this.master = this._clampVolume(v);
+        // Refresh all channels to respect master volume and mute states
+        this.setChannelLevel('ambient', this.levels.ambient);
+        this.setChannelLevel('lore', this.levels.lore);
+        this.setChannelLevel('sfx', this.levels.sfx);
     }
     playAmbient(src, { loop = true, volume = 0.3, fadeIn = 0 } = {}) {
         if (this.desiredPlay.lore) this.stopLore(Math.max(200, fadeIn));
@@ -157,65 +238,133 @@ export class AudioManager {
         const ch = this.channels.ambient;
         ch.loop = loop;
         if (ch.src !== src) ch.src = src;
+        
+        const targetVol = this._clampVolume(volume);
+        this.levels.ambient = targetVol;
+        
+        // Always calculate effective volume respecting master and mute
+        const effectiveVolume = this.mutedChannels.ambient ? 0 : targetVol * this.master;
+
         if (fadeIn > 0) {
-            ch.volume = 0;
+            this._safeSetVolume(ch, 0);
             ch.play().then(() => this.log('[ambient] play ok')).catch(e => this.log('[ambient] play failed', { error: e?.message }));
-            this.fade(ch, Math.max(0, Math.min(1, volume)) * this.master, fadeIn, 'ambient');
-            this.levels.ambient = Math.max(0, Math.min(1, volume));
+            this.fade(ch, effectiveVolume, fadeIn, 'ambient');
         } else {
-            ch.volume = Math.max(0, Math.min(1, volume)) * this.master;
+            this._safeSetVolume(ch, effectiveVolume);
             ch.play().then(() => this.log('[ambient] play ok')).catch(e => this.log('[ambient] play failed', { error: e?.message }));
-            this.levels.ambient = Math.max(0, Math.min(1, volume));
         }
     }
     playAmbientByKey(key, opts = {}) {
         return this.playAmbient(this.getUrl(key), opts);
     }
     duckAmbient(target = 0.15, ms = 400) {
-        this.fade(this.channels.ambient, Math.max(0, Math.min(1, target)) * this.master, ms, 'ambient');
+        const effectiveTarget = this.mutedChannels.ambient ? 0 : Math.max(0, Math.min(1, target)) * this.master;
+        this.fade(this.channels.ambient, effectiveTarget, ms, 'ambient');
     }
-    unduckAmbient(ms = 400, restore = 0.3) {
+    unduckAmbient(ms = 400, restore = null) {
+        if (restore === null) restore = this.levels.ambient;
         this.ensureAmbientPlaying();
-        this.fade(this.channels.ambient, Math.max(0, Math.min(1, restore)) * this.master, ms, 'ambient');
+        const effectiveRestore = this.mutedChannels.ambient ? 0 : Math.max(0, Math.min(1, restore)) * this.master;
+        this.fade(this.channels.ambient, effectiveRestore, ms, 'ambient');
     }
-    playLore(src, { loop = true, volume = 0.25, crossfade = 600 } = {}) {
-        this.stopAmbient(Math.max(200, crossfade));
+    playLore(src, { loop = true, volume = 0.25, crossfade = 600, duckAmbient = true, duckTarget = 0.05 } = {}) {
+        if (duckAmbient) {
+            this.duckAmbient(duckTarget, crossfade);
+        } else {
+            this.stopAmbient(Math.max(200, crossfade));
+        }
+        
         this.desiredPlay.lore = true;
         const ch = this.channels.lore;
         ch.loop = loop;
         if (ch.src !== src) ch.src = src;
-        ch.volume = 0;
+        
+        const targetVol = this._clampVolume(volume);
+        this.levels.lore = targetVol;
+
+        // Always calculate effective volume respecting master and mute
+        const effectiveVolume = this.mutedChannels.lore ? 0 : targetVol * this.master;
+
+        this._safeSetVolume(ch, 0);
         ch.play().then(() => this.log('[lore] play ok')).catch(e => this.log('[lore] play failed', { error: e?.message }));
-        this.fade(ch, Math.max(0, Math.min(1, volume)) * this.master, crossfade, 'lore');
-        this.levels.lore = Math.max(0, Math.min(1, volume));
+        this.fade(ch, effectiveVolume, crossfade, 'lore');
     }
     playLoreByKey(key, opts = {}) {
         return this.playLore(this.getUrl(key), opts);
     }
-    stopLore({ fadeOut = 400 } = {}) {
+    stopLore({ fadeOut = 400, unduckAmbient = true } = {}) {
         const ch = this.channels.lore;
-        this.fade(ch, 0, fadeOut, 'lore', () => { ch.pause(); this.log('[lore] paused'); });
+        this.fade(ch, 0, fadeOut, 'lore', () => { 
+            ch.pause(); 
+            this.log('[lore] paused'); 
+            if (unduckAmbient) {
+                this.unduckAmbient(fadeOut, this.levels.ambient);
+            }
+        });
         this.desiredPlay.lore = false;
     }
-    playSFX(src, { volume = 0.6, rate = 1.0, priority = 0, lockMs = 300 } = {}) {
-        // Interrupt previous short SFX to avoid overlap on rapid clicks
-        const ch = this.channels.sfx;
+    stopAllSFX(includeLooping = false) {
+        this.sfxPool.forEach(ch => {
+            if (includeLooping || !ch.loop) {
+                ch.pause();
+                ch.currentTime = 0;
+            }
+        });
+        this.log('all sfx stopped', { includeLooping });
+    }
+    playSFX(src, { volume = 0.6, rate = 1.0, priority = 0, lockMs = 100, loop = false } = {}) {
         const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        
+        // Priority system: if a sound is locked and the new one has lower priority, skip
         if (now < this.sfxLockUntil && priority < this.sfxPriority) {
-            this.log('[sfx] suppressed by lock', { until: this.sfxLockUntil, priority });
-            return;
+            return null;
         }
-        if (ch && !ch.paused) { try { ch.pause(); } catch {} }
+
+        if (this.mutedChannels.sfx) return null;
+
+        // CUTOFF LOGIC: Si este es un SFX estándar (no en bucle),
+        // detenemos todos los demás SFX que se estén reproduciendo para evitar solapamientos.
+        if (!loop) {
+            this.stopAllSFX(true); // Detener TODO, incluidos bucles cortos como el typewriter
+        }
+
         this.sfxPriority = priority;
-        this.sfxLockUntil = now + Math.max(50, lockMs);
-        this.desiredPlay.sfx = true;
+        this.sfxLockUntil = now + lockMs;
+
+        // Try to find an available audio object in the pool
+        let ch = this.sfxPool.find(a => a.paused);
+        
+        if (!ch && this.sfxPool.length < this.maxPoolSize) {
+            ch = new Audio();
+            ch.crossOrigin = 'anonymous';
+            this.sfxPool.push(ch);
+        }
+
+        // If pool is full and all are playing, use the oldest non-looping one
+        if (!ch) {
+            ch = this.sfxPool.find(a => !a.loop) || this.sfxPool[0];
+            ch.pause();
+            ch.currentTime = 0;
+        }
+
         ch.src = src;
+        ch.loop = loop;
         ch.playbackRate = rate;
-        ch.volume = Math.max(0, Math.min(1, volume)) * this.master;
+        this._safeSetVolume(ch, this._clampVolume(volume) * this.master);
         ch.currentTime = 0;
-        ch.play().then(() => this.log('[sfx] play ok')).catch(e => this.log('[sfx] play failed', { error: e?.message }));
-        setTimeout(() => { this.desiredPlay.sfx = false; }, 300);
-        this.levels.sfx = Math.max(0, Math.min(1, volume));
+        
+        // Play with error handling
+        const playPromise = ch.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => {
+                // Ignore AbortError which happens when sound is cut off immediately
+                if (e.name !== 'AbortError') {
+                    this.log('[sfx] play failed', { error: e.message, src });
+                }
+            });
+        }
+        
+        return ch;
     }
     playSFXByKey(key, opts = {}) {
         return this.playSFX(this.getUrl(key), opts);
@@ -232,9 +381,29 @@ export class AudioManager {
         const key = map[name] || name;
         return this.playSFXByKey(key, opts);
     }
+
+    /**
+     * Detiene todos los efectos de sonido en el pool.
+     * @param {boolean} includeLooping - Si es true, también detiene los sonidos en bucle (como typewriter).
+     */
+    stopAllSFX(includeLooping = false) {
+        this.sfxPool.forEach(ch => {
+            if (includeLooping || !ch.loop) {
+                ch.pause();
+                ch.currentTime = 0;
+            }
+        });
+    }
+
     fade(audio, target, ms, key, onDone) {
         if (!audio) return;
-        target = Math.max(0, Math.min(1, target));
+        target = this._clampVolume(target);
+        
+        // Validación robusta de ms para evitar división por NaN/0
+        if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) {
+            ms = 300; 
+        }
+
         const start = audio.volume || 0;
         const delta = target - start;
         const token = { cancel: false, id: null };
@@ -246,9 +415,9 @@ export class AudioManager {
         const step = (now) => {
             if (token.cancel) return;
             const t = Math.max(0, Math.min(1, (now - startTime) / Math.max(1, ms)));
-            audio.volume = start + delta * t;
+            this._safeSetVolume(audio, start + delta * t);
             if (t >= 1) {
-                audio.volume = target;
+                this._safeSetVolume(audio, target);
                 this.fadeTimers[key] = null;
                 if (onDone) onDone();
                 return;

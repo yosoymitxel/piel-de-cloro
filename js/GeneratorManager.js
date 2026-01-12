@@ -1,7 +1,8 @@
 export class GeneratorManager {
-    constructor(uiManager, audioManager) {
+    constructor(uiManager, audioManager, game = null) {
         this.ui = uiManager;
         this.audio = audioManager;
+        this.game = game;
         this.elements = uiManager.elements;
     }
 
@@ -27,7 +28,7 @@ export class GeneratorManager {
         // Refresh game actions to restore normal buttons
         this.ui.updateGameActions();
         this.ui.updateInspectionTools();
-        this.ui.updateStats(state.paranoia, state.cycle, state.dayTime, state.config.dayLength, state.currentNPC);
+        this.ui.updateStats(state.paranoia, state.sanity, state.cycle, state.dayTime, state.config.dayLength, state.currentNPC);
 
         const bar = this.elements.generatorPowerBar;
         const modeLabel = this.elements.generatorModeLabel;
@@ -61,8 +62,9 @@ export class GeneratorManager {
             if (isLocked) return;
 
             // Delegar al controlador del juego para manejar efectos secundarios (apagado de seguridad, audio, etc.)
-            if (window.game && typeof window.game.toggleGenerator === 'function') {
-                window.game.toggleGenerator();
+            const game = this.game || window.game;
+            if (game && game.mechanics && typeof game.mechanics.toggleGenerator === 'function') {
+                game.mechanics.toggleGenerator();
             }
         });
     }

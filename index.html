@@ -85,7 +85,7 @@
                 </div>
                 <div class="flex flex-col gap-4 w-full max-w-[300px] mt-8">
                     <button id="btn-start-game" class="horror-btn horror-btn-primary p-6 text-2xl group relative overflow-hidden">
-                        <span class="relative z-10">INICIAR TURNO</span>
+                        <span class="relative z-10" id="btn-start-game-text">INICIAR PARTIDA</span>
                         <div class="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform"></div>
                     </button>
                     
@@ -110,6 +110,8 @@
                     <div class="flex gap-6 items-center ">
                         <span title="Nivel de Paranoia"><i class="fa-solid fa-brain text-chlorine"></i> <span
                                 id="paranoia-level" class="text-chlorine-light font-bold">0%</span></span>
+                        <span title="Salud Mental" class="ml-4"><i class="fa-solid fa-heart-pulse text-rose-500"></i> <span
+                                id="sanity-level" class="text-rose-300 font-bold">100%</span></span>
                         <span id="hud-energy-container" class="cursor-pointer hover:text-white transition-colors"
                             title="Energía de Escaneo"><i class="fa-solid fa-bolt text-cyan-400"></i> <span
                                 id="scan-energy" class="text-cyan-400 text-glow">⚡⚡</span></span>
@@ -140,7 +142,7 @@
                     <!-- Floating Log Button -->
                     <div id="btn-bitacora" class="absolute right-6 top-[80%] -translate-y-1/2 z-30">
                         <button id="btn-open-log"
-                            class="horror-btn w-12 h-12 rounded-full flex items-center justify-center border-chlorine text-chlorine hover:bg-chlorine hover:text-black transition-all shadow-[0_0_15px_rgba(45,90,39,0.5)]"
+                            class="horror-btn w-12 h-12 rounded-full flex items-center justify-center border-chlorine text-chlorine hover:bg-chlorine hover:text-black transition-all"
                             title="Abrir Bitácora">
                             <i class="fa-solid fa-book-journal-whills text-xl"></i>
                         </button>
@@ -160,16 +162,16 @@
                     <!-- Tools grid: 4 cols on desktop, 2 on tablet, 1 on mobile -->
                     <div id="inspection-tools-container"
                         class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 grid-tools">
-                        <button id="tool-thermo" class="horror-btn horror-btn-tool">
+                        <button id="tool-thermo" class="horror-tool-btn horror-tool-btn--main">
                             <i class="fa-solid fa-temperature-half"></i> TERMÓMETRO
                         </button>
-                        <button id="tool-flash" class="horror-btn horror-btn-tool">
+                        <button id="tool-flash" class="horror-tool-btn horror-tool-btn--main">
                             <i class="fa-solid fa-lightbulb"></i> LINTERNA UV
                         </button>
-                        <button id="tool-pulse" class="horror-btn horror-btn-tool">
+                        <button id="tool-pulse" class="horror-tool-btn horror-tool-btn--main">
                             <i class="fa-solid fa-heart-pulse"></i> PULSO
                         </button>
-                        <button id="tool-pupils" class="horror-btn horror-btn-tool">
+                        <button id="tool-pupils" class="horror-tool-btn horror-tool-btn--main">
                             <i class="fa-solid fa-eye"></i> PUPILAS
                         </button>
                     </div>
@@ -695,7 +697,7 @@
 
                 <div class="flex justify-between items-end border-b border-save/20 pb-2">
                     <div>
-                        <h2 id="modal-npc-name" class="text-2xl font-head text-save glitch-effect tracking-wider">SUJETO
+                        <h2 id="modal-npc-name" class="text-2xl font-head text-save glitch-effect tracking-wider">
                             X</h2>
                         <p id="modal-npc-status" class="text-xs font-mono text-gray-400 mt-1">ESTADO: PENDIENTE</p>
                     </div>

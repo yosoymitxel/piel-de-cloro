@@ -84,7 +84,7 @@ export class ModalManager {
         this.elements.modal.removeClass('hidden').addClass('flex');
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
 
-        this.elements.modalName.text(`SUJETO ${npc.name}`);
+        this.elements.modalName.text(`${npc.name}`);
 
         // Renderizar Avatar Grande en el nuevo contenedor visual
         const visualContainer = $('#modal-visual-container');
@@ -223,7 +223,7 @@ export class ModalManager {
                     const knownByDay = npc.revealedStats && npc.revealedStats.includes(key);
 
                     const btn = $('<button>', {
-                        class: `btn-test-icon ${knownByDay ? 'done' : ''}`,
+                        class: `horror-tool-btn horror-tool-btn--modal animate-button-in ${knownByDay ? 'done' : ''}`,
                         html: `<i class="fa-solid ${icon}"></i><span>${label}</span>`
                     });
 
@@ -312,12 +312,24 @@ export class ModalManager {
         this.elements.modalLog.empty();
         if (npc.history && npc.history.length > 0) {
             npc.history.forEach(entry => {
-                if (typeof entry === 'object' && entry.type === 'warning') {
-                    this.elements.modalLog.append($('<div>', { class: 'mb-1 border-b border-gray-900 pb-1 text-yellow-500', text: entry.text }));
-                } else {
-                    const txt = typeof entry === 'string' ? entry : (entry.text || JSON.stringify(entry));
-                    this.elements.modalLog.append($('<div>', { class: 'mb-1 border-b border-gray-900 pb-1', text: txt }));
+                const isNpc = entry.speaker === 'npc';
+                const speakerClass = isNpc ? 'text-chlorine-light font-bold' : 'text-gray-400';
+                const speakerName = isNpc ? (npc.name || 'SUJETO') : 'TÚ';
+                let text = entry.text || entry;
+                // Filtrar acciones (*texto*) del historial por si acaso
+                if (typeof text === 'string') {
+                    text = text.replace(/\*.*?\*/g, '').trim();
                 }
+                
+                if (!text) return; // No mostrar si quedó vacío tras filtrar
+                
+                const html = `
+                    <div class="mb-2 border-b border-gray-900 pb-1 text-xs">
+                        <span class="${speakerClass}">${speakerName}:</span>
+                        <span class="text-gray-300 ml-1">${text}</span>
+                    </div>
+                `;
+                this.elements.modalLog.append(html);
             });
         } else {
             this.elements.modalLog.text("Sin registro de diálogo.");

@@ -1,5 +1,6 @@
 export const State = {
     paranoia: 0,
+    sanity: 100,
     cycle: 1,
     dayTime: 1, // Current subject count in the day
     config: {
@@ -59,7 +60,8 @@ export const State = {
         master: 1.0,
         ambient: 0.3,
         lore: 0.25,
-        sfx: 0.6
+        sfx: 0.6,
+        muted: { ambient: false, lore: false, sfx: false }
     },
 
     savePersistentData() {
@@ -67,15 +69,24 @@ export const State = {
             unlockedEndings: this.unlockedEndings,
             audioSettings: this.audioSettings
         };
-        localStorage.setItem('ruta01_persistence', JSON.stringify(data));
+        const serialized = JSON.stringify(data);
+        localStorage.setItem('ruta01_persistence', serialized);
     },
 
     loadPersistentData() {
         try {
-            const data = JSON.parse(localStorage.getItem('ruta01_persistence'));
+            const raw = localStorage.getItem('ruta01_persistence');
+            if (raw === null || raw === undefined || raw === 'undefined') return;
+            const data = JSON.parse(raw);
             if (data) {
                 if (data.unlockedEndings) this.unlockedEndings = data.unlockedEndings;
-                if (data.audioSettings) this.audioSettings = data.audioSettings;
+                if (data.audioSettings) {
+                    this.audioSettings = data.audioSettings;
+                    // Asegurar que muted existe para retrocompatibilidad
+                    if (!this.audioSettings.muted) {
+                        this.audioSettings.muted = { ambient: false, lore: false, sfx: false };
+                    }
+                }
             }
         } catch (e) {
             console.warn('Error loading persistence:', e);
@@ -107,10 +118,22 @@ export const State = {
 
     updateParanoia(amount) {
         this.paranoia = Math.max(0, Math.min(100, this.paranoia + amount));
+        // La paranoia extrema drena la cordura
+        if (this.paranoia > 80) {
+            this.updateSanity(-1);
+        }
         if (typeof document !== 'undefined') {
             document.dispatchEvent(new CustomEvent('paranoia-updated', { detail: { value: this.paranoia } }));
         }
         return this.paranoia;
+    },
+
+    updateSanity(amount) {
+        this.sanity = Math.max(0, Math.min(100, this.sanity + amount));
+        if (typeof document !== 'undefined') {
+            document.dispatchEvent(new CustomEvent('sanity-updated', { detail: { value: this.sanity } }));
+        }
+        return this.sanity;
     },
 
     // Seguridad por run
@@ -125,6 +148,7 @@ export const State = {
     endingTriggered: false,
     generatorCheckedThisTurn: false,
     nightPurgePerformed: false,
+    navLocked: false,
     lastNight: {
         occurred: false,
         victims: 0,
@@ -165,6 +189,7 @@ export const State = {
         this.endingTriggered = false;
         this.generatorCheckedThisTurn = false;
         this.nightPurgePerformed = false;
+        this.navLocked = false;
         this.dialogueStarted = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
@@ -186,10 +211,11 @@ export const State = {
         this.gameLog.push({
             cycle: this.cycle,
             dayTime: this.dayTime,
-            type, // 'lore', 'system', 'note'
+            type, // 'lore', 'system', 'note', 'evidence'
             text,
             timestamp: Date.now(),
-            meta
+            meta,
+            isNew: true // Para animaciones en la UI
         });
         if (typeof document !== 'undefined') {
             document.dispatchEvent(new CustomEvent('log-added', { detail: { type } }));

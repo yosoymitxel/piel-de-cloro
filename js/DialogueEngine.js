@@ -120,7 +120,7 @@ export class Conversation {
         const node = this.set.nodes[this.currentId];
         if (!node) return null;
         const text = this._injectTemplate(node.text, node.id);
-        const options = (node.options || []).map(o => ({
+        let options = (node.options || []).map(o => ({
             id: o.id,
             label: o.label,
             next: o.next,
@@ -131,6 +131,22 @@ export class Conversation {
             onclick: o.onclick || null,
             log: o.log || null
         }));
+
+        // Auto-inject "Entendido" if terminal node has no options
+        if (options.length === 0) {
+            options.push({
+                id: 'auto_end',
+                label: 'Entendido',
+                next: null,
+                requires: [],
+                sets: [],
+                audio: null,
+                cssClass: '',
+                onclick: null,
+                log: null
+            });
+        }
+
         return { id: node.id, text, options, audio: node.audio || null, meta: node.meta || {} };
     }
 
@@ -140,12 +156,23 @@ export class Conversation {
     getNextDialogue(choice) {
         const node = this.set.nodes[this.currentId];
         if (!node) return { error: 'Nodo no encontrado' };
+        
         let opt = null;
+        const nodeOptions = node.options || [];
+
         if (typeof choice === 'number') {
-            opt = (node.options || [])[choice];
+            if (nodeOptions.length === 0 && choice === 0) {
+                opt = { id: 'auto_end', label: 'Entendido', next: null };
+            } else {
+                opt = nodeOptions[choice];
+            }
         } else {
-            opt = (node.options || []).find(o => o.id === choice);
+            opt = nodeOptions.find(o => o.id === choice);
+            if (!opt && choice === 'auto_end' && nodeOptions.length === 0) {
+                opt = { id: 'auto_end', label: 'Entendido', next: null };
+            }
         }
+
         if (!opt) return { error: 'Opción inválida' };
 
         // Validate requires

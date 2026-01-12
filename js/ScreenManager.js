@@ -50,7 +50,7 @@ export class ScreenManager {
         this.ui.hideFeedback();
 
         // Update active state in sidebar
-        this.updateSidebarActive(screenName);
+        this.updateSidebarActive(screenName, state);
 
         // Toggle visibility of morgue stats nav button
         $('#nav-morgue-stats').removeClass('hidden');
@@ -73,7 +73,23 @@ export class ScreenManager {
         }
     }
 
-    updateSidebarActive(screenName) {
+    updateSidebarActive(screenName, state) {
+        // Si la navegación está bloqueada, no queremos que esta función sobreescriba 
+        // los estilos de bloqueo (opacidad, puntero, etc.) excepto para marcar el activo.
+        if (state && state.navLocked) {
+            $('#sidebar-left .nav-btn').removeClass('active');
+            const navMap = {
+                game: '#nav-guard',
+                shelter: '#nav-shelter',
+                morgue: '#nav-morgue',
+                room: '#nav-room',
+                generator: '#nav-generator'
+            };
+            const activeNav = navMap[screenName];
+            if (activeNav) $(activeNav).addClass('active');
+            return;
+        }
+
         $('#sidebar-left .nav-btn').removeClass('active text-black bg-chlorine opacity-100').addClass('text-chlorine-light opacity-60');
 
         const activeClass = 'active text-black bg-chlorine opacity-100';
@@ -225,7 +241,5 @@ export class ScreenManager {
         } else {
             outcome.text("MISIÓN FALLIDA").addClass('text-alert');
         }
-
-        this.showScreen('finalStats', state);
     }
 }

@@ -8,6 +8,7 @@ describe('Lore and Endings System', () => {
     beforeEach(() => {
         uiMock = {
             showScreen: jest.fn(),
+            setNavItemStatus: jest.fn(),
             timings: { loreFadeOut: 500 }
         };
         audioMock = {

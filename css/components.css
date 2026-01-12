@@ -13,6 +13,7 @@
 .horror-btn-dialogue {
     width: 100%;
     display: flex;
+    align-items: center;
     text-align: left;
     padding: 0.75rem 1rem;
     font-size: 0.95rem;
@@ -24,6 +25,8 @@
     font-family: var(--font-term);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    position: relative;
+    overflow: hidden;
 }
 
 .horror-btn-dialogue:hover {
@@ -32,6 +35,92 @@
     transform: translateX(4px);
     box-shadow: 0 0 10px rgba(168, 213, 162, 0.3);
 }
+
+/* Animación para botones de diálogo */
+.animate-dialogue-in {
+    animation: dialogueSlideIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    opacity: 0;
+}
+
+@keyframes dialogueSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Componente Base: Botón de Herramienta (Cian) */
+.horror-tool-btn {
+    border: 1px solid var(--color-save);
+    color: var(--color-save);
+    background: rgba(0, 206, 209, 0.05);
+    font-family: var(--font-term);
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.horror-tool-btn:hover:not(:disabled) {
+    background: var(--color-save);
+    color: var(--color-black);
+    box-shadow: 0 0 15px rgba(0, 206, 209, 0.4);
+}
+
+.horror-tool-btn:disabled {
+    opacity: 0.3;
+    filter: grayscale(1);
+    cursor: not-allowed;
+    border-color: #333;
+}
+
+/* 1. Versión PUESTO (Main Screen) - Más grande y prominente */
+.horror-tool-btn--main {
+    padding: 1rem;
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+    min-height: 60px;
+}
+
+.horror-tool-btn--main i {
+    font-size: 1.4rem;
+}
+
+/* 2. Versión DIÁLOGO - Compacto para listas */
+.horror-tool-btn--dialogue {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    width: 100%;
+    justify-content: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.horror-tool-btn--dialogue i {
+    width: 20px;
+    text-align: center;
+    margin-right: 0.5rem;
+}
+
+/* 3. Versión MODAL - Estilo icono + texto vertical u horizontal */
+.horror-tool-btn--modal {
+    flex-direction: column;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    gap: 4px;
+}
+
+.horror-tool-btn--modal i {
+    font-size: 1.2rem;
+}
+
+
 
 .horror-btn-dismiss {
     border-color: #7a5a1a;
@@ -69,6 +158,22 @@
     color: var(--color-chlorine);
     transition: all 0.2s;
     margin-top: auto;
+}
+
+/* Animación de entrada para botones (Tools y Diálogo) */
+@keyframes buttonSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-button-in {
+    animation: buttonSlideIn 0.3s ease-out forwards;
 }
 
 .horror-btn-security:hover:not(:disabled) {
