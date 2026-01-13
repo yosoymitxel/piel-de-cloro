@@ -10,6 +10,7 @@ describe('Game Action Handler', () => {
         
         uiMock = {
             showFeedback: jest.fn(),
+            hideFeedback: jest.fn(),
             showMessage: jest.fn(),
             updateInspectionTools: jest.fn(),
             updateRunStats: jest.fn(),
@@ -45,13 +46,48 @@ describe('Game Action Handler', () => {
     });
 
     describe('Inspect Action', () => {
+        test('validateInspection returns structured error for generator off', () => {
+            State.generator.isOn = false;
+            State.currentNPC = new NPC();
+            const result = gah.validateInspection('thermometer');
+            expect(result.allowed).toBe(false);
+            expect(result.code).toBe('POWER_OFF');
+        });
+
+        test('validateInspection returns structured success data', () => {
+            State.generator.isOn = true;
+            State.currentNPC = new NPC();
+            const result = gah.validateInspection('thermometer');
+            expect(result.allowed).toBe(true);
+            expect(result.code).toBe('READY');
+            expect(result.cost).toBe(1);
+            expect(result.statKey).toBe('temperature');
+        });
+
+        test('logger suppresses logs when debug is false', () => {
+            const spy = jest.spyOn(console, 'log').mockImplementation();
+            State.debug = false;
+            State.log("test log");
+            expect(spy).not.toHaveBeenCalled();
+            spy.mockRestore();
+        });
+
+        test('logger shows logs when debug is true', () => {
+            const spy = jest.spyOn(console, 'log').mockImplementation();
+            State.debug = true;
+            State.log("test log");
+            expect(spy).toHaveBeenCalledWith("test log");
+            spy.mockRestore();
+            State.debug = false; // Reset
+        });
+
         test('inspect blocks if generator is off', () => {
             State.generator.isOn = false;
             State.currentNPC = new NPC();
             
             gah.inspect('thermometer');
             
-            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("GENERADOR APAGADO"), "red");
+            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("GENERADOR APAGADO"), "red", expect.any(Number));
         });
 
         test('inspect blocks if energy limit reached', () => {
@@ -62,7 +98,7 @@ describe('Game Action Handler', () => {
             
             gah.inspect('thermometer');
             
-            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("ENERGÍA INSUFICIENTE"), "yellow");
+            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("ENERGÍA INSUFICIENTE"), "yellow", expect.any(Number));
         });
 
         test('inspect reveals stat and increases scanCount', () => {
@@ -87,7 +123,7 @@ describe('Game Action Handler', () => {
             
             gah.inspect('thermometer');
             
-            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("TEST YA REALIZADO"), "yellow");
+            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("TEST YA REALIZADO"), "yellow", expect.any(Number));
         });
     });
 

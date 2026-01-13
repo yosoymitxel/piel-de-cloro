@@ -138,7 +138,7 @@ class Game {
         this.nextTurn();
         this.ui.showScreen('game');
         this.ui.updateRunStats(State);
-        this.ui.showFeedback("DÍA REINICIADO", "yellow");
+        this.ui.showFeedback("DÍA REINICIADO", "yellow", 3000);
     }
 
     restartGame() {
@@ -192,7 +192,7 @@ class Game {
         const isShelterFull = State.admittedNPCs.length >= State.config.maxShelterCapacity;
         
         if (isShelterFull) {
-            this.ui.showFeedback("REFUGIO LLENO: Debes tomar una decisión estratégica.", "yellow");
+            this.ui.showFeedback("REFUGIO LLENO: Debes tomar una decisión estratégica.", "yellow", 5000);
             this.mechanics.startNightPhase();
             return;
         }

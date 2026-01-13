@@ -8,34 +8,27 @@ export class GameActionHandler {
         this.audio = game.audio;
     }
 
-    inspect(tool) {
-        if (State.paused || this.game.isAnimating) return;
+    /**
+     * Valida si una herramienta puede ser utilizada.
+     * @param {string} tool - ID de la herramienta
+     * @returns {Object} Resultado de la validación { allowed: boolean, reason: string, code: string }
+     */
+    validateInspection(tool) {
+        if (State.paused) {
+            return { allowed: false, reason: "JUEGO EN PAUSA", code: "PAUSED" };
+        }
+        
+        if (this.game.isAnimating) {
+            return { allowed: false, reason: "ANIMACIÓN EN CURSO", code: "ANIMATING" };
+        }
+
         const npc = State.currentNPC;
-        if (!npc) return;
+        if (!npc) {
+            return { allowed: false, reason: "NO HAY SUJETO ACTIVO", code: "NO_NPC" };
+        }
 
-        // Validar estado del generador
         if (!State.generator.isOn) {
-            this.ui.showFeedback("GENERADOR APAGADO: ACCIÓN IMPOSIBLE", "red");
-            this.game.updateHUD(); 
-            return;
-        }
-
-        // Definir límite máximo de energías según el modo del generador
-        let maxEnergy = CONSTANTS.GENERATOR.DEFAULT_MAX_CAPACITY;
-        if (State.generator.mode === 'save') maxEnergy = CONSTANTS.GENERATOR.SAVE_MODE_CAPACITY;
-        if (State.generator.mode === 'overload') maxEnergy = CONSTANTS.GENERATOR.OVERLOAD_MODE_CAPACITY;
-
-        // MECÁNICA PARANOIA: El sistema en alerta consume más recursos
-        let energyCost = 1;
-        if (State.paranoia > 70 && Math.random() < (State.paranoia / 200)) {
-            energyCost = 2;
-            this.ui.showFeedback("ALERTA DE SISTEMA: CONSUMO EXTRA", "orange");
-        }
-
-        if (npc.scanCount + energyCost > maxEnergy) {
-            this.ui.showFeedback("ENERGÍA INSUFICIENTE PARA ESTE TURNO", "yellow");
-            this.ui.updateInspectionTools(); 
-            return;
+            return { allowed: false, reason: "GENERADOR APAGADO", code: "POWER_OFF" };
         }
 
         const statMap = {
@@ -47,16 +40,75 @@ export class GameActionHandler {
         const statKey = statMap[tool];
 
         if (npc.revealedStats.includes(statKey)) {
-            this.ui.showFeedback("TEST YA REALIZADO", "yellow");
-            this.ui.updateInspectionTools(); 
+            return { allowed: false, reason: "TEST YA REALIZADO", code: "ALREADY_DONE" };
+        }
+
+        // Validar energía
+        let maxEnergy = CONSTANTS.GENERATOR.DEFAULT_MAX_CAPACITY;
+        if (State.generator.mode === 'save') maxEnergy = CONSTANTS.GENERATOR.SAVE_MODE_CAPACITY;
+        if (State.generator.mode === 'overload') maxEnergy = CONSTANTS.GENERATOR.OVERLOAD_MODE_CAPACITY;
+
+        let energyCost = 1;
+        if (State.paranoia > 70 && Math.random() < (State.paranoia / 200)) {
+            energyCost = 2;
+        }
+
+        if (npc.scanCount + energyCost > maxEnergy) {
+            return { allowed: false, reason: "ENERGÍA INSUFICIENTE", code: "NO_ENERGY" };
+        }
+
+        return { allowed: true, reason: "OK", code: "READY", cost: energyCost, statKey: statKey };
+    }
+
+    inspect(tool) {
+        State.log(`[GameActionHandler] --- INICIO INSPECCIÓN: ${tool} ---`);
+        
+        const validation = this.validateInspection(tool);
+        State.log(`[GameActionHandler] Resultado Validación:`, validation);
+        
+        if (!validation.allowed) {
+            State.warn(`[GameActionHandler] Inspección cancelada: ${validation.reason} (${validation.code})`);
+            
+            // Mostrar feedback visual según el error
+            switch(validation.code) {
+                case "ANIMATING":
+                    this.ui.showFeedback("ESPERA A QUE TERMINE LA ACCIÓN", "orange", 2500);
+                    break;
+                case "POWER_OFF":
+                    this.ui.showFeedback("GENERADOR APAGADO: ACCIÓN IMPOSIBLE", "red", 3000);
+                    this.game.updateHUD();
+                    break;
+                case "NO_ENERGY":
+                    this.ui.showFeedback("ENERGÍA INSUFICIENTE PARA ESTE TURNO", "yellow", 3000);
+                    this.ui.updateInspectionTools();
+                    break;
+                case "ALREADY_DONE":
+                    this.ui.showFeedback("TEST YA REALIZADO", "yellow", 2000);
+                    this.ui.updateInspectionTools();
+                    break;
+                case "PAUSED":
+                    State.warn("[GameActionHandler] Intento de inspección con juego pausado.");
+                    break;
+                case "NO_NPC":
+                    State.error("[GameActionHandler] Intento de inspección sin NPC activo.");
+                    this.ui.showFeedback("ERROR: NO HAY SUJETO QUE INSPECCIONAR", "red", 3000);
+                    break;
+                default:
+                    this.ui.showFeedback(`SISTEMA BLOQUEADO: ${validation.reason}`, "red", 3000);
+            }
             return;
         }
+
+        State.log(`[GameActionHandler] Ejecutando inspección de ${tool}...`);
+        const { cost: energyCost, statKey } = validation;
+        const npc = State.currentNPC;
 
         // MECÁNICA PARANOIA: Probabilidad de fallo de hardware (Glitch)
         const glitchChance = State.paranoia > 60 ? (State.paranoia - 60) / 100 : 0;
         const isGlitch = Math.random() < glitchChance;
 
         if (isGlitch) {
+            State.log("[GameActionHandler] GLITCH activado");
             this.game.isAnimating = true;
             npc.scanCount += energyCost;
             this.ui.applyVHS(1.0, 1500);
@@ -66,6 +118,7 @@ export class GameActionHandler {
             setTimeout(() => {
                 this.game.isAnimating = false;
                 this.game.updateHUD();
+                this.ui.hideFeedback();
             }, 1500);
             return;
         }
@@ -88,6 +141,7 @@ export class GameActionHandler {
         let toolValue = npc.attributes[statKey];
 
         if (isHallucination) {
+            State.log("[GameActionHandler] ALUCINACIÓN activada");
             // Generar un valor falso (si es humano, mostrar infectado; si es infectado, mostrar humano)
             if (npc.isInfected) {
                 // Falso negativo (peligroso!)
@@ -102,6 +156,8 @@ export class GameActionHandler {
             }
             this.ui.applyVHS(0.8, 2000); // Efecto visual de "distorsión mental"
         }
+
+        State.log(`[GameActionHandler] Ejecutando inspección con '${tool}'. Valor: ${toolValue}, Alucinación: ${isHallucination}`);
 
         const animMap = {
             'thermometer': 'animateToolThermometer',
@@ -149,7 +205,7 @@ export class GameActionHandler {
         }
 
         if (isHallucination) {
-            this.ui.showFeedback("LECTURA INESTABLE", "rose");
+            this.ui.showFeedback("LECTURA INESTABLE", "rose", 2500);
         }
 
         // Bloquear el botón específico y actualizar estado de energías
@@ -157,6 +213,8 @@ export class GameActionHandler {
 
         setTimeout(() => {
             this.game.isAnimating = false;
+            this.ui.hideFeedback();
+            this.game.updateHUD(); // Asegurar HUD actualizado
         }, animDuration);
 
         // Feedback textual ocultado para que la evidencia no sea explícita en pantalla
@@ -222,7 +280,7 @@ export class GameActionHandler {
                 State.updateParanoia(paranoiaCost);
                 State.updateSupplies(supplyGain);
                 this.audio.playSFXByKey('ui_confirm');
-                this.ui.showFeedback(`SUMINISTROS RECIBIDOS (+${supplyGain})`, "green");
+                this.ui.showFeedback(`SUMINISTROS RECIBIDOS (+${supplyGain})`, "green", 4000);
                 this.game.updateHUD();
             },
             () => {

@@ -9,6 +9,7 @@ describe('Game Mechanics Manager', () => {
         
         uiMock = {
             showFeedback: jest.fn(),
+            hideFeedback: jest.fn(),
             showMessage: jest.fn(),
             showLore: jest.fn(),
             renderGeneratorRoom: jest.fn(),
@@ -56,7 +57,7 @@ describe('Game Mechanics Manager', () => {
             
             expect(State.generator.isOn).toBe(false);
             expect(State.securityItems[0].secured).toBe(false);
-            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("FALLO CRÍTICO"), "red");
+            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("FALLO CRÍTICO"), "red", expect.any(Number));
             expect(State.gameLog[State.gameLog.length - 1].text).toContain('FALLO CRÍTICO');
         });
 
@@ -67,7 +68,7 @@ describe('Game Mechanics Manager', () => {
             expect(State.generator.isOn).toBe(true);
             expect(State.generator.mode).toBe('save');
             expect(State.generator.power).toBe(32);
-            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("MODO AHORRO"), "yellow");
+            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("MODO AHORRO"), "yellow", expect.any(Number));
         });
 
         test('emergency energy is granted when restarting with no activity', () => {
@@ -79,7 +80,7 @@ describe('Game Mechanics Manager', () => {
             
             expect(State.currentNPC.scanCount).toBe(0);
             expect(State.generator.emergencyEnergyGranted).toBe(true);
-            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("1 TEST DISPONIBLE"), "green");
+            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("1 TEST DISPONIBLE"), "green", expect.any(Number));
         });
     });
 

@@ -81,7 +81,7 @@ export class GeneratorManager {
                     restrictionText.removeClass('text-alert animate-pulse font-bold').addClass('text-gray-400');
                 }, 600);
 
-                this.ui.showFeedback(`SISTEMA BLOQUEADO: No puedes subir la potencia tras interactuar con el civil.`, "yellow");
+                this.ui.showFeedback(`SISTEMA BLOQUEADO: No puedes subir la potencia tras interactuar con el civil.`, "yellow", 4000);
                 if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
                 return false;
             }
@@ -103,7 +103,7 @@ export class GeneratorManager {
             state.generator.maxModeCapacityReached = newCap;
 
             if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
-            this.ui.showFeedback(`MODO ${newMode.toUpperCase()} ACTIVADO`, "green");
+            this.ui.showFeedback(`MODO ${newMode.toUpperCase()} ACTIVADO`, "green", 3000);
 
             // Refrescar herramientas en el puesto
             this.ui.updateInspectionTools();

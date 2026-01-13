@@ -11,6 +11,7 @@ describe('Resource Systems (Food, Paranoia, Sanity)', () => {
         
         uiMock = {
             showFeedback: jest.fn(),
+            hideFeedback: jest.fn(),
             showMessage: jest.fn(),
             showLore: jest.fn(),
             showConfirm: jest.fn((text, onYes) => onYes()),
@@ -61,7 +62,7 @@ describe('Resource Systems (Food, Paranoia, Sanity)', () => {
             
             expect(State.supplies).toBe(initialSupplies + 3);
             expect(State.paranoia).toBe(initialParanoia + 15);
-            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining('+3'), 'green');
+            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining('+3'), 'green', expect.any(Number));
         });
 
         test('Night consumption: base 1 per person', () => {

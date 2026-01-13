@@ -310,25 +310,33 @@ export class GameEventManager {
             }, null, 'warning'); 
         });
 
-        // Inspection Tools (Delegated because they are re-rendered)
-        $('#inspection-tools-container').on('click', '#tool-thermo', () => { 
-            if (State.paused) return; 
+        // Inspection Tools (Delegated to document for maximum resilience)
+        $(document).on('click', '#inspection-tools-container #tool-thermo', () => { 
+            if (State.paused) {
+                return;
+            }
             this.game.actions.inspect('thermometer'); 
         });
-        $('#inspection-tools-container').on('click', '#tool-flash', () => { 
-            if (State.paused) return; 
+        $(document).on('click', '#inspection-tools-container #tool-flash', () => { 
+            if (State.paused) {
+                return;
+            }
             this.game.actions.inspect('flashlight'); 
         });
-        $('#inspection-tools-container').on('click', '#tool-pulse', () => { 
-            if (State.paused) return; 
+        $(document).on('click', '#inspection-tools-container #tool-pulse', () => { 
+            if (State.paused) {
+                return;
+            }
             this.game.actions.inspect('pulse'); 
         });
-        $('#inspection-tools-container').on('click', '#tool-pupils', () => { 
-            if (State.paused) return; 
+        $(document).on('click', '#inspection-tools-container #tool-pupils', () => { 
+            if (State.paused) {
+                return;
+            }
             this.game.actions.inspect('pupils'); 
         });
 
-        $('#inspection-tools-container').on('click', '#btn-goto-generator', () => { 
+        $(document).on('click', '#inspection-tools-container #btn-goto-generator', () => { 
             this.navigateToGenerator();
         });
 

@@ -176,6 +176,7 @@ export const State = {
         restartLock: false // Bloqueo tras reinicio
     },
     paused: false,
+    debug: false, // Cambiar a false para producción
     gameLog: [], // Historial cronológico
     dialogueStarted: false,
 
@@ -202,6 +203,7 @@ export const State = {
         this.nightPurgePerformed = false;
         this.navLocked = false;
         this.dialogueStarted = false;
+        this.paused = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
         this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
@@ -343,6 +345,18 @@ export const State = {
 
     recallDialogueHistory() {
         return this.dialogueMemory || [];
+    },
+
+    // --- Sistema de Logs por niveles ---
+    log(...args) {
+        if (this.debug) console.log(...args);
+    },
+    warn(...args) {
+        if (this.debug) console.warn(...args);
+    },
+    error(...args) {
+        // Los errores se muestran siempre para facilitar depuración en prod
+        console.error(...args);
     },
 
     getRandomRumor() {

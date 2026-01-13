@@ -474,15 +474,18 @@ export class UIManager {
         this.updateGeneratorNavStatus();
         const energySpan = $('#scan-energy');
         const energyIcon = $('#hud-energy-container i');
+        
         if (currentNPC) {
             // Definir límite máximo según modo
             const mode = State.generator.mode;
             const maxEnergy = State.config.generator.consumption[mode] || 2;
 
             // Calcular energía actual (0 si está apagado o fallo)
-            const currentEnergy = (!State.generator.isOn || currentNPC.scanCount >= 90) ? 0 : Math.max(0, maxEnergy - currentNPC.scanCount);
+            const scanCount = currentNPC.scanCount || 0;
+            const currentEnergy = (!State.generator.isOn || scanCount >= 90) ? 0 : Math.max(0, maxEnergy - scanCount);
 
-            energySpan.text(`${currentEnergy}/${maxEnergy}`);
+            energySpan.text(`${currentEnergy}/${maxEnergy}`).removeClass('hidden');
+            $('#hud-energy-container').removeClass('hidden');
 
             if (currentEnergy > 0) {
                 let color = this.colors.energy;
@@ -510,11 +513,10 @@ export class UIManager {
                 this.elements.tools.forEach(btn => btn.removeClass('btn-disabled'));
             }
         } else {
-            energySpan.text('---');
-            energySpan.css('color', '#555');
-            energySpan.css('text-shadow', 'none');
+            // No hay NPC: ocultar o mostrar estado genérico
+            energySpan.text('--/--');
+            $('#hud-energy-container').addClass('opacity-50');
             energyIcon.css('color', '#555');
-            energyIcon.removeClass('text-cyan-400 text-alert');
             this.elements.tools.forEach(btn => btn.addClass('btn-disabled'));
         }
     }
@@ -931,7 +933,7 @@ export class UIManager {
                     if (res.audio && this.audio) this.audio.playSFXByKey(res.audio, { volume: 0.6 });
 
                     if (res.end) {
-                        this.showFeedback('FIN DE DIÁLOGO', 'green');
+                        this.showFeedback('FIN DE DIÁLOGO', 'green', 2500);
                         this.elements.dialogueOptions.empty();
                         if (res.message) {
                             const parsedMsg = (typeof parseDialogueMarkup === 'function') ? parseDialogueMarkup(res.message) : res.message;
@@ -995,7 +997,7 @@ export class UIManager {
             type: 'warning' 
         });
 
-        this.showFeedback('TEST OMITIDO: SIN EVIDENCIA MÉDICA', 'yellow');
+        this.showFeedback('TEST OMITIDO: SIN EVIDENCIA MÉDICA', 'yellow', 3000);
         this.updateInspectionTools();
         this.hideOmitOption();
         this.elements.dialogueOptions.empty();
@@ -1288,7 +1290,7 @@ export class UIManager {
         this.showScreen('night');
     }
 
-    showFeedback(text, color = 'yellow') {
+    showFeedback(text, color = 'yellow', duration = 0) {
         const colorMap = {
             'yellow': 'text-warning',
             'warning': 'text-warning',
@@ -1296,11 +1298,19 @@ export class UIManager {
             'alert': 'text-alert',
             'green': 'text-green-400',
             'success': 'text-green-400',
-            '#aaffaa': 'text-green-400'
+            '#aaffaa': 'text-green-400',
+            'orange': 'text-orange-400',
+            'rose': 'text-rose-400'
         };
 
+        // Limpiar cualquier timer previo
+        if (this.feedbackTimer) {
+            clearTimeout(this.feedbackTimer);
+            this.feedbackTimer = null;
+        }
+
         // Remove old color classes
-        this.elements.feedback.removeClass('text-warning text-alert text-green-400');
+        this.elements.feedback.removeClass('text-warning text-alert text-green-400 text-orange-400 text-rose-400');
 
         // Add new color class or style if not mapped
         if (colorMap[color]) {
@@ -1310,9 +1320,20 @@ export class UIManager {
         }
 
         this.elements.feedback.text(text).removeClass('hidden');
+
+        // Si se especifica duración, ocultar automáticamente
+        if (duration > 0) {
+            this.feedbackTimer = setTimeout(() => {
+                this.hideFeedback();
+            }, duration);
+        }
     }
 
     hideFeedback() {
+        if (this.feedbackTimer) {
+            clearTimeout(this.feedbackTimer);
+            this.feedbackTimer = null;
+        }
         this.elements.feedback.addClass('hidden');
     }
 

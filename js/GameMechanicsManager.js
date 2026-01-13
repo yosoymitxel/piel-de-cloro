@@ -84,7 +84,7 @@ export class GameMechanicsManager {
         this.shutdownSecuritySystem();
         this.audio.playSFXByKey('glitch_low', { volume: 0.8 });
         State.addLogEntry('system', 'FALLO CRÍTICO: Generador apagado por inestabilidad.');
-        this.ui.showFeedback("¡FALLO CRÍTICO DEL GENERADOR!", "red");
+        this.ui.showFeedback("¡FALLO CRÍTICO DEL GENERADOR!", "red", 5000);
         if (this.ui && typeof this.ui.updateGeneratorNavStatus === 'function') {
             this.ui.updateGeneratorNavStatus();
         }
@@ -110,7 +110,7 @@ export class GameMechanicsManager {
             State.generator.overclockCooldown = true;
             State.generator.maxModeCapacityReached = 1;
             State.generator.restartLock = true;
-            this.ui.showFeedback("SISTEMA REINICIADO: MODO AHORRO", "yellow");
+            this.ui.showFeedback("SISTEMA REINICIADO: MODO AHORRO", "yellow", 4000);
 
             const noActivity = State.currentNPC && State.currentNPC.scanCount === 0 && !State.dialogueStarted;
             const hadFailure = State.currentNPC && State.currentNPC.scanCount >= 90;
@@ -118,15 +118,15 @@ export class GameMechanicsManager {
             if (State.currentNPC && !State.generator.emergencyEnergyGranted && (noActivity || hadFailure)) {
                 State.currentNPC.scanCount = 0;
                 State.generator.emergencyEnergyGranted = true;
-                this.ui.showFeedback("ENERGÍA RESTAURADA: 1 TEST DISPONIBLE", "green");
+                this.ui.showFeedback("ENERGÍA RESTAURADA: 1 TEST DISPONIBLE", "green", 4000);
             } else if (State.currentNPC && State.currentNPC.scanCount >= 90) {
-                this.ui.showFeedback("GENERADOR REINICIADO (SIN CARGAS EXTRAS)", "yellow");
+                this.ui.showFeedback("GENERADOR REINICIADO (SIN CARGAS EXTRAS)", "yellow", 4000);
             }
 
             if (State.generator.power <= 0) {
                 State.generator.power = 1;
                 State.generator.overclockCooldown = true;
-                this.ui.showFeedback("RECUPERACIÓN DE EMERGENCIA: 1 ENERGÍA. SOBRECARGA BLOQUEADA.", "yellow");
+                this.ui.showFeedback("RECUPERACIÓN DE EMERGENCIA: 1 ENERGÍA. SOBRECARGA BLOQUEADA.", "yellow", 5000);
             }
         } else if (!State.generator.isOn) {
             this.audio.playSFXByKey('generator_stop', { volume: 0.6 });
@@ -137,7 +137,7 @@ export class GameMechanicsManager {
             if (this.ui && typeof this.ui.updateGeneratorNavStatus === 'function') {
                 this.ui.updateGeneratorNavStatus();
             }
-            this.ui.showFeedback("GENERADOR APAGADO: ENERGÍA DISIPADA", "red");
+            this.ui.showFeedback("GENERADOR APAGADO: ENERGÍA DISIPADA", "red", 4000);
         }
 
         this.ui.renderGeneratorRoom();
@@ -560,7 +560,7 @@ export class GameMechanicsManager {
         const allInfected = count > 0 && infectedCount === count;
 
         if (count < max) {
-            this.ui.showFeedback(`SISTEMA BLOQUEADO: No puedes abandonar tu puesto hasta que el refugio esté lleno (${count}/${max}).`, "alert");
+            this.ui.showFeedback(`SISTEMA BLOQUEADO: No puedes abandonar tu puesto hasta que el refugio esté lleno (${count}/${max}).`, "alert", 4000);
             this.audio.playSFXByKey('glitch_low', { volume: 0.5 });
             return;
         }
@@ -626,7 +626,7 @@ export class GameMechanicsManager {
             const currentMax = State.generator.maxModeCapacityReached;
 
             if (actionTaken && newCap > currentMax) {
-                this.ui.showFeedback(`SISTEMA BLOQUEADO: No puedes subir la potencia tras interactuar con el civil.`, "yellow");
+                this.ui.showFeedback(`SISTEMA BLOQUEADO: No puedes subir la potencia tras interactuar con el civil.`, "yellow", 4000);
                 this.audio.playSFXByKey('ui_error', { volume: 0.5 });
                 return;
             }
@@ -641,7 +641,7 @@ export class GameMechanicsManager {
             }
 
             this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
-            this.ui.showFeedback(`MODO ${newMode.toUpperCase()} ACTIVADO`, "green");
+            this.ui.showFeedback(`MODO ${newMode.toUpperCase()} ACTIVADO`, "green", 3000);
             this.ui.updateInspectionTools();
             this.ui.renderGeneratorRoom();
         }
