@@ -27,13 +27,23 @@ El juego calcula si algo intenta entrar en el puesto mientras el jugador gestion
 - **Código**: `Game.processIntrusions()` verifica `State.securityItems`.
 
 ### 3. Dormir (Resolución)
-Al pulsar "Dormir", se calcula el resultado de la noche:
+Al pulsar "Dormir", se calcula el resultado de la noche. Antes de la resolución de eventos (ataques de infectados), el sistema procesa los suministros y los rasgos de los NPCs admitidos.
 
-| Estado del Refugio | Resultado |
-| :--- | :--- |
-| **Con Infectado(s)** | **Muerte de Civil**: Un NPC humano muere. Paranoia +30%. <br> **Muerte del Jugador**: Si no hay civiles, el jugador muere (Game Over). |
-| **Vacío (0 NPCs)** | **Riesgo de Locura**: Probabilidad alta (92%) de Game Over por soledad/paranoia (`final_death_alone`). Si sobrevive, paranoia alta. |
-| **Limpio (Solo Humanos)** | **Noche Tranquila**: Paranoia baja (-10%). Se recuperan recursos para el día siguiente. |
+#### 3.1 Procesamiento de Recursos y Rasgos (`processNightResourcesAndTraits`)
+El método `GameMechanicsManager.processNightResourcesAndTraits()` realiza las siguientes acciones:
+- **Consumo**: Cada NPC consume 1 unidad de `State.supplies`. El rasgo **Enfermizo** (`sickly`) consume 2 unidades.
+- **Recolección**: Los NPCs con el rasgo **Recolector** (`scavenger`) tienen una probabilidad (40%) de encontrar 1-3 unidades extra de suministros.
+- **Moral**: 
+    - El rasgo **Optimista** (`optimist`) aumenta la cordura (`State.sanity`) en +5%.
+    - El rasgo **Paranoico** (`paranoid`) aumenta la paranoia (`State.paranoia`) en +10%.
+- **Inanición**: Si los suministros llegan a 0:
+    - Se reduce la cordura en -15%.
+    - Existe un 10% de probabilidad de que un NPC aleatorio muera por inanición.
+
+#### 3.2 Tabla de Resultados de la Noche
+Si la noche pasa tranquila (`night_tranquil`):
+- **Reducción de Paranoia**: Se reduce la paranoia base (-10%).
+- **Bono de Seguridad**: Si `civiles > cloros` en el refugio, se aplica una reducción extra (-5%), totalizando -15%.
 
 ## Variables de Estado Relevantes
 

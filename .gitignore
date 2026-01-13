@@ -150,3 +150,5 @@ obj/
 node_modules/
 migrable/
 MAPEO_DEPENDENCIAS.md
+**.zip
+**.cmd

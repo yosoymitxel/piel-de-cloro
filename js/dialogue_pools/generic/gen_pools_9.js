@@ -3,7 +3,7 @@ import { act } from '../../DialogueActions.js';
 export const gen_pools_9 = {
     "gen_breeder": {
         id: 'gen_breeder',
-        tags: ['body_horror', 'sick', 'nsfw'],
+        tags: ['body_horror', 'sick', 'nsfw', 'generic'],
         unique: false,
         root: 'gbre_n1',
         nodes: {
@@ -33,23 +33,21 @@ export const gen_pools_9 = {
                 id: 'gbre_n3a',
                 text: "*Se ofende visiblemente.* \"¡Son mis hijos! El viejo mundo está muerto. Ellos son la nueva vida. ¿Me dejarás entrar para que nazcan seguros?\"",
                 options: [
-                    { id: 'gbre_o3a', label: 'Ni hablar. Fuera.', next: null, resultText: "*Se sujeta el vientre.* \"Encontraremos un nido mejor... uno caliente.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gbre_o3b', label: 'Escanear abdomen (UV)', next: null, resultText: "*Levanta la camisa. La piel se ondula violentamente.* \"Saludad al doctor...\"", onclick: act.testUV, log: { text: 'Anomalía: Múltiples organismos detectados en cavidad abdominal. Huésped comprometido.', icon: 'fa-bugs' } },
+                    { id: 'gbre_o3b', label: 'Escanear abdomen (UV)', next: null, resultText: "*Levanta la camisa. La piel se ondula violentamente.* \"Saludad al doctor...\"", onclick: act.testUV, paranoia: 4, sanity: -8, log: { text: 'Anomalía: Múltiples organismos detectados en cavidad abdominal. Huésped comprometido.', icon: 'fa-bugs' } }
                 ]
             },
             'gbre_n3b': {
                 id: 'gbre_n3b',
                 text: "\"No entiendes la belleza de la simbiosis. Yo les doy calor, ellos me dan... propósito.\"",
                 options: [
-                    { id: 'gbre_o3c', label: 'Eres un nido de plagas. Largo.', next: null, resultText: "*Se aleja susurrando nanas.* \"Duermase mi niño...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gbre_o3d', label: 'Verificar temperatura (Incubación)', next: null, resultText: "*Su piel arde.* \"Es el calor del hogar.\"", onclick: act.testThermo },
+                    { id: 'gbre_o3d', label: 'Verificar temperatura (Incubación)', next: null, resultText: "*Su piel arde.* \"Es el calor del hogar.\"", onclick: act.testThermo, paranoia: 3, sanity: -5 }
                 ]
             }
         }
     },
     "gen_butcher": {
         id: 'gen_butcher',
-        tags: ['aggressive', 'obsessive', 'nsfw'],
+        tags: ['aggressive', 'obsessive', 'nsfw', 'generic'],
         unique: false,
         root: 'gbu_n1',
         nodes: {
@@ -80,7 +78,8 @@ export const gen_pools_9 = {
                 text: "*Saca un cuchillo oxidado y lo limpia con un trapo sucio.* \"Solo soy práctico. Aquí abajo, todo es carne. Tú, yo... comida en potencia.\"",
                 options: [
                     { id: 'gbu_o3a', label: 'Guarda eso y lárgate.', next: null, resultText: "*Guarda el cuchillo.* \"Una pena. Se desperdiciará cuando mueras.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gbu_o3b', label: 'Verificar pulso (Excitación)', next: null, resultText: "*Su pulso se acelera al ver tu muñeca.* \"La vena radial... un corte limpio y...\"", onclick: act.testPulse, log: { text: 'Peligro: Sujeto muestra excitación depredadora ante anatomía humana. Posible caníbal.', icon: 'fa-utensils' } },
+                    { id: 'gbu_o3b', label: 'Verificar pulso (Excitación)', next: null, resultText: "*Su pulso se acelera al ver tu muñeca.* \"La vena radial... un corte limpio y...\"", onclick: act.testPulse, paranoia: 3, sanity: -7, log: { text: 'Peligro: Sujeto muestra excitación depredadora ante anatomía humana. Posible caníbal.', icon: 'fa-utensils' } },
+                    { id: 'gbu_o3e', label: 'Cuidado', next: 'gbu_n4b' }
                 ]
             },
             'gbu_n3b': {
@@ -88,8 +87,14 @@ export const gen_pools_9 = {
                 text: "\"El sabor de la supervivencia. Déjame entrar. Prometo no comerme a nadie... que esté vivo.\"",
                 options: [
                     { id: 'gbu_o3c', label: 'No aceptamos caníbales.', next: null, resultText: "*Escupe.* \"Hipócritas. Ya aprenderéis cuando se acaben las latas.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gbu_o3d', label: 'Analizar pupilas', next: null, resultText: "*Te mira fijamente.* \"¿Ves el hambre?\"", onclick: act.testPupils },
+                    { id: 'gbu_o3d', label: 'Analizar pupilas', next: null, resultText: "*Te mira fijamente.* \"¿Ves el hunger?\"", onclick: act.testPupils, paranoia: 2, sanity: -4 },
+                    { id: 'gbu_o3f', label: '...', next: 'gbu_n4b' }
                 ]
+            },
+            'gbu_n4b': {
+                id: 'gbu_n4b',
+                text: "*Se detiene, sopesando tus palabras.* \"El cuidado es un ingrediente que falta en este mundo. Pero el hambre... el hambre es lo único que sobra.\"",
+                options: []
             }
         }
     }

@@ -23,8 +23,8 @@ export class ScreenManager {
         // Logic 1: Settings button only on start screen
         this.elements.settingsBtn.toggleClass('hidden', screenName !== 'start');
 
-        // Logic 2: Sidebar only on Game, Shelter, Morgue, Room, Generator
-        const showSidebar = ['game', 'shelter', 'morgue', 'room', 'generator', 'log'].includes(screenName);
+        // Logic 2: Sidebar only on Game, Shelter, Morgue, Room, Generator, Database, Log
+        const showSidebar = ['game', 'shelter', 'morgue', 'room', 'generator', 'database', 'log'].includes(screenName);
         this.elements.sidebar.toggleClass('hidden', !showSidebar);
 
         // Toggle finalize button visibility in Shelter
@@ -83,7 +83,8 @@ export class ScreenManager {
                 shelter: '#nav-shelter',
                 morgue: '#nav-morgue',
                 room: '#nav-room',
-                generator: '#nav-generator'
+                generator: '#nav-generator',
+                database: '#nav-database'
             };
             const activeNav = navMap[screenName];
             if (activeNav) $(activeNav).addClass('active');
@@ -100,7 +101,8 @@ export class ScreenManager {
             shelter: '#nav-shelter',
             morgue: '#nav-morgue',
             room: '#nav-room',
-            generator: '#nav-generator'
+            generator: '#nav-generator',
+            database: '#nav-database'
         };
 
         const activeNav = navMap[screenName];
@@ -177,23 +179,29 @@ export class ScreenManager {
     }
 
     updateEndingsRecord(state) {
-        const totalEndings = Object.keys(LoreData).filter(key => key.startsWith('final_')).length;
-        const unlocked = state.unlockedEndings.length;
-        
-        $('#endings-count').text(`${unlocked}/${totalEndings}`);
-        
+        if (!state) return;
+
+        const allEndingsKeys = Object.keys(LoreData).filter(key => key.startsWith('final_'));
+        const totalEndings = allEndingsKeys.length;
+
+        // Usar un Set para asegurar que solo contamos finales únicos y que existen en LoreData
+        const uniqueUnlocked = new Set((state.unlockedEndings || []).filter(key => allEndingsKeys.includes(key)));
+        const unlockedCount = uniqueUnlocked.size;
+
+        $('#endings-count').text(`${unlockedCount}/${totalEndings}`);
+
         const dotsContainer = $('#endings-dots');
-        dotsContainer.empty();
-        
-        // Crear puntos para cada final posible
-        Object.keys(LoreData).filter(key => key.startsWith('final_')).forEach(key => {
-            const isUnlocked = state.unlockedEndings.includes(key);
-            const dot = $('<div>', {
-                class: `w-1.5 h-1.5 rounded-full ${isUnlocked ? 'bg-white shadow-[0_0_5px_#fff]' : 'bg-white/10'}`,
-                title: isUnlocked ? LoreData[key].title : '???'
+        if (dotsContainer.length) {
+            dotsContainer.empty();
+            allEndingsKeys.forEach(key => {
+                const isUnlocked = uniqueUnlocked.has(key);
+                const dot = $('<div>', {
+                    class: `w-1.5 h-1.5 rounded-full ${isUnlocked ? 'bg-white shadow-[0_0_5px_#fff]' : 'bg-white/10'}`,
+                    title: isUnlocked ? LoreData[key].title : '???'
+                });
+                dotsContainer.append(dot);
             });
-            dotsContainer.append(dot);
-        });
+        }
     }
 
     renderFinalStats(state, endingId) {

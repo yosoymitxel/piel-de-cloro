@@ -3,7 +3,7 @@ import { act } from '../../DialogueActions.js';
 export const gen_pools_3 = {
     "gen_twitch": {
         id: 'gen_twitch',
-        tags: ['nervous', 'body_horror'],
+        tags: ['nervous', 'body_horror', 'generic'],
         unique: false,
         root: 'gtw_n1',
         nodes: {
@@ -55,7 +55,7 @@ export const gen_pools_3 = {
     },
     "gen_hum": {
         id: 'gen_hum',
-        tags: ['fanatic', 'stoic'],
+        tags: ['fanatic', 'stoic', 'generic'],
         unique: false,
         root: 'ghu_n1',
         nodes: {
@@ -86,7 +86,7 @@ export const gen_pools_3 = {
                 text: "*Mira alrededor.* \"¿Seguro que es seguro aquí? El zumbido del generador... suena igual.\"",
                 options: [
                     { id: 'ghu_o3a', label: 'Si no te gusta, vete.', next: null, resultText: "*Se aleja con su melodía.* \"Mmmm... mmmm... el ruido me protege...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'ghu_o3b', label: 'Guarda silencio un momento, por favor.', next: null, resultText: "*Cierra la boca.* \"(Golpea el suelo con el pie rítmicamente)\"", onclick: act.test },
+                    { id: 'ghu_o3b', label: 'Guarda silencio un momento, por favor.', next: null, resultText: "*Cierra la boca.* \"(Golpea el suelo con el pie rítmicamente)\"", onclick: act.testPulse },
                     { id: 'ghu_o3e', label: 'Silencio', next: 'ghu_n4b' }
                 ]
             },
@@ -95,7 +95,7 @@ export const gen_pools_3 = {
                 text: "*Vuelve a tararear.* \"Mmmm... mmmm...\"",
                 options: [
                     { id: 'ghu_o3c', label: 'Ese ruido es insoportable. Fuera.', next: null, resultText: "*Sube el volumen de su tarareo al irse.* \"¡MMMM! ¡MMMM!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'ghu_o3d', label: 'Voy a revisarte mientras esperas.', next: null, resultText: "*Tararea muy bajito.* \"Es para calmarme... no te molestará.\"", onclick: act.test, log: { text: 'Conducta: Tarareo en frecuencias bajas. Parece un intento de sincronizarse con el zumbido del generador.', icon: 'fa-music' } },
+                    { id: 'ghu_o3d', label: 'Voy a revisarte mientras esperas.', next: null, resultText: "*Tararea muy bajito.* \"Es para calmarme... no te molestará.\"", onclick: act.testPulse, log: { text: 'Conducta: Tarareo en frecuencias bajas. Parece un intento de sincronizarse con el zumbido del generador.', icon: 'fa-music' } },
                     { id: 'ghu_o3f', label: 'Adelante', next: 'ghu_n4b' }
                 ]
             },
@@ -108,7 +108,7 @@ export const gen_pools_3 = {
     },
     "gen_search": {
         id: 'gen_search',
-        tags: ['obsessive', 'nervous'],
+        tags: ['obsessive', 'nervous', 'generic'],
         unique: false,
         root: 'gsr_n1',
         nodes: {
@@ -139,7 +139,7 @@ export const gen_pools_3 = {
                 text: "*Se levanta sacudiéndose el polvo.* \"Si no lo encuentro, no puedo pagar. ¿Aceptáis trabajo a cambio?\"",
                 options: [
                     { id: 'gsr_o3a', label: 'No aceptamos mendigos.', next: null, resultText: "*Sigue buscando mientras se aleja.* \"Tiene que estar por aquí...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gsr_o3b', label: 'Ya buscaremos luego. Ahora el chequeo.', next: null, resultText: "*Se sacude el polvo.* \"Bien, bien. Pero si ves algo brillante, avísame.\"", onclick: act.test, log: { text: 'Conducta: Búsqueda de objetos brillantes. Posible atracción por la luz o reflejos.', icon: 'fa-key' } },
+                    { id: 'gsr_o3b', label: 'Ya buscaremos luego. Ahora el chequeo.', next: null, resultText: "*Se sacude el polvo.* \"Bien, bien. Pero si ves algo brillante, avísame.\"", onclick: act.testPupils, log: { text: 'Conducta: Búsqueda de objetos brillantes. Posible atracción por la luz o reflejos.', icon: 'fa-key' } },
                     { id: 'gsr_o3e', label: 'Levántate', next: 'gsr_n4b' }
                 ]
             },
@@ -148,7 +148,7 @@ export const gen_pools_3 = {
                 text: "*Entrecierra los ojos.* \"Ya... claro. Ladrones.\"",
                 options: [
                     { id: 'gsr_o3c', label: 'Cuidado con lo que dices. Fuera.', next: null, resultText: "*Se marcha enfadado.* \"Ladrones... todos sois ladrones...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gsr_o3d', label: 'Nadie te va a robar. Espera.', next: null, resultText: "*Te vigila de reojo.* \"No toques mis bolsillos durante el escaneo.\"", onclick: act.test },
+                    { id: 'gsr_o3d', label: 'Nadie te va a robar. Espera.', next: null, resultText: "*Te vigila de reojo.* \"No toques mis bolsillos durante el escaneo.\"", onclick: act.testPupils },
                     { id: 'gsr_o3f', label: 'Tranquilo', next: 'gsr_n4b' }
                 ]
             },
@@ -161,7 +161,7 @@ export const gen_pools_3 = {
     },
     "gen_map": {
         id: 'gen_map',
-        tags: ['confused', 'pain'],
+        tags: ['confused', 'pain', 'generic'],
         unique: false,
         root: 'gmp_n1',
         nodes: {
@@ -192,7 +192,7 @@ export const gen_pools_3 = {
                 text: "*Se mira el brazo.* \"A veces la tinta se borra con el sudor. Tengo que repasarla.\"",
                 options: [
                     { id: 'gmp_o3b', label: 'No quiero gente rara aquí.', next: null, resultText: "*Se aleja trazando líneas.* \"Tendré que buscar otra ruta en el mapa...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gmp_o3a', label: 'Interesante. Déjame ver tus constantes.', next: null, resultText: "*Muestra sus brazos.* \"Lee mi piel. Todo está escrito ahí.\"", onclick: act.test },
+                    { id: 'gmp_o3a', label: 'Interesante. Déjame ver tus constantes.', next: null, resultText: "*Muestra sus brazos.* \"Lee mi piel. Todo está escrito ahí.\"", onclick: act.testUV },
                     { id: 'gmp_o3e', label: 'Veamos', next: 'gmp_n4b' }
                 ]
             },
@@ -201,7 +201,7 @@ export const gen_pools_3 = {
                 text: "*Sonríe tristemente.* \"La esperanza es lo último que se pierde, ¿no?\"",
                 options: [
                     { id: 'gmp_o3c', label: 'Aquí ya no hay esperanza. Vete.', next: null, resultText: "*Baja los brazos.* \"La esperanza también se pierde, supongo.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gmp_o3d', label: 'Mantén la esperanza. Voy a revisar.', next: null, resultText: "*Asiente.* \"Gracias. Aún queda camino por recorrer.\"", onclick: act.test },
+                    { id: 'gmp_o3d', label: 'Mantén la esperanza. Voy a revisar.', next: null, resultText: "*Asiente.* \"Gracias. Aún queda camino por recorrer.\"", onclick: act.testUV },
                     { id: 'gmp_o3f', label: 'Adelante', next: 'gmp_n4b' }
                 ]
             },
@@ -214,7 +214,7 @@ export const gen_pools_3 = {
     },
     "gen_wait": {
         id: 'gen_wait',
-        tags: ['aggressive'],
+        tags: ['aggressive', 'generic'],
         unique: false,
         root: 'gwt_n1',
         nodes: {

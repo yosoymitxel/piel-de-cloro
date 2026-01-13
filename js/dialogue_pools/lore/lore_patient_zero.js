@@ -41,7 +41,8 @@ export const lore_patient_zero = {
             id: 'lpz_n5',
             text: "\"¿Cura para la evolución? No. Solo adaptación. O extinción. Tú eliges.\"",
             options: [
-                 { id: 'lpz_o5a', label: 'No te dejaré entrar.', next: null, resultText: "*Asiente lentamente.* \"Ya estoy dentro. En el aire que respiras.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore }
+                { id: 'lpz_o5a', label: 'No te dejaré entrar.', next: null, resultText: "*Asiente lentamente.* \"Ya estoy dentro. En el aire que respiras.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                { id: 'lpz_o5b', label: 'Te debo revisar primero.', next: null, resultText: "\"Sí, necesito que me revises.\"" }    
             ]
         }
     }

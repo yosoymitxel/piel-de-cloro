@@ -16,6 +16,7 @@ export class NPC {
         this.attributes = this.generateAttributes(this.isInfected);
         this.visualFeatures = this.generateVisualFeatures(this.isInfected, this.gender);
         this.personality = this.pickPersonality();
+        this.trait = this.pickTrait();
         this.isLore = opts.isLore || false;
         this.loreId = opts.loreId || null;
 
@@ -115,6 +116,10 @@ export class NPC {
 
         const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 
+        // Glitch chance increases with paranoia and infection
+        const baseGlitch = infected ? 0.3 : 0.01;
+        const paranoiaModifier = (typeof State !== 'undefined') ? (State.paranoia / 200) : 0;
+
         return {
             gender: gender,
             hair: pick(hairStyles[gender]),
@@ -124,12 +129,31 @@ export class NPC {
             eyeType: pick(eyeTypes),
             mouthType: pick(mouthTypes),
             skinColor: pick(skins),
-            glitchChance: infected ? 0.3 : 0.01
+            glitchChance: baseGlitch + paranoiaModifier
         };
     }
 
     pickPersonality() {
-        return DialogueData.personalities[Math.floor(Math.random() * DialogueData.personalities.length)];
+        const types = [
+            'nervous', 'aggressive', 'stoic', 'confused', 
+            'fanatic', 'paranoid', 'obsessive', 'manic', 
+            'sick', 'body_horror'
+        ];
+        return types[Math.floor(Math.random() * types.length)];
+    }
+
+    pickTrait() {
+        const traits = [
+            { id: 'scavenger', name: 'Recolector', description: 'Puede encontrar suministros extra (1-5) durante la noche.' },
+            { id: 'optimist', name: 'Optimista', description: 'Reduce la paranoia colectiva en un 10% cada noche.' },
+            { id: 'paranoid', name: 'Paranoico', description: 'Aumenta la paranoia colectiva en un 5% cada noche.' },
+            { id: 'sickly', name: 'Enfermizo', description: 'Consume el doble de suministros.' },
+            { id: 'tough', name: 'Resistente', description: 'Más difícil de eliminar en eventos nocturnos.' },
+            { id: 'none', name: 'Ninguno', description: 'No tiene rasgos especiales.' }
+        ];
+        // 70% chance of having a trait
+        if (Math.random() > 0.7) return traits.find(t => t.id === 'none');
+        return traits[Math.floor(Math.random() * (traits.length - 1))];
     }
 
     generateDialogueTree(infected, personality) {

@@ -1,6 +1,7 @@
 export const State = {
     paranoia: 0,
     sanity: 100,
+    supplies: 15, // Suministros iniciales
     cycle: 1,
     dayTime: 1, // Current subject count in the day
     config: {
@@ -118,10 +119,10 @@ export const State = {
 
     updateParanoia(amount) {
         this.paranoia = Math.max(0, Math.min(100, this.paranoia + amount));
-        // La paranoia extrema drena la cordura
-        if (this.paranoia > 80) {
-            this.updateSanity(-1);
-        }
+        
+        // La paranoia alta ya no drena la cordura directamente de forma lineal
+        // sino que aumenta la dificultad de mantenerla (se gestiona en GameMechanicsManager)
+        
         if (typeof document !== 'undefined') {
             document.dispatchEvent(new CustomEvent('paranoia-updated', { detail: { value: this.paranoia } }));
         }
@@ -129,11 +130,19 @@ export const State = {
     },
 
     updateSanity(amount) {
-        this.sanity = Math.max(0, Math.min(100, this.sanity + amount));
+        // La cordura es más difícil de recuperar que la paranoia
+        const finalAmount = amount > 0 ? amount * 0.8 : amount; 
+        this.sanity = Math.max(0, Math.min(100, this.sanity + finalAmount));
+        
         if (typeof document !== 'undefined') {
             document.dispatchEvent(new CustomEvent('sanity-updated', { detail: { value: this.sanity } }));
         }
         return this.sanity;
+    },
+
+    updateSupplies(amount) {
+        this.supplies = Math.max(0, this.supplies + amount);
+        return this.supplies;
     },
 
     // Seguridad por run
@@ -172,6 +181,8 @@ export const State = {
 
     reset() {
         this.paranoia = 0;
+        this.sanity = 100;
+        this.supplies = 15;
         this.cycle = 1;
         this.dayTime = 1;
         this.admittedNPCs = [];
@@ -205,6 +216,8 @@ export const State = {
         this.dialogueMemory = [];
         this.gameLog = [];
         this.addLogEntry('system', 'Sistema RUTA-01 inicializado. Ciclo 1.');
+        
+        // NO RESETEAR: unlockedEndings ni audioSettings ya que son persistentes
     },
 
     addLogEntry(type, text, meta = {}) {

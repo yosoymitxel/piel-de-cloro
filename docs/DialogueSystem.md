@@ -69,6 +69,16 @@ Cuando se crea un NPC en `NPC.js`, se llama a `selectDialogueSet` para asignarle
 
 El `UIManager` procesa el texto de los nodos para darle formato visual:
 
+### Formato de Botones y Clases Especiales
+El motor de diálogos asigna automáticamente clases CSS a las opciones basándose en su texto o en su propiedad `cssClass`:
+- **Ignorar**: `horror-btn-ignore` (Icono de ojo tachado).
+- **Analizar**: `horror-btn-analyze` (Icono de lupa).
+- **Admitir/Riesgo**: `horror-btn-admit` (Icono de advertencia).
+- **Finalizar**: `horror-btn-dismiss` (Icono de salida).
+
+**Optimización de Opciones**: 
+Para evitar redundancia, el `DialogueEngine` elimina automáticamente la opción genérica de "Terminar diálogo" si el nodo ya contiene 4 o más opciones específicas definidas en su estructura.
+
 ### Formato de Texto
 *   **Acciones**: El texto entre asteriscos `*se rasca el brazo*` se renderiza con estilo descriptivo (cursiva/gris).
 *   **Diálogo**: El texto entre comillas `"hola"` se renderiza como habla directa del personaje.

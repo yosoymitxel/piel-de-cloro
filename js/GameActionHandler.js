@@ -16,7 +16,7 @@ export class GameActionHandler {
         // Validar estado del generador
         if (!State.generator.isOn) {
             this.ui.showFeedback("GENERADOR APAGADO: ACCIÓN IMPOSIBLE", "red");
-            this.game.updateHUD(); // Sincronizar contador de energía
+            this.game.updateHUD(); 
             return;
         }
 
@@ -25,9 +25,16 @@ export class GameActionHandler {
         if (State.generator.mode === 'save') maxEnergy = CONSTANTS.GENERATOR.SAVE_MODE_CAPACITY;
         if (State.generator.mode === 'overload') maxEnergy = CONSTANTS.GENERATOR.OVERLOAD_MODE_CAPACITY;
 
-        if (npc.scanCount >= maxEnergy) {
+        // MECÁNICA PARANOIA: El sistema en alerta consume más recursos
+        let energyCost = 1;
+        if (State.paranoia > 70 && Math.random() < (State.paranoia / 200)) {
+            energyCost = 2;
+            this.ui.showFeedback("ALERTA DE SISTEMA: CONSUMO EXTRA", "orange");
+        }
+
+        if (npc.scanCount + energyCost > maxEnergy) {
             this.ui.showFeedback("ENERGÍA INSUFICIENTE PARA ESTE TURNO", "yellow");
-            this.ui.updateInspectionTools(); // Asegurar sincronización visual
+            this.ui.updateInspectionTools(); 
             return;
         }
 
@@ -41,21 +48,61 @@ export class GameActionHandler {
 
         if (npc.revealedStats.includes(statKey)) {
             this.ui.showFeedback("TEST YA REALIZADO", "yellow");
-            this.ui.updateInspectionTools(); // Asegurar sincronización visual
+            this.ui.updateInspectionTools(); 
+            return;
+        }
+
+        // MECÁNICA PARANOIA: Probabilidad de fallo de hardware (Glitch)
+        const glitchChance = State.paranoia > 60 ? (State.paranoia - 60) / 100 : 0;
+        const isGlitch = Math.random() < glitchChance;
+
+        if (isGlitch) {
+            this.game.isAnimating = true;
+            npc.scanCount += energyCost;
+            this.ui.applyVHS(1.0, 1500);
+            this.audio.playSFXByKey('ui_hover', { volume: 0.8 }); // Sonido de error
+            this.ui.showFeedback("ERROR DE LECTURA: INTERFERENCIA EN EL SECTOR", "red");
+            
+            setTimeout(() => {
+                this.game.isAnimating = false;
+                this.game.updateHUD();
+            }, 1500);
             return;
         }
 
         this.game.isAnimating = true;
         State.verificationsCount++;
-        npc.scanCount++;
-        this.game.mechanics.checkSecurityDegradation(); // Riesgo de fallo en seguridad al usar herramientas
-        this.game.updateHUD(); // Actualizar el HUD inmediatamente (refleja energía en el contador)
+        npc.scanCount += energyCost;
+        this.game.mechanics.checkSecurityDegradation(); 
+        this.game.updateHUD(); 
         
         let result = "";
         let color = "yellow";
         let animDuration = 1000;
 
-        // Inyectar animaciones visuales
+        // MECÁNICA CORDURA: Alucinación de síntomas
+        // Si la cordura es baja, el resultado puede estar falseado
+        const sanityHallucinationChance = State.sanity < 40 ? (40 - State.sanity) / 100 : 0;
+        const isHallucination = Math.random() < sanityHallucinationChance;
+
+        let toolValue = npc.attributes[statKey];
+
+        if (isHallucination) {
+            // Generar un valor falso (si es humano, mostrar infectado; si es infectado, mostrar humano)
+            if (npc.isInfected) {
+                // Falso negativo (peligroso!)
+                if (statKey === 'temperature') toolValue = (36.5 + Math.random() * 0.5).toFixed(1);
+                else if (statKey === 'pulse') toolValue = 70 + Math.floor(Math.random() * 20);
+                else toolValue = 'normal';
+            } else {
+                // Falso positivo (paranoia!)
+                if (statKey === 'temperature') toolValue = (34 + Math.random() * 1).toFixed(1);
+                else if (statKey === 'pulse') toolValue = 10 + Math.floor(Math.random() * 10);
+                else toolValue = statKey === 'skinTexture' ? 'dry' : 'dilated';
+            }
+            this.ui.applyVHS(0.8, 2000); // Efecto visual de "distorsión mental"
+        }
+
         const animMap = {
             'thermometer': 'animateToolThermometer',
             'flashlight': 'animateToolFlashlight',
@@ -64,47 +111,45 @@ export class GameActionHandler {
         };
 
         const animMethod = animMap[tool];
-        const valMap = {
-            'thermometer': npc.attributes.temperature,
-            'flashlight': npc.attributes.skinTexture,
-            'pupils': npc.attributes.pupils,
-            'pulse': npc.attributes.pulse
-        };
-
         if (this.ui[animMethod]) {
-            this.ui[animMethod](valMap[tool], null, npc.isInfected);
+            this.ui[animMethod](toolValue, null, npc.isInfected);
         }
 
         switch (tool) {
             case 'thermometer':
                 animDuration = 2200;
-                result = `TEMP: ${npc.attributes.temperature}°C`;
-                if (npc.attributes.temperature < 35) color = '#aaffaa';
+                result = `TEMP: ${toolValue}°C`;
+                if (parseFloat(toolValue) < 35) color = '#aaffaa';
                 if (!npc.revealedStats.includes('temperature')) npc.revealedStats.push('temperature');
                 this.ui.applyVHS(0.4, 700);
                 this.audio.playSFXByKey('tool_thermometer_beep', { volume: 0.6 });
                 break;
             case 'flashlight':
                 animDuration = 900;
-                result = `DERMIS: ${this.ui.translateValue('skinTexture', npc.attributes.skinTexture)}`;
+                result = `DERMIS: ${this.ui.translateValue('skinTexture', toolValue)}`;
                 if (!npc.revealedStats.includes('skinTexture')) npc.revealedStats.push('skinTexture');
                 this.ui.applyVHS(0.7, 900);
                 this.audio.playSFXByKey('tool_uv_toggle', { volume: 0.6 });
                 break;
             case 'pupils':
                 animDuration = 2700;
-                result = `PUPILAS: ${this.ui.translateValue('pupils', npc.attributes.pupils)}`;
+                result = `PUPILAS: ${this.ui.translateValue('pupils', toolValue)}`;
                 if (!npc.revealedStats.includes('pupils')) npc.revealedStats.push('pupils');
                 this.ui.applyVHS(0.6, 800);
                 this.audio.playSFXByKey('tool_pupils_lens', { volume: 0.6 });
                 break;
             case 'pulse':
-                animDuration = 2600;
-                result = `BPM: ${npc.attributes.pulse}`;
+                animDuration = 2200;
+                result = `PULSO: ${toolValue} PPM`;
+                if (parseInt(toolValue) < 40) color = '#ffaaaa';
                 if (!npc.revealedStats.includes('pulse')) npc.revealedStats.push('pulse');
-                this.ui.applyVHS(0.5, 800);
-                this.audio.playSFXByKey('tool_pulse_beep', { volume: 0.6 });
+                this.ui.applyVHS(0.5, 700);
+                this.audio.playSFXByKey('tool_pulse_sensor', { volume: 0.6 });
                 break;
+        }
+
+        if (isHallucination) {
+            this.ui.showFeedback("LECTURA INESTABLE", "rose");
         }
 
         // Bloquear el botón específico y actualizar estado de energías
@@ -141,12 +186,15 @@ export class GameActionHandler {
             State.ignoredNPCs.push(npc);
             
             // Consecuencia por ignorar: la paranoia aumenta porque no sabes qué has dejado fuera
-            const amount = npc.isInfected ? 10 : 5;
+            // REBALANCEO: Ahora es un factor aleatorio que no supera los 7 (antes era 5 o 10 fijo)
+            const maxIncrease = npc.isInfected ? 7 : 4;
+            const amount = Math.floor(Math.random() * maxIncrease) + 1;
             State.updateParanoia(amount);
             
             const msg = npc.isInfected 
-                ? `HAS PERMITIDO QUE ${npc.name} SE MARCHE. SIENTES UN ESCALOFRÍO MIENTRAS DESAPARECE EN LA NIEBLA.`
-                : `HAS PERMITIDO QUE ${npc.name} SE MARCHE. LA INCERTIDUMBRE CRECE.`;
+                ? `Has permitido que ${npc.name} se marche. Sientes un escalofrío mientras desaparece en la niebla.`
+                : `Has permitido que ${npc.name} se marche. La incertidumbre crece.`;
+
             
             if (npc.isInfected && Math.random() < 0.2) {
                 this.ui.showMessage(msg, null, npc.isInfected ? 'warning' : 'normal');
@@ -156,6 +204,32 @@ export class GameActionHandler {
         State.nextSubject();
         this.game.nextTurn();
         this.ui.updateRunStats(State);
+    }
+
+    handleSupplyRequest() {
+        if (State.paused || this.game.isAnimating) return;
+
+        // Mecánica de suministros: Solicitar suministros de emergencia
+        // Coste: Aumenta la paranoia significativamente (ruido logístico)
+        // Beneficio: +3 suministros
+        
+        const paranoiaCost = 15;
+        const supplyGain = 3;
+
+        this.ui.showConfirm(
+            `SOLICITAR SUMINISTROS DE EMERGENCIA: ¿Solicitar reabastecimiento aéreo? La logística aumentará la PARANOIA en un ${paranoiaCost}%.`,
+            () => {
+                State.updateParanoia(paranoiaCost);
+                State.updateSupplies(supplyGain);
+                this.audio.playSFXByKey('ui_confirm');
+                this.ui.showFeedback(`SUMINISTROS RECIBIDOS (+${supplyGain})`, "green");
+                this.game.updateHUD();
+            },
+            () => {
+                this.audio.playSFXByKey('ui_cancel');
+            },
+            'warning'
+        );
     }
 
     handlePreCloseAction(action) {

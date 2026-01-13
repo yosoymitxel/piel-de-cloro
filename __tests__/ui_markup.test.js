@@ -56,6 +56,7 @@ beforeAll(async () => {
                     empty() { this._html = ''; this._children = []; this._inner = ''; return this; },
                     append(node) { this._children.push(node); return this; },
                     on() { return this; },
+                    parent() { return this; },
                     addClass() { return this; }, removeClass() { return this; }, toggleClass() { return this; }, css() { return this; }, text(t) { if (t === undefined) return this._text; this._text = t; return this; }, length: 1
                 };
             }

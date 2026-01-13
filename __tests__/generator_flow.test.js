@@ -15,6 +15,7 @@ describe('Generator System Flow', () => {
             },
             colors: { energy: '#fff', off: '#333', save: '#0f0', overload: '#f00' },
             setNavItemStatus: jest.fn(),
+            updateGeneratorNavStatus: jest.fn(),
             updateGameActions: jest.fn(),
             updateInspectionTools: jest.fn(),
             updateStats: jest.fn(),
@@ -63,7 +64,7 @@ describe('Generator System Flow', () => {
         gm.renderGeneratorRoom(state);
         
         expect(state.generatorCheckedThisTurn).toBe(true);
-        expect(uiMock.setNavItemStatus).toHaveBeenCalledWith('nav-generator', 4); // Critical because off
+        expect(uiMock.updateGeneratorNavStatus).toHaveBeenCalled();
     });
 
     test('Power levels for modes', () => {

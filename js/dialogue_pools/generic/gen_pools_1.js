@@ -3,7 +3,7 @@ import { act } from '../../DialogueActions.js';
 export const gen_pools_1 = {
     "gen_scratch": {
         id: 'gen_scratch',
-        tags: ['nervous', 'body_horror'],
+        tags: ['nervous', 'body_horror', 'generic'],
         unique: false,
         root: 'gs_n1',
         nodes: {
@@ -66,7 +66,7 @@ export const gen_pools_1 = {
     },
     "gen_leak": {
         id: 'gen_leak',
-        tags: ['fanatic', 'body_horror'],
+        tags: ['fanatic', 'body_horror', 'generic'],
         unique: false,
         root: 'gl_n1',
         nodes: {
@@ -120,7 +120,7 @@ export const gen_pools_1 = {
     },
     "gen_whisper": {
         id: 'gen_whisper',
-        tags: ['paranoid'],
+        tags: ['paranoid', 'generic'],
         unique: false,
         root: 'gw_n1',
         nodes: {
@@ -152,7 +152,7 @@ export const gen_pools_1 = {
                 text: "*Sacude la cabeza.* \"Ojalá fuera el viento. El viento no tiene ritmo.\"",
                 options: [
                     { id: 'gw_o3a', label: 'Eres inestable. Vete.', next: null, resultText: "*Se va tapándose los oídos.* \"¡Callaos! ¡Dejadme en paz!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gw_o3b', label: 'Intenta calmarte, voy a hacer un chequeo', next: null, resultText: "*Asiente, tenso.* \"Hazlo antes de que vuelvan a empezar.\"", onclick: act.test },
+                    { id: 'gw_o3b', label: 'Intenta calmarte, voy a hacer un chequeo', next: null, resultText: "*Asiente, tenso.* \"Hazlo antes de que vuelvan a empezar.\"", onclick: act.testPulse },
                     { id: 'gw_o3e', label: 'Cálmate', next: 'gw_n4b' }
                 ]
             },
@@ -161,7 +161,7 @@ export const gen_pools_1 = {
                 text: "*Se queda quieto.* \"Shhh... si hacemos ruido, nos encontrarán.\"",
                 options: [
                     { id: 'gw_o3c', label: 'No quiero locos aquí. Fuera.', next: null, resultText: "*Se aleja de puntillas.* \"Shhh... nos oirán si corremos.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gw_o3d', label: 'Silencio. Déjame trabajar.', next: null, resultText: "*Se tapa la boca.* \"Seré una tumba. Revisa lo que quieras.\"", onclick: act.test, log: { text: 'Comportamiento: Escuchan voces en las tuberías. Afirman que el sistema de agua \"habla\" con nombres.', icon: 'fa-ear-listen' } },
+                    { id: 'gw_o3d', label: 'Silencio. Déjame trabajar.', next: null, resultText: "*Se tapa la boca.* \"Seré una tumba. Revisa lo que quieras.\"", onclick: act.testPupils, log: { text: 'Comportamiento: Escuchan voces en las tuberías. Afirman que el sistema de agua \"habla\" con nombres.', icon: 'fa-ear-listen' } },
                     { id: 'gw_o3f', label: '...', next: 'gw_n4b' }
                 ]
             },
@@ -174,7 +174,7 @@ export const gen_pools_1 = {
     },
     "gen_mold": {
         id: 'gen_mold',
-        tags: ['sick', 'body_horror'],
+        tags: ['sick', 'body_horror', 'generic'],
         unique: false,
         root: 'gm_n1',
         nodes: {
@@ -220,16 +220,13 @@ export const gen_pools_1 = {
             'gm_n4b': {
                 id: 'gm_n4b',
                 text: "*Presencia de esporas fúngicas en dermis. Riesgo de propagación.*",
-                options: [
-                    { id: 'gm_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gm_o4b1', label: 'Admitir (Riesgo Biológico)', next: null, sets: ['admitted_infected'], cssClass: 'text-alert border-alert', onclick: act.admit }
-                ]
+                options: []
             }
         }
     },
     "gen_teeth": {
         id: 'gen_teeth',
-        tags: ['nervous', 'pain'],
+        tags: ['nervous', 'pain', 'generic'],
         unique: false,
         root: 'gt_n1',
         nodes: {

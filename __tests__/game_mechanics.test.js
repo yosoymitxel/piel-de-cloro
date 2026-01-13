@@ -142,7 +142,8 @@ describe('Game Mechanics Manager', () => {
             
             gmm.sleep();
             
-            expect(State.paranoia).toBe(40); // 50 - 10
+            // 50 - 15 (because civilians > infected)
+            expect(State.paranoia).toBe(35); 
             expect(uiMock.showLore).toHaveBeenCalledWith('night_tranquil', expect.any(Function));
             spy.mockRestore();
         });

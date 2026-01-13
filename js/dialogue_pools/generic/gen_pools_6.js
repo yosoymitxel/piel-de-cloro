@@ -3,7 +3,7 @@ import { act } from '../../DialogueActions.js';
 export const gen_pools_6 = {
     "gen_hungry": {
         id: 'gen_hungry',
-        tags: ['aggressive', 'body_horror'],
+        tags: ['aggressive', 'body_horror', 'generic'],
         unique: false,
         root: 'ghn_n1',
         nodes: {
@@ -56,7 +56,7 @@ export const gen_pools_6 = {
     },
     "gen_clean": {
         id: 'gen_clean',
-        tags: ['obsessive', 'nervous'],
+        tags: ['obsessive', 'nervous', 'generic'],
         unique: false,
         root: 'gcl_n1',
         nodes: {
@@ -109,7 +109,7 @@ export const gen_pools_6 = {
     },
     "gen_forget": {
         id: 'gen_forget',
-        tags: ['confused', 'stoic'],
+        tags: ['confused', 'stoic', 'generic'],
         unique: false,
         root: 'gfg_n1',
         nodes: {
@@ -183,7 +183,7 @@ export const gen_pools_6 = {
             },
             'gfv_n2b': {
                 id: 'gfv_n2b',
-                text: "\"Es solo una gripe. Me mojé ayer y cogí frío. Nada que no se cure durmiendo.\"",
+                text: "\"Mira, si fuera 'eso', ya estaría muerto, ¿no? Llevo así dos días y sigo en pie.\"",
                 options: [
                     { id: 'gfv_o2b', label: 'Dudar', next: 'gfv_n3b' }
                 ]
@@ -193,7 +193,7 @@ export const gen_pools_6 = {
                 text: "*Se seca el sudor, que parece ligeramente viscoso.* \"No es nada contagioso, lo prometo. Solo agotamiento.\"",
                 options: [
                     { id: 'gfv_o3a', label: 'Ese sudor no es normal. Vete.', next: null, resultText: "*Se marcha tambaleándose.* \"Solo es calor... mucho calor...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gfv_o3b', label: 'Déjame medir tu temperatura.', next: null, resultText: "*Se apoya en la pared.* \"Vale, pero rápido. Me mareo.\"", onclick: act.test },
+                    { id: 'gfv_o3b', label: 'Déjame medir tu temperatura.', next: null, resultText: "*Se apoya en la pared.* \"Vale, pero rápido. Me mareo.\"", onclick: act.testThermo },
                     { id: 'gfv_o3e', label: 'Espera', next: 'gfv_n4b' }
                 ]
             },
@@ -202,7 +202,7 @@ export const gen_pools_6 = {
                 text: "\"Mira, si fuera 'eso', ya estaría muerto, ¿no? Llevo así dos días y sigo en pie.\"",
                 options: [
                     { id: 'gfv_o3c', label: 'Buen punto, pero no me fío.', next: null, resultText: "*Escupe al suelo.* \"Paranoicos...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gfv_o3d', label: 'A ver esos ojos. Acércate.', next: null, resultText: "*Se acerca, sus pupilas oscilan.* \"¿Ves? Normales.\"", onclick: act.test },
+                    { id: 'gfv_o3d', label: 'A ver esos ojos. Acércate.', next: null, resultText: "*Se acerca, sus pupilas oscilan.* \"¿Ves? Normales.\"", onclick: act.testPupils },
                     { id: 'gfv_o3f', label: 'Acércate', next: 'gfv_n4b' }
                 ]
             },
@@ -215,7 +215,7 @@ export const gen_pools_6 = {
     },
     "gen_euphoria": {
         id: 'gen_euphoria',
-        tags: ['manic', 'energetic'],
+        tags: ['manic', 'energetic', 'generic'],
         unique: false,
         root: 'geu_n1',
         nodes: {

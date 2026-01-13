@@ -48,6 +48,13 @@ describe('Lore and Endings System', () => {
         expect(State.unlockedEndings.length).toBe(1);
     });
 
+    test('All endings are accounted for in LoreData', () => {
+        const finalEndings = Object.keys(LoreData).filter(key => key.startsWith('final_'));
+        expect(finalEndings.length).toBeGreaterThan(5); // Ensure we have a significant number of endings
+        expect(finalEndings).toContain('final_clean');
+        expect(finalEndings).toContain('final_corrupted');
+    });
+
     test('Danger type lore adds specific classes', () => {
         lm.showLore('night_civil_death');
         

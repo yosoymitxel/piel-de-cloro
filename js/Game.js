@@ -9,6 +9,8 @@ import { GameEventManager } from './GameEventManager.js';
 import { GameEndingManager } from './GameEndingManager.js';
 import { RandomEventManager } from './RandomEventManager.js';
 import { CONSTANTS } from './Constants.js';
+import { DialogueData } from './DialogueData.js';
+
 
 class Game {
     constructor(dependencies = {}) {
@@ -95,10 +97,15 @@ class Game {
     }
 
     startGame() {
+        // En lugar de empezar directo, mostramos el tutorial inicial
+        this.ui.showScreen('game');
+        this.ui.elements.modalTutorial.removeClass('hidden').addClass('flex');
         this.audio.playAmbientByKey('ambient_main_loop', { loop: true, volume: 0.28, fadeIn: 800 });
+    }
+
+    startFirstDay() {
         this.mechanics.generateInitialEntrants();
         this.nextTurn();
-        this.ui.showScreen('game');
         this.ui.updateRunStats(State);
     }
 
@@ -117,7 +124,8 @@ class Game {
         State.generatorCheckedThisTurn = false;
         State.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
         
-        this.ui.clearAllNavStatuses();
+        this.isAnimating = false;
+        this.ui.resetUI();
 
         // Quitar pausa
         State.paused = false;
@@ -134,6 +142,10 @@ class Game {
     }
 
     restartGame() {
+        State.reset();
+        this.isAnimating = false;
+        this.ui.resetUI();
+        
         State.paused = false;
         $('body').removeClass('paused');
         $('#screen-game').removeClass('is-paused');
@@ -185,7 +197,16 @@ class Game {
             return;
         }
 
-        State.currentNPC = new NPC();
+// Probabilidad de NPC de Lore (12%)
+        let isLore = false;
+        if (Math.random() < 0.12) {
+            const unusedLore = DialogueData.loreSubjects.filter(s => !State.isDialogueUsed(s.id));
+            if (unusedLore.length > 0) {
+                isLore = true;
+            }
+        }
+
+        State.currentNPC = new NPC(null, { isLore });
         if (State.endingTriggered) return; // Doble check tras posible intrusion de final
 
         State.generatorCheckedThisTurn = false; // Resetear para cada nuevo NPC
@@ -220,7 +241,7 @@ class Game {
     }
 
     updateHUD() {
-        this.ui.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
+        this.ui.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC, State.supplies);
         this.ui.updateRunStats(State);
     }
 

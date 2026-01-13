@@ -1,35 +1,58 @@
 export const LoreData = {
     initial: {
-        title: 'Protocolo de Emergencia',
+        title: 'Manual del Guardián',
         content: `
-            <div class="flex flex-col gap-3 text-sm font-mono">
-                <div class="p-3 border border-chlorine bg-black/60 shadow-[0_0_10px_rgba(45,90,39,0.2)]">
-                    <h3 class="text-chlorine font-bold mb-2 text-base border-b border-chlorine/30 pb-1"><i class="fa-solid fa-biohazard mr-2"></i>LA AMENAZA</h3>
-                    <p class="text-chlorine-light opacity-90 leading-relaxed">
-                        Los <span class="text-white font-bold">Piel de Cloro</span> son portadores.
-                        <br>Síntomas: <span class="text-white">Piel seca, pupilas dilatadas, pulso bajo, hipotermia.</span>
+            <div class="flex flex-col gap-4 text-sm font-mono">
+                <!-- Sección 1: El Objetivo -->
+                <div class="p-3 border-l-4 border-chlorine bg-chlorine/5">
+                    <h3 class="text-chlorine font-bold mb-1 uppercase text-xs">Objetivo Primario</h3>
+                    <p class="text-gray-300 text-[11px] leading-relaxed">
+                        Identificar y <span class="text-white">purgar</span> a los portadores de "Piel de Cloro" antes de que infecten el refugio.
                     </p>
                 </div>
 
+                <!-- Sección 2: Herramientas y Síntomas -->
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="p-2 border border-warning/40 bg-black/40">
-                        <h4 class="text-warning font-bold text-xs mb-1"><i class="fa-solid fa-bolt mr-1"></i>GENERADOR</h4>
-                        <p class="text-[11px] text-gray-300 leading-tight">Limita el uso de herramientas. Si se apaga, pierdes capacidad de análisis.</p>
+                    <div class="p-2 border border-blue-900/30 bg-black/40">
+                        <h4 class="text-blue-400 font-bold text-[10px] mb-1 uppercase">Inspección</h4>
+                        <ul class="text-[9px] text-gray-400 space-y-1">
+                            <li><i class="fa-solid fa-temperature-half mr-1"></i> <span class="text-white">Frío:</span> < 35°C</li>
+                            <li><i class="fa-solid fa-lightbulb mr-1"></i> <span class="text-white">UV:</span> Manchas/Sequedad</li>
+                            <li><i class="fa-solid fa-heart-pulse mr-1"></i> <span class="text-white">Pulso:</span> Lento/Bradicardia</li>
+                            <li><i class="fa-solid fa-eye mr-1"></i> <span class="text-white">Ojos:</span> Sin reflejo</li>
+                        </ul>
                     </div>
-                    <div class="p-2 border border-alert/40 bg-black/40">
-                        <h4 class="text-alert font-bold text-xs mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>SEGURIDAD</h4>
-                        <p class="text-[11px] text-gray-300 leading-tight">Vigila la Sala de Control. Las intrusiones ignoradas son letales.</p>
+                    <div class="p-2 border border-warning/30 bg-black/40">
+                        <h4 class="text-warning font-bold text-[10px] mb-1 uppercase">Recursos</h4>
+                        <p class="text-[9px] text-gray-400 leading-tight">
+                            El <span class="text-white">Generador</span> alimenta el HUD y la luz UV. Sin <span class="text-white">Suministros</span>, los refugiados mueren de hambre cada noche.
+                        </p>
                     </div>
                 </div>
 
-                <div class="p-2 border border-gray-800 bg-black/40">
-                    <ul class="list-none space-y-1 text-xs text-gray-400">
-                        <li><i class="fa-solid fa-check text-chlorine mr-1"></i> <span class="text-gray-200">Admitir:</span> Requiere validación al día siguiente.</li>
-                        <li><i class="fa-solid fa-xmark text-alert mr-1"></i> <span class="text-gray-200">Purgar:</span> Elimina la amenaza, pero matar civiles sube la Paranoia.</li>
-                    </ul>
+                <!-- Sección 3: Acciones -->
+                <div class="p-2 border border-gray-800 bg-black/20">
+                    <div class="flex justify-between items-center text-[10px]">
+                        <div class="flex flex-col items-center gap-1 w-1/2 border-r border-gray-800">
+                            <i class="fa-solid fa-check text-chlorine"></i>
+                            <span class="text-white font-bold">ADMITIR</span>
+                            <span class="text-gray-500 text-center px-1 italic">Vigila su estado al día siguiente.</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 w-1/2">
+                            <i class="fa-solid fa-xmark text-alert"></i>
+                            <span class="text-white font-bold">PURGAR</span>
+                            <span class="text-gray-500 text-center px-1 italic">Elimina la amenaza de inmediato.</span>
+                        </div>
+                    </div>
                 </div>
-                
-                <p class="text-center text-xs text-chlorine-dim italic mt-1">"El refugio no olvida. La noche revela lo que el día oculta."</p>
+
+                <!-- Sección 4: Nota Técnica -->
+                <div class="text-center">
+                    <p class="text-[10px] text-alert opacity-70 animate-pulse">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> ERROR: INTRUSIONES DETECTADAS EN SALA DE CONTROL
+                    </p>
+                    <p class="text-[9px] text-gray-500 mt-2 italic">Pulsa en el icono de ayuda [?] del panel para más detalles.</p>
+                </div>
             </div>
         `,
         audio: 'lore_intro_track'

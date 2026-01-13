@@ -3,7 +3,7 @@ import { act } from '../../DialogueActions.js';
 export const gen_pools_4 = {
     "gen_lost": {
         id: 'gen_lost',
-        tags: ['confused'],
+        tags: ['confused', 'generic'],
         unique: false,
         root: 'glo_n1',
         nodes: {
@@ -30,7 +30,7 @@ export const gen_pools_4 = {
                 text: "\"Supongo que tendré que entrar para buscarlo.\"",
                 options: [
                     { id: 'glo_o3b', label: 'No puedes entrar sin autorización.', next: null, cssClass: 'horror-btn-dismiss', resultText: "*Se da la vuelta.* \"Seguiré buscando... tiene que estar en algún lado.\"", onclick: act.ignore },
-                    { id: 'glo_o3a', label: 'Primero el protocolo. Espera.', next: null, resultText: "*Guarda el papel.* \"Haz lo que debas, pero déjame pasar luego.\"", onclick: act.test, log: { text: 'Dato: Desapariciones en Sector 4. Se rumorea que es un nido.', icon: 'fa-map-location-dot' } },
+                    { id: 'glo_o3a', label: 'Primero el protocolo. Espera.', next: null, resultText: "*Guarda el papel.* \"Haz lo que debas, pero déjame pasar luego.\"", onclick: act.testUV, paranoia: 1, log: { text: 'Dato: Desapariciones en Sector 4. Se rumorea que es un nido.', icon: 'fa-map-location-dot' } },
                     { id: 'glo_o3e', label: 'Espera', next: 'glo_n4b' }
                 ]
             },
@@ -38,7 +38,7 @@ export const gen_pools_4 = {
                 id: 'glo_n3b',
                 text: "\"Solo déjame pasar. No molestaré.\"",
                 options: [
-                    { id: 'glo_o3c', label: 'Veremos qué se puede hacer. Un momento.', next: null, resultText: "*Junta las manos.* \"Gracias... solo quiero encontrarlo.\"", onclick: act.test },
+                    { id: 'glo_o3c', label: 'Veremos qué se puede hacer. Un momento.', next: null, resultText: "*Junta las manos.* \"Gracias... solo quiero encontrarlo.\"", onclick: act.testUV, paranoia: 1 },
                     { id: 'glo_o3f', label: 'Un momento', next: 'glo_n4b' }
                 ]
             },
@@ -51,7 +51,7 @@ export const gen_pools_4 = {
     },
     "gen_quiet": {
         id: 'gen_quiet',
-        tags: ['stoic'],
+        tags: ['stoic', 'generic'],
         unique: false,
         root: 'gqt_n1',
         nodes: {
@@ -67,7 +67,7 @@ export const gen_pools_4 = {
                 id: 'gqt_n2a',
                 text: "\"Adelante. No tengo nada que ocultar.\"",
                 options: [
-                    { id: 'gqt_o2a', label: 'Bien, procedo a la inspección.', next: null, resultText: "*Se mantiene firme.* \"Estoy listo. Haz tu trabajo.\"", onclick: act.test },
+                    { id: 'gqt_o2a', label: 'Bien, procedo a la inspección.', next: null, resultText: "*Se mantiene firme.* \"Estoy listo. Haz tu trabajo.\"", onclick: act.testPulse },
                     { id: 'gqt_o2c', label: 'Adelante', next: 'gqt_n4b' }
                 ]
             },
@@ -75,20 +75,20 @@ export const gen_pools_4 = {
                 id: 'gqt_n2b',
                 text: "\"Cansancio. Hambre. Lo normal.\"",
                 options: [
-                    { id: 'gqt_o2b', label: 'Entendido. Iniciando escaneo.', next: null, resultText: "*Asiente.* \"Proceda con el escaneo.\"", onclick: act.test },
+                    { id: 'gqt_o2b', label: 'Entendido. Iniciando escaneo.', next: null, resultText: "*Asiente.* \"Proceda con el escaneo.\"", onclick: act.testPulse },
                     { id: 'gqt_o2d', label: 'Proceda', next: 'gqt_n4b' }
                 ]
             },
             'gqt_n4b': {
                 id: 'gqt_n4b',
-                text: "*Sujeto estoico. Verifica PULSO para confirmar calma real.*",
+                text: "*Catatonia parcial. Verifica PUPILAS para detectar actividad cerebral anómala.*",
                 options: []
             }
         }
     },
     "gen_scared": {
         id: 'gen_scared',
-        tags: ['nervous'],
+        tags: ['nervous', 'generic'],
         unique: false,
         root: 'gsc_n1',
         nodes: {
@@ -104,7 +104,7 @@ export const gen_pools_4 = {
                 id: 'gsc_n2a',
                 text: "\"Gracias a Dios. He oído historias horribles de los otros refugios.\"",
                 options: [
-                    { id: 'gsc_o2a', label: 'Relájate, voy a revisarte.', next: null, resultText: "*Sonríe temblando.* \"Gracias... me siento más seguro si revisas.\"", onclick: act.test, log: { text: 'Lore: Otros refugios han caído. El aislamiento es nuestra única defensa.', icon: 'fa-house-crack' } },
+                    { id: 'gsc_o2a', label: 'Relájate, voy a revisarte.', next: null, resultText: "*Sonríe temblando.* \"Gracias... me siento más seguro si revisas.\"", onclick: act.testPulse, paranoia: 1, log: { text: 'Lore: Otros refugios han caído. El aislamiento es nuestra única defensa.', icon: 'fa-house-crack' } },
                     { id: 'gsc_o2c', label: 'Tranquilo', next: 'gsc_n4b' }
                 ]
             },
@@ -112,20 +112,20 @@ export const gen_pools_4 = {
                 id: 'gsc_n2b',
                 text: "*Traga saliva.* \"Bueno... mejor que fuera seguro que es.\"",
                 options: [
-                    { id: 'gsc_o2b', label: 'No temas. Espera un segundo.', next: null, resultText: "*Se seca el sudor.* \"Vale... vale. Estoy listo.\"", onclick: act.test },
+                    { id: 'gsc_o2b', label: 'No temas. Espera un segundo.', next: null, resultText: "*Se seca el sudor.* \"Vale... vale. Estoy listo.\"", onclick: act.testPupils, paranoia: 2, sanity: -1 },
                     { id: 'gsc_o2d', label: 'Espera', next: 'gsc_n4b' }
                 ]
             },
             'gsc_n4b': {
                 id: 'gsc_n4b',
-                text: "*Ansiedad visible. Verifica PULSO y PUPILAS para descartar infección.*",
+                text: "*Terror agudo. Verifica PULSO para descartar taquicardia por infección.*",
                 options: []
             }
         }
     },
     "gen_glitch": {
         id: 'gen_glitch',
-        tags: ['confused', 'broken'],
+        tags: ['confused', 'broken', 'generic'],
         unique: false,
         root: 'gg_n1',
         nodes: {
@@ -157,7 +157,7 @@ export const gen_pools_4 = {
                 text: "*Se toca la cara.* \"Si me dejas entrar, puedo optimizar el código. O al menos... descansar hasta el parche.\"",
                 options: [
                     { id: 'gg_o3a', label: 'Error 404: Acceso denegado.', next: null, resultText: "*Parpadea erráticamente.* \"Conexión rechazada... reintentando en otro servidor...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gg_o3b', label: 'Escanear \"hardware\" (Pupilas)', next: null, resultText: "*Adopta pose en T.* \"Iniciando diagnóstico de sistema...\"", onclick: act.testPupils, log: { text: 'Anomalía: Percepción alterada. Ven la realidad como datos corruptos. ¿Efecto del gas?', icon: 'fa-bug' } },
+                    { id: 'gg_o3b', label: 'Escanear \"hardware\" (Pupilas)', next: null, resultText: "*Adopta pose en T.* \"Iniciando diagnóstico de sistema...\"", onclick: act.testPupils, paranoia: 2, sanity: -2, log: { text: 'Anomalía: Percepción alterada. Ven la realidad como datos corruptos. ¿Efecto del gas?', icon: 'fa-bug' } },
                     { id: 'gg_o3e', label: 'Escaneando', next: 'gg_n4b' }
                 ]
             },
@@ -166,20 +166,20 @@ export const gen_pools_4 = {
                 text: "\"No puedo reiniciar. Si me apago, quizás no vuelva a cargar.\"",
                 options: [
                     { id: 'gg_o3c', label: 'Ese no es mi problema.', next: null, resultText: "*Se congela.* \"Apagando sistema...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gg_o3d', label: 'Déjame ver tus ojos.', next: null, resultText: "*Abre los ojos al máximo.* \"Escanea mis datos. Busca el error.\"", onclick: act.testPupils },
+                    { id: 'gg_o3d', label: 'Déjame ver tus ojos.', next: null, resultText: "*Abre los ojos al máximo.* \"Escanea mis datos. Busca el error.\"", onclick: act.testPupils, paranoia: 1, sanity: -1 },
                     { id: 'gg_o3f', label: 'Mírame', next: 'gg_n4b' }
                 ]
             },
             'gg_n4b': {
                 id: 'gg_n4b',
-                text: "*Disociación severa. Verifica PUPILAS para buscar patrones de error.*",
+                text: "*Corrupción digital. Usa LINTERNA UV para buscar píxeles muertos en la piel.*",
                 options: []
             }
         }
     },
     "gen_prophet": {
         id: 'gen_prophet',
-        tags: ['fanatic'],
+        tags: ['fanatic', 'generic'],
         unique: false,
         root: 'gp_n1',
         nodes: {
@@ -211,7 +211,7 @@ export const gen_pools_4 = {
                 text: "\"Déjame pasar. Traigo la palabra del nuevo mundo.\"",
                 options: [
                     { id: 'gp_o3a', label: 'Aquí no queremos tu religión.', next: null, resultText: "*Escupe.* \"¡Herejes! ¡Os ahogaréis en vuestra ignorancia!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gp_o3b', label: 'Voy a ver si esa \"luz\" es fiebre.', next: null, resultText: "*Levanta la barbilla.* \"Examina mi carne. Verás la verdad escrita en ella.\"", onclick: act.testThermo, log: { text: 'Lore: Culto a la Niebla. Creen que el cloro es un \"bautismo\" que filtra a los débiles.', icon: 'fa-book-quran' } },
+                    { id: 'gp_o3b', label: 'Voy a ver si esa \"luz\" es fiebre.', next: null, resultText: "*Levanta la barbilla.* \"Examina mi carne. Verás la verdad escrita en ella.\"", onclick: act.testThermo, paranoia: 1, sanity: -1, log: { text: 'Lore: Culto a la Niebla. Creen que el cloro es un \"bautismo\" que filtra a los débiles.', icon: 'fa-book-quran' } },
                     { id: 'gp_o3e', label: 'Veremos', next: 'gp_n4b' }
                 ]
             },
@@ -220,17 +220,14 @@ export const gen_pools_4 = {
                 text: "\"No puedes detener la marea con una puerta de metal.\"",
                 options: [
                     { id: 'gp_o3c', label: 'Puedo y lo haré. Largo.', next: null, resultText: "*Se aleja riendo.* \"¡La marea llega! ¡La marea llega para todos!\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gp_o3d', label: 'Cállate y déjame escanearte.', next: null, resultText: "*Te mira con lástima.* \"Pobre alma ciega... haz tus pruebas inútiles.\"", onclick: act.testPupils },
+                    { id: 'gp_o3d', label: 'Cállate y déjame escanearte.', next: null, resultText: "*Te mira con lástima.* \"Pobre alma ciega... haz tus pruebas inútiles.\"", onclick: act.testPupils, paranoia: 2, sanity: -1 },
                     { id: 'gp_o3f', label: 'Silencio', next: 'gp_n4b' }
                 ]
             },
             'gp_n4b': {
                 id: 'gp_n4b',
                 text: "*Signos de inhalación leve. Delirio místico.*",
-                options: [
-                    { id: 'gp_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gp_o4b1', label: 'Admitir (Riesgo Ideológico)', next: null, sets: ['admitted'], cssClass: 'text-alert border-alert', onclick: act.admit }
-                ]
+                options: []
             }
         }
     }

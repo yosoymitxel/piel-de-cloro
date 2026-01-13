@@ -68,8 +68,10 @@
                 <i class="fa-solid fa-clipboard-list text-2xl"></i>
                 <span class="font-bold">PERÍMETRO</span>
             </button>
-
-
+            <button id="nav-database" class="nav-btn nav-sidebar-btn">
+                <i class="fa-solid fa-database text-2xl"></i>
+                <span class="font-bold">BASE DATOS</span>
+            </button>
         </aside>
 
         <!-- MAIN CONTENT AREA -->
@@ -95,7 +97,7 @@
                 </div>
 
                 <!-- Record de finales -->
-                <div id="endings-record" class="mt-12 text-xs font-mono opacity-40 hover:opacity-100 transition-opacity">
+                <div id="endings-record" class="mt-12 text-xs font-mono opacity-40 hover:opacity-100 transition-opacity cursor-pointer">
                     <span class="uppercase tracking-[0.2em]">Archivos Recuperados:</span>
                     <span id="endings-count" class="text-white ml-2">0/0</span>
                     <div id="endings-dots" class="flex justify-center gap-1 mt-2">
@@ -103,6 +105,24 @@
                     </div>
                 </div>
             </section>
+
+            <!-- MODAL: ARCHIVOS RECUPERADOS -->
+            <div id="modal-endings" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] hidden items-center justify-center p-4">
+                <div class="bg-black border-2 border-chlorine w-full max-w-2xl max-h-[80vh] flex flex-col shadow-[0_0_30px_rgba(45,90,39,0.3)]">
+                    <header class="p-4 border-b border-chlorine flex justify-between items-center bg-chlorine/10">
+                        <h3 class="text-chlorine font-bold tracking-widest uppercase">Base de Datos: Finales Recuperados</h3>
+                        <button id="btn-close-endings" class="text-chlorine hover:text-white transition-colors">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </header>
+                    <div id="endings-list" class="p-6 overflow-y-auto flex flex-col gap-4 font-mono custom-scrollbar">
+                        <!-- Finales se renderizan aquí -->
+                    </div>
+                    <footer class="p-4 border-t border-chlorine/30 text-[10px] text-gray-500 text-center uppercase tracking-tighter">
+                        Protocolo RUTA-01 - Acceso Restringido a Personal Autorizado
+                    </footer>
+                </div>
+            </div>
 
             <!-- SCREEN 2: GAME (Guard Post) -->
             <section id="screen-game" class="h-full flex flex-col p-4 gap-4 hidden">
@@ -112,6 +132,8 @@
                                 id="paranoia-level" class="text-chlorine-light font-bold">0%</span></span>
                         <span title="Salud Mental" class="ml-4"><i class="fa-solid fa-heart-pulse text-rose-500"></i> <span
                                 id="sanity-level" class="text-rose-300 font-bold">100%</span></span>
+                        <span id="hud-supplies-container" title="Suministros (Haz clic para gestionar)" class="ml-4 cursor-pointer hover:text-white transition-colors"><i class="fa-solid fa-box text-amber-500"></i> <span
+                                id="supplies-level" class="text-amber-300 font-bold">15</span></span>
                         <span id="hud-energy-container" class="cursor-pointer hover:text-white transition-colors"
                             title="Energía de Escaneo"><i class="fa-solid fa-bolt text-cyan-400"></i> <span
                                 id="scan-energy" class="text-cyan-400 text-glow">⚡⚡</span></span>
@@ -124,8 +146,148 @@
                         <button id="btn-pause" class="horror-btn px-4 text-xs" title="Pausa">
                             <i class="fa-solid fa-pause"></i>
                         </button>
+                        <button id="btn-help-guide" class="horror-btn px-4 text-xs border-blue-500 text-blue-400 hover:bg-blue-500/20" title="Guía de Interfaz">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </button>
                     </div>
                 </header>
+
+                <!-- MODAL: MANUAL DE OPERACIONES (GUÍA RÁPIDA) -->
+                <div id="modal-guide" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+                    <div class="bg-black border-2 border-blue-900 w-full max-w-3xl max-h-[90vh] flex flex-col shadow-[0_0_40px_rgba(30,58,138,0.4)]">
+                        <header class="p-4 border-b border-blue-900 flex justify-between items-center bg-blue-900/20">
+                            <h3 class="text-blue-400 font-bold tracking-widest uppercase text-lg"><i class="fa-solid fa-terminal mr-2"></i>MANUAL DE OPERACIONES: PUESTO DE GUARDIA</h3>
+                            <button id="btn-close-guide" class="text-blue-400 hover:text-white transition-colors">
+                                <i class="fa-solid fa-xmark text-2xl"></i>
+                            </button>
+                        </header>
+                        <div class="p-6 overflow-y-auto custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 font-mono">
+                                <!-- HUD y Stats -->
+                                <section class="space-y-4">
+                                    <h4 class="text-blue-400 border-b border-blue-900 pb-1 text-base font-bold uppercase">Monitor de Estado</h4>
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-8 text-center text-chlorine mt-1"><i class="fa-solid fa-brain text-xl"></i></div>
+                                        <div>
+                                            <p class="text-sm text-white font-bold">PARANOIA (SISTEMA)</p>
+                                            <p class="text-sm text-gray-400">Sube al purgar civiles. Si es alta (>60%), las herramientas pueden fallar (Glitches) y consumir más energía.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-8 text-center text-rose-500 mt-1"><i class="fa-solid fa-heart-pulse text-xl"></i></div>
+                                        <div>
+                                            <p class="text-sm text-white font-bold">CORDURA (PSIQUE)</p>
+                                            <p class="text-sm text-gray-400">Baja con el horror. Si es crítica (<40%), verás síntomas falsos y el HUD podría mostrar datos erróneos.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-8 text-center text-amber-500 mt-1"><i class="fa-solid fa-box text-xl"></i></div>
+                                        <div>
+                                            <p class="text-sm text-white font-bold">SUMINISTROS</p>
+                                            <p class="text-sm text-gray-400">Necesarios para alimentar a los refugiados cada noche. Sin ellos, la mortalidad aumenta drásticamente cada ciclo.</p>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <!-- Navegación -->
+                                <section class="space-y-4">
+                                    <h4 class="text-blue-400 border-b border-blue-900 pb-1 text-base font-bold uppercase">Panel de Navegación</h4>
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-8 text-center text-gray-400 mt-1"><i class="fa-solid fa-user-shield text-xl"></i></div>
+                                        <div>
+                                            <p class="text-sm text-white font-bold">PUESTO</p>
+                                            <p class="text-sm text-gray-400">Pantalla principal. Aquí realizas las inspecciones y hablas con los supervivientes.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-8 text-center text-gray-400 mt-1"><i class="fa-solid fa-tower-observation text-xl"></i></div>
+                                        <div>
+                                            <p class="text-sm text-white font-bold">SEGURIDAD / PERÍMETRO</p>
+                                            <p class="text-sm text-gray-400">Gestiona alarmas y bloqueos. Los fallos aquí atraen intrusos al sector.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-8 text-center text-gray-400 mt-1"><i class="fa-solid fa-plug-circle-bolt text-xl"></i></div>
+                                        <div>
+                                            <p class="text-sm text-white font-bold">GENERADOR</p>
+                                            <p class="text-sm text-gray-400">Control de energía. Si se apaga, pierdes la visión UV, el HUD y la capacidad de procesar sujetos.</p>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <!-- Herramientas -->
+                                <section class="md:col-span-2 space-y-4 pt-4 border-t border-blue-900/50">
+                                    <h4 class="text-blue-400 border-b border-blue-900 pb-1 text-base font-bold uppercase">Herramientas de Inspección</h4>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div class="flex items-start gap-3 p-3 bg-blue-900/5 border border-blue-900/20">
+                                            <div class="w-10 text-center text-blue-400 mt-1"><i class="fa-solid fa-temperature-half text-2xl"></i></div>
+                                            <div>
+                                                <p class="text-sm text-white font-bold uppercase">Termómetro</p>
+                                                <p class="text-xs text-gray-400 leading-tight">Detecta hipotermia. Los infectados suelen estar por debajo de 35°C debido al cambio biológico.</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start gap-3 p-3 bg-blue-900/5 border border-blue-900/20">
+                                            <div class="w-10 text-center text-purple-400 mt-1"><i class="fa-solid fa-lightbulb text-2xl"></i></div>
+                                            <div>
+                                                <p class="text-sm text-white font-bold uppercase">Luz UV</p>
+                                                <p class="text-xs text-gray-400 leading-tight">Revela la "Piel de Cloro": manchas reflectantes y sequedad extrema invisible a luz normal.</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start gap-3 p-3 bg-blue-900/5 border border-blue-900/20">
+                                            <div class="w-10 text-center text-red-400 mt-1"><i class="fa-solid fa-heart-pulse text-2xl"></i></div>
+                                            <div>
+                                                <p class="text-sm text-white font-bold uppercase">Pulso</p>
+                                                <p class="text-xs text-gray-400 leading-tight">Busca bradicardia. Un ritmo cardíaco inusualmente lento es un síntoma clave de infección avanzada.</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start gap-3 p-3 bg-blue-900/5 border border-blue-900/20">
+                                            <div class="w-10 text-center text-green-400 mt-1"><i class="fa-solid fa-eye text-2xl"></i></div>
+                                            <div>
+                                                <p class="text-sm text-white font-bold uppercase">Pupilas</p>
+                                                <p class="text-xs text-gray-400 leading-tight">La dilatación anormal o falta de reflejo ante estímulos es una señal inequívoca de parásitos.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <!-- Rasgos de Personalidad -->
+                                <section id="guide-traits" class="md:col-span-2 space-y-4 pt-4 border-t border-blue-900/50">
+                                    <h4 class="text-blue-400 border-b border-blue-900 pb-1 text-base font-bold uppercase">Perfiles Psicológicos (Rasgos)</h4>
+                                    <p class="text-xs text-gray-500 mb-2 italic">Cada individuo aporta capacidades o cargas distintas al refugio durante la noche:</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                        <div class="p-2 border border-blue-900/30 bg-blue-900/5">
+                                            <p class="text-sm font-bold text-white uppercase">Recolector</p>
+                                            <p class="text-xs text-gray-400">40% de probabilidad de encontrar 1-5 suministros extra cada noche.</p>
+                                        </div>
+                                        <div class="p-2 border border-blue-900/30 bg-blue-900/5">
+                                            <p class="text-sm font-bold text-white uppercase">Optimista</p>
+                                            <p class="text-xs text-gray-400">Reduce la tensión del grupo, otorgando -10% de Paranoia cada ciclo.</p>
+                                        </div>
+                                        <div class="p-2 border border-blue-900/30 bg-blue-900/5">
+                                            <p class="text-sm font-bold text-white uppercase">Paranoico</p>
+                                            <p class="text-xs text-gray-400">Siembra la duda entre los demás, aumentando la Paranoia en +5% cada ciclo.</p>
+                                        </div>
+                                        <div class="p-2 border border-blue-900/30 bg-blue-900/5">
+                                            <p class="text-sm font-bold text-white uppercase">Enfermizo</p>
+                                            <p class="text-xs text-gray-400">Debido a su estado, consume el doble de suministros (2) cada noche.</p>
+                                        </div>
+                                        <div class="p-2 border border-blue-900/30 bg-blue-900/5">
+                                            <p class="text-sm font-bold text-white uppercase">Resistente</p>
+                                            <p class="text-xs text-gray-400">Mayor instinto de supervivencia; será el último en caer ante un ataque interno.</p>
+                                        </div>
+                                        <div class="p-2 border border-blue-900/30 bg-blue-900/5">
+                                            <p class="text-sm font-bold text-white uppercase">Ninguno</p>
+                                            <p class="text-xs text-gray-400">Individuo estándar. Consume 1 suministro y no altera los niveles del refugio.</p>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                        <footer class="p-4 border-t border-blue-900/30 text-[11px] text-blue-400/60 text-center uppercase font-mono">
+                            Para información detallada sobre la infección, consulte la <span class="text-blue-300 font-bold">BASE DE DATOS</span> en la barra lateral.
+                        </footer>
+                    </div>
+                </div>
 
                 <main
                     class="flex-grow bg-[#020202] border border-[#1a3317] fisheye-center relative flex flex-col items-center justify-center overflow-hidden min-h-[200px] vhs-target">
@@ -458,6 +620,162 @@
                 </div>
             </section>
 
+            <!-- SCREEN: DATABASE (Manual Detallado) -->
+            <section id="screen-database" class="h-full flex flex-col p-6 gap-6 hidden animate__animated animate__fadeIn">
+                <header class="flex justify-between items-center border-b-2 border-blue-500 pb-4">
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-database text-4xl text-blue-400"></i>
+                        <div>
+                            <h2 class="text-3xl font-bold tracking-widest text-blue-400 uppercase">Base de Datos de Operaciones</h2>
+                            <p class="text-xs text-blue-900 font-mono">SISTEMA DE CONSULTA TÉCNICA RUTA-01 // ACCESO NIVEL 3</p>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden">
+                    <!-- Menú de Navegación Lateral de la DB -->
+                    <div class="md:col-span-1 flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-2">
+                        <button class="db-nav-btn active" data-target="db-hud">
+                            <i class="fa-solid fa-display mr-2"></i> MONITOR DE ESTADO
+                        </button>
+                        <button class="db-nav-btn" data-target="db-tools">
+                            <i class="fa-solid fa-screwdriver-wrench mr-2"></i> HERRAMIENTAS
+                        </button>
+                        <button class="db-nav-btn" data-target="db-protocols">
+                            <i class="fa-solid fa-file-shield mr-2"></i> PROTOCOLOS
+                        </button>
+                        <button class="db-nav-btn" data-target="db-traits">
+                            <i class="fa-solid fa-users-gear mr-2"></i> RASGOS
+                        </button>
+                        <button class="db-nav-btn" data-target="db-threats">
+                            <i class="fa-solid fa-biohazard mr-2"></i> LA AMENAZA
+                        </button>
+                    </div>
+
+                    <!-- Contenido Detallado -->
+                    <div id="db-content-area" class="md:col-span-2 bg-blue-950/10 border border-blue-900/30 p-6 overflow-y-auto custom-scrollbar font-mono">
+                        <!-- HUD Section -->
+                        <div id="db-hud" class="db-section space-y-6">
+                            <h3 class="text-2xl text-blue-400 border-b border-blue-900 pb-2 font-bold uppercase tracking-tighter">Sistemas de Monitorización (HUD)</h3>
+                            <div class="space-y-6 text-lg">
+                                <div class="p-4 border-l-4 border-chlorine bg-chlorine/5">
+                                    <h4 class="text-chlorine font-bold flex items-center gap-2"><i class="fa-solid fa-brain"></i> PARANOIA (Presión del Sistema)</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Mide el nivel de sospecha acumulada en el sector. La paranoia aumenta al purgar civiles o ignorar sujetos sospechosos. <span class="text-orange-400">Un nivel alto (>60%) provoca fallos de hardware (Glitches) en las herramientas y aumenta el consumo energético por alerta de seguridad.</span></p>
+                                    <p class="text-xs text-blue-500 mt-2 font-bold">NOTA: Al 100%, el comando central te considerará una amenaza y procederá a tu eliminación.</p>
+                                </div>
+                                <div class="p-4 border-l-4 border-rose-500 bg-rose-500/5">
+                                    <h4 class="text-rose-500 font-bold flex items-center gap-2"><i class="fa-solid fa-heart-pulse"></i> SALUD MENTAL (Estabilidad Psíquica)</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Representa tu capacidad para discernir la realidad. <span class="text-rose-400">Si cae por debajo del 40%, experimentarás alucinaciones: las herramientas pueden mostrar síntomas falsos o ignorar los reales, y el HUD puede mentir sobre tus recursos.</span> Se recupera eliminando amenazas reales.</p>
+                                </div>
+                                <div class="p-4 border-l-4 border-amber-500 bg-amber-500/5">
+                                    <h4 class="text-amber-500 font-bold flex items-center gap-2"><i class="fa-solid fa-box"></i> SUMINISTROS</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Recursos vitales para el mantenimiento del refugio (comida, agua potable, medicinas básicas). Cada noche se consume una cantidad proporcional al número de habitantes. Si los suministros se agotan, la tasa de mortalidad en el refugio se dispara un 50% por cada ciclo de carestía.</p>
+                                </div>
+                                <div class="p-4 border-l-4 border-cyan-400 bg-cyan-400/5">
+                                    <h4 class="text-cyan-400 font-bold flex items-center gap-2"><i class="fa-solid fa-bolt"></i> ENERGÍA DE ESCANEO</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Los rayos en el HUD indican la carga disponible para realizar escaneos profundos (herramientas). Esta energía se regenera lentamente con el tiempo o se recupera parcialmente al finalizar el proceso de un sujeto.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tools Section -->
+                        <div id="db-tools" class="db-section hidden space-y-6">
+                            <h3 class="text-2xl text-blue-400 border-b border-blue-900 pb-2 font-bold uppercase tracking-tighter">Instrumental de Inspección</h3>
+                            <div class="space-y-6 text-lg">
+                                <div class="p-4 border-l-4 border-blue-400 bg-blue-400/5">
+                                    <h4 class="text-blue-400 font-bold flex items-center gap-2"><i class="fa-solid fa-temperature-half"></i> TERMÓMETRO CLÍNICO</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Detecta anomalías térmicas. Los sujetos infectados por el parásito 'Cloro' suelen mostrar una temperatura corporal basal inferior a 35.5°C, debido a que el parásito ralentiza el metabolismo humano para priorizar su propio crecimiento cristalino.</p>
+                                    <p class="text-xs text-blue-300 mt-2 italic">Valores Normales: 36.5°C - 37.2°C</p>
+                                </div>
+                                <div class="p-4 border-l-4 border-purple-400 bg-purple-400/5">
+                                    <h4 class="text-purple-400 font-bold flex items-center gap-2"><i class="fa-solid fa-lightbulb"></i> LINTERNA DE ESPECTRO UV</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Revela la "Piel de Cloro". El parásito secreta una sustancia similar al hipoclorito sódico que es invisible al ojo humano pero fluoresce intensamente bajo luz ultravioleta, especialmente en zonas de piel fina, mucosas o heridas recientes.</p>
+                                </div>
+                                <div class="p-4 border-l-4 border-red-500 bg-red-500/5">
+                                    <h4 class="text-red-500 font-bold flex items-center gap-2"><i class="fa-solid fa-heart-pulse"></i> SENSOR DE PULSO</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Mide la frecuencia cardíaca. Una bradicardia extrema (pulso inferior a 50 ppm en reposo) suele ser un indicador de colonización del sistema nervioso central, lo que reduce drásticamente la respuesta emocional del huésped.</p>
+                                </div>
+                                <div class="p-4 border-l-4 border-green-500 bg-green-500/5">
+                                    <h4 class="text-green-500 font-bold flex items-center gap-2"><i class="fa-solid fa-eye"></i> EXAMEN DE PUPILAS</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Busca midriasis fija (pupilas dilatadas que no reaccionan a la luz) o anisocoria. Esto indica que el nervio óptico ha sido sustituido por filamentos parasitarios, eliminando el reflejo fotomotor.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Protocols Section -->
+                        <div id="db-protocols" class="db-section hidden space-y-6">
+                            <h3 class="text-2xl text-blue-400 border-b border-blue-900 pb-2 font-bold uppercase tracking-tighter">Protocolos de Actuación</h3>
+                            <div class="space-y-6 text-lg">
+                                <div class="p-4 border-l-4 border-cyan-400 bg-cyan-400/5">
+                                    <h4 class="text-cyan-400 font-bold flex items-center gap-2"><i class="fa-solid fa-check-double"></i> PROCESO DE ADMISIÓN</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Solo los sujetos que no presenten síntomas claros de infección deben ser admitidos. En caso de duda razonable, es preferible ignorar al sujeto que arriesgar la integridad del refugio. Recuerde que cada admisión consume suministros cada noche.</p>
+                                </div>
+                                <div class="p-4 border-l-4 border-orange-500 bg-orange-500/5">
+                                    <h4 class="text-orange-500 font-bold flex items-center gap-2"><i class="fa-solid fa-skull-crossbones"></i> PROTOCOLO DE PURGA</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Si un sujeto admitido muestra signos de infección una vez dentro del refugio, debe ser purgado inmediatamente. Tenga en cuenta que purgar civiles (ya sea por sospecha o error) aumenta drásticamente el nivel de paranoia en el sector.</p>
+                                </div>
+                                <div class="p-4 border-l-4 border-yellow-500 bg-yellow-500/5">
+                                    <h4 class="text-yellow-500 font-bold flex items-center gap-2"><i class="fa-solid fa-plug-circle-bolt"></i> MANTENIMIENTO DEL GENERADOR</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">El generador principal debe mantenerse por encima del 15% de capacidad. Si la energía cae por debajo de este umbral, los sistemas de escaneo UV y el HUD se desactivarán automáticamente para preservar los sistemas de soporte vital básicos.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Traits Section -->
+                        <div id="db-traits" class="db-section hidden space-y-6">
+                            <h3 class="text-2xl text-blue-400 border-b border-blue-900 pb-2 font-bold uppercase tracking-tighter">Análisis de Perfiles Psicológicos</h3>
+                            <p class="text-xs text-blue-300 italic">Clasificación de supervivientes según su impacto en la micro-comunidad del refugio.</p>
+                            <div class="space-y-6 text-lg">
+                                <div class="p-4 border-l-4 border-blue-400 bg-blue-400/5">
+                                    <h4 class="text-blue-400 font-bold flex items-center gap-2 uppercase">Recolector</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Individuos con alta capacidad logística. Tienen un 40% de probabilidad de encontrar suministros extra (1-5 unidades) durante las incursiones nocturnas fuera de su zona de descanso.</p>
+                                </div>
+                                <div class="p-4 border-l-4 border-green-400 bg-green-400/5">
+                                    <h4 class="text-green-400 font-bold flex items-center gap-2 uppercase">Optimista</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Personalidad resiliente que ayuda a mantener la calma. Cada ciclo que sobreviven en el refugio, otorgan un bono de -10% de Paranoia al operador al reducir la tensión del grupo.</p>
+                                </div>
+                                <div class="p-4 border-l-4 border-red-400 bg-red-400/5">
+                                    <h4 class="text-red-400 font-bold flex items-center gap-2 uppercase">Paranoico</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Individuos inestables que propagan rumores infundados. Su presencia aumenta el nivel de Paranoia general en +5% cada ciclo, dificultando las operaciones de seguridad.</p>
+                                </div>
+                                <div class="p-4 border-l-4 border-amber-600 bg-amber-600/5">
+                                    <h4 class="text-amber-600 font-bold flex items-center gap-2 uppercase">Enfermizo</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Sujetos con metabolismo acelerado o necesidades médicas crónicas. Consumen el doble de suministros (2 unidades) cada noche, independientemente de su estado de infección.</p>
+                                </div>
+                                <div class="p-4 border-l-4 border-cyan-500 bg-cyan-500/5">
+                                    <h4 class="text-cyan-500 font-bold flex items-center gap-2 uppercase">Resistente</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">Alta capacidad de supervivencia. En caso de brecha de seguridad interna o ataque nocturno, estos individuos tienen mayor probabilidad de ser los últimos supervivientes del sector.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Threats Section -->
+                        <div id="db-threats" class="db-section hidden space-y-6">
+                            <h3 class="text-2xl text-alert border-b border-alert/30 pb-2 font-bold uppercase tracking-tighter">Análisis Biológico: La Amenaza</h3>
+                            <div class="space-y-6 text-lg">
+                                <div class="p-4 border-l-4 border-green-500 bg-green-500/5">
+                                    <h4 class="text-green-500 font-bold flex items-center gap-2"><i class="fa-solid fa-dna"></i> NATURALEZA DEL PATÓGENO</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">El organismo responsable es un parásito fúngico-sintético de origen desconocido. Sustituye gradualmente los tejidos blandos por una estructura cristalina porosa que emite un fuerte olor a cloro. Se transmite por contacto directo, fluidos y esporas en ambientes cerrados.</p>
+                                </div>
+                                <div class="p-4 border-l-4 border-red-600 bg-red-600/5">
+                                    <h4 class="text-red-600 font-bold flex items-center gap-2"><i class="fa-solid fa-biohazard"></i> ESTADIOS DE LA INFECCIÓN</h4>
+                                    <p class="text-gray-300 mt-2 leading-relaxed">
+                                        <span class="text-white font-bold block mb-1">1. Incubación:</span> Temperatura levemente baja, fatiga extrema, historias incoherentes.
+                                        <span class="text-white font-bold block mb-1 mt-3">2. Colonización:</span> Manchas UV visibles en rostro y manos, bradicardia severa.
+                                        <span class="text-white font-bold block mb-1 mt-3">3. Transformación:</span> Pupilas dilatadas fijas, pérdida total de la empatía, alteración de la conducta. En este estadio, el sujeto deja de ser humano y se convierte en un vector de dispersión.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <footer class="flex justify-between items-center text-[10px] text-blue-900 font-mono uppercase border-t border-blue-900/20 pt-2">
+                    <span>Terminal ID: RUTA-01-DB</span>
+                    <span>No imprimir este documento.</span>
+                </footer>
+            </section>
+
             <!-- SCREEN 5: SETTINGS -->
             <section id="screen-settings"
                 class="h-full flex flex-col p-4 gap-4 animate__animated animate__fadeIn hidden">
@@ -615,6 +933,50 @@
 
     </div>
 
+    <!-- MODAL: BIENVENIDA Y TUTORIAL RÁPIDO -->
+    <div id="modal-tutorial" class="fixed inset-0 bg-black/95 z-[300] hidden items-center justify-center p-4 backdrop-blur-xl">
+        <div class="bg-black border-2 border-chlorine w-full max-w-2xl p-8 shadow-[0_0_50px_rgba(45,90,39,0.4)] flex flex-col gap-6 relative overflow-hidden">
+            <!-- Scanline effect -->
+            <div class="absolute inset-0 pointer-events-none opacity-20 scanline-overlay"></div>
+            
+            <header class="text-center space-y-2">
+                <h2 class="text-chlorine text-4xl font-bold tracking-[0.3em] uppercase glitch-effect" data-text="BIENVENIDO, GUARDIÁN">BIENVENIDO, GUARDIÁN</h2>
+                <div class="h-0.5 w-full bg-gradient-to-r from-transparent via-chlorine to-transparent"></div>
+                <p class="text-xs font-mono text-gray-500 uppercase">Protocolo de Inducción RUTA-01 // Ciclo de Emergencia</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 font-mono">
+                <section class="space-y-4">
+                    <h3 class="text-chlorine-light font-bold border-b border-chlorine/30 pb-1 text-sm uppercase">Tu Misión</h3>
+                    <p class="text-sm text-gray-300 leading-relaxed">
+                        Eres el último filtro. Debes inspeccionar a cada civil que llegue al puesto. 
+                        <br><br>
+                        Tu objetivo es <span class="text-white font-bold">ADMITIR</span> a los sanos y <span class="text-alert font-bold uppercase">PURGAR</span> a los infectados por "Piel de Cloro".
+                    </p>
+                </section>
+
+                <section class="space-y-4">
+                    <h3 class="text-chlorine-light font-bold border-b border-chlorine/30 pb-1 text-sm uppercase">Los Síntomas</h3>
+                    <ul class="text-xs text-gray-400 space-y-2">
+                        <li><i class="fa-solid fa-temperature-low text-blue-400 mr-2"></i> <span class="text-white">HIPOTERMIA:</span> Menos de 35°C.</li>
+                        <li><i class="fa-solid fa-eye text-green-400 mr-2"></i> <span class="text-white">PUPILAS:</span> Dilatación fija o formas raras.</li>
+                        <li><i class="fa-solid fa-droplet text-purple-400 mr-2"></i> <span class="text-white">PIEL:</span> Sequedad extrema o manchas UV.</li>
+                        <li><i class="fa-solid fa-heart-crack text-red-500 mr-2"></i> <span class="text-white">PULSO:</span> Muy lento o errático.</li>
+                    </ul>
+                </section>
+            </div>
+
+            <div class="p-4 bg-chlorine/10 border border-chlorine/30 text-xs text-center text-gray-300 italic font-mono">
+                "Si dudas, consulta la <span class="text-blue-400 font-bold">BASE DE DATOS</span> en el panel lateral. Cada error sube la Paranoia del sector."
+            </div>
+
+            <button id="btn-tutorial-start" class="horror-btn horror-btn-primary w-full py-4 text-xl font-bold tracking-widest uppercase group relative overflow-hidden">
+                <span class="relative z-10">INICIAR OPERACIONES</span>
+                <div class="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform"></div>
+            </button>
+        </div>
+    </div>
+
     <!-- MODAL: PAUSA -->
     <div id="modal-pause" class="fixed inset-0 hidden items-center justify-center z-[100] backdrop-blur-md bg-black/80">
         <div class="horror-panel p-8 w-[480px] max-w-full animate__faster relative overflow-hidden flex flex-col gap-6">
@@ -699,6 +1061,7 @@
                     <div>
                         <h2 id="modal-npc-name" class="text-2xl font-head text-save glitch-effect tracking-wider">
                             X</h2>
+                        <p id="modal-npc-trait" class="text-[10px] font-mono text-amber-500 uppercase mt-1"></p>
                         <p id="modal-npc-status" class="text-xs font-mono text-gray-400 mt-1">ESTADO: PENDIENTE</p>
                     </div>
                 </div>

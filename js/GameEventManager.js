@@ -368,7 +368,7 @@ export class GameEventManager {
 
         // Volver al inicio desde estadísticas finales
         $('#btn-final-to-start').on('click', () => { 
-            State.reset(); 
+            this.game.restartGame();
             this.switchScreen(CONSTANTS.SCREENS.START, { force: true }); 
         });
 

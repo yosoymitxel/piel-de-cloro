@@ -3,7 +3,7 @@ import { act } from '../../DialogueActions.js';
 export const gen_pools_5 = {
     "gen_silent": {
         id: 'gen_silent',
-        tags: ['stoic', 'nervous'],
+        tags: ['stoic', 'nervous', 'generic'],
         unique: false,
         root: 'gsi_n1',
         nodes: {
@@ -34,8 +34,8 @@ export const gen_pools_5 = {
                 id: 'gsi_n3a',
                 text: "*Escribe rápido en el papel: \"LOS QUE ESCUCHAN EN LAS TUBERÍAS\".*",
                 options: [
-                    { id: 'gsi_o3a', label: 'Estás loco. Vete.', next: null, resultText: "*Recoge la nota y huye despavorido.*", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gsi_o3b', label: 'Entiendo. Déjame revisarte en silencio.', next: null, resultText: "*Asiente lentamente y te ofrece el brazo en silencio.*", onclick: act.test, log: { text: 'Lore: "Los que escuchan". Entidades en las tuberías que reaccionan al sonido de la voz humana.', icon: 'fa-note-sticky' } },
+                    { id: 'gsi_o3a', label: 'Estás loco. Vete.', next: null, resultText: "*Recoge la nota y huye despavorido.*", cssClass: 'horror-btn-dismiss', onclick: act.ignore, paranoia: 5 },
+                    { id: 'gsi_o3b', label: 'Entiendo. Déjame revisarte en silencio.', next: null, resultText: "*Asiente lentamente y te ofrece el brazo en silencio.*", onclick: act.test, sanity: -2, log: { text: 'Lore: "Los que escuchan". Entidades en las tuberías que reaccionan al sonido de la voz humana.', icon: 'fa-note-sticky' } },
                     { id: 'gsi_o3e', label: '...', next: 'gsi_n4b' }
                 ]
             },
@@ -43,8 +43,8 @@ export const gen_pools_5 = {
                 id: 'gsi_n3b',
                 text: "*Te muestra el cuello. Las venas están hinchadas, como si quisiera gritar pero se contuviera.*",
                 options: [
-                    { id: 'gsi_o3c', label: 'Demasiado inestable. Fuera.', next: null, resultText: "*Huye sin hacer ruido, con los ojos llenos de pánico.*", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gsi_o3d', label: 'Voy a medir tu pulso.', next: null, resultText: "*Extiende la muñeca temblando, sin emitir sonido.*", onclick: act.test },
+                    { id: 'gsi_o3c', label: 'Demasiado inestable. Fuera.', next: null, resultText: "*Huye sin hacer ruido, con los ojos llenos de pánico.*", cssClass: 'horror-btn-dismiss', onclick: act.ignore, paranoia: 3 },
+                    { id: 'gsi_o3d', label: 'Voy a medir tu pulso.', next: null, resultText: "*Extiende la muñeca temblando, sin emitir sonido.*", onclick: act.testPulse },
                     { id: 'gsi_o3f', label: 'Calma', next: 'gsi_n4b' }
                 ]
             },
@@ -57,7 +57,7 @@ export const gen_pools_5 = {
     },
     "gen_bribe": {
         id: 'gen_bribe',
-        tags: ['aggressive', 'nervous'],
+        tags: ['aggressive', 'nervous', 'generic'],
         unique: false,
         root: 'gbr_n1',
         nodes: {
@@ -111,7 +111,7 @@ export const gen_pools_5 = {
     },
     "gen_jester": {
         id: 'gen_jester',
-        tags: ['manic', 'loud'],
+        tags: ['manic', 'loud', 'generic'],
         unique: false,
         root: 'gj_n1',
         nodes: {
@@ -165,7 +165,7 @@ export const gen_pools_5 = {
     },
     "gen_soldier": {
         id: 'gen_soldier',
-        tags: ['stoic', 'aggressive'],
+        tags: ['aggressive', 'stoic', 'generic'],
         unique: false,
         root: 'gso_n1',
         nodes: {
@@ -219,7 +219,7 @@ export const gen_pools_5 = {
     },
     "gen_carrier": {
         id: 'gen_carrier',
-        tags: ['nervous', 'protective'],
+        tags: ['nervous', 'protective', 'generic'],
         unique: false,
         root: 'gca_n1',
         nodes: {
@@ -267,10 +267,7 @@ export const gen_pools_5 = {
             'gca_n4b': {
                 id: 'gca_n4b',
                 text: "*Objeto biológico no identificado. Posible parásito o restos.*",
-                options: [
-                    { id: 'gca_o4b2', label: 'Rechazar', next: null, cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gca_o4b1', label: 'Admitir (Riesgo)', next: null, sets: ['admitted'], cssClass: 'text-alert border-alert', onclick: act.admit }
-                ]
+                options: []
             }
         }
     }

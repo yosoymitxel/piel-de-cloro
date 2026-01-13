@@ -3,7 +3,7 @@ import { act } from '../../DialogueActions.js';
 export const gen_pools_2 = {
     "gen_shadow": {
         id: 'gen_shadow',
-        tags: ['paranoid', 'dark'],
+        tags: ['paranoid', 'dark', 'generic'],
         unique: false,
         root: 'gsh_n1',
         nodes: {
@@ -32,8 +32,8 @@ export const gen_pools_2 = {
                 id: 'gsh_n3a',
                 text: "*Se frota los ojos.* \"Quizás. Llevo tres días caminando a oscuras. La mente juega trucos.\"",
                 options: [
-                    { id: 'gsh_o3a', label: 'No aceptamos inestables. Vete.', next: null, resultText: "*Se va mirando atrás.* \"Están ahí... sé que me siguen.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gsh_o3b', label: 'Descansa un momento, voy a revisarte.', next: null, resultText: "*Se apoya en la pared.* \"Al menos aquí hay luz... revisa lo que quieras.\"", onclick: act.test },
+                    { id: 'gsh_o3a', label: 'No aceptamos inestables. Vete.', next: null, resultText: "*Se va mirando atrás.* \"Están ahí... sé que me siguen.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore, paranoia: 2 },
+                    { id: 'gsh_o3b', label: 'Descansa un momento, voy a revisarte.', next: null, resultText: "*Se apoya en la pared.* \"Al menos aquí hay luz... revisa lo que quieras.\"", onclick: act.testPupils, sanity: -1 },
                     { id: 'gsh_o3e', label: 'Tranquilo', next: 'gsh_n4b' }
                 ]
             },
@@ -41,8 +41,8 @@ export const gen_pools_2 = {
                 id: 'gsh_n3b',
                 text: "*Se estremece.* \"Solo déjame entrar donde haya luz constante. Por favor.\"",
                 options: [
-                    { id: 'gsh_o3c', label: 'Lo siento, no hay espacio.', next: null, resultText: "*Retrocede hacia la oscuridad.* \"No me dejes con ellas...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gsh_o3d', label: 'Ponte bajo la luz, déjame ver.', next: null, resultText: "*Se pone bajo el foco.* \"No dejes que se apague la luz mientras miras.\"", onclick: act.test, log: { text: 'Comportamiento: Fobia a la oscuridad. Afirman que las sombras persisten incluso bajo luz directa.', icon: 'fa-eye-slash' } },
+                    { id: 'gsh_o3c', label: 'Lo siento, no hay espacio.', next: null, resultText: "*Retrocede hacia la oscuridad.* \"No me dejes con ellas...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore, paranoia: 4 },
+                    { id: 'gsh_o3d', label: 'Ponte bajo la luz, déjame ver.', next: null, resultText: "*Se pone bajo el foco.* \"No dejes que se apague la luz mientras miras.\"", onclick: act.testPupils, sanity: -1, log: { text: 'Comportamiento: Fobia a la oscuridad. Afirman que las sombras persisten incluso bajo luz directa.', icon: 'fa-eye-slash' } },
                     { id: 'gsh_o3f', label: 'Acércate', next: 'gsh_n4b' }
                 ]
             },
@@ -55,7 +55,7 @@ export const gen_pools_2 = {
     },
     "gen_cold": {
         id: 'gen_cold',
-        tags: ['sick', 'weak'],
+        tags: ['sick', 'weak', 'generic'],
         unique: false,
         root: 'gc_n1',
         nodes: {
@@ -107,7 +107,7 @@ export const gen_pools_2 = {
     },
     "gen_hoarder": {
         id: 'gen_hoarder',
-        tags: ['obsessive', 'confused'],
+        tags: ['obsessive', 'confused', 'generic'],
         unique: false,
         root: 'gh_n1',
         nodes: {
@@ -161,7 +161,7 @@ export const gen_pools_2 = {
     },
     "gen_echo": {
         id: 'gen_echo',
-        tags: ['confused', 'uncanny'],
+        tags: ['confused', 'uncanny', 'generic'],
         unique: false,
         root: 'ge_n1',
         nodes: {
@@ -214,7 +214,7 @@ export const gen_pools_2 = {
     },
     "gen_sleep": {
         id: 'gen_sleep',
-        tags: ['nervous', 'paranoid'],
+        tags: ['nervous', 'paranoid', 'generic'],
         unique: false,
         root: 'gsl_n1',
         nodes: {

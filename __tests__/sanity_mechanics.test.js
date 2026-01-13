@@ -45,10 +45,11 @@ describe('Sanity Mechanics', () => {
         expect(State.sanity).toBe(100);
     });
 
-    test('high paranoia drains sanity', () => {
+   test('high paranoia drains sanity', () => {
+        State.sanity = 100;
         State.updateParanoia(90);
-        // updateParanoia triggers updateSanity(-1)
-        expect(State.sanity).toBe(99);
+        // updateParanoia no longer triggers updateSanity directly in State.js
+        expect(State.sanity).toBe(100);
     });
 
     test('purging a human drains significant sanity', () => {
@@ -64,7 +65,7 @@ describe('Sanity Mechanics', () => {
         const infectedNPC = { name: 'Test Infected', isInfected: true };
         mechanics.calculatePurgeConsequences(infectedNPC);
         
-        expect(State.sanity).toBe(55); // 50 + 5
+        expect(State.sanity).toBe(54); // 50 + (5 * 0.8) = 54
         expect(uiMock.showMessage).toHaveBeenCalledWith(expect.stringContaining('ESTABILIZA'), null, 'normal');
     });
 });

@@ -146,4 +146,47 @@ describe('Advanced Mechanics and State Persistence', () => {
             expect(State.securityItems[0].active).toBe(false); // Alarm should deactivate after triggering
         });
     });
+
+    describe('Paranoia Security Failure', () => {
+        test('processNightResourcesAndTraits handles security failure with correct labels', () => {
+            State.paranoia = 80;
+            State.admittedNPCs = [{ name: 'Test NPC', traits: [], trait: { id: 'none' } }];
+            
+            // Test door
+            State.securityItems = [{ type: 'puerta', secured: true }];
+            let count = 0;
+            let spyRandom = jest.spyOn(Math, 'random').mockImplementation(() => {
+                count++;
+                if (count === 1) return 0.1; // trigger
+                return 0.0; // target
+            });
+            let summary = gmm.processNightResourcesAndTraits();
+            expect(summary).toContain('fallo en: PUERTA');
+            spyRandom.mockRestore();
+
+            // Test alarm
+            State.securityItems = [{ type: 'alarma', active: true }];
+            count = 0;
+            spyRandom = jest.spyOn(Math, 'random').mockImplementation(() => {
+                count++;
+                if (count === 1) return 0.1;
+                return 0.0;
+            });
+            summary = gmm.processNightResourcesAndTraits();
+            expect(summary).toContain('fallo en: ALARMA');
+            spyRandom.mockRestore();
+
+            // Test tuberias
+            State.securityItems = [{ type: 'tuberias', secured: true }];
+            count = 0;
+            spyRandom = jest.spyOn(Math, 'random').mockImplementation(() => {
+                count++;
+                if (count === 1) return 0.1;
+                return 0.0;
+            });
+            summary = gmm.processNightResourcesAndTraits();
+            expect(summary).toContain('fallo en: TUBERÍAS');
+            spyRandom.mockRestore();
+        });
+    });
 });

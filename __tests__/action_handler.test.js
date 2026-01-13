@@ -109,10 +109,15 @@ describe('Game Action Handler', () => {
             npc.scanCount = 1;
             const initialParanoia = State.paranoia;
             
+            // Mock random to be predictable (max factor for human is 4)
+            const spy = jest.spyOn(Math, 'random').mockReturnValue(0.99);
+            
             gah.handleDecision('ignore');
             
             expect(State.ignoredNPCs).toContain(npc);
-            expect(State.paranoia).toBe(initialParanoia + 5);
+            // Math.floor(0.99 * 3) + 1 = 3 + 1 = 4
+            expect(State.paranoia).toBe(initialParanoia + 4);
+            spy.mockRestore();
         });
 
         test('handleDecision blocks if no scan performed', () => {

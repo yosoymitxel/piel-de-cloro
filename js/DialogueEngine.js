@@ -5,7 +5,7 @@ import { State } from './State.js';
  * - Conversation holds current node id, history and can progress with getNextDialogue(choiceID)
  * - selectDialogueSet picks an unused pool for generic NPCs or returns a lore subject
  */
-export function selectDialogueSet({ personality = null, infected = false, isLore = false, loreId = null } = {}) {
+export function selectDialogueSet({ personality = null, infected = false, isLore = false, loreId = null, freshWindow = 8 } = {}) {
     // Prefer lore subjects if requested
     if (isLore) {
         if (loreId) {
@@ -20,24 +20,32 @@ export function selectDialogueSet({ personality = null, infected = false, isLore
     // Generic pools: pick by personality tag (if any)
     let candidates = Object.values(DialogueData.pools);
     if (personality) {
-        const filtered = candidates.filter(p => (p.tags || []).includes(personality) || (p.tags || []).includes('generic'));
-        // Fallback: Si el filtro nos deja sin opciones, volvemos a usar todos los candidatos para asegurar que haya diálogo
-        if (filtered.length > 0) {
-            candidates = filtered;
+        // Buscamos pools que coincidan con la personalidad específica
+        const specificMatches = candidates.filter(p => (p.tags || []).includes(personality));
+        
+        // Si hay pools específicos para esa personalidad, los priorizamos
+        if (specificMatches.length > 0) {
+            candidates = specificMatches;
+        } else {
+            // Si no hay específicos, usamos los marcados como 'generic'
+            const genericMatches = candidates.filter(p => (p.tags || []).includes('generic'));
+            if (genericMatches.length > 0) {
+                candidates = genericMatches;
+            }
         }
     }
 
     // Prefer pools that haven't been used in the last N dialogues to reduce perceived repetition
-    const freshWindow = 5; // configurable window size (dialogues)
     const fresh = candidates.filter(p => !State.wasDialogueUsedRecently(p.id, freshWindow));
+    
     if (fresh.length) {
-        // Prefer unused among fresh ones if possible
+        // De los frescos, priorizamos los que NUNCA se han usado en esta partida
         const unusedFresh = fresh.filter(p => !State.isDialogueUsed(p.id));
         const pickFrom = unusedFresh.length ? unusedFresh : fresh;
         return pickFrom[Math.floor(Math.random() * pickFrom.length)];
     }
 
-    // fallback: prefer unused ones
+    // Fallback: Si todos están en la ventana de "recientes", preferimos los menos usados o cualquiera
     const unused = candidates.filter(p => !State.isDialogueUsed(p.id));
     const pick = unused.length ? unused[Math.floor(Math.random() * unused.length)] : candidates[Math.floor(Math.random() * candidates.length)];
     return pick;
@@ -118,32 +126,31 @@ export class Conversation {
 
     getCurrentNode() {
         const node = this.set.nodes[this.currentId];
-        if (!node) return null;
-        const text = this._injectTemplate(node.text, node.id);
-        let options = (node.options || []).map(o => ({
-            id: o.id,
-            label: o.label,
-            next: o.next,
-            requires: o.requires || [],
-            sets: o.sets || [],
-            audio: o.audio || null,
-            cssClass: o.cssClass || '',
-            onclick: o.onclick || null,
-            log: o.log || null
-        }));
+        if (!node) return { error: 'Nodo no encontrado' };
 
-        // Auto-inject "Entendido" if terminal node has no options
-        if (options.length === 0) {
+        const text = this._injectTemplate(node.text, node.id);
+        let options = (node.options || []).map(o => ({ ...o }));
+
+        // Lógica para añadir una tercera opción de "finalizar diálogo" 
+        // cuando hay exactamente 2 opciones y ambas tienen una acción
+        if (options.length === 2 && options.every(o => o.onclick)) {
+            const endTexts = [
+                "Omitir por diálogo",
+                "Terminar conversación",
+                "No tengo más tiempo",
+                "Suficiente por ahora",
+                "Ya puedes retirarte",
+                "Hablaremos luego",
+                "Pasa al siguiente"
+            ];
+            const randomText = endTexts[Math.floor(Math.random() * endTexts.length)];
+            
             options.push({
-                id: 'auto_end',
-                label: 'Entendido',
+                id: 'exit_conversation',
+                label: randomText,
                 next: null,
-                requires: [],
-                sets: [],
-                audio: null,
-                cssClass: '',
-                onclick: null,
-                log: null
+                resultText: 'El sujeto asiente y espera en silencio.',
+                cssClass: 'exit-option-dynamic'
             });
         }
 
@@ -163,13 +170,23 @@ export class Conversation {
         if (typeof choice === 'number') {
             if (nodeOptions.length === 0 && choice === 0) {
                 opt = { id: 'auto_end', label: 'Entendido', next: null };
+            } else if (choice === nodeOptions.length && nodeOptions.length === 2 && nodeOptions.every(o => o.onclick)) {
+                // Caso especial: opción de salida inyectada dinámicamente
+                opt = { id: 'exit_conversation', label: 'Terminar diálogo', next: null, resultText: 'El sujeto asiente y espera en silencio.' };
+            } else if (choice >= nodeOptions.length) {
+                // Otros casos de salida (compatibilidad)
+                if (nodeOptions.length === 0) {
+                    opt = { id: 'exit_conversation', label: 'Terminar diálogo', next: null, resultText: 'El sujeto asiente y espera en silencio.' };
+                }
             } else {
                 opt = nodeOptions[choice];
             }
         } else {
             opt = nodeOptions.find(o => o.id === choice);
-            if (!opt && choice === 'auto_end' && nodeOptions.length === 0) {
-                opt = { id: 'auto_end', label: 'Entendido', next: null };
+            if (!opt) {
+                if (choice === 'auto_end' || choice === 'exit_conversation') {
+                    opt = { id: choice, label: 'Terminar diálogo', next: null, resultText: 'El sujeto asiente y espera en silencio.' };
+                }
             }
         }
 
@@ -180,6 +197,14 @@ export class Conversation {
             for (const r of opt.requires) {
                 if (!State.hasFlag(r)) return { error: 'Requisitos no satisfechos' };
             }
+        }
+
+        // Apply impacts: Sanity and Paranoia
+        if (opt.sanity) {
+            State.updateSanity(opt.sanity);
+        }
+        if (opt.paranoia) {
+            State.updateParanoia(opt.paranoia);
         }
 
         // Apply sets (flags)

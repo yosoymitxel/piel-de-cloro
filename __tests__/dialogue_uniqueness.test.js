@@ -14,9 +14,16 @@ describe('Dialogue Uniqueness and Repetition', () => {
     test('Should prioritize unused pools until all matching candidates are exhausted', () => {
         // We'll use a personality that has multiple pools
         const personality = 'nervous';
-        const candidates = Object.values(DialogueData.pools).filter(p => 
-            (p.tags || []).includes(personality) || (p.tags || []).includes('generic')
+        let candidates = Object.values(DialogueData.pools).filter(p => 
+            (p.tags || []).includes(personality)
         );
+        
+        // My new logic: if personality matches exist, only those are candidates
+        if (candidates.length === 0) {
+            candidates = Object.values(DialogueData.pools).filter(p => 
+                (p.tags || []).includes('generic')
+            );
+        }
         
         const totalCandidates = candidates.length;
         expect(totalCandidates).toBeGreaterThan(1);
@@ -57,7 +64,7 @@ describe('Dialogue Uniqueness and Repetition', () => {
         // 1. Use all 6 pools once
         const sequence = [];
         for (let i = 0; i < 6; i++) {
-            const pick = selectDialogueSet({ personality });
+            const pick = selectDialogueSet({ personality, freshWindow });
             sequence.push(pick.id);
             State.dialoguesCount++;
             State.markDialogueUsed(pick.id);
@@ -73,7 +80,7 @@ describe('Dialogue Uniqueness and Repetition', () => {
         // If count=6, and p1 was used at count 1: 6 - 1 = 5. 5 < 5 is false. So p1 is available.
         // If count=6, and p2 was used at count 2: 6 - 2 = 4. 4 < 5 is true. So p2 is fresh (avoid).
         
-        const nextPick = selectDialogueSet({ personality });
+        const nextPick = selectDialogueSet({ personality, freshWindow });
         // Only p1 should be available if window is 5 and we have 6 pools
         expect(nextPick.id).toBe(sequence[0]);
 
@@ -84,7 +91,7 @@ describe('Dialogue Uniqueness and Repetition', () => {
         // Now count is 7.
         // p2 was used at 2: 7 - 2 = 5. 5 < 5 is false. p2 is available.
         // p3 was used at 3: 7 - 3 = 4. 4 < 5 is true. p3 is fresh.
-        const pickAfter = selectDialogueSet({ personality });
+        const pickAfter = selectDialogueSet({ personality, freshWindow });
         expect(pickAfter.id).toBe(sequence[1]);
 
         DialogueData.pools = originalPools;

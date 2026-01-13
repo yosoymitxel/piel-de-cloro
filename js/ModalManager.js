@@ -69,12 +69,12 @@ export class ModalManager {
 
         this.elements.confirmYes.off('click').on('click', () => {
             modal.addClass('hidden').removeClass('flex');
-            if (onYes) onYes();
+            if (typeof onYes === 'function') onYes();
         });
 
         this.elements.confirmCancel.off('click').on('click', () => {
             modal.addClass('hidden').removeClass('flex');
-            if (onCancel) onCancel();
+            if (typeof onCancel === 'function') onCancel();
         });
     }
 
@@ -85,6 +85,46 @@ export class ModalManager {
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
 
         this.elements.modalName.text(`${npc.name}`);
+
+        if (this.elements.modalTrait) {
+            const trait = npc.trait || { id: 'none', name: 'Ninguno', description: 'Sin rasgos especiales.' };
+            if (trait.id !== 'none') {
+                this.elements.modalTrait.html(`
+                    <div class="flex flex-col gap-1 w-full">
+                        <div class="flex items-center justify-between">
+                            <span class="text-white font-bold uppercase tracking-wider">Rasgo: ${trait.name}</span>
+                            <button id="btn-modal-help-traits" class="text-[9px] bg-blue-900/40 hover:bg-blue-800 text-blue-300 px-2 py-0.5 border border-blue-700/50 rounded flex items-center gap-1 transition-colors uppercase font-mono">
+                                <i class="fa-solid fa-circle-info"></i> Ayuda
+                            </button>
+                        </div>
+                        <span class="text-[10px] text-gray-400 italic leading-tight">${trait.description}</span>
+                    </div>
+                `).removeClass('hidden');
+
+                // Vincular el botón de ayuda del rasgo a la Base de Datos
+                $('#btn-modal-help-traits').on('click', (e) => {
+                    e.stopPropagation();
+                    this.closeModal(true);
+                    
+                    // Navegar a la Base de Datos
+                    if (this.ui && typeof this.ui.showScreen === 'function') {
+                        this.ui.showScreen('database'); // Usamos el string 'database' que es el ID estándar
+                        
+                        // Seleccionar la sección de rasgos en la DB
+                        setTimeout(() => {
+                            const traitBtn = $(`.db-nav-btn[data-target="db-traits"]`);
+                            if (traitBtn.length) {
+                                traitBtn.click();
+                            }
+                        }, 50);
+                    }
+                    
+                    if (this.audio) this.audio.playSFXByKey('ui_hover', { volume: 0.3 });
+                });
+            } else {
+                this.elements.modalTrait.addClass('hidden');
+            }
+        }
 
         // Renderizar Avatar Grande en el nuevo contenedor visual
         const visualContainer = $('#modal-visual-container');
@@ -194,13 +234,17 @@ export class ModalManager {
             const isPurgeLocked = npc.purgeLockedUntil && state.cycle < npc.purgeLockedUntil;
             const alreadyTested = npc.dayAfter && npc.dayAfter.usedNightTests >= 1;
             const noTestsLeft = state.dayAfter.testsAvailable <= 0;
+            const noPower = state.generator && state.generator.isOn === false;
 
-            if (isPurgeLocked || alreadyTested || noTestsLeft) {
+            if (isPurgeLocked || alreadyTested || noTestsLeft || noPower) {
                 testsGrid.removeClass('grid-cols-4').addClass('grid-cols-1');
                 let msg = "";
                 let icon = "";
 
-                if (isPurgeLocked) {
+                if (noPower) {
+                    msg = "SISTEMA SIN ENERGÍA: REVISAR GENERADOR";
+                    icon = "fa-bolt-slash";
+                } else if (isPurgeLocked) {
                     msg = "PROTOCOLO DE SEGURIDAD: SUJETO RECIENTE (BLOQUEADO)";
                     icon = "fa-lock";
                 } else if (alreadyTested) {

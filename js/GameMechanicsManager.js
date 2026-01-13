@@ -85,8 +85,8 @@ export class GameMechanicsManager {
         this.audio.playSFXByKey('glitch_low', { volume: 0.8 });
         State.addLogEntry('system', 'FALLO CRÍTICO: Generador apagado por inestabilidad.');
         this.ui.showFeedback("¡FALLO CRÍTICO DEL GENERADOR!", "red");
-        if (this.ui && this.ui.setNavItemStatus) {
-            this.ui.setNavItemStatus(CONSTANTS.NAV_ITEMS.GENERATOR, 4);
+        if (this.ui && typeof this.ui.updateGeneratorNavStatus === 'function') {
+            this.ui.updateGeneratorNavStatus();
         }
         this.ui.renderGeneratorRoom();
         this.game.updateHUD();
@@ -101,9 +101,9 @@ export class GameMechanicsManager {
         if (State.generator.isOn && wasOff) {
             this.audio.playSFXByKey('generator_start', { volume: 0.7 });
 
-            if (this.ui && this.ui.setNavItemStatus) {
-                this.ui.setNavItemStatus(CONSTANTS.NAV_ITEMS.GENERATOR, null);
-            }
+        if (this.ui && typeof this.ui.updateGeneratorNavStatus === 'function') {
+            this.ui.updateGeneratorNavStatus();
+        }
 
             State.generator.mode = 'save';
             State.generator.power = 32;
@@ -134,9 +134,8 @@ export class GameMechanicsManager {
                 State.currentNPC.scanCount = 99;
             }
             this.shutdownSecuritySystem();
-
-            if (this.ui && this.ui.setNavItemStatus) {
-                this.ui.setNavItemStatus('nav-generator', 4);
+            if (this.ui && typeof this.ui.updateGeneratorNavStatus === 'function') {
+                this.ui.updateGeneratorNavStatus();
             }
             this.ui.showFeedback("GENERADOR APAGADO: ENERGÍA DISIPADA", "red");
         }
@@ -195,13 +194,15 @@ export class GameMechanicsManager {
 
     sleep() {
         if (State.paused) return;
-        State.isNight = true;
-        State.dayClosed = true;
         this.audio.playSFXByKey('night_transition', { volume: 0.5 });
         this.audio.playAmbientByKey('ambient_night_loop', { loop: true, volume: this.audio.levels.ambient, fadeIn: 800 });
         
         const admitted = State.admittedNPCs;
         const count = admitted.length;
+
+        // Procesar recursos y rasgos antes de determinar el resultado de la noche
+        const resourceSummary = this.processNightResourcesAndTraits();
+        
         const infectedInShelter = admitted.filter(n => n.isInfected);
         const civilians = admitted.filter(n => !n.isInfected);
 
@@ -226,14 +227,21 @@ export class GameMechanicsManager {
 
         if (infectedInShelter.length > 0) {
             const victimIndex = civilians.length > 0
-                ? admitted.findIndex(n => !n.isInfected)
+                ? admitted.findIndex(n => !n.isInfected && (n.trait && n.trait.id !== 'tough'))
                 : -1;
-            if (victimIndex > -1) {
-                const victim = admitted[victimIndex];
-                admitted.splice(victimIndex, 1);
+            
+            // Si no hay civiles normales, buscar uno con rasgo 'tough' (más difícil de matar)
+            let finalVictimIndex = victimIndex;
+            if (finalVictimIndex === -1 && civilians.length > 0) {
+                finalVictimIndex = admitted.findIndex(n => !n.isInfected);
+            }
+
+            if (finalVictimIndex > -1) {
+                const victim = admitted[finalVictimIndex];
+                admitted.splice(finalVictimIndex, 1);
                 victim.death = { reason: 'asesinado', cycle: State.cycle, revealed: false };
                 State.purgedNPCs.push(victim);
-                State.lastNight.message = `Durante la noche, ${victim.name} fue asesinado. Se sospecha presencia de cloro.`;
+                State.lastNight.message = `${resourceSummary}Durante la noche, ${victim.name} fue asesinado. Se sospecha presencia de cloro.`;
                 State.lastNight.victims = 1;
                 this.audio.playSFXByKey('lore_night_civil_death', { volume: 0.5 });
                 this.ui.showLore('night_civil_death', () => {
@@ -241,7 +249,7 @@ export class GameMechanicsManager {
                     this.continueDay();
                 });
             } else {
-                State.lastNight.message = "No quedaban civiles. El guardia fue víctima del cloro.";
+                State.lastNight.message = `${resourceSummary}No quedaban civiles. El guardia fue víctima del cloro.`;
                 State.lastNight.victims = 1;
                 this.audio.playSFXByKey('lore_night_player_death', { volume: 0.5 });
                 this.game.endings.triggerEnding('night_player_death');
@@ -261,13 +269,109 @@ export class GameMechanicsManager {
             return;
         }
 
-        State.lastNight.message = "La noche pasó tranquila.";
+        State.lastNight.message = `${resourceSummary}La noche pasó tranquila.`;
         State.lastNight.victims = 0;
         this.audio.playSFXByKey('lore_night_tranquil', { volume: 0.4 });
         this.ui.showLore('night_tranquil', () => {
-            State.updateParanoia(-10);
+            // REBALANCEO: Reducir paranoia base
+            let reduction = -10;
+            
+            // Si hay más civiles que cloros (infectados) en el refugio, la paranoia baja más
+            const civilians = State.admittedNPCs.filter(n => !n.isInfected).length;
+            const infected = State.admittedNPCs.filter(n => n.isInfected).length;
+            
+            if (civilians > infected) {
+                reduction -= 5; // Reducción extra por sensación de seguridad
+            }
+            
+            State.updateParanoia(reduction);
             this.continueDay();
         });
+    }
+
+    processNightResourcesAndTraits() {
+        const admitted = State.admittedNPCs;
+        let summary = "";
+        
+        if (admitted.length === 0) return summary;
+
+        let totalConsumption = 0;
+        let scavenged = 0;
+        let sanityMod = 0;
+        let paranoiaMod = 0;
+
+        admitted.forEach(npc => {
+            // Consumo base
+            let consumption = 1;
+            if (npc.trait && npc.trait.id === 'sickly') consumption = 2;
+            totalConsumption += consumption;
+
+            // Efectos de rasgos
+            if (npc.trait && npc.trait.id === 'scavenger' && Math.random() < 0.4) {
+                const found = Math.floor(Math.random() * 5) + 1;
+                scavenged += found;
+            }
+            if (npc.trait && npc.trait.id === 'optimist') paranoiaMod -= 10;
+            if (npc.trait && npc.trait.id === 'paranoid') paranoiaMod += 5;
+        });
+
+        // Aplicar suministros
+        State.updateSupplies(scavenged - totalConsumption);
+        
+        if (scavenged > 0) {
+            summary += `Los recolectores encontraron ${scavenged} suministros. `;
+        }
+
+        if (State.supplies <= 0) {
+            State.updateSanity(-15);
+            summary += "La falta de suministros está causando desesperación. ";
+            // Probabilidad de muerte por inanición si no hay suministros
+            if (Math.random() < 0.1) {
+                const victimIndex = Math.floor(Math.random() * admitted.length);
+                const victim = admitted[victimIndex];
+                admitted.splice(victimIndex, 1);
+                victim.death = { reason: 'inanición', cycle: State.cycle, revealed: false };
+                State.purgedNPCs.push(victim);
+                summary += `${victim.name} ha muerto por falta de recursos. `;
+            }
+        }
+
+        // Aplicar modificadores de rasgos
+        if (sanityMod !== 0) {
+            State.updateSanity(sanityMod);
+            if (sanityMod > 0) summary += "El optimismo de algunos refugiados mejora el ambiente. ";
+        }
+        if (paranoiaMod !== 0) {
+            State.updateParanoia(paranoiaMod);
+            if (paranoiaMod > 0) summary += "Los susurros paranoicos se extienden por el refugio. ";
+            if (paranoiaMod < 0) summary += "La presencia de líderes positivos calma los nervios del grupo. ";
+        }
+
+        // MECÁNICA DIFERENCIADA: Pesadillas vs Fallos de Seguridad
+        // La baja cordura provoca "Incidentes Mentales"
+        if (State.sanity < 30 && Math.random() < 0.4) {
+            const extraLoss = 10;
+            State.updateSanity(-extraLoss);
+            summary += "Las pesadillas han sido insoportables esta noche. ";
+            if (Math.random() < 0.3) {
+                State.updateSupplies(-1);
+                summary += "En un ataque de pánico, se han desperdiciado suministros. ";
+            }
+        }
+
+        // La alta paranoia provoca "Inestabilidad de Sistemas"
+        if (State.paranoia > 70 && Math.random() < 0.4) {
+            const items = State.securityItems;
+            const target = items[Math.floor(Math.random() * items.length)];
+            if (target) {
+                if (target.type === 'alarma') target.active = false;
+                else target.secured = false;
+                const targetName = target.type === 'alarma' ? 'ALARMA' : (target.type === 'tuberias' ? 'TUBERÍAS' : target.type.toUpperCase());
+                summary += `La tensión en el sector ha provocado un fallo en: ${targetName}. `;
+            }
+        }
+
+        return summary;
     }
 
     startNextDay() {

@@ -1,5 +1,6 @@
 import { State } from './State.js';
 import { CONSTANTS } from './Constants.js';
+import { LoreData } from './LoreData.js';
 import { LoreManager } from './LoreManager.js';
 import { ModalManager } from './ModalManager.js';
 import { AvatarRenderer } from './AvatarRenderer.js';
@@ -24,13 +25,15 @@ export class UIManager {
             room: $('#screen-room'),
             generator: $('#screen-generator'),
             finalStats: $('#screen-final-stats'),
-            log: $('#screen-log')
+            log: $('#screen-log'),
+            database: $('#screen-database')
         };
         this.elements = {
             paranoia: $('#paranoia-level'),
             sanity: $('#sanity-level'),
             cycle: $('#cycle-count'),
             time: $('#time-display'),
+            supplies: $('#supplies-level'),
             feedback: $('#inspection-feedback'),
             npcDisplay: $('#npc-display'),
             dialogue: $('#npc-dialogue'),
@@ -54,9 +57,25 @@ export class UIManager {
             dayafterPendingCount: $('#dayafter-pending-count'),
             dayafterValidatedCount: $('#dayafter-validated-count'),
 
+            // Modales de Guía y Finales
+            modalEndings: $('#modal-endings'),
+            endingsList: $('#endings-list'),
+            btnOpenEndings: $('#endings-record'),
+            btnCloseEndings: $('#btn-close-endings'),
+            modalGuide: $('#modal-guide'),
+            btnOpenGuide: $('#btn-help-guide'),
+            btnCloseGuide: $('#btn-close-guide'),
+
+            // HUD Clickable Stats
+            hudParanoia: $('#paranoia-level').parent(),
+            hudSanity: $('#sanity-level').parent(),
+            hudSupplies: $('#hud-supplies-container'),
+            hudEnergy: $('#hud-energy-container'),
+
             // Modal NPC
             modal: $('#modal-npc'),
             modalName: $('#modal-npc-name'),
+            modalTrait: $('#modal-npc-trait'),
             modalStatus: $('#modal-npc-status'),
             modalStats: $('#modal-npc-stats-content'),
             modalLog: $('#modal-npc-log'),
@@ -78,6 +97,15 @@ export class UIManager {
             msgModal: $('#modal-message'),
             msgContent: $('#modal-message-content'),
             msgBtn: $('#btn-message-ok'),
+
+            // Tutorial Inicial
+            modalTutorial: $('#modal-tutorial'),
+            btnStartGame: $('#btn-tutorial-start'),
+
+            // Base de Datos
+            btnOpenDatabase: $('#nav-database'),
+            dbNavBtns: $('.db-nav-btn'),
+            dbSections: $('.db-section'),
 
             // Confirm Modal
             confirmModal: $('#modal-confirm'),
@@ -127,6 +155,157 @@ export class UIManager {
             screen: this.screenManager,
             tools: this.toolsRenderer
         };
+
+        this.initGuides();
+        this.initDatabaseNavigation();
+
+        // Actualizar el record de finales al inicio para evitar el 0/0 inicial
+        if (this.screenManager && typeof this.screenManager.updateEndingsRecord === 'function') {
+            this.screenManager.updateEndingsRecord(State);
+        }
+    }
+
+    initGuides() {
+        // Modal de Tutorial Inicial
+        if (this.elements.btnStartGame) {
+            this.elements.btnStartGame.on('click', () => {
+                this.elements.modalTutorial.addClass('hidden').removeClass('flex');
+                if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.5 });
+                // Iniciar música o ambiente si es necesario
+                if (this.game && this.game.startFirstDay) {
+                    this.game.startFirstDay();
+                }
+            });
+        }
+
+        // Modal de Finales Recuperados
+        if (this.elements.btnOpenEndings) {
+            this.elements.btnOpenEndings.on('click', () => this.showEndingsModal());
+        }
+        if (this.elements.btnCloseEndings) {
+            this.elements.btnCloseEndings.on('click', () => this.elements.modalEndings.addClass('hidden').removeClass('flex'));
+        }
+
+        // Botón de Guía (ahora abre el Manual Rápido)
+        if (this.elements.btnOpenGuide) {
+            this.elements.btnOpenGuide.on('click', () => {
+                this.elements.modalGuide.removeClass('hidden').addClass('flex');
+                if (this.audio) this.audio.playSFXByKey('ui_hover', { volume: 0.3 });
+            });
+        }
+
+        if (this.elements.btnCloseGuide) {
+            this.elements.btnCloseGuide.on('click', () => {
+                this.elements.modalGuide.addClass('hidden').removeClass('flex');
+                if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.2 });
+            });
+        }
+
+        // Vincular iconos del HUD a la Base de Datos (excepto suministros)
+        const hudElements = [
+            { el: this.elements.hudParanoia, section: 'db-hud' },
+            { el: this.elements.hudSanity, section: 'db-hud' },
+            { el: this.elements.hudEnergy, section: 'db-hud' }
+        ];
+
+        hudElements.forEach(item => {
+            if (item.el && item.el.length) {
+                item.el.addClass('cursor-pointer hover:opacity-80 transition-opacity');
+                item.el.on('click', () => {
+                    this.showScreen(CONSTANTS.SCREENS.DATABASE);
+                    $(`.db-nav-btn[data-target="${item.section}"]`).click();
+                    if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.3 });
+                });
+            }
+        });
+
+        // Comportamiento especial para Suministros (Solicitar emergencia)
+        if (this.elements.hudSupplies && this.elements.hudSupplies.length) {
+            this.elements.hudSupplies.on('click', () => {
+                if (this.game && this.game.actions) {
+                    this.game.actions.handleSupplyRequest();
+                }
+            });
+        }
+
+        // Cerrar modales con ESC
+        $(document).on('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.elements.modalEndings.addClass('hidden').removeClass('flex');
+                this.elements.modalGuide.addClass('hidden').removeClass('flex');
+                this.elements.modalTutorial.addClass('hidden').removeClass('flex');
+            }
+        });
+    }
+
+    initDatabaseNavigation() {
+        if (this.elements.btnOpenDatabase) {
+            this.elements.btnOpenDatabase.on('click', () => {
+                this.showScreen(CONSTANTS.SCREENS.DATABASE);
+                if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.3 });
+            });
+        }
+
+        this.elements.dbNavBtns.on('click', (e) => {
+            const target = $(e.currentTarget).data('target');
+            
+            // UI Update
+            this.elements.dbNavBtns.removeClass('active');
+            $(e.currentTarget).addClass('active');
+            
+            // Content Update
+            this.elements.dbSections.addClass('hidden');
+            $(`#${target}`).removeClass('hidden');
+            
+            if (this.audio) this.audio.playSFXByKey('ui_hover', { volume: 0.2 });
+        });
+    }
+
+    showEndingsModal() {
+        if (!this.elements.modalEndings || !this.elements.endingsList) return;
+
+        const allEndings = Object.keys(LoreData).filter(key => key.startsWith('final_'));
+        // Asegurar que solo mostramos finales únicos y válidos
+        const uniqueUnlocked = Array.from(new Set((State.unlockedEndings || []).filter(key => allEndings.includes(key))));
+        
+        // Actualizar contador en el header del modal si existe un lugar
+        const titleEl = this.elements.modalEndings.find('h3');
+        titleEl.html(`Base de Datos: Finales Recuperados <span class="text-xs ml-2 opacity-50">(${uniqueUnlocked.length}/${allEndings.length})</span>`);
+
+        this.elements.endingsList.empty();
+
+        if (uniqueUnlocked.length === 0) {
+            this.elements.endingsList.append(`
+                <div class="text-center p-8 border border-dashed border-gray-800 opacity-50">
+                    <i class="fa-solid fa-lock text-4xl mb-4 block"></i>
+                    <p class="text-sm">No se han recuperado archivos en este terminal aún.</p>
+                </div>
+            `);
+        } else {
+            // Ordenar por ID para que sea consistente
+            const sortedUnlocked = [...uniqueUnlocked].sort();
+            
+            sortedUnlocked.forEach((id, index) => {
+                const lore = LoreData[id];
+                if (!lore) return;
+
+                const card = $(`
+                    <div class="p-4 border border-chlorine/40 bg-chlorine/5 hover:bg-chlorine/10 transition-all group">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="text-chlorine font-bold uppercase tracking-wider text-sm">${index + 1}. ${lore.title}</h4>
+                            <span class="text-[10px] text-gray-500 font-mono">ID: ${id.toUpperCase()}</span>
+                        </div>
+                        <p class="text-xs text-gray-300 leading-relaxed italic border-l-2 border-chlorine/20 pl-3">
+                            "${lore.content}"
+                        </p>
+                    </div>
+                `);
+                this.elements.endingsList.append(card);
+            });
+        }
+
+        this.elements.modalEndings.removeClass('hidden').addClass('flex');
+        if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.5 });
     }
 
     showScreen(screenName) {
@@ -147,30 +326,87 @@ export class UIManager {
     }
 
     applySanityEffects(sanity) {
-        const intensity = (30 - sanity) / 30; // 0 a 1
-        if (Math.random() < intensity * 0.1) {
-            const hue = Math.random() * 20 - 10;
-            const saturate = 1 + Math.random() * intensity;
-            const contrast = 1 + Math.random() * intensity * 0.5;
-            $('body').css('filter', `hue-rotate(${hue}deg) saturate(${saturate}) contrast(${contrast})`);
+        const intensity = (40 - sanity) / 40; // 0 a 1 (empieza a los 40)
+        
+        if (Math.random() < intensity * 0.15) {
+            const hue = Math.random() * (30 * intensity) - (15 * intensity);
+            const saturate = 1 + (Math.random() * intensity);
+            const contrast = 1 + (Math.random() * intensity * 0.5);
+            const blur = intensity > 0.6 ? `blur(${intensity * 0.5}px)` : '';
+            
+            $('body').css('filter', `hue-rotate(${hue}deg) saturate(${saturate}) contrast(${contrast}) ${blur}`);
             
             // Glitch auditivo ocasional si hay AudioManager
-            if (this.audio && Math.random() < 0.05) {
-                this.audio.playSFXByKey('glitch_burst', { volume: 0.1 * intensity });
+            if (this.audio && Math.random() < 0.1) {
+                this.audio.playSFXByKey('glitch_burst', { volume: 0.15 * intensity });
             }
+        }
+
+        // Efecto de viñeta roja si la cordura es muy baja
+        if (sanity < 25) {
+            const opacity = (25 - sanity) / 50;
+            if (!$('#sanity-vignette').length) {
+                $('body').append('<div id="sanity-vignette" class="fixed inset-0 pointer-events-none z-[9999] shadow-[inset_0_0_150px_rgba(153,27,27,0.5)] opacity-0 transition-opacity duration-1000"></div>');
+            }
+            $('#sanity-vignette').css('opacity', opacity).removeClass('hidden');
+        } else {
+            $('#sanity-vignette').addClass('hidden');
         }
     }
 
-    updateStats(paranoia, sanity, cycle, dayTime, dayLength, currentNPC) {
-        this.elements.paranoia.text(`${paranoia}%`);
+    updateStats(paranoia, sanity, cycle, dayTime, dayLength, currentNPC, supplies) {
+        // MECÁNICA PARANOIA: Viñeta de vigilancia
+        if (paranoia > 50) {
+            const pIntensity = (paranoia - 50) / 100;
+            if (!$('#paranoia-vignette').length) {
+                $('body').append('<div id="paranoia-vignette" class="fixed inset-0 pointer-events-none z-[9998] shadow-[inset_0_0_120px_rgba(45,90,39,0.4)] opacity-0 transition-opacity duration-700"></div>');
+            }
+            $('#paranoia-vignette').css('opacity', pIntensity).removeClass('hidden');
+        } else {
+            $('#paranoia-vignette').addClass('hidden');
+        }
+
+        // MECÁNICA CORDURA: Interfaz mentirosa
+        // Si la cordura es baja, los valores del HUD pueden fluctuar erróneamente
+        const isHallucinatingUI = sanity < 30 && Math.random() < 0.2;
+        
+        let displayParanoia = paranoia;
+        let displaySanity = sanity;
+        let displaySupplies = supplies !== undefined ? supplies : State.supplies;
+
+        if (isHallucinatingUI) {
+            // Mostrar valores falsos momentáneamente
+            displayParanoia = Math.min(100, paranoia + (Math.random() > 0.5 ? 20 : -20));
+            displaySanity = Math.max(0, sanity + (Math.random() > 0.5 ? 15 : -15));
+            displaySupplies = Math.max(0, displaySupplies + (Math.random() > 0.5 ? 2 : -2));
+            
+            // Efecto visual de glitch en el texto
+            this.elements.paranoia.addClass('glitch-text');
+            if (this.elements.sanity) this.elements.sanity.addClass('glitch-text');
+            
+            setTimeout(() => {
+                this.elements.paranoia.removeClass('glitch-text');
+                if (this.elements.sanity) this.elements.sanity.removeClass('glitch-text');
+            }, 500);
+        }
+
+        this.elements.paranoia.text(`${Math.floor(displayParanoia)}%`);
         if (this.elements.sanity) {
-            this.elements.sanity.text(`${Math.floor(sanity)}%`);
+            this.elements.sanity.text(`${Math.floor(displaySanity)}%`);
             if (sanity < 30) {
                 this.elements.sanity.addClass('animate-pulse text-rose-600').removeClass('text-rose-300');
                 this.applySanityEffects(sanity);
             } else {
                 this.elements.sanity.removeClass('animate-pulse text-rose-600').addClass('text-rose-300');
                 $('body').css('filter', 'none');
+            }
+        }
+        if (this.elements.supplies) {
+            this.elements.supplies.text(displaySupplies);
+            if (displaySupplies <= 2) {
+                this.elements.supplies.addClass('animate-pulse text-alert').removeClass('text-amber-300');
+            } else {
+                this.elements.supplies.removeClass('animate-pulse text-alert').addClass('text-amber-300');
             }
         }
         this.elements.cycle.text(cycle);
@@ -235,6 +471,7 @@ export class UIManager {
         }
 
         // Update Energy
+        this.updateGeneratorNavStatus();
         const energySpan = $('#scan-energy');
         const energyIcon = $('#hud-energy-container i');
         if (currentNPC) {
@@ -279,6 +516,22 @@ export class UIManager {
             energyIcon.css('color', '#555');
             energyIcon.removeClass('text-cyan-400 text-alert');
             this.elements.tools.forEach(btn => btn.addClass('btn-disabled'));
+        }
+    }
+
+    updateGeneratorNavStatus(state = State) {
+        if (!this.setNavItemStatus) return;
+
+        if (!state.generator.isOn) {
+            this.setNavItemStatus('nav-generator', 4);
+        } else if (state.generator.power <= 10) {
+            this.setNavItemStatus('nav-generator', 3);
+        } else if (state.generator.mode === 'save') {
+            this.setNavItemStatus('nav-generator', 'save');
+        } else if (state.generator.mode === 'overload') {
+            this.setNavItemStatus('nav-generator', 'overload');
+        } else {
+            this.setNavItemStatus('nav-generator', null);
         }
     }
 
@@ -327,7 +580,8 @@ export class UIManager {
                 </button>
             `);
 
-            // Event handled by delegation in GameEventManager
+            // Actualizar referencias de herramientas (aunque estén ocultas o cambiadas)
+            this.refreshToolsReferences();
             return;
         }
 
@@ -344,6 +598,7 @@ export class UIManager {
                     TEST OMITIDO: PROCEDER CON DECISIÓN
                 </div>
             `);
+            this.refreshToolsReferences();
         } else if (npc && npc.scanCount >= maxEnergy) {
             // Caso 3: Sin energías por el límite del modo actual
             this.elements.inspectionToolsContainer.removeClass('grid-cols-2 sm:grid-cols-2 lg:grid-cols-4').addClass('grid-cols-1');
@@ -353,6 +608,7 @@ export class UIManager {
                     BATERÍAS AGOTADAS: SOLO DIÁLOGO O DECISIÓN
                 </div>
             `);
+            this.refreshToolsReferences();
         } else {
             // Caso Normal con energía disponible
             this.elements.inspectionToolsContainer.removeClass('grid-cols-1').addClass('grid-cols-2 sm:grid-cols-2 lg:grid-cols-4');
@@ -383,7 +639,75 @@ export class UIManager {
                     <i class="fa-solid fa-eye"></i> PUPILAS
                 </button>
             `);
+            
+            this.refreshToolsReferences();
         }
+    }
+
+    refreshToolsReferences() {
+        this.elements.tools = [
+            $('#tool-thermo'),
+            $('#tool-flash'),
+            $('#tool-pulse'),
+            $('#tool-pupils')
+        ];
+    }
+
+    resetUI() {
+        // Cerrar cualquier modal abierto
+        this.closeModal(true);
+        this.closeRelocationModal();
+        if (this.elements.modalTutorial) this.elements.modalTutorial.addClass('hidden').removeClass('flex');
+        
+        // Resetear navegación de base de datos
+        this.elements.dbNavBtns.removeClass('active');
+        this.elements.dbNavBtns.first().addClass('active');
+        this.elements.dbSections.addClass('hidden');
+        this.elements.dbSections.first().removeClass('hidden');
+
+        // Limpiar contenedores principales
+        if (this.elements.npcDisplay) this.elements.npcDisplay.empty();
+        if (this.elements.dialogue) this.elements.dialogue.html('Esperando sujeto...');
+        if (this.elements.dialogueOptions) this.elements.dialogueOptions.empty();
+        if (this.elements.logContainer) this.elements.logContainer.empty();
+        if (this.elements.shelterGrid) this.elements.shelterGrid.empty();
+        if (this.elements.morgueGridPurged) this.elements.morgueGridPurged.empty();
+        if (this.elements.morgueGridEscaped) this.elements.morgueGridEscaped.empty();
+        if (this.elements.morgueGridNight) this.elements.morgueGridNight.empty();
+        if (this.elements.securityGrid) this.elements.securityGrid.empty();
+        
+        // Resetear contadores de UI
+        if (this.elements.shelterCount) this.elements.shelterCount.text('0/0');
+        if (this.elements.securityCount) this.elements.securityCount.text('0');
+        if (this.elements.dayafterTestsLeft) this.elements.dayafterTestsLeft.text('0');
+        if (this.elements.dayafterPendingCount) this.elements.dayafterPendingCount.text('0');
+        if (this.elements.dayafterValidatedCount) this.elements.dayafterValidatedCount.text('0');
+
+        // Resetear estados visuales de navegación
+        this.clearAllNavStatuses();
+        this.updateSecurityNavStatus([]);
+        
+        // Resetear HUD a valores iniciales (usando State ya reseteado)
+        this.updateStats(
+            State.paranoia, 
+            State.sanity, 
+            State.cycle, 
+            State.dayTime, 
+            State.config.dayLength, 
+            null, 
+            State.supplies
+        );
+        
+        // Resetear herramientas
+        this.updateInspectionTools();
+        
+        // Quitar filtros globales y efectos
+        $('body').css('filter', 'none');
+        $('.vhs-target').removeClass('vhs-active');
+        $('#screen-game').removeClass('is-paused');
+        
+        // Resetear feedback
+        this.hideFeedback();
     }
 
     renderNPC(npc) {
@@ -526,23 +850,39 @@ export class UIManager {
             }
 
             convNode.options.forEach((opt, idx) => {
+                const label = opt.label.toLowerCase();
+                const fnName = opt.onclick ? opt.onclick.name : '';
+                
                 // Determinar si es un botón de tooltip (inspección)
                 const isTooltip = opt.onclick && (
-                    opt.onclick.name === 'testUV' || 
-                    opt.onclick.name === 'testThermo' || 
-                    opt.onclick.name === 'testPulse' || 
-                    opt.onclick.name === 'testPupils' ||
-                    opt.onclick.name === 'test'
+                    fnName === 'testUV' || 
+                    fnName === 'testThermo' || 
+                    fnName === 'testPulse' || 
+                    fnName === 'testPupils' ||
+                    fnName === 'test' ||
+                    label.includes('analizar') ||
+                    label.includes('termómetro') ||
+                    label.includes('pulso') ||
+                    label.includes('pupilas') ||
+                    label.includes('uv')
                 );
 
                 const tooltipIcon = isTooltip ? (
-                    opt.onclick.name === 'testThermo' ? 'fa-temperature-half' :
-                    opt.onclick.name === 'testPulse' ? 'fa-heart-pulse' :
-                    opt.onclick.name === 'testPupils' ? 'fa-eye' : 'fa-lightbulb'
+                    (fnName === 'testThermo' || label.includes('termómetro')) ? 'fa-temperature-half' :
+                    (fnName === 'testPulse' || label.includes('pulso')) ? 'fa-heart-pulse' :
+                    (fnName === 'testPupils' || label.includes('pupilas')) ? 'fa-eye' : 'fa-lightbulb'
                 ) : null;
 
+                // Asignar clases automáticas según la acción para restaurar estilos perdidos
+                let autoClass = '';
+                if (opt.onclick || isTooltip) {
+                    if (fnName === 'ignore' || label.includes('ignorar') || label.includes('omitir')) autoClass = 'horror-btn-ignore';
+                    else if (fnName === 'admit' || label.includes('admitir')) autoClass = 'horror-btn-admit';
+                    else if (isTooltip || fnName.includes('test') || label.includes('analizar')) autoClass = 'horror-btn-analyze';
+                }
+
                 const btn = $('<button>', {
-                    class: `${isTooltip ? 'horror-tool-btn horror-tool-btn--dialogue' : 'horror-btn-dialogue'} ${opt.cssClass || ''} animate-dialogue-in w-full`,
+                    class: `${isTooltip ? 'horror-tool-btn horror-tool-btn--dialogue' : 'horror-btn-dialogue'} ${opt.cssClass || ''} ${autoClass} animate-dialogue-in w-full`,
                     html: `${tooltipIcon ? `<i class="fa-solid ${tooltipIcon}"></i>` : '&gt; '} ${escapeHtml(opt.label)}`,
                     style: `animation-delay: ${idx * 0.1}s`
                 });
@@ -1042,10 +1382,7 @@ export class UIManager {
         if (this.elements.genWarningShelter) this.elements.genWarningShelter.toggleClass('hidden', !needsCheck);
 
         // Update nav indicator for generator
-        if (this.setNavItemStatus) {
-            if (needsCheck) this.setNavItemStatus('nav-generator', 3);
-            else this.setNavItemStatus('nav-generator', null);
-        }
+        this.updateGeneratorNavStatus();
 
         // Si necesita revisión, podemos añadir un botón temporal en el panel de tests
         const testsPanel = this.elements.dayafterPanel;
@@ -1279,41 +1616,6 @@ export class UIManager {
         this.generatorManager.renderGeneratorRoom(State);
     }
 
-    // NAVBAR status helpers
-    setNavStatus(level) {
-        const el = $('#sidebar-left');
-        el.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5');
-        if (level) {
-            el.addClass(`status-level-${level}`);
-            el.attr('data-status', level);
-        } else {
-            el.removeAttr('data-status');
-        }
-    }
-
-    setNavItemStatus(navId, level) {
-        const btn = $(`#${navId}`);
-        if (!btn.length) return;
-        // Clear any global sidebar status to prefer per-item indicators
-        const sidebar = $('#sidebar-left');
-        sidebar.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5');
-        sidebar.removeAttr('data-status');
-
-        btn.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5');
-        if (level) {
-            btn.addClass(`status-level-${level}`);
-            btn.attr('data-status', level);
-        } else {
-            btn.removeAttr('data-status');
-        }
-        // Ensure icons take current color (clear any inline color)
-        btn.find('i').css('color', '');
-    }
-
-    clearAllNavStatuses() {
-        Object.values(CONSTANTS.NAV_ITEMS).forEach(id => this.setNavItemStatus(id, null));
-    }
-
     // Modal management delegators
     openModal(npc, allowPurge, onPurgeConfirm) {
         // Verificar si el NPC tiene bloqueo de purga (intruso reciente)
@@ -1466,7 +1768,7 @@ export class UIManager {
             }
         }
 
-        btn.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5');
+        btn.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5 status-level-save status-level-overload');
         if (level) {
             btn.addClass(`status-level-${level}`);
             btn.attr('data-status', level);
@@ -1478,8 +1780,7 @@ export class UIManager {
     }
 
     clearAllNavStatuses() {
-        const navItems = ['nav-guard', 'nav-room', 'nav-shelter', 'nav-morgue', 'nav-generator', 'btn-open-log'];
-        navItems.forEach(id => this.setNavItemStatus(id, null));
+        Object.values(CONSTANTS.NAV_ITEMS).forEach(id => this.setNavItemStatus(id, null));
     }
 
     setNavLocked(locked) {

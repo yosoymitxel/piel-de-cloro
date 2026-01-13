@@ -16,6 +16,7 @@ Tú eres la última línea de defensa. Si dejas entrar a un infectado, el refugi
 - **Inspección**: Utiliza herramientas limitadas (Termómetro, Linterna UV, Escáner de Pulso, Dilatador de Pupilas) para encontrar anomalías en los solicitantes.
 - **Interrogatorio**: Dialoga con los sujetos. Busca contradicciones, tics nerviosos o historias incoherentes.
 - **Gestión de Energía**: Cada test consume energía. El generador tiene una capacidad limitada por turno.
+- **Rasgos Especiales**: Los NPCs ahora tienen rasgos (Recolector, Optimista, Paranoico, etc.) que afectan la supervivencia del refugio.
 - **Decisión**: ¿Admitir o Rechazar? Admitir requiere validar al sujeto al día siguiente. Rechazar aumenta la paranoia si era humano.
 
 ### 2. El Generador
@@ -24,8 +25,10 @@ El corazón del búnker. Debes gestionar sus modos de funcionamiento:
 - **Normal**: Balance estándar.
 - **Sobrecarga**: Permite más tests, pero aumenta drásticamente el riesgo de apagón o explosión.
 
-### 3. La Fase Nocturna
+### 3. La Fase Nocturna y Suministros
 Cuando cae la noche, el trabajo no termina:
+- **Gestión de Suministros**: Cada refugiado consume 1 unidad de suministros por noche. Si se agotan, la cordura baja y aumenta el riesgo de muerte por inanición.
+- **Efectos de Rasgos**: Algunos refugiados pueden encontrar suministros extra (Recolectores) o mejorar el ambiente (Optimistas), mientras que otros pueden ser un lastre (Enfermizos, Paranoicos).
 - **Gestión del Refugio**: Revisa a los admitidos. Si sospechas que cometiste un error, puedes **purgar** a un sujeto (eliminarlo), pero esto tiene un coste mental alto.
 - **Intrusiones**: Vigila la Sala de Seguridad. Asegura puertas, ventanas y tuberías. Si la alarma suena, algo intenta entrar.
 - **Dormir**: El momento más vulnerable. Si hay un infectado dentro, alguien morirá. Si el refugio está vacío, tu mente te jugará malas pasadas.

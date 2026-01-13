@@ -8,6 +8,7 @@ export const CONSTANTS = {
         SHELTER: 'nav-shelter',
         MORGUE: 'nav-morgue',
         GENERATOR: 'nav-generator',
+        DATABASE: 'nav-database',
         LOG: 'btn-open-log'
     },
     SCREENS: {
@@ -17,6 +18,7 @@ export const CONSTANTS = {
         MORGUE: 'morgue',
         ROOM: 'room',
         GENERATOR: 'generator',
+        DATABASE: 'database',
         SETTINGS: 'settings',
         LOG: 'log',
         NIGHT: 'night',

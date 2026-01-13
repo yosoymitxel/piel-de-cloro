@@ -60,6 +60,18 @@
     animation: navPulse 0.6s infinite;
 }
 
+/* Modo Ahorro (Cian) */
+.status-level-save {
+    --color-chlorine: #00ced1;
+    --color-chlorine-light: #00ced1;
+}
+
+/* Modo Sobrecarga (Naranja) */
+.status-level-overload {
+    --color-chlorine: #ffaa00;
+    --color-chlorine-light: #ffaa00;
+}
+
 .nav-btn.nav-locked {
     opacity: 0.2 !important;
     cursor: not-allowed !important;
@@ -366,6 +378,16 @@ h3 {
     animation: navPulse 1.2s infinite;
 }
 
+.nav-btn.status-level-save {
+    border-left-color: #00ced1;
+    color: #00ced1;
+}
+
+.nav-btn.status-level-overload {
+    border-left-color: #ffaa00;
+    color: #ffaa00;
+}
+
 /* Ensure icons reflect nav color */
 #sidebar-left .nav-btn i {
     color: inherit;
@@ -424,6 +446,18 @@ h3 {
     border-left-color: var(--color-alert) !important;
 }
 
+.nav-btn.active.status-level-save {
+    background: rgba(0, 206, 209, 0.12) !important;
+    color: #00ced1 !important;
+    border-left-color: #00ced1 !important;
+}
+
+.nav-btn.active.status-level-overload {
+    background: rgba(255, 170, 0, 0.12) !important;
+    color: #ffaa00 !important;
+    border-left-color: #ffaa00 !important;
+}
+
 /* Mobile: active + status overrides as well */
 @media (max-width: 640px) {
     .nav-btn.active.status-level-3 {
@@ -433,6 +467,16 @@ h3 {
 
     .nav-btn.active.status-level-4 {
         background: rgba(255, 51, 51, 0.08) !important;
+        color: #0b0b0b !important;
+    }
+
+    .nav-btn.active.status-level-save {
+        background: rgba(0, 206, 209, 0.08) !important;
+        color: #0b0b0b !important;
+    }
+
+    .nav-btn.active.status-level-overload {
+        background: rgba(255, 170, 0, 0.08) !important;
         color: #0b0b0b !important;
     }
 }
@@ -449,6 +493,18 @@ h3 {
         border-top: 3px solid var(--color-alert);
         border-left-color: transparent;
         color: var(--color-alert);
+    }
+
+    #sidebar-left .nav-btn.status-level-save {
+        border-top: 3px solid #00ced1;
+        border-left-color: transparent;
+        color: #00ced1;
+    }
+
+    #sidebar-left .nav-btn.status-level-overload {
+        border-top: 3px solid #ffaa00;
+        border-left-color: transparent;
+        color: #ffaa00;
     }
 
     #sidebar-left .nav-btn.status-level-2 {
