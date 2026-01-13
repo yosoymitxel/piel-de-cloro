@@ -20,8 +20,8 @@ La sala de generador controla el suministro energético del puesto. Afecta las h
 - `breakdownChance`: prob. extra de rotura (uso interno/placeholder).
 
 ## Elementos UI relevantes
-- `#screen-generator` – pantalla del generador.
-- `#generator-panel` – panel central.
+- `#screen-generator` – pantalla del generador con disposición optimizada horizontalmente.
+- `#generator-panel` – panel central (Flex horizontal para aprovechar el espacio).
 - `#generator-power-bar` – barra visual de potencia (20 bloques).
 - `#generator-mode-label` – muestra el modo actual.
 - `#btn-gen-toggle` – botón ENCENDER/APAGAR.

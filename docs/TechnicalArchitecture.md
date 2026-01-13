@@ -21,10 +21,16 @@ El proyecto sigue un diseño modular basado en clases de JavaScript (ES6), utili
 - **`js/AudioManager.js`**: Sistema de sonido con soporte para capas de ambiente, efectos posicionales y música dinámica.
 
 ### Interfaz y Presentación (UI/UX)
-- **`js/UIManager.js`**: Encapsula todas las manipulaciones del DOM. Maneja efectos de post-procesado (glitches, distorsión por paranoia) y actualizaciones del HUD.
+- **`js/UIManager.js`**: Encapsula todas las manipulaciones del DOM. Maneja efectos de post-procesado (glitches, distorsión por paranoia), actualizaciones del HUD y el **Sistema de Escalado de UI** (Small, Normal, Large, Full).
 - **`js/ModalManager.js`**: Gestor específico para ventanas emergentes y la vista detallada de inspección de NPCs.
 - **`js/AvatarRenderer.js`**: Renderizado dinámico de avatares basado en los atributos del NPC.
 - **`js/ToolsRenderer.js`**: Animaciones y efectos visuales para las herramientas de inspección (Termómetro, UV, etc.).
+
+## 🎨 Mejoras de Inmersión Visual
+- **Sistema de Escalado:** Permite adaptar la terminal a diferentes resoluciones mediante variables CSS (`--ui-scale`).
+- **Ciclo de Horas (Time-Tint):** La interfaz reacciona visualmente al progreso del día mediante capas de color (`is-night`, `is-late-night`).
+- **Fondos Inmersivos:** Cada habitación (Refugio, Sala, Generador) cuenta con visuales específicos que simulan profundidad y ambiente industrial.
+- **Componentes 3D/Animados:** Reemplazo de botones estáticos por componentes visuales interactivos que representan el estado físico de los sistemas.
 
 ## 🔄 Flujo de Datos
 

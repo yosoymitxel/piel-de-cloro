@@ -14,7 +14,7 @@ export const LoreData = {
                 <!-- Sección 2: Herramientas y Síntomas -->
                 <div class="grid grid-cols-2 gap-3">
                     <div class="p-2 border border-blue-900/30 bg-black/40">
-                        <h4 class="text-blue-400 font-bold text-[10px] mb-1 uppercase">Inspección</h4>
+                        <h4 class="text-blue-400 font-bold text-sm mb-1 uppercase">Inspección</h4>
                         <ul class="text-[9px] text-gray-400 space-y-1">
                             <li><i class="fa-solid fa-temperature-half mr-1"></i> <span class="text-white">Frío:</span> < 35°C</li>
                             <li><i class="fa-solid fa-lightbulb mr-1"></i> <span class="text-white">UV:</span> Manchas/Sequedad</li>
@@ -23,7 +23,7 @@ export const LoreData = {
                         </ul>
                     </div>
                     <div class="p-2 border border-warning/30 bg-black/40">
-                        <h4 class="text-warning font-bold text-[10px] mb-1 uppercase">Recursos</h4>
+                        <h4 class="text-warning font-bold text-sm mb-1 uppercase">Recursos</h4>
                         <p class="text-[9px] text-gray-400 leading-tight">
                             El <span class="text-white">Generador</span> alimenta el HUD y la luz UV. Sin <span class="text-white">Suministros</span>, los refugiados mueren de hambre cada noche.
                         </p>
@@ -32,7 +32,7 @@ export const LoreData = {
 
                 <!-- Sección 3: Acciones -->
                 <div class="p-2 border border-gray-800 bg-black/20">
-                    <div class="flex justify-between items-center text-[10px]">
+                    <div class="flex justify-between items-center text-sm">
                         <div class="flex flex-col items-center gap-1 w-1/2 border-r border-gray-800">
                             <i class="fa-solid fa-check text-chlorine"></i>
                             <span class="text-white font-bold">ADMITIR</span>
@@ -48,7 +48,7 @@ export const LoreData = {
 
                 <!-- Sección 4: Nota Técnica -->
                 <div class="text-center">
-                    <p class="text-[10px] text-alert opacity-70 animate-pulse">
+                    <p class="text-sm text-alert opacity-70 animate-pulse">
                         <i class="fa-solid fa-triangle-exclamation mr-1"></i> ERROR: INTRUSIONES DETECTADAS EN SALA DE CONTROL
                     </p>
                     <p class="text-[9px] text-gray-500 mt-2 italic">Pulsa en el icono de ayuda [?] del panel para más detalles.</p>

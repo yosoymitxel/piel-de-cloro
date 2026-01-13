@@ -30,16 +30,34 @@ export class ModalManager {
         if (State.endingTriggered) return;
         const modal = this.elements.msgModal;
         const content = this.elements.msgContent;
+        const panel = modal.find('.horror-panel-modal');
+        
         modal.removeClass('hidden').addClass('flex');
-        modal.removeClass('modal-normal modal-lore modal-death modal-warning').addClass(`modal-${type}`);
+        
+        // Reset classes
+        panel.removeClass('military-order horror-panel-message horror-panel-confirm horror-panel-danger');
+        panel.find('.order-stamp, .digital-glitch-stain').remove();
+
+        // Aplicar estética según tipo
+        if (type === 'death' || type === 'ending') {
+            panel.addClass('military-order');
+            panel.append('<div class="order-stamp">TERMINATED</div>');
+        } else if (type === 'warning') {
+            panel.addClass('horror-panel-danger');
+        }
 
         const iconClass = {
-            death: 'modal-death-icon',
-            warning: 'modal-warning-icon',
-            lore: 'modal-lore-icon'
-        }[type] || 'modal-normal-icon';
+            death: 'fa-skull',
+            warning: 'fa-triangle-exclamation',
+            lore: 'fa-book'
+        }[type] || 'fa-circle-info';
 
-        content.html(`<span class="${iconClass}"></span> <span>${text}</span>`);
+        content.html(`
+            <div class="flex flex-col items-center gap-4">
+                <i class="fa-solid ${iconClass} text-3xl mb-2 ${type === 'death' ? 'text-alert' : type === 'warning' ? 'text-warning' : 'text-chlorine-light'}"></i>
+                <span class="text-lg text-center leading-relaxed font-mono uppercase tracking-tight">${text}</span>
+            </div>
+        `);
 
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
 
@@ -54,16 +72,39 @@ export class ModalManager {
         if (State.endingTriggered) return;
         const modal = this.elements.confirmModal;
         const content = this.elements.confirmContent;
+        const panel = modal.find('.horror-panel-modal');
+        
         modal.removeClass('hidden').addClass('flex');
 
         // Reset classes
         content.removeClass('text-gray-300 text-warning text-alert');
+        panel.removeClass('military-order horror-panel-message horror-panel-confirm horror-panel-danger');
+        panel.find('.order-stamp, .digital-glitch-stain').remove();
+        this.elements.confirmYes.removeClass('btn-purge-heavy');
 
-        if (type === 'warning') content.addClass('text-warning');
-        else if (type === 'danger') content.addClass('text-alert');
-        else content.addClass('text-gray-300');
+        if (type === 'danger' && (text.includes('PURGAR') || text.includes('BLOQUEAR'))) {
+            panel.addClass('military-order horror-panel-danger');
+            panel.append('<div class="order-stamp">EXECUTED</div>');
+            panel.append('<div class="digital-glitch-stain" style="top:10%; left:20%"></div>');
+            panel.append('<div class="digital-glitch-stain" style="bottom:20%; right:10%"></div>');
+            this.elements.confirmYes.addClass('btn-purge-heavy');
+            content.addClass('text-alert font-bold');
+        } else if (type === 'warning') {
+            panel.addClass('horror-panel-danger');
+            content.addClass('text-warning');
+        } else if (type === 'danger') {
+            panel.addClass('horror-panel-danger');
+            content.addClass('text-alert');
+        } else {
+            content.addClass('text-gray-300');
+        }
 
-        content.text(text);
+        content.html(`
+            <div class="flex flex-col items-center gap-4">
+                <i class="fa-solid fa-circle-question text-3xl mb-2 opacity-50"></i>
+                <span class="text-center font-mono uppercase tracking-tight">${text}</span>
+            </div>
+        `);
 
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
 
@@ -97,7 +138,7 @@ export class ModalManager {
                                 <i class="fa-solid fa-circle-info"></i> Ayuda
                             </button>
                         </div>
-                        <span class="text-[10px] text-gray-400 italic leading-tight">${trait.description}</span>
+                        <span class="text-sm text-gray-400 italic leading-tight">${trait.description}</span>
                     </div>
                 `).removeClass('hidden');
 
@@ -155,7 +196,7 @@ export class ModalManager {
             this.elements.modalPurgeBtn.html('<i class="fa-solid fa-biohazard mr-2"></i> PURGAR DEL REFUGIO');
 
             this.elements.modalPurgeBtn.off('click').on('click', () => {
-                const panel = $('#modal-npc .horror-panel');
+                const panel = $('#modal-npc .horror-panel-modal');
                 panel.addClass('modal-blood-flash');
                 setTimeout(() => panel.removeClass('modal-blood-flash'), 700);
 
@@ -216,9 +257,9 @@ export class ModalManager {
             const isRevealed = (npc.revealedStats && npc.revealedStats.includes(key)) || (npc.dayAfter && npc.dayAfter[key]);
             const display = isRevealed ? value : '???';
             statsGrid.append(`
-                <div class="flex justify-between items-center border-b border-chlorine/10 py-2 px-1 hover:bg-white/5 transition-colors">
-                    <span class="text-xs opacity-60 uppercase font-mono">${label}</span>
-                    <span class="font-mono text-sm ${isRevealed ? 'text-white' : 'text-gray-600 italic'}">${display}</span>
+                <div class="dossier-stat-item">
+                    <span class="dossier-stat-label">${label}</span>
+                    <span class="dossier-stat-value ${isRevealed ? 'text-white' : 'text-gray-600 italic'}">${display}</span>
                 </div>
             `);
         };
@@ -256,7 +297,7 @@ export class ModalManager {
                 }
 
                 testsGrid.html(`
-                    <div class="horror-btn horror-btn-disabled w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed text-xs flex items-center justify-center">
+                    <div class="horror-btn horror-btn-disabled w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed text-xs flex items-center justify-center w-100">
                         <i class="fa-solid ${icon} mr-2"></i> ${msg}
                     </div>
                 `);

@@ -38,6 +38,11 @@ export class UIManager {
             npcDisplay: $('#npc-display'),
             dialogue: $('#npc-dialogue'),
             dialogueOptions: $('#dialogue-options'),
+            dialogueHistory: $('#dialogue-history-list'),
+            tabDialogue: $('#tab-dialogue'),
+            tabHistory: $('#tab-history'),
+            contentDialogue: $('#content-dialogue'),
+            contentHistory: $('#content-history'),
             shelterGrid: $('#shelter-grid'),
             morgueGridPurged: $('#morgue-grid-purged'),
             morgueGridEscaped: $('#morgue-grid-escaped'),
@@ -113,6 +118,11 @@ export class UIManager {
             confirmYes: $('#btn-confirm-yes'),
             confirmCancel: $('#btn-confirm-cancel'),
 
+            // Puesto Console Elements (use function wrapper for safer test access)
+            miniMonitorBio: typeof $ !== 'undefined' && $('.mini-monitor').length > 0 ? $('.mini-monitor').eq(0) : $(),
+            miniMonitorEnv: typeof $ !== 'undefined' && $('.mini-monitor').length > 1 ? $('.mini-monitor').eq(1) : $(),
+            knobs: typeof $ !== 'undefined' ? $('.knob') : $(),
+
             // Tools
             tools: [
                 $('#tool-thermo'),
@@ -158,11 +168,132 @@ export class UIManager {
 
         this.initGuides();
         this.initDatabaseNavigation();
+        this.initDialogueTabs();
+        this.initGlobalEffects();
+        this.initUIScaling();
+        this.initConsoleUpdates();
 
         // Actualizar el record de finales al inicio para evitar el 0/0 inicial
         if (this.screenManager && typeof this.screenManager.updateEndingsRecord === 'function') {
             this.screenManager.updateEndingsRecord(State);
         }
+    }
+
+    initGlobalEffects() {
+        // Efecto de Glitch al hacer click en cualquier parte de la pantalla (CRT feedback)
+        $(document).on('mousedown', () => {
+            const monitor = $('.crt-monitor');
+            monitor.addClass('glitch-click');
+            setTimeout(() => {
+                monitor.removeClass('glitch-click');
+            }, 100);
+        });
+
+        // Simulación de ruido estático ocasional
+        setInterval(() => {
+            if (Math.random() > 0.95) {
+                const monitor = $('.crt-monitor');
+                monitor.addClass('glitch-click');
+                setTimeout(() => {
+                    monitor.removeClass('glitch-click');
+                }, 200);
+            }
+        }, 5000);
+    }
+
+    initConsoleUpdates() {
+        if (typeof setInterval !== 'undefined') {
+            setInterval(() => {
+                if (this.screens.game && typeof this.screens.game.is === 'function' && this.screens.game.is(':visible')) {
+                    this.updateConsoleData();
+                }
+            }, 3000);
+        }
+    }
+
+    updateConsoleData() {
+        // Rotar knobs aleatoriamente
+        if (this.elements.knobs && this.elements.knobs.length > 0) {
+            this.elements.knobs.each((i, el) => {
+                const rotation = Math.floor(Math.random() * 360);
+                $(el).css('transform', `rotate(${rotation}deg)`);
+            });
+        }
+
+        // Actualizar barras de mini monitor bio
+        if (this.elements.miniMonitorBio && this.elements.miniMonitorBio.length > 0) {
+            const bars = this.elements.miniMonitorBio.find('.bg-chlorine');
+            bars.each((i, el) => {
+                const height = 20 + Math.random() * 60;
+                $(el).css('height', `${height}%`);
+            });
+        }
+
+        // Actualizar datos de mini monitor env
+        if (this.elements.miniMonitorEnv && this.elements.miniMonitorEnv.length > 0) {
+            const spans = this.elements.miniMonitorEnv.find('span');
+            // Actualizar TEMP (segundo span del primer div de datos)
+            if (spans.length >= 2) {
+                const temp = (18 + Math.random() * 2).toFixed(1);
+                $(spans[1]).text(`${temp}°C`);
+            }
+            // Actualizar HUM (segundo span del segundo div de datos)
+            if (spans.length >= 4) {
+                const hum = Math.floor(40 + Math.random() * 10);
+                $(spans[3]).text(`${hum}%`);
+            }
+        }
+    }
+
+    initUIScaling() {
+        const scaleMap = {
+            small: { width: '1000px', height: '650px', label: '80%' },
+            normal: { width: '1400px', height: '900px', label: '100%' },
+            large: { width: '1800px', height: '1100px', label: '120%' },
+            full: { width: '100vw', height: '100vh', label: 'FULL' }
+        };
+
+        const updateScale = (scale) => {
+            const config = scaleMap[scale];
+            if (!config) return;
+
+            // Use optional chaining for environment where document might be missing (like some tests)
+            if (typeof document !== 'undefined' && document.documentElement && document.documentElement.style) {
+                if (typeof document.documentElement.style.setProperty === 'function') {
+                    document.documentElement.style.setProperty('--terminal-max-width', config.width);
+                    document.documentElement.style.setProperty('--terminal-max-height', config.height);
+                }
+            }
+
+            if (typeof $ !== 'undefined' && typeof $ === 'function') {
+                const $scaleValue = $('#scale-value');
+                if ($scaleValue.length) $scaleValue.text(config.label);
+
+                const $btnScale = $('.btn-scale');
+                if ($btnScale.length) {
+                    $btnScale.removeClass('text-chlorine-light border-white/20').addClass('border-white/10');
+                    $(`.btn-scale[data-scale="${scale}"]`).addClass('text-chlorine-light border-white/20').removeClass('border-white/10');
+                }
+                
+                const $body = $('body');
+                if ($body.length) $body.toggleClass('is-full-ui', scale === 'full');
+            }
+
+            // Save preference if localStorage exists
+            if (typeof localStorage !== 'undefined') {
+                localStorage.setItem('ruta01_ui_scale', scale);
+            }
+        };
+
+        $('.btn-scale').on('click', (e) => {
+            const scale = $(e.currentTarget).data('scale');
+            updateScale(scale);
+            if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.2 });
+        });
+
+        // Load saved preference
+        const savedScale = localStorage.getItem('ruta01_ui_scale') || 'normal';
+        updateScale(savedScale);
     }
 
     initGuides() {
@@ -238,6 +369,55 @@ export class UIManager {
         });
     }
 
+    initDialogueTabs() {
+        if (!this.elements.tabDialogue || !this.elements.tabHistory) return;
+
+        const switchTab = (target) => {
+            if (target === 'dialogue') {
+                this.elements.tabDialogue.addClass('text-chlorine-light border-chlorine-light bg-chlorine/10').removeClass('text-gray-500 border-transparent bg-white/5');
+                this.elements.tabHistory.addClass('text-gray-500 border-transparent').removeClass('text-chlorine-light border-chlorine-light bg-chlorine/10');
+                this.elements.contentDialogue.removeClass('hidden').addClass('flex');
+                this.elements.contentHistory.addClass('hidden').removeClass('flex');
+            } else {
+                this.elements.tabHistory.addClass('text-chlorine-light border-chlorine-light bg-chlorine/10').removeClass('text-gray-500 border-transparent bg-white/5');
+                this.elements.tabDialogue.addClass('text-gray-500 border-transparent').removeClass('text-chlorine-light border-chlorine-light bg-chlorine/10');
+                this.elements.contentHistory.removeClass('hidden').addClass('flex');
+                this.elements.contentDialogue.addClass('hidden').removeClass('flex');
+                this.renderDialogueHistory(State.currentNPC);
+            }
+            if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.2 });
+        };
+
+        this.elements.tabDialogue.on('click', () => switchTab('dialogue'));
+        this.elements.tabHistory.on('click', () => switchTab('history'));
+    }
+
+    renderDialogueHistory(npc) {
+        if (!this.elements.dialogueHistory || !npc) return;
+        this.elements.dialogueHistory.empty();
+
+        if (!npc.history || npc.history.length === 0) {
+            this.elements.dialogueHistory.append('<p class="opacity-30 italic text-center py-4">Sin registros de comunicación...</p>');
+            return;
+        }
+
+        npc.history.forEach(entry => {
+            const isUser = entry.speaker === 'user';
+            const item = $(`
+                <div class="flex flex-col ${isUser ? 'items-end' : 'items-start'}">
+                    <span class="text-[8px] uppercase tracking-tighter opacity-40 mb-1">${isUser ? 'TÚ' : (npc.name || 'SUJETO')}</span>
+                    <div class="p-2 rounded ${isUser ? 'bg-chlorine/20 border border-chlorine/30 text-chlorine-light' : 'bg-white/5 border border-white/10 text-gray-300'} max-w-[90%]">
+                        ${entry.text}
+                    </div>
+                </div>
+            `);
+            this.elements.dialogueHistory.append(item);
+        });
+
+        // Scroll to bottom
+        this.elements.dialogueHistory.scrollTop(this.elements.dialogueHistory[0].scrollHeight);
+    }
+
     initDatabaseNavigation() {
         if (this.elements.btnOpenDatabase) {
             this.elements.btnOpenDatabase.on('click', () => {
@@ -293,7 +473,7 @@ export class UIManager {
                     <div class="p-4 border border-chlorine/40 bg-chlorine/5 hover:bg-chlorine/10 transition-all group">
                         <div class="flex justify-between items-start mb-2">
                             <h4 class="text-chlorine font-bold uppercase tracking-wider text-sm">${index + 1}. ${lore.title}</h4>
-                            <span class="text-[10px] text-gray-500 font-mono">ID: ${id.toUpperCase()}</span>
+                            <span class="text-sm text-gray-500 font-mono">ID: ${id.toUpperCase()}</span>
                         </div>
                         <p class="text-xs text-gray-300 leading-relaxed italic border-l-2 border-chlorine/20 pl-3">
                             "${lore.content}"
@@ -411,6 +591,11 @@ export class UIManager {
         }
         this.elements.cycle.text(cycle);
         this.elements.time.text(`${dayTime}/${dayLength}`);
+
+        // Time-tint integration
+        const dayProgress = dayTime / dayLength;
+        $('body').toggleClass('is-night', dayProgress > 0.75);
+        $('body').toggleClass('is-late-night', dayProgress > 0.9);
 
         // La revisión solo es "obligatoria" si no hay energía o está apagado
         const generatorOk = State.generator && State.generator.isOn;
@@ -573,7 +758,9 @@ export class UIManager {
             if (this.elements.genWarningPanel) this.elements.genWarningPanel.removeClass('hidden');
 
             // Caso 1: Generador apagado
-            this.elements.inspectionToolsContainer.removeClass('grid-cols-2 sm:grid-cols-2 lg:grid-cols-4').addClass('grid-cols-1');
+            this.elements.inspectionToolsContainer
+                .removeClass('grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6')
+                .addClass('grid-cols-1');
             this.elements.inspectionToolsContainer.html(`
                 <button id="btn-goto-generator" class="horror-btn horror-btn-alert w-full p-6 text-xl flex items-center justify-center gap-3 animate-pulse">
                     <i class="fa-solid fa-bolt"></i>
@@ -591,29 +778,55 @@ export class UIManager {
         const currentMode = State.generator.mode;
         const maxEnergy = State.config.generator.consumption[currentMode] || 2;
 
+        const admitBtn = `
+            <div class="tool-wrapper col-span-2">
+                <button id="btn-admit" class="horror-btn-admit horror-tool-btn--main btn-interactive w-full py-4">
+                    <i class="fa-solid fa-check mr-2"></i> ADMITIR
+                </button>
+            </div>`;
+        
+        const ignoreBtn = `
+            <div class="tool-wrapper col-span-2">
+                <button id="btn-ignore" class="horror-btn-ignore horror-tool-btn--main btn-interactive w-full py-4">
+                    <i class="fa-solid fa-xmark mr-2"></i> OMITIR
+                </button>
+            </div>`;
+
         if (npc && npc.optOut) {
             // Caso Especial: Test omitido voluntariamente
-            this.elements.inspectionToolsContainer.removeClass('grid-cols-2 sm:grid-cols-2 lg:grid-cols-4').addClass('grid-cols-1');
+            this.elements.inspectionToolsContainer
+                .removeClass('flex flex-col grid-cols-1 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 lg:grid-cols-6')
+                .addClass('grid grid-cols-4');
+            
             this.elements.inspectionToolsContainer.html(`
-                <div class="horror-btn horror-btn-disabled w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed">
+                <div class="col-span-4 horror-btn horror-btn-disabled w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed mb-2">
                     <i class="fa-solid fa-comment-slash mr-2 text-warning"></i>
                     TEST OMITIDO: PROCEDER CON DECISIÓN
                 </div>
+                ${admitBtn}
+                ${ignoreBtn}
             `);
             this.refreshToolsReferences();
         } else if (npc && npc.scanCount >= maxEnergy) {
             // Caso 3: Sin energías por el límite del modo actual
-            this.elements.inspectionToolsContainer.removeClass('grid-cols-2 sm:grid-cols-2 lg:grid-cols-4').addClass('grid-cols-1');
+            this.elements.inspectionToolsContainer
+                .removeClass('flex flex-col grid-cols-1 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 lg:grid-cols-6')
+                .addClass('grid grid-cols-4');
+            
             this.elements.inspectionToolsContainer.html(`
-                <div class="horror-btn horror-btn-disabled w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed">
+                <div class="col-span-4 horror-btn horror-btn-disabled w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed mb-2">
                     <i class="fa-solid fa-battery-empty mr-2 text-alert"></i>
                     BATERÍAS AGOTADAS: SOLO DIÁLOGO O DECISIÓN
                 </div>
+                ${admitBtn}
+                ${ignoreBtn}
             `);
             this.refreshToolsReferences();
         } else {
             // Caso Normal con energía disponible
-            this.elements.inspectionToolsContainer.removeClass('grid-cols-1').addClass('grid-cols-2 sm:grid-cols-2 lg:grid-cols-4');
+            this.elements.inspectionToolsContainer
+                .removeClass('flex flex-col grid-cols-1 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6')
+                .addClass('grid grid-cols-4');
 
             const modeMap = {
                 'save': 'Ahorro: Máx 1',
@@ -622,25 +835,46 @@ export class UIManager {
             };
             const modeLabel = modeMap[currentMode] || `Modo ${currentMode}`;
 
-            let extraLabel = `<div class="col-span-full text-center text-xs text-chlorine-light mb-1 opacity-80 uppercase tracking-widest">
+            let extraLabel = `<div class="col-span-4 text-center text-xs text-chlorine-light mb-1 opacity-80 uppercase tracking-widest">
                 <i class="fa-solid fa-bolt mr-1"></i> ${modeLabel}
             </div>`;
 
             this.elements.inspectionToolsContainer.html(`
                 ${extraLabel}
-                <button id="tool-thermo" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('temperature') ? 'btn-disabled opacity-20 grayscale' : ''}">
-                    <i class="fa-solid fa-temperature-half"></i> TERMÓMETRO
-                </button>
-                <button id="tool-flash" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('skinTexture') ? 'btn-disabled opacity-20 grayscale' : ''}">
-                    <i class="fa-solid fa-lightbulb"></i> LINTERNA UV
-                </button>
-                <button id="tool-pulse" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('pulse') ? 'btn-disabled opacity-20 grayscale' : ''}">
-                    <i class="fa-solid fa-heart-pulse"></i> PULSO
-                </button>
-                <button id="tool-pupils" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('pupils') ? 'btn-disabled opacity-20 grayscale' : ''}">
-                    <i class="fa-solid fa-eye"></i> PUPILAS
-                </button>
+                <div class="tool-wrapper col-span-1">
+                    <div class="spiral-cable"></div>
+                    <button id="tool-thermo" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('temperature') ? 'btn-disabled opacity-20 grayscale' : ''}">
+                        <i class="fa-solid fa-temperature-half"></i> TERMÓMETRO
+                    </button>
+                </div>
+                <div class="tool-wrapper col-span-1">
+                    <div class="spiral-cable"></div>
+                    <button id="tool-flash" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('skinTexture') ? 'btn-disabled opacity-20 grayscale' : ''}">
+                        <i class="fa-solid fa-lightbulb"></i> LINTERNA UV
+                    </button>
+                </div>
+                <div class="tool-wrapper col-span-1">
+                    <div class="spiral-cable"></div>
+                    <button id="tool-pulse" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('pulse') ? 'btn-disabled opacity-20 grayscale' : ''}">
+                        <i class="fa-solid fa-heart-pulse"></i> PULSO
+                    </button>
+                </div>
+                <div class="tool-wrapper col-span-1">
+                    <div class="spiral-cable"></div>
+                    <button id="tool-pupils" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('pupils') ? 'btn-disabled opacity-20 grayscale' : ''}">
+                        <i class="fa-solid fa-eye"></i> PUPILAS
+                    </button>
+                </div>
+                ${admitBtn}
+                ${ignoreBtn}
             `);
+            
+            // Forzar layout de grid y gap
+            this.elements.inspectionToolsContainer.css({
+                'display': 'grid',
+                'grid-template-columns': 'repeat(4, minmax(0, 1fr))',
+                'gap': '0.75rem'
+            });
             
             this.refreshToolsReferences();
         }
@@ -653,6 +887,22 @@ export class UIManager {
             $('#tool-pulse'),
             $('#tool-pupils')
         ];
+
+        if (!this.game) return;
+        const events = this.game.events;
+        if (events && typeof events.bindInspectionTools === 'function') {
+            events.bindInspectionTools();
+        }
+        
+        // También re-vincular los botones de admitir/ignorar si existen
+        $('#btn-admit').off('click').on('click', () => {
+            if (State.paused) return;
+            this.game.mechanics.admitNPC();
+        });
+        $('#btn-ignore').off('click').on('click', () => {
+            if (State.paused) return;
+            this.game.mechanics.ignoreNPC();
+        });
     }
 
     resetUI() {
@@ -1350,28 +1600,27 @@ export class UIManager {
             const isValidated = npc.dayAfter && npc.dayAfter.validated;
             const isPurgeLocked = npc.purgeLockedUntil && State.cycle < npc.purgeLockedUntil;
             const canTest = !isValidated && !isPurgeLocked && (npc.dayAfter && npc.dayAfter.usedNightTests < 1);
-            let borderClass = 'border-[#333]';
-            let bgClass = 'bg-[#080808]';
+            
+            let extraClasses = '';
             let statusIcon = '';
 
             if (isValidated) {
                 if (npc.isInfected) {
-                    borderClass = 'border-alert bg-alert/10';
+                    extraClasses = 'infected-alert';
                     statusIcon = '<i class="fa-solid fa-biohazard text-alert text-xs absolute top-1 right-1"></i>';
                 } else {
-                    borderClass = 'border-green-500/50 bg-green-500/10';
+                    extraClasses = 'validated';
                     statusIcon = '<i class="fa-solid fa-shield-check text-green-500 text-xs absolute top-1 right-1"></i>';
                 }
             } else if (isPurgeLocked) {
-                borderClass = 'border-gray-600 border-dashed';
+                extraClasses = 'locked';
                 statusIcon = '<i class="fa-solid fa-lock text-gray-500 text-xs absolute top-1 right-1"></i>';
             } else if (canTest) {
-                borderClass = 'border-save';
-                bgClass = 'bg-save/5';
+                extraClasses = 'test-ready';
             }
 
             const card = $('<div>', {
-                class: `${bgClass} border ${borderClass} p-2 flex flex-col items-center cursor-pointer hover:border-chlorine-light hover:bg-[#111] transition-all relative`
+                class: `survivor-card ${extraClasses}`
             });
 
             const avatar = this.renderAvatar(npc, 'sm', isValidated ? 'perimeter' : 'normal');
@@ -1434,62 +1683,80 @@ export class UIManager {
         const renderList = (list, container, type) => {
             container.empty();
             if (!list || list.length === 0) {
-                container.append($('<div>', { class: 'text-xs text-gray-600 italic p-2', text: 'Sin registros.' }));
+                container.append($('<div>', { 
+                    class: 'text-sm text-gray-800 italic p-4 font-mono uppercase text-center w-full col-span-full', 
+                    text: '// SIN REGISTROS EN ESTA CATEGORÍA //' 
+                }));
                 return;
             }
 
             const batch = [];
             list.forEach(npc => {
                 // Estilos según tipo
-                let borderClass = 'border-chlorine/20';
-                let hoverClass = 'hover:border-chlorine hover:bg-chlorine/5';
-
+                let typeClass = '';
+                let statusIcon = '';
+                
                 if (type === 'purged') {
-                    borderClass = 'border-alert/30';
-                    hoverClass = 'hover:border-alert hover:bg-alert/10';
+                    typeClass = 'cat-purged';
+                    statusIcon = '<i class="fa-solid fa-skull text-alert/50 text-[8px] absolute top-1 right-1"></i>';
                 } else if (type === 'escaped') {
-                    borderClass = 'border-yellow-500/30';
-                    hoverClass = 'hover:border-yellow-500 hover:bg-yellow-500/10';
+                    typeClass = 'cat-escaped';
+                    statusIcon = '<i class="fa-solid fa-person-running text-yellow-500/50 text-[8px] absolute top-1 right-1"></i>';
                 } else if (type === 'night') {
-                    borderClass = 'border-blue-500/30';
-                    hoverClass = 'hover:border-blue-500 hover:bg-blue-500/10';
+                    typeClass = 'cat-night';
+                    statusIcon = '<i class="fa-solid fa-moon text-blue-400/50 text-[8px] absolute top-1 right-1"></i>';
                 }
 
                 let isRevealedInfected = false;
                 if (type === 'purged') {
                     isRevealedInfected = npc.death && npc.death.revealed && npc.isInfected;
                 } else {
-                    // Para escapados y nocturnos, revelamos si pertenecen a un ciclo anterior
-                    // Ignorados (exitCycle): revelan al día siguiente (< State.cycle)
-                    // Nocturnos (left.cycle): revelan esa misma mañana (<= State.cycle)
                     const isIgnoredRevealed = npc.exitCycle && npc.exitCycle < State.cycle;
                     const isNightRevealed = npc.left && npc.left.cycle <= State.cycle;
-
                     if ((isIgnoredRevealed || isNightRevealed) && npc.isInfected) {
                         isRevealedInfected = true;
                     }
                 }
 
-                const statusColorClass = isRevealedInfected ? 'border-alert shadow-[0_0_10px_rgba(255,0,0,0.2)]' : borderClass;
+                const statusColorClass = isRevealedInfected ? 'infected-alert' : typeClass;
 
                 const card = $('<div>', {
-                    class: `self-start relative p-2 border bg-black/40 flex flex-col items-center gap-2 cursor-pointer transition-all duration-200 group ${statusColorClass} ${hoverClass}`
+                    class: `morgue-card ${statusColorClass} group`
                 });
 
                 const avatar = this.renderAvatar(npc, 'sm', 'perimeter');
 
                 if (isRevealedInfected) {
                     avatar.addClass('infected');
-                    // Badge de infectado
-                    card.append($('<div>', {
-                        class: 'absolute top-1 right-1 text-alert text-xs animate-pulse',
-                        html: '<i class="fa-solid fa-biohazard"></i>'
-                    }));
+                    // Badge de infectado (reemplaza al icono de estado normal)
+                    statusIcon = '<i class="fa-solid fa-biohazard text-alert text-xs absolute top-1 right-1 animate-pulse"></i>';
                 }
 
-                const name = $('<span>', { text: npc.name, class: 'text-xs font-mono text-gray-400 group-hover:text-white truncate w-full text-center' });
-                card.append(avatar, name);
-                card.on('click', () => onDetailClick(npc));
+                const infoContainer = $('<div>', { class: 'flex flex-col items-center mt-2 w-full overflow-hidden' });
+                const name = $('<span>', { 
+                    text: npc.name, 
+                    class: 'name text-sm font-mono text-gray-400 group-hover:text-white truncate w-full text-center uppercase tracking-tighter' 
+                });
+                
+                const role = $('<span>', { 
+                    text: npc.occupation || 'DESCONOCIDO', 
+                    class: 'text-[8px] font-mono text-gray-600 truncate w-full text-center uppercase opacity-60' 
+                });
+
+                if (statusIcon) card.append($(statusIcon));
+                
+                // Add DEAD stamp for purged
+                if (type === 'purged') {
+                    card.append($('<div>', { class: 'stamp-dead', text: 'DEAD' }));
+                }
+
+                infoContainer.append(name, role);
+                card.append(avatar, infoContainer);
+                
+                card.on('click', () => {
+                    if (onDetailClick) onDetailClick(npc);
+                });
+                
                 batch.push(card[0]);
             });
             container.append(batch);
@@ -1531,60 +1798,87 @@ export class UIManager {
         items.forEach((it, idx) => {
             const icon = it.type === 'alarma' ? 'fa-bell' : it.type === 'puerta' ? 'fa-door-closed' : it.type === 'ventana' ? 'fa-window-maximize' : it.type === 'tuberias' ? 'fa-water' : 'fa-question';
             const activeOrSecured = it.type === 'alarma' ? it.active : it.secured;
-            const activeColor = '#00FF00';
-            const inactiveColor = '#ff2b2b';
-            const borderColor = activeOrSecured ? activeColor : inactiveColor;
-            const iconColor = activeOrSecured ? activeColor : inactiveColor;
             const stateClass = activeOrSecured ? 'secured' : 'unsecured';
+            
             const card = $('<div>', {
-                class: `security-item bg-[#080808] p-3 flex flex-col gap-2 items-center hover:bg-[#111] transition-all h-full ${stateClass}`,
-                css: { border: `1px solid ${borderColor}` }
+                class: `security-item-card ${stateClass} relative overflow-hidden group flex flex-col items-center justify-between p-4 min-h-[140px] cursor-pointer hover:bg-white/5 transition-colors`
             });
 
+            // Static noise overlay
+            card.append('<div class="static-noise"></div>');
+
             if (!hasPower) {
-                card.addClass('opacity-50 grayscale');
-                card.css({ border: '1px solid #333' });
+                card.addClass('opacity-50 grayscale cursor-not-allowed');
             }
 
-            card.append($('<i>', { class: `fa-solid ${icon} text-3xl`, css: { color: iconColor } }));
-            const label = it.type === 'alarma' ? 'ALARMA' : (it.type === 'tuberias' ? 'TUBERÍAS' : it.type.toUpperCase());
-            card.append($('<span>', { text: label, class: 'text-xs font-mono' }));
-            {
-                const btnText = it.type === 'alarma' ? (it.active ? 'ACTIVADA' : 'ACTIVAR') : (activeOrSecured ? 'ASEGURADO' : 'ASEGURAR');
-
-                // Usamos la nueva clase horror-btn-security y añadimos secured/unsecured para el color
-                const btnClass = `horror-btn horror-btn-security ${activeOrSecured ? 'secured' : 'unsecured'}`;
-                const btn = $('<button>', { class: btnClass, text: btnText });
-
+            // Click interaction for the whole card
+            card.on('click', () => {
                 if (!hasPower) {
-                    btn.prop('disabled', true);
-                    btn.addClass('opacity-20 cursor-not-allowed');
-                    btn.text('SIN ENERGÍA');
+                    if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.4 });
+                    return;
                 }
-
-                btn.on('click', () => {
-                    if (!hasPower) return;
-                    if (it.type === 'alarma') {
-                        it.active = !it.active;
-                        if (it.active && this.audio) this.audio.playSFXByKey('alarm_activate', { volume: 0.6, priority: 1 });
-                    } else {
-                        it.secured = !it.secured;
-                        if (this.audio) {
-                            if (it.secured) {
-                                if (it.type === 'puerta') this.audio.playSFXByKey('door_secure', { volume: 0.6, priority: 1 });
-                                if (it.type === 'ventana') this.audio.playSFXByKey('window_secure', { volume: 0.6, priority: 1 });
-                                if (it.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
-                            } else {
-                                if (it.type === 'puerta') this.audio.playSFXByKey('door_unsecure', { volume: 0.6, priority: 1 });
-                                if (it.type === 'ventana') this.audio.playSFXByKey('window_unsecure', { volume: 0.6, priority: 1 });
-                            }
+                
+                if (it.type === 'alarma') {
+                    it.active = !it.active;
+                    if (it.active && this.audio) this.audio.playSFXByKey('alarm_activate', { volume: 0.6, priority: 1 });
+                } else {
+                    it.secured = !it.secured;
+                    if (this.audio) {
+                        if (it.secured) {
+                            if (it.type === 'puerta') this.audio.playSFXByKey('door_secure', { volume: 0.6, priority: 1 });
+                            if (it.type === 'ventana') this.audio.playSFXByKey('window_secure', { volume: 0.6, priority: 1 });
+                            if (it.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
+                        } else {
+                            if (it.type === 'puerta') this.audio.playSFXByKey('door_unsecure', { volume: 0.6, priority: 1 });
+                            if (it.type === 'ventana') this.audio.playSFXByKey('window_unsecure', { volume: 0.6, priority: 1 });
                         }
                     }
-                    if (onToggle) onToggle(idx, it);
-                    this.renderSecurityRoom(items, onToggle);
-                });
-                card.append(btn);
+                }
+                if (onToggle) onToggle(idx, it);
+                this.renderSecurityRoom(items, onToggle);
+            });
+
+            // Screws for each card
+            card.append('<div class="panel-screw screw-tl" style="width:4px;height:4px;top:2px;left:2px;"></div>');
+            card.append('<div class="panel-screw screw-tr" style="width:4px;height:4px;top:2px;right:2px;"></div>');
+            card.append('<div class="panel-screw screw-bl" style="width:4px;height:4px;bottom:2px;left:2px;"></div>');
+            card.append('<div class="panel-screw screw-br" style="width:4px;height:4px;bottom:2px;right:2px;"></div>');
+
+            const statusColor = activeOrSecured ? '#00FF00' : '#ff2b2b';
+            
+            // Visual Animation Box
+            const visualBox = $('<div>', { class: 'security-visual-box', style: `color: ${statusColor}` });
+            
+            if (it.type === 'alarma') {
+                visualBox.append($('<div>', { class: `visual-alarm-ring ${it.active ? 'active' : ''}` }));
+                visualBox.append($('<i>', { class: 'fa-solid fa-tower-broadcast absolute text-sm opacity-40' }));
+            } else if (it.type === 'puerta') {
+                visualBox.append($('<div>', { class: `visual-door-hatch ${it.secured ? 'secured' : 'unsecured'}` }));
+            } else if (it.type === 'ventana') {
+                visualBox.append($('<div>', { class: `visual-window-shutter ${it.secured ? 'secured' : 'unsecured'}` }));
+            } else if (it.type === 'tuberias') {
+                visualBox.append($('<div>', { class: 'visual-pipe-gauge' }).append($('<div>', { class: `visual-pipe-flow ${it.secured ? 'active' : ''}` })));
+            } else {
+                visualBox.append($('<i>', { class: `fa-solid ${icon} text-2xl opacity-20` }));
             }
+            
+            card.append(visualBox);
+            
+            const label = it.type === 'alarma' ? 'ALARMA' : (it.type === 'tuberias' ? 'TUBERÍAS' : it.type.toUpperCase());
+            card.append($('<span>', { text: label, class: 'text-sm font-mono font-bold tracking-widest text-white/80' }));
+
+            // LED status light
+            card.append($('<div>', {
+                class: 'absolute top-2 right-2 w-1.5 h-1.5 rounded-full',
+                style: `background: ${statusColor}; box-shadow: 0 0 5px ${statusColor}; ${!activeOrSecured ? 'animation: blink-fast 0.5s steps(2) infinite;' : ''}`
+            }));
+
+            // Status label where the button used to be
+            const statusText = !hasPower ? 'OFFLINE' : (it.type === 'alarma' ? (it.active ? 'SISTEMA ACTIVO' : 'SISTEMA INACTIVO') : (activeOrSecured ? 'CANAL ASEGURADO' : 'CANAL EXPUESTO'));
+            const statusClass = `mt-2 w-full text-[9px] py-1 uppercase font-mono tracking-tighter text-center ${activeOrSecured ? 'text-green-500' : 'text-alert animate-pulse'}`;
+            const statusIndicator = $('<div>', { class: statusClass, text: statusText });
+
+            card.append(statusIndicator);
             batch.push(card[0]);
         });
         if (batch.length) this.elements.securityGrid.append(batch);
@@ -1680,9 +1974,9 @@ export class UIManager {
                 class: 'bg-black/60 border border-chlorine/20 p-2 flex flex-col items-center gap-2 cursor-pointer hover:border-warning/50 transition-all group relative',
                 html: `
                     <div class="relocate-avatar-container scale-75 origin-top"></div>
-                    <span class="text-[10px] font-mono text-gray-400 group-hover:text-white truncate w-full text-center">${npc.name}</span>
+                    <span class="text-sm font-mono text-gray-400 group-hover:text-white truncate w-full text-center">${npc.name}</span>
                     <div class="selection-indicator absolute top-1 right-1 w-4 h-4 border border-warning/30 flex items-center justify-center">
-                        <i class="fa-solid fa-check text-[10px] text-warning opacity-0"></i>
+                        <i class="fa-solid fa-check text-sm text-warning opacity-0"></i>
                     </div>
                 `
             });

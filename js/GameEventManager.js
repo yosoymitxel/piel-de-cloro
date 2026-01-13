@@ -174,6 +174,7 @@ export class GameEventManager {
 
         // Start & Settings
         $('#btn-start-game').on('click', async () => { 
+            $('#btn-pause').removeClass('hidden');
             const $btn = $('#btn-start-game');
             const $text = $('#btn-start-game-text');
             
@@ -250,7 +251,7 @@ export class GameEventManager {
         $('#nav-morgue').on('click', () => this.navigateToMorgue());
         $('#nav-generator').on('click', () => this.navigateToGenerator());
         $('#hud-energy-container').on('click', () => this.navigateToGenerator());
-        $('#btn-bitacora').on('click', () => this.navigateToLog());
+        $('#btn-bitacora, #btn-open-log').on('click', () => this.navigateToLog());
         $('#btn-log-close-header, #btn-log-back').on('click', () => {
             this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
             this.ui.showScreen('game');
@@ -281,7 +282,7 @@ export class GameEventManager {
             this.game.mechanics.finishRun(); 
         });
 
-        // Pause Menu
+        // Botón de pausa (Global)
         $('#btn-pause').on('click', () => {
             State.paused = true;
             $('body').addClass('paused');
@@ -296,6 +297,21 @@ export class GameEventManager {
             $('body').removeClass('paused');
             $('#screen-game').removeClass('is-paused');
             $('#modal-pause').addClass('hidden').removeClass('flex');
+        });
+
+        // Mute controls in pause menu
+        $('#toggle-mute-music').on('change', (e) => {
+            const muted = !e.target.checked;
+            this.audio.muteChannel('ambient', muted);
+            State.audioSettings.muted.ambient = muted;
+            State.savePersistentData();
+        });
+
+        $('#toggle-mute-sfx').on('change', (e) => {
+            const muted = !e.target.checked;
+            this.audio.muteChannel('sfx', muted);
+            State.audioSettings.muted.sfx = muted;
+            State.savePersistentData();
         });
 
         $('#btn-pause-restart-day').on('click', () => { 
@@ -403,6 +419,7 @@ export class GameEventManager {
             this.game.syncAudioPersistence();
         });
 
+        // Al cerrar pausa
         $('#btn-pause-close').on('click', () => {
             $('#modal-pause').addClass('hidden').removeClass('flex');
             State.paused = false;
@@ -410,15 +427,20 @@ export class GameEventManager {
             $('#screen-game').removeClass('is-paused');
         });
 
+        // Controles de potencia del generador
+        $('.btn-generator-control').on('click', (e) => {
+            const mode = $(e.currentTarget).attr('id').replace('btn-gen-', '');
+            
+            // Visual feedback: marcar activo
+            $('.btn-generator-control').removeClass('active');
+            $(e.currentTarget).addClass('active');
+
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.game.actions.handleGeneratorControl(mode);
+        });
+
         // Controles del Generador (Pantalla específica)
         $('#btn-gen-toggle').on('click', () => this.game.mechanics.toggleGenerator());
-        $('#btn-gen-save').on('click', () => this.game.mechanics.changeGeneratorMode(-1));
-        $('#btn-gen-over').on('click', () => this.game.mechanics.changeGeneratorMode(1));
-        $('#btn-gen-normal').on('click', () => {
-            const current = State.generator.mode;
-            if (current === 'save') this.game.mechanics.changeGeneratorMode(1);
-            else if (current === 'overload') this.game.mechanics.changeGeneratorMode(-1);
-        });
         $('#btn-gen-manual-toggle').on('click', () => {
             $('#generator-manual').toggleClass('hidden');
         });

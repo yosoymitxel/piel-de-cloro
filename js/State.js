@@ -157,7 +157,7 @@ export const State = {
     endingTriggered: false,
     generatorCheckedThisTurn: false,
     nightPurgePerformed: false,
-    navLocked: false,
+    navLocked: true,
     lastNight: {
         occurred: false,
         victims: 0,

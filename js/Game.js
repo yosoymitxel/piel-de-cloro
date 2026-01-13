@@ -33,6 +33,9 @@ class Game {
 
         this.events.bindAll();
         this.audio.loadManifest('assets/audio/audio_manifest.json');
+        
+        // Bloquear navegación al inicio
+        this.ui.setNavLocked(true);
     }
 
     applySavedAudioSettings() {
