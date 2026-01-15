@@ -1,118 +1,56 @@
 # Sistema de Diálogos de NPCs
 
-Este documento detalla la arquitectura de datos y la lógica de funcionamiento para los diálogos de los NPCs en *Piel de Cloro*, definidos principalmente en `DialogueData.js` y procesados por `DialogueEngine.js`.
+Este documento detalla la arquitectura de datos y la lógica de funcionamiento para los diálogos de los NPCs en *Piel de Cloro*, cruciales para la deducción y la inmersión narrativa.
 
-## 1. Estructura de Datos (`DialogueData.js`)
+## 🏛️ Arquitectura de Datos (`js/DialogueData.js`)
 
-El objeto `DialogueData` es la fuente de verdad para todas las conversaciones. Se divide en dos categorías principales:
+Se divide en dos categorías según la relevancia narrativa:
 
 ### A. Pools (Diálogos Genéricos)
-Son árboles de conversación reutilizables que se asignan a NPCs aleatorios (los "entrants" diarios).
-
-**Estructura de un Pool:**
-```javascript
-"gen_scratch": {
-    id: 'gen_scratch',       // Identificador único del set
-    tags: ['nervous', 'body_horror'], // Etiquetas para emparejar con la personalidad del NPC
-    unique: false,           // false = puede asignarse a cualquier NPC genérico compatible
-    root: 'gs_n1',           // ID del nodo inicial de la conversación
-    nodes: { ... }           // Diccionario de todos los nodos de este árbol
-}
-```
+Árboles reutilizables asignados a NPCs aleatorios basados en su **Personalidad** (`personality`).
+- **Tags**: Se usan para emparejar el pool con los atributos del NPC (ej: `nervous`, `body_horror`).
+- **Novedad**: El sistema evita repetir pools recientemente usados mediante el parámetro `freshWindow` (ajustado a 20).
 
 ### B. Lore Subjects (NPCs Únicos)
-Son personajes específicos con historia fija (ej. "Kael, el fusionado con la pared").
-
-*   Tienen `unique: true`.
-*   Se seleccionan específicamente cuando el juego decide mostrar un evento de Lore o un NPC especial.
+Personajes fijos como "Dr. Vargas" o "Kael". Tienen `unique: true` y diálogos inalterables que revelan la historia del cloro.
 
 ---
 
-## 2. Estructura de los Nodos
+## ⚙️ Motor de Diálogo (`js/DialogueEngine.js`)
 
-Cada conversación es un grafo de nodos. Un nodo representa un momento específico donde el NPC habla o actúa y el jugador puede responder.
+### Gestión de Opciones Dinámicas
+El motor no solo renderiza el texto, sino que modifica las opciones del jugador en tiempo real:
+- **Auto-Dismiss**: Si hay pocas opciones específicas en un nodo, se añade automáticamente el botón "Terminar Conversación". No se añade si hay 4+ opciones para no saturar la interfaz.
+- **Action Buttons**: Las opciones que terminan en acciones (como Purgar o Admitir) reciben clases CSS automáticas (`horror-btn-admit`, etc.).
 
-**Propiedades del Nodo:**
-
-| Propiedad | Tipo | Descripción |
-| :--- | :--- | :--- |
-| `id` | String | Identificador único del nodo (ej. `gs_n1`). |
-| `text` | String | El contenido narrativo. Soporta marcado especial (ver abajo). |
-| `options` | Array | Lista de opciones de respuesta para el jugador. |
-| `audio` | String | (Opcional) Clave del SFX que suena al mostrar este nodo. |
-
-**Propiedades de una Opción (`options`):**
-
-| Propiedad | Tipo | Descripción |
-| :--- | :--- | :--- |
-| `id` | String | ID de la opción. |
-| `label` | String | Texto que aparece en el botón para el jugador. |
-| `next` | String/Null | ID del siguiente nodo. Si es `null`, el diálogo termina. |
-| `sets` | Array | (Opcional) Lista de *flags* que se activan en el `State` al elegir esto (ej. `['admitted']`). |
-| `resultText`| String | (Opcional) Texto que se muestra si el diálogo termina aquí (ej. descripción de huida). |
-| `cssClass` | String | (Opcional) Clases CSS para estilizar el botón (ej. `horror-btn-dismiss`). |
+### Memoria y Rumores
+El sistema utiliza el `State.js` para crear una sensación de mundo persistente:
+1. **Flags**: Si el jugador elige una opción con la propiedad `sets: ['seen_something']`, se guarda en `State.dialogueFlags`.
+2. **Memoria de Diálogo**: Cada interacción significativa se registra en `State.dialogueMemory`.
+3. **Generación de Rumores**: El motor puede inyectar el placeholder `{rumor}` en los diálogos, extrayendo fragmentos de la memoria global:
+   ```javascript
+   // Ejemplo: "Alguien comentaba que Kael desapareció en la oscuridad."
+   ```
 
 ---
 
-## 3. Lógica de Selección (`DialogueEngine.js`)
+## 🎨 Renderizado y Marcado (`js/markup.js`)
 
-Cuando se crea un NPC en `NPC.js`, se llama a `selectDialogueSet` para asignarle una conversación. El proceso es:
-
-1.  **Verificación de Lore**: Si el NPC está marcado como `isLore`, busca en `loreSubjects`.
-2.  **Filtrado por Personalidad**: Si es genérico, el motor busca en `pools` aquellos que tengan `tags` coincidentes con la personalidad del NPC (ej. `nervous`, `aggressive`).
-3.  **Prioridad de Novedad**: El sistema prefiere pools que no hayan sido usados recientemente (`State.isDialogueUsed`) para evitar repetición.
-4.  **Fallback**: Si no hay coincidencias específicas, usa pools con el tag `generic`.
+El texto de los diálogos soporta un marcado ligero procesado antes de mostrarse:
+- `*acción*`: Se renderiza en gris/itálica para representar gestos del NPC.
+- `"{nombre}"`: Inyecta el nombre dinámico del NPC.
+- `"{paranoia}"`: Muestra el nivel actual de estrés del jugador.
 
 ---
 
-## 4. Sistema de Marcado y Renderizado
+## 🧩 Relación Mecánica-Código
 
-El `UIManager` procesa el texto de los nodos para darle formato visual:
+| Acción en Juego | Implementación en Código |
+| :--- | :--- |
+| Seleccionar diálogo | `DialogueEngine.selectDialogueSet(params)` |
+| Inyectar variables | `DialogueEngine.injectStateVariables(text)` |
+| Persistencia de decisión | `State.setFlag(key, value)` |
+| Evitar repetición | `State.wasDialogueUsedRecently(id, window)` |
 
-### Formato de Botones y Clases Especiales
-El motor de diálogos asigna automáticamente clases CSS a las opciones basándose en su texto o en su propiedad `cssClass`:
-- **Ignorar**: `horror-btn-ignore` (Icono de ojo tachado).
-- **Analizar**: `horror-btn-analyze` (Icono de lupa).
-- **Admitir/Riesgo**: `horror-btn-admit` (Icono de advertencia).
-- **Finalizar**: `horror-btn-dismiss` (Icono de salida).
-
-**Optimización de Opciones**: 
-Para evitar redundancia, el `DialogueEngine` elimina automáticamente la opción genérica de "Terminar diálogo" si el nodo ya contiene 4 o más opciones específicas definidas en su estructura.
-
-### Formato de Texto
-*   **Acciones**: El texto entre asteriscos `*se rasca el brazo*` se renderiza con estilo descriptivo (cursiva/gris).
-*   **Diálogo**: El texto entre comillas `"hola"` se renderiza como habla directa del personaje.
-
-### Templating (Variables Dinámicas)
-El `DialogueEngine` puede inyectar valores del estado del juego en el texto antes de enviarlo a la UI:
-
-*   `{npcName}`: Inserta el nombre del NPC actual.
-*   `{paranoia}`: Inserta el nivel de paranoia actual con %.
-*   `{generatorStatus}`: Inserta "estable", "inestable" o "apagado".
-*   `{rumor}`: Inserta un rumor aleatorio de la memoria global (si existe).
-
----
-
-## 5. Ejemplo de Flujo
-
-**Definición en JSON:**
-```javascript
-'node_1': {
-    text: "*Tiembla.* \"¿Escuchas eso?\"",
-    options: [
-        { label: 'Sí', next: 'node_2' },
-        { label: 'No', next: 'node_3' }
-    ]
-}
-```
-
-**Proceso:**
-1.  El jugador ve: *Tiembla.* "¿Escuchas eso?"
-2.  El jugador hace clic en "Sí".
-3.  `DialogueEngine` busca `node_2`.
-4.  Si `node_2` existe, se actualiza la caja de texto.
-5.  Si la opción tuviera `sets: ['suspicious']`, esa flag se guardaría en el estado global.
-
-## 6. Notas de Diseño
-*   **Infección**: Aunque el RNG decide si un NPC está infectado (`isInfected: true`), es el diálogo (asignado vía tags como `body_horror` o `sick`) el que da las pistas narrativas al jugador.
-*   **Consistencia**: Es vital que los pools con tags de "enfermo" o "horror corporal" se asignen preferentemente a NPCs que visualmente o mecánicamente presenten anomalías, aunque actualmente el sistema permite cierta aleatoriedad para aumentar la paranoia (un NPC sano podría tener un diálogo extraño por simple locura).
+## 🧪 Verificación
+Los tests en `__tests__/advanced_dialogue.test.js` y `dialogue_uniqueness.test.js` aseguran que las flags se guarden correctamente y que los diálogos no se repitan prematuramente.

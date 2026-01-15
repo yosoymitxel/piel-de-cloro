@@ -1,0 +1,81 @@
+# Flujos de Sistemas Transversales
+
+Este documento detalla cómo interactúan los diferentes gestores para resolver situaciones complejas que afectan a múltiples sistemas.
+
+## 🌙 Resolución de la Fase Nocturna (`sleep`)
+
+Es el momento más crítico del juego. Involucra recursos, rasgos, infecciones y NPCs de Lore.
+
+```mermaid
+sequenceDiagram
+    participant P as Jugador
+    participant GMM as GameMechanicsManager
+    participant S as State
+    participant LM as LoreManager
+    participant UI as UIManager
+
+    P->>GMM: Ejecuta "Dormir"
+    GMM->>GMM: checkLoreNPCDanger()
+    alt Es fatal (80%)
+        GMM->>GEM: triggerEnding(lore_ending)
+    else Supervivencia
+        GMM->>GMM: processNightResourcesAndTraits()
+        GMM->>S: updateSupplies(-Consumo)
+        GMM->>GMM: Determinar ataque de infectados
+        alt Civil asesinado
+            GMM->>LM: showLore('night_civil_death')
+            LM->>UI: Renderizar pantalla de muerte civil
+        else Noche tranquila
+            GMM->>LM: showLore('night_tranquil')
+        end
+        GMM->>S: startNextDay()
+        S->>UI: Resetear HUD y Navegación
+    end
+```
+
+### Relaciones de Código:
+- **`GameMechanicsManager.js`**: Contiene la lógica de decisión.
+- **`NPC.js`**: Proporciona los rasgos (`scavenger`, `tough`) que alteran las probabilidades.
+- **`LoreData.js`**: Contiene los textos y sonidos de los interludios nocturnos.
+
+---
+
+## ⚠️ Ciclo de Intrusiones
+
+Las intrusiones pueden ocurrir de día o de noche si la seguridad falla.
+
+1. **Trigger**: `RandomEventManager` o el ciclo de `Game.nextTurn` disparan `attemptDayIntrusion()`.
+2. **Validación de Seguridad**: `GameMechanicsManager` revisa `State.securityItems` (puertas, ventanas, alarmas).
+3. **Selección de Vía**: Si hay un canal no asegurado (`secured: false`), se crea un `NPC` infectado oculto.
+4. **Notificación**: 
+   - `State.addLogEntry('system', ...)` registra la alerta.
+   - `UIManager.setNavItemStatus` activa el indicador de peligro en el HUD (color rojo/alerta).
+   - `AudioManager` reproduce `intrusion_detected`.
+
+### Mecánica vs Código:
+| Mecánica | Archivo Responsable |
+| :--- | :--- |
+| Probabilidad de Intrusión | `State.config.securityIntrusionProbability` |
+| Modificador por Generador | `State.getIntrusionModifier()` (1.5x si está apagado) |
+| Creación del Intruso | `GameMechanicsManager.createIntrusion()` |
+
+---
+
+## ⚡ Fallo y Recuperación del Generador
+
+El generador afecta a la capacidad de testeo y a la seguridad.
+
+```mermaid
+graph LR
+    Overload[Modo Sobrecarga] -->|Risk Check| Failure[FALLO CRÍTICO]
+    Failure -->|State.generator.isOn = false| UI[Feedback Rojo]
+    Failure -->|Security| Unsecure[Desactiva Puertas/Alarmas]
+    Failure -->|HUD| NoTests[Tests Disponibles = 0]
+    UI -->|Acción Jugador| Restart[Reinicio Manual]
+    Restart -->|State| SaveMode[Fuerza Modo AHORRO]
+    Restart -->|State| Lock[restartLock activo]
+```
+
+### Notas Técnicas:
+- El **`restartLock`** impide que el jugador suba la potencia inmediatamente después de un fallo, obligándolo a procesar al menos un NPC en modo AHORRO (mínima información).
+- La **Energía de Emergencia** (`emergencyEnergyGranted`) evita que el jugador se quede bloqueado sin poder hacer ningún test si el fallo ocurrió justo al empezar un turno.

@@ -67,14 +67,26 @@ Se activan automáticamente cuando se cumplen ciertas condiciones críticas.
 
 ---
 
-## ⚙️ Implementación Técnica
+## ⚙️ Implementación Técnica (`js/GameEndingManager.js`)
 
-Al disparar un final:
-1.  Se establece `State.endingTriggered = true` para bloquear inputs.
-2.  Se guarda el ID en `State.unlockedEndings` (localStorage).
-3.  Se muestra la pantalla de Lore "Resonancia" (`post_final`) como transición.
-4.  Se carga el texto específico del final desde `LoreData[endingId]`.
-5.  Se calcula el resumen de estadísticas (NPCs salvados, infectados filtrados, etc.) y se muestra en `#screen-final-stats`.
+El proceso de finalización de partida no es un simple cambio de pantalla; es una secuencia coreografiada:
+
+1.  **Bloqueo de Estado**: Se activa `State.endingTriggered = true` y se bloquea el `isAnimating` en `Game.js` para evitar clics accidentales.
+2.  ** VHS Burst**: Si el final es de tipo `danger`, se dispara un efecto visual de estática y una alerta sonora (`glitch_burst`).
+3.  **Protocolo de Cierre**: Se ejecuta `UIManager.triggerFullscreenProtocol()`. Esta es una animación tipo terminal que muestra mensajes dinámicos ("CORRUPCIÓN DETECTADA..." o "SESIÓN FINALIZADA") mientras oculta el resto de la interfaz.
+4.  **Resonancia de Lore**: 
+    - Se muestra el fragmento de lore `post_final` (puente narrativo).
+    - Se carga el contenido específico del final desde `LoreData.js`.
+    - Se inyectan variables como el nombre del NPC de Lore responsable si aplica.
+5.  **Cálculo de Estadísticas**: `UIManager.renderFinalStats()` procesa el `State` final para generar el desglose de:
+    - Ciclos sobrevividos.
+    - Humanos salvados vs. Infectados filtrados.
+    - Suministros restantes y nivel final de cordura.
+
+## 💾 Desbloqueo Permanente
+El ID del final se añade a `State.unlockedEndings` y se persiste en `localStorage`. Esto permite que, en futuras partidas, el juego sepa qué verdades del cloro ya ha descubierto el jugador.
+
+---
 
 ## Verificación de Probabilidades
 

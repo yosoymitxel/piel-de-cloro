@@ -156,3 +156,47 @@ Admitirlos no es solo peligroso mecánicamente - narrativamente, estás **invita
 ---
 
 **¿Vale la pena el riesgo?** Depende de si valoras la narrativa por encima de la victoria. El juego te da la elección consciente.
+
+## 🛠️ Guía para Desarrolladores: Cómo añadir un Lore NPC
+
+Si deseas expandir la historia de *Ruta 01*, sigue estos pasos para integrar una nueva anomalía:
+
+### 1. Definir los Datos (`js/LoreData.js`)
+Añade una entrada en el objeto principal con el contenido narrativo, audio y tipo.
+```javascript
+new_lore_npc: {
+    title: 'Nombre de la Anomalía',
+    content: 'Texto que aparece al descubrirlo...',
+    audio: 'audio_key',
+    type: 'danger' // o 'calm'
+}
+```
+
+### 2. Definir Diálogos (`js/DialogueData.js`)
+Crea un pool con `unique: true` y el ID correspondiente.
+```javascript
+"lore_new_id": {
+    id: 'lore_new_id',
+    unique: true,
+    root: 'start_node',
+    nodes: { ... }
+}
+```
+
+### 3. Implementar Atributos en el Constructor (`js/NPC.js`)
+En el método `applyUniqueNPCData(id)`, define los valores fijos (Temperatura, Pulso, etc.) para que los tests de inspección sean coherentes:
+```javascript
+'lore_new_id': {
+    name: 'Nombre Visual',
+    occupation: 'Rol Narrativo',
+    attributes: { temperature: '31.0', pulse: 5, ... },
+    visual: { hair: 'wild', ... }
+}
+```
+
+### 4. Lógica de Riesgo (`js/GameMechanicsManager.js`)
+Si la anomalía tiene reglas especiales durante la noche, actualiza `checkLoreNPCDanger()` o `sleep()`. Por defecto, el sistema aplica un 80% de letalidad a cualquier NPC con `uniqueType: 'lore'`.
+
+---
+
+**Nota Final**: Los NPCs de lore son los pilares de la atmósfera del juego. Asegúrate de que sus atributos físicos sean consistentes con sus diálogos para recompensar la atención del jugador.
