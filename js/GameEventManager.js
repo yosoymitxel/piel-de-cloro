@@ -321,9 +321,26 @@ export class GameEventManager {
         });
 
         $('#btn-pause-restart-game').on('click', () => { 
-            this.ui.showConfirm('¿INICIAR NUEVA PARTIDA? SE PERDERÁ TODO EL PROGRESO ACTUAL.', () => { 
+            this.ui.showConfirm('¿REINICIAR TODA LA PARTIDA? SE PERDERÁ EL PROGRESO.', () => { 
                 this.game.restartGame(); 
             }, null, 'warning'); 
+        });
+
+        $('#btn-pause-to-start').on('click', () => {
+            this.ui.showConfirm('¿VOLVER AL MENÚ PRINCIPAL? SE PERDERÁ EL PROGRESO NO GUARDADO.', () => {
+                this.game.goToStart();
+            }, null, 'warning');
+        });
+
+        // Fullscreen Toggle in Pause
+        $('#btn-pause-fullscreen').on('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.warn(`Error attempting to enable full-screen mode: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
         });
 
         // Inspection Tools (Delegated to document for maximum resilience)
@@ -392,8 +409,7 @@ export class GameEventManager {
 
         // Volver al inicio desde estadísticas finales
         $('#btn-final-to-start').on('click', () => { 
-            this.game.restartGame();
-            this.switchScreen(CONSTANTS.SCREENS.START, { force: true }); 
+            this.game.goToStart();
         });
 
         // Diagnostics

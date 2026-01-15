@@ -146,6 +146,17 @@
     transform: none;
 }
 
+/* 2.1 BARRA DE ESTADO DEL SISTEMA */
+.system-status-bar {
+    border: 1px solid #4a4a4a;
+    background: rgba(20, 20, 20, 0.8);
+    color: #8a7a5a; /* Dull gold/brown for system messages */
+    font-family: var(--font-term);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.9rem;
+}
+
 /* 3. BOTONES DE SEGURIDAD (SALA DE VIGILANCIA) */
 .horror-btn-security {
     width: 100%;

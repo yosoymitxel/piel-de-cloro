@@ -183,7 +183,7 @@ export class GeneratorManager {
         const btnOver = $('#btn-gen-over');
 
         const npc = state.currentNPC;
-        const actionTaken = (npc && npc.scanCount > 0) || state.dialogueStarted || state.generator.restartLock;
+        const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || state.generator.restartLock;
         const currentMax = state.generator.maxModeCapacityReached;
 
         const handleModeSwitch = (newMode, newCap) => {
@@ -232,7 +232,7 @@ export class GeneratorManager {
                 }, 400); // Slightly longer for visibility
             });
 
-            this.ui.updateInspectionTools();
+            this.ui.updateInspectionTools(npc);
             this.renderGeneratorRoom(state);
             return true;
         };

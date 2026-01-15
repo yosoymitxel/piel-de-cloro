@@ -121,6 +121,7 @@ export class ModalManager {
 
     openModal(npc, allowPurge, onPurgeConfirm, state) {
         if (State.endingTriggered) return;
+        this.ui.currentModalNPC = npc; // Guardar referencia al NPC actual del modal
         this.clearModalError();
         this.elements.modal.removeClass('hidden').addClass('flex');
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
@@ -297,7 +298,7 @@ export class ModalManager {
                 }
 
                 testsGrid.html(`
-                    <div class="horror-btn horror-btn-disabled w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed text-xs flex items-center justify-center w-100">
+                    <div class="horror-btn horror-btn-disabled w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed text-xs flex items-center justify-center col-span-4 w-100">
                         <i class="fa-solid ${icon} mr-2"></i> ${msg}
                     </div>
                 `);

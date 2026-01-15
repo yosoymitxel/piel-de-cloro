@@ -263,7 +263,6 @@ export const State = {
     nextSubject() {
         this.dayTime++;
         this.generatorCheckedThisTurn = false;
-        this.dialogueStarted = false;
         if (this.generator.overclockCooldown) {
             this.generator.overclockCooldown = false;
         }

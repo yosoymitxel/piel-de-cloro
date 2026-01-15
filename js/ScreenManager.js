@@ -8,87 +8,103 @@ export class ScreenManager {
     }
 
     showScreen(screenName, state) {
-        // Efecto de apagado/encendido de tubo CRT
+        // Cancel purge animation if active
+        if (this.ui && this.ui.cancelPurgeAnimation) {
+            this.ui.cancelPurgeAnimation();
+        }
+
+        // Efecto de apagado/encendido de tubo CRT - Solo si cambia la pantalla
         const monitor = $('.crt-monitor');
-        monitor.removeClass('tube-power-on');
+        const isDifferentScreen = this.lastScreen !== screenName;
         
-        // Pequeño delay para simular el cambio de canal
-        setTimeout(() => {
+        const changeLogic = () => {
             Object.values(this.screens).forEach(s => s.addClass('hidden'));
             if (this.screens[screenName]) {
                 this.screens[screenName].removeClass('hidden');
             }
             
-            monitor.addClass('tube-power-on');
+            if (isDifferentScreen) {
+                monitor.addClass('tube-power-on');
+            }
 
             // Asegurarse de ocultar overlays de fin de turno al cambiar de pantalla
             $('#preclose-overlay').addClass('hidden').removeClass('flex');
 
-        if (screenName === 'start') {
-            this.updateEndingsRecord(state);
-        }
-
-        // Logic 1: Settings button only on start screen
-        this.elements.settingsBtn.toggleClass('hidden', screenName !== 'start');
-
-        // Logic 2: Sidebar only on Game, Shelter, Morgue, Room, Generator, Database, Log
-        const showSidebar = ['game', 'shelter', 'morgue', 'room', 'generator', 'database', 'log'].includes(screenName);
-        this.elements.sidebar.toggleClass('hidden', !showSidebar);
-
-        // Toggle finalize button visibility in Shelter
-        if (screenName === 'shelter') {
-            // Mostrar si el día terminó (fase de transición) O si es de noche (gestión de refugio)
-            const isTransition = state.isDayOver() && !state.isNight;
-            const isNightManagement = state.isNight;
-            const shouldShow = isTransition || isNightManagement;
-            
-            this.elements.finalizeNoPurgeBtn.toggleClass('hidden', !shouldShow);
-            
-            // Ajustar texto según el contexto
-            if (isNightManagement) {
-                this.elements.finalizeNoPurgeBtn.text('VOLVER AL PROTOCOLO NOCTURNO');
-            } else {
-                this.elements.finalizeNoPurgeBtn.text('FINALIZAR TURNO SIN PURGAR');
+            if (screenName === 'start') {
+                this.updateEndingsRecord(state);
             }
+
+            // Logic 1: Settings button only on start screen
+            this.elements.settingsBtn.toggleClass('hidden', screenName !== 'start');
+
+            // Logic 2: Sidebar only on Game, Shelter, Morgue, Room, Generator, Database, Log
+            const showSidebar = ['game', 'shelter', 'morgue', 'room', 'generator', 'database', 'log'].includes(screenName);
+            this.elements.sidebar.toggleClass('hidden', !showSidebar);
+
+            // Toggle finalize button visibility in Shelter
+            if (screenName === 'shelter') {
+                // Mostrar si el día terminó (fase de transición) O si es de noche (gestión de refugio)
+                const isTransition = state.isDayOver() && !state.isNight;
+                const isNightManagement = state.isNight;
+                const shouldShow = isTransition || isNightManagement;
+                
+                this.elements.finalizeNoPurgeBtn.toggleClass('hidden', !shouldShow);
+                
+                // Ajustar texto según el contexto
+                if (isNightManagement) {
+                    this.elements.finalizeNoPurgeBtn.text('VOLVER AL PROTOCOLO NOCTURNO');
+                } else {
+                    this.elements.finalizeNoPurgeBtn.text('FINALIZAR TURNO SIN PURGAR');
+                }
+            } else {
+                this.elements.finalizeNoPurgeBtn.addClass('hidden');
+            }
+
+            // Clear global feedback on screen change
+            this.ui.hideFeedback();
+
+            // Update active state in sidebar
+            this.updateSidebarActive(screenName, state);
+
+            // Toggle visibility of morgue stats nav button
+            $('#nav-morgue-stats').removeClass('hidden');
+
+            if (screenName === 'morgue' && state) {
+                this.ui.renderMorgueGrid(
+                    state.purgedNPCs || [], 
+                    state.ignoredNPCs || [], 
+                    state.departedNPCs || [], 
+                    (npc) => this.ui.modalManager.openModal(npc, false, null, state)
+                );
+            }
+
+            if (screenName === 'log' && state) {
+                this.ui.renderLog(state);
+            }
+
+            if (screenName === 'night' && state) {
+                const count = state.admittedNPCs.length;
+                const max = state.config.maxShelterCapacity;
+                const isFull = count >= max;
+                
+                const btnEscape = $('#btn-night-escape');
+                if (isFull) {
+                    btnEscape.removeClass('opacity-30 grayscale pointer-events-none');
+                } else {
+                    btnEscape.addClass('opacity-30 grayscale pointer-events-none');
+                }
+            }
+            
+            this.lastScreen = screenName;
+        };
+
+        if (isDifferentScreen) {
+            monitor.removeClass('tube-power-on');
+            // Pequeño delay para simular el cambio de canal
+            setTimeout(changeLogic, 150);
         } else {
-            this.elements.finalizeNoPurgeBtn.addClass('hidden');
+            changeLogic();
         }
-
-        // Clear global feedback on screen change
-        this.ui.hideFeedback();
-
-        // Update active state in sidebar
-        this.updateSidebarActive(screenName, state);
-
-        // Toggle visibility of morgue stats nav button
-        $('#nav-morgue-stats').removeClass('hidden');
-
-        if (screenName === 'morgue' && state) {
-            this.ui.renderMorgueGrid(
-                state.purgedNPCs || [], 
-                state.ignoredNPCs || [], 
-                state.departedNPCs || [], 
-                (npc) => this.ui.modalManager.openModal(npc, false, null, state)
-            );
-        }
-
-        if (screenName === 'log' && state) {
-            this.ui.renderLog(state);
-        }
-
-        if (screenName === 'night' && state) {
-            const count = state.admittedNPCs.length;
-            const max = state.config.maxShelterCapacity;
-            const isFull = count >= max;
-            
-            const btnEscape = $('#btn-night-escape');
-            if (isFull) {
-                btnEscape.removeClass('opacity-30 grayscale pointer-events-none');
-            } else {
-                btnEscape.addClass('opacity-30 grayscale pointer-events-none');
-            }
-        }
-        }, 150); // Fin del setTimeout del efecto CRT
     }
 
     updateSidebarActive(screenName, state) {

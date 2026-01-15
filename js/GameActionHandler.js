@@ -6,6 +6,7 @@ export class GameActionHandler {
         this.game = game;
         this.ui = game.ui;
         this.audio = game.audio;
+        this.processingDecision = false;
     }
 
     /**
@@ -66,6 +67,7 @@ export class GameActionHandler {
         const validation = this.validateInspection(tool);
         State.log(`[GameActionHandler] Resultado Validación:`, validation);
         
+        const npc = State.currentNPC;
         if (!validation.allowed) {
             State.warn(`[GameActionHandler] Inspección cancelada: ${validation.reason} (${validation.code})`);
             
@@ -80,11 +82,11 @@ export class GameActionHandler {
                     break;
                 case "NO_ENERGY":
                     this.ui.showFeedback("ENERGÍA INSUFICIENTE PARA ESTE TURNO", "yellow", 3000);
-                    this.ui.updateInspectionTools();
+                    if (npc) this.ui.updateInspectionTools(npc);
                     break;
                 case "ALREADY_DONE":
                     this.ui.showFeedback("TEST YA REALIZADO", "yellow", 2000);
-                    this.ui.updateInspectionTools();
+                    if (npc) this.ui.updateInspectionTools(npc);
                     break;
                 case "PAUSED":
                     State.warn("[GameActionHandler] Intento de inspección con juego pausado.");
@@ -101,7 +103,6 @@ export class GameActionHandler {
 
         State.log(`[GameActionHandler] Ejecutando inspección de ${tool}...`);
         const { cost: energyCost, statKey } = validation;
-        const npc = State.currentNPC;
 
         // MECÁNICA PARANOIA: Probabilidad de fallo de hardware (Glitch)
         const glitchChance = State.paranoia > 60 ? (State.paranoia - 60) / 100 : 0;
@@ -209,7 +210,7 @@ export class GameActionHandler {
         }
 
         // Bloquear el botón específico y actualizar estado de energías
-        this.ui.updateInspectionTools();
+        this.ui.updateInspectionTools(npc);
 
         setTimeout(() => {
             this.game.isAnimating = false;
@@ -225,13 +226,18 @@ export class GameActionHandler {
     }
 
     handleDecision(action) {
-        if (State.paused) return;
+        if (State.paused || this.processingDecision) return;
         const npc = State.currentNPC;
+        if (!npc) return;
 
+        // Validar que se haya realizado alguna acción antes de decidir
         if (npc.scanCount <= 0 && !npc.optOut && !npc.dialogueStarted) {
             this.ui.showValidationGate(npc);
             return;
         }
+
+        this.processingDecision = true;
+
         if (action === 'admit') {
             if (State.isShelterFull()) {
                 this.ui.showMessage("REFUGIO LLENO. Debes purgar a alguien desde la pantalla de Refugio.", null, 'warning');
@@ -262,6 +268,9 @@ export class GameActionHandler {
         State.nextSubject();
         this.game.nextTurn();
         this.ui.updateRunStats(State);
+        
+        // Reset flag for next NPC
+        this.processingDecision = false;
     }
 
     handleSupplyRequest() {

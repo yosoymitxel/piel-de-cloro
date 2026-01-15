@@ -44,7 +44,7 @@ La sala de generador controla el suministro energético del puesto. Afecta las h
   - Puede restaurar 1 carga de emergencia si no hubo actividad previa con el NPC actual.
 
 ## Notas de integración / pruebas sugeridas ✅
-- Verificar que los botones `#btn-gen-*` respetan la lógica de `maxModeCapacityReached` cuando `npc.scanCount > 0` o `dialogueStarted`.
+- Verificar que los botones `#btn-gen-*` respetan la lógica de `maxModeCapacityReached` cuando `npc.scanCount > 0` o `npc.dialogueStarted`.
 - Probar que `overload` adecúa `blackoutUntil` y que `#btn-gen-toggle` aparece bloqueado durante el blackout.
 - Testear la restauración de energía de emergencia al encender tras fallo o si no hubo actividad (flag `emergencyEnergyGranted`).
 - Comprobar que `DialogueEngine` reemplaza `{generatorStatus}` por "apagado" / "inestable" / "estable" según `isOn` y `power`.

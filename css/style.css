@@ -890,7 +890,8 @@ body.paused .game-container {
     /* Más brillante que chlorine-light */
     font-family: var(--font-term);
     white-space: pre-wrap;
-    font-size: 1.05rem;
+    font-size: 1.25rem; /* Increased from 1.05rem */
+    line-height: 1.4;
     text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
 }
 
@@ -922,7 +923,7 @@ body.paused .game-container {
 /* Epithet (apodo) shown once inside dialogue */
 #npc-dialogue .npc-text .npc-epithet {
     color: var(--paranoia-color, rgba(168, 213, 162, 0.85));
-    border-right: 1px solid var(--paranoia-color, rgba(168, 213, 162, 0.85)); 
+    border: 1px solid var(--paranoia-color, rgba(168, 213, 162, 0.85)); 
     padding-right: 6px;
     padding-bottom: 2px;   
     margin-right: 6px;
@@ -1198,9 +1199,26 @@ body.paused .game-container {
 
 /* Lore panel variants ensure full backgrounds and button styles */
 .lore-danger {
-    background: #120101 !important;
-    border-color: var(--color-alert) !important;
-    box-shadow: 0 0 20px rgba(255, 51, 51, 0.35), inset 0 0 10px rgba(255, 51, 51, 0.2) !important;
+    background: #1a0202 !important; /* Rojo sangre muy oscuro */
+    border-color: #ff3333 !important; /* Rojo brillante para el borde */
+    border-top-color: #ff3333 !important;
+    color: #ff3333 !important; /* Unificado a rojo */
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.4), inset 0 0 15px rgba(255, 0, 0, 0.3) !important;
+}
+
+.lore-danger #lore-title,
+.lore-danger #lore-screen-title,
+.lore-danger .text-alert,
+.lore-danger header div,
+.lore-danger .border-l-2 {
+    color: #ff3333 !important;
+    border-color: rgba(255, 51, 51, 0.3) !important;
+    text-shadow: 0 0 8px rgba(255, 51, 51, 0.6) !important;
+}
+
+.lore-danger #lore-content {
+    color: #ffaaaa !important; /* Un rojo más suave para el contenido */
+    opacity: 0.9;
 }
 
 .lore-calm {
@@ -1503,6 +1521,94 @@ input[type=number].horror-input {
 .modal-blood-flash {
     animation: bloodPulse 0.7s ease-out;
     border-color: var(--color-alert) !important;
+}
+
+/* --- PURGE ANIMATION --- */
+#purge-screen-overlay {
+    background: black;
+}
+
+.purge-scanline {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(255, 51, 51, 0.1) 50%,
+        transparent
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 1001;
+}
+
+.purge-noise {
+    position: absolute;
+    inset: 0;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1002;
+}
+
+.purge-glitch-text {
+    text-shadow: 
+        2px 0 #000,
+        -2px 0 #000,
+        0 2px #000,
+        0 -2px #000,
+        4px 0 rgba(255, 51, 51, 0.5),
+        -4px 0 rgba(0, 255, 255, 0.5);
+    animation: purge-glitch 0.2s infinite;
+}
+
+@keyframes purge-glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+}
+
+/* Protocol Overlays */
+.protocol-purge .purge-progress-bar { background: var(--color-alert); }
+.protocol-purge .purge-glitch-text { color: var(--color-alert); }
+.protocol-purge .purge-status-text { color: var(--color-alert); }
+
+.protocol-ending { background: #1a0202 !important; }
+.protocol-ending .purge-progress-bar { background: #ff0000; box-shadow: 0 0 10px #ff0000; }
+.protocol-ending .purge-glitch-text { color: #ff0000; text-shadow: 2px 2px #000, 0 0 20px rgba(255,0,0,0.5); }
+.protocol-ending .purge-status-text { color: #ff0000; }
+
+.purge-progress-bar {
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* NPC CHANGE ANIMATION (GUARD POST) */
+@keyframes glitch-fade-in {
+    0% { 
+        opacity: 0;
+        filter: brightness(2) contrast(2) grayscale(1);
+        transform: scale(0.95) skewX(10deg);
+    }
+    20% {
+        opacity: 0.8;
+        transform: skewX(-10deg);
+    }
+    40% {
+        opacity: 0.5;
+        transform: skewX(5deg);
+    }
+    100% { 
+        opacity: 1;
+        filter: brightness(1) contrast(1) grayscale(0);
+        transform: scale(1) skewX(0);
+    }
+}
+
+.glitch-fade {
+    animation: glitch-fade-in 0.4s ease-out forwards;
 }
 
 /* Responsive Navigation: bottom bar on mobile */

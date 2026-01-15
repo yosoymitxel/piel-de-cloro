@@ -157,8 +157,26 @@ class Game {
         this.startGame();
     }
 
+    goToStart() {
+        State.reset();
+        this.isAnimating = false;
+        this.ui.resetUI();
+        
+        State.paused = false;
+        $('body').removeClass('paused');
+        $('#screen-game').removeClass('is-paused');
+        $('#modal-pause').addClass('hidden').removeClass('flex');
+
+        this.ui.showScreen('start');
+        this.audio.stopAmbient({ fadeOut: 800 });
+        this.audio.playAmbientByKey('ambient_main_loop', { loop: true, volume: 0.1, fadeIn: 2000 });
+    }
+
     nextTurn() {
         if (State.endingTriggered) return;
+
+        // Limpiar referencia al NPC actual para evitar fugas de estado durante la transición
+        State.currentNPC = null;
 
         // Asegurar que el nav esté desbloqueado al inicio de cada turno
         this.ui.setNavLocked(false);

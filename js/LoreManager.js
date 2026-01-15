@@ -25,8 +25,8 @@ export class LoreManager {
         let isDanger = false;
         let isCalm = false;
 
-        this.elements.title.removeClass('text-alert glitch-effect');
-        this.elements.panel.removeClass('animate__shakeX lore-danger lore-calm');
+        this.elements.title.removeClass('text-alert glitch-effect text-blue-400');
+        this.elements.panel.removeClass('animate__fadeIn lore-danger lore-calm');
 
         if (type === 'intermediate') {
             const variants = LoreData.intermediate.variants;
@@ -69,7 +69,11 @@ export class LoreManager {
 
         if (isDanger) {
             this.elements.title.addClass('text-alert glitch-effect').attr('data-text', titleText);
-            this.elements.panel.addClass('animate__shakeX lore-danger');
+            this.elements.panel.addClass('animate__fadeIn lore-danger');
+            $('#screen-lore').addClass('bg-red-950/80').removeClass('bg-black/80');
+        } else {
+            this.elements.title.addClass('text-blue-400');
+            $('#screen-lore').addClass('bg-black/80').removeClass('bg-red-950/80');
         }
         if (isCalm) {
             this.elements.panel.addClass('lore-calm');

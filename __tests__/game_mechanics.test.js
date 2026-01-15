@@ -73,8 +73,7 @@ describe('Game Mechanics Manager', () => {
 
         test('emergency energy is granted when restarting with no activity', () => {
             State.generator.isOn = false;
-            State.currentNPC = { scanCount: 0 };
-            State.dialogueStarted = false;
+            State.currentNPC = { scanCount: 0, dialogueStarted: false };
             
             gmm.toggleGenerator();
             
@@ -173,7 +172,7 @@ describe('Game Mechanics Manager', () => {
             expect(State.generator.mode).toBe('normal');
             
             // Now set action taken to block further increase
-            State.dialogueStarted = true;
+            State.currentNPC = { scanCount: 0, dialogueStarted: true };
             gmm.changeGeneratorMode(1); // Try to go to overload (cap 3)
             expect(State.generator.mode).toBe('normal'); // Blocked because maxModeCapacityReached is 2 and actionTaken is true
         });
@@ -182,7 +181,7 @@ describe('Game Mechanics Manager', () => {
             State.generator.isOn = true;
             State.generator.mode = 'normal';
             State.generator.maxModeCapacityReached = 2; // Normal
-            State.dialogueStarted = false; // No action taken
+            State.currentNPC = { scanCount: 0, dialogueStarted: false }; // No action taken
             
             gmm.changeGeneratorMode(1); // To overload
             expect(State.generator.mode).toBe('overload');

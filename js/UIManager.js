@@ -131,6 +131,7 @@ export class UIManager {
                 $('#tool-pupils')
             ]
         };
+        this.currentModalNPC = null;
         this.infectionEffectActive = false;
         this.typingTimer = null;
         this.typingAudio = null;
@@ -173,10 +174,28 @@ export class UIManager {
         this.initUIScaling();
         this.initConsoleUpdates();
 
+        // Populate version labels
+        this.updateVersionLabels();
+
         // Actualizar el record de finales al inicio para evitar el 0/0 inicial
         if (this.screenManager && typeof this.screenManager.updateEndingsRecord === 'function') {
             this.screenManager.updateEndingsRecord(State);
         }
+    }
+
+    updateVersionLabels() {
+        $('.app-version').text(CONSTANTS.VERSION);
+        $('.app-version-full').text(`${CONSTANTS.VERSION_LABEL} v${CONSTANTS.VERSION}`);
+    }
+
+    resetUI() {
+        this.updateVersionLabels();
+        if (this.screenManager) {
+            this.screenManager.updateEndingsRecord(State);
+        }
+        this.hideFeedback();
+        this.clearModalError();
+        // Reset any other UI states if necessary
     }
 
     initGlobalEffects() {
@@ -405,7 +424,7 @@ export class UIManager {
             const isUser = entry.speaker === 'user';
             const item = $(`
                 <div class="flex flex-col ${isUser ? 'items-end' : 'items-start'}">
-                    <span class="text-[8px] uppercase tracking-tighter opacity-40 mb-1">${isUser ? 'TÚ' : (npc.name || 'SUJETO')}</span>
+                    <span class="text-[10px] uppercase tracking-tighter opacity-40 mb-1">${isUser ? 'TÚ' : (npc.name || 'SUJETO')}</span>
                     <div class="p-2 rounded ${isUser ? 'bg-chlorine/20 border border-chlorine/30 text-chlorine-light' : 'bg-white/5 border border-white/10 text-gray-300'} max-w-[90%]">
                         ${entry.text}
                     </div>
@@ -489,6 +508,7 @@ export class UIManager {
     }
 
     showScreen(screenName) {
+        this.cancelPurgeAnimation();
         this.screenManager.showScreen(screenName, State);
     }
 
@@ -503,6 +523,99 @@ export class UIManager {
         target.addClass('vhs-active');
         if (this.audio) this.audio.playSFXByKey('vhs_flicker', { volume: 0.5 });
         setTimeout(() => target.removeClass('vhs-active'), duration);
+    }
+
+    /**
+     * Lanza una animación de protocolo a pantalla completa (usado para purgas y finales)
+     * @param {Object} options - Configuración de la animación
+     */
+    triggerFullscreenProtocol(options = {}) {
+        const {
+            title = 'PURGA',
+            statusUpdates = ['EXTRAYENDO...', 'LIMPIANDO...', 'FINALIZADO.'],
+            sfx = 'purge_confirm',
+            onComplete = null,
+            type = 'purge'
+        } = options;
+
+        const overlay = $('#purge-screen-overlay');
+        const progressBar = overlay.find('.purge-progress-bar');
+        const statusText = overlay.find('#purge-status-text');
+        const titleEl = overlay.find('.purge-glitch-text');
+        
+        if (!overlay.length) {
+            if (onComplete) onComplete();
+            return;
+        }
+
+        this.cancelPurgeAnimation();
+
+        // Configurar contenido según tipo
+        titleEl.text(title);
+        if (type === 'ending') {
+            overlay.addClass('protocol-ending').removeClass('protocol-purge');
+        } else {
+            overlay.addClass('protocol-purge').removeClass('protocol-ending');
+        }
+
+        overlay.removeClass('hidden').addClass('flex').css({
+            'opacity': '1',
+            'z-index': '9999'
+        });
+        
+        progressBar.css('width', '0%');
+        statusText.text('INICIANDO...').removeClass('animate-pulse');
+        
+        if (this.audio) {
+            this.audio.playSFXByKey(sfx, { volume: 0.6, priority: 2 });
+        }
+
+        this.purgeTimers = this.purgeTimers || [];
+        
+        // Animación más rápida (tiempos reducidos a la mitad)
+        this.purgeTimers.push(setTimeout(() => {
+            progressBar.css('width', '100%');
+            
+            statusUpdates.forEach((text, i) => {
+                this.purgeTimers.push(setTimeout(() => {
+                    statusText.text(text).addClass('animate-pulse');
+                    if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.2 });
+                }, i * 175));
+            });
+
+            // Finalizar
+            this.purgeTimers.push(setTimeout(() => {
+                overlay.animate({ opacity: 0 }, 200, () => {
+                    overlay.addClass('hidden');
+                    if (onComplete) onComplete();
+                });
+            }, (statusUpdates.length * 175) + 250));
+        }, 100));
+    }
+
+    triggerPurgeAnimation(onComplete) {
+        this.triggerFullscreenProtocol({
+            title: 'PURGA',
+            statusUpdates: [
+                'EXTRAYENDO SUJETO...',
+                'LIMPIEZA EN CURSO...',
+                'COMPLETADO.'
+            ],
+            sfx: 'purge_confirm',
+            onComplete: onComplete,
+            type: 'purge'
+        });
+    }
+
+    cancelPurgeAnimation() {
+        const overlay = $('#purge-screen-overlay');
+        if (overlay.length) {
+            overlay.stop(true, true).addClass('hidden').css('opacity', '0');
+        }
+        if (this.purgeTimers) {
+            this.purgeTimers.forEach(t => clearTimeout(t));
+            this.purgeTimers = [];
+        }
     }
 
     applySanityEffects(sanity) {
@@ -749,27 +862,50 @@ export class UIManager {
         // Se asume que el HTML inicial de index.html es el correcto.
     }
 
-    updateInspectionTools() {
+    updateInspectionTools(npc = State.currentNPC) {
         if (!this.elements.inspectionToolsContainer) return;
 
-        const npc = State.currentNPC;
+        // npc already defined via parameter
 
         if (!State.generator.isOn) {
             if (this.elements.genWarningPanel) this.elements.genWarningPanel.removeClass('hidden');
 
-            // Caso 1: Generador apagado
+            const admitBtn = `
+                <div class="tool-wrapper col-span-2">
+                    <button id="btn-admit" class="horror-btn-admit horror-tool-btn--main btn-interactive w-full py-4">
+                        <i class="fa-solid fa-check mr-2"></i> ADMITIR
+                    </button>
+                </div>`;
+            
+            const ignoreBtn = `
+                <div class="tool-wrapper col-span-2">
+                    <button id="btn-ignore" class="horror-btn-ignore horror-tool-btn--main btn-interactive w-full py-4">
+                        <i class="fa-solid fa-xmark mr-2"></i> OMITIR
+                    </button>
+                </div>`;
+
+            // Caso 1: Generador apagado - AHORA MANTIENE BOTONES DE DECISIÓN
             this.elements.inspectionToolsContainer
-                .removeClass('grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6')
-                .addClass('grid-cols-1');
+                .removeClass('flex flex-col grid-cols-1 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 lg:grid-cols-6')
+                .addClass('grid grid-cols-4');
+            
             this.elements.inspectionToolsContainer.html(`
-                <button id="btn-goto-generator" class="horror-btn horror-btn-alert w-full p-6 text-xl flex items-center justify-center gap-3 animate-pulse">
+                <button id="btn-goto-generator" class="col-span-4 horror-btn horror-btn-alert w-full p-4 text-lg flex items-center justify-center gap-3 animate-pulse mb-2">
                     <i class="fa-solid fa-bolt"></i>
                     <span>SISTEMA ELÉCTRICO INESTABLE: REVISAR GENERADOR</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
+                ${admitBtn}
+                ${ignoreBtn}
             `);
 
-            // Actualizar referencias de herramientas (aunque estén ocultas o cambiadas)
+            // Forzar layout
+            this.elements.inspectionToolsContainer.css({
+                'display': 'grid',
+                'grid-template-columns': 'repeat(4, minmax(0, 1fr))',
+                'gap': '0.75rem'
+            });
+
             this.refreshToolsReferences();
             return;
         }
@@ -799,8 +935,8 @@ export class UIManager {
                 .addClass('grid grid-cols-4');
             
             this.elements.inspectionToolsContainer.html(`
-                <div class="col-span-4 horror-btn horror-btn-disabled w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed mb-2">
-                    <i class="fa-solid fa-comment-slash mr-2 text-warning"></i>
+                <div class="col-span-4 system-status-bar w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed mb-2">
+                    <i class="fa-solid fa-comment-slash mr-2"></i>
                     TEST OMITIDO: PROCEDER CON DECISIÓN
                 </div>
                 ${admitBtn}
@@ -814,8 +950,8 @@ export class UIManager {
                 .addClass('grid grid-cols-4');
             
             this.elements.inspectionToolsContainer.html(`
-                <div class="col-span-4 horror-btn horror-btn-disabled w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed mb-2">
-                    <i class="fa-solid fa-battery-empty mr-2 text-alert"></i>
+                <div class="col-span-4 system-status-bar w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed mb-2">
+                    <i class="fa-solid fa-battery-empty mr-2"></i>
                     BATERÍAS AGOTADAS: SOLO DIÁLOGO O DECISIÓN
                 </div>
                 ${admitBtn}
@@ -894,15 +1030,8 @@ export class UIManager {
             events.bindInspectionTools();
         }
         
-        // También re-vincular los botones de admitir/ignorar si existen
-        $('#btn-admit').off('click').on('click', () => {
-            if (State.paused) return;
-            this.game.mechanics.admitNPC();
-        });
-        $('#btn-ignore').off('click').on('click', () => {
-            if (State.paused) return;
-            this.game.mechanics.ignoreNPC();
-        });
+        // Los botones de admitir/ignorar se manejan vía delegación en GameEventManager.js
+        // para evitar ejecuciones duplicadas y problemas con la recreación de elementos.
     }
 
     resetUI() {
@@ -951,7 +1080,7 @@ export class UIManager {
         );
         
         // Resetear herramientas
-        this.updateInspectionTools();
+        this.updateInspectionTools(null);
         
         // Quitar filtros globales y efectos
         $('body').css('filter', 'none');
@@ -965,11 +1094,23 @@ export class UIManager {
     renderNPC(npc) {
         // Update action buttons and tools based on generator status
         this.updateGameActions();
-        this.updateInspectionTools();
+        
+        // Limpiamos el estado visual de herramientas antes de renderizar
+        if (this.elements.inspectionToolsContainer) {
+            this.elements.inspectionToolsContainer.css('opacity', '0').html('');
+        }
+
+        // Poblamos el contenedor con el estado inicial del nuevo NPC (pero oculto)
+        this.updateInspectionTools(npc);
 
         // Reset Visuals
         this.elements.npcDisplay.css({ transform: 'none', filter: 'none' });
-        this.elements.npcDisplay.empty();
+        this.elements.npcDisplay.empty().removeClass('glitch-fade');
+        
+        // Trigger small glitch-fade animation for NPC change
+        setTimeout(() => {
+            this.elements.npcDisplay.addClass('glitch-fade');
+        }, 10);
 
         // Use new Render System
         const avatar = this.renderAvatar(npc, 'lg');
@@ -1128,7 +1269,9 @@ export class UIManager {
                 // Asignar clases automáticas según la acción para restaurar estilos perdidos
                 let autoClass = '';
                 if (opt.onclick || isTooltip) {
-                    if (fnName === 'ignore' || label.includes('ignorar') || label.includes('omitir')) autoClass = 'horror-btn-ignore';
+                    if (fnName === 'ignore' || label.includes('ignorar') || label.includes('omitir')) {
+                        autoClass = 'option-omit';
+                    }
                     else if (fnName === 'admit' || label.includes('admitir')) autoClass = 'horror-btn-admit';
                     else if (isTooltip || fnName.includes('test') || label.includes('analizar')) autoClass = 'horror-btn-analyze';
                 }
@@ -1140,6 +1283,9 @@ export class UIManager {
                 });
 
                 btn.on('click', () => {
+                    // Prevenir clics si ya estamos procesando una decisión
+                    if (this.game && this.game.actions && this.game.actions.processingDecision) return;
+
                     // Mark dialogue started and hide omit (tracking interaction)
                     npc.dialogueStarted = true;
 
@@ -1185,6 +1331,12 @@ export class UIManager {
                     if (res.end) {
                         this.showFeedback('FIN DE DIÁLOGO', 'green', 2500);
                         this.elements.dialogueOptions.empty();
+                        
+                        // Si es la opción de salida dinámica, tratarla como omisión de test
+                        if (res.id === 'exit_conversation') {
+                            this.handleOmitTest(npc);
+                        }
+
                         if (res.message) {
                             const parsedMsg = (typeof parseDialogueMarkup === 'function') ? parseDialogueMarkup(res.message) : res.message;
                             this.typeText(textEl, parsedMsg, 18);
@@ -1193,7 +1345,7 @@ export class UIManager {
                             if (cleanMsg) npc.history.push({ speaker: 'npc', text: cleanMsg });
                         }
                         // update inspection tools after final choice
-                        this.updateInspectionTools();
+                        this.updateInspectionTools(npc);
                         return;
                     }
 
@@ -1210,8 +1362,9 @@ export class UIManager {
                     // Slight VHS effect if paranoia high
                     if (State.paranoia > 70) this.applyVHS(0.6, 600);
 
+                    npc.dialogueStarted = true;
                     // Ensure inspection tools reflect interaction
-                    this.updateInspectionTools();
+                    this.updateInspectionTools(npc);
                 });
 
                 this.elements.dialogueOptions.append(btn);
@@ -1219,7 +1372,10 @@ export class UIManager {
         }
 
         // Omit option: show if no tests performed yet (allow during dialogue)
-        if (!npc.optOut && npc.scanCount === 0) {
+        // Only show if not already present as a dynamic option
+        const hasDynamicExit = convNode && convNode.options && convNode.options.some(o => o.id === 'exit_conversation');
+        
+        if (!npc.optOut && npc.scanCount === 0 && !hasDynamicExit) {
             const optionsCount = convNode && convNode.options ? convNode.options.length : 0;
             const spanClass = optionsCount === 2 ? 'col-span-2' : '';
             
@@ -1227,17 +1383,23 @@ export class UIManager {
                 class: `horror-btn-dialogue option-omit w-full mt-2 ${spanClass}`,
                 html: '&gt; Omitir por diálogo'
             });
-            omitBtn.on('click', () => {
+            omitBtn.on('click', (e) => {
+                // Prevenir clics si ya estamos procesando una decisión
+                if (this.game && this.game.actions && this.game.actions.processingDecision) return;
+
+                e.preventDefault();
+                e.stopPropagation();
                 this.handleOmitTest(npc);
-                npc.dialogueStarted = true; // También cuenta como interacción
+                npc.dialogueStarted = true;
             });
             this.elements.dialogueOptions.append(omitBtn);
         }
     }
 
     handleOmitTest(npc) {
-        if (!npc) return;
+        if (!npc || npc.optOut) return;
         npc.optOut = true;
+        npc.dialogueStarted = true;
         // Agotamos las energías mecánicamente
         npc.scanCount = 99; 
         
@@ -1248,9 +1410,16 @@ export class UIManager {
         });
 
         this.showFeedback('TEST OMITIDO: SIN EVIDENCIA MÉDICA', 'yellow', 3000);
-        this.updateInspectionTools();
+        this.updateInspectionTools(npc);
         this.hideOmitOption();
         this.elements.dialogueOptions.empty();
+        
+        // Limpiar el texto de diálogo para reflejar el cambio de estado
+        const textEl = this.elements.dialogue.find('.npc-text');
+        if (textEl.length) {
+            const statusMsg = '<span class="text-warning italic">* Protocolo de inspección omitido. El sujeto espera una decisión final. *</span>';
+            this.typeText(textEl, statusMsg, 10);
+        }
         
         // Actualizar estadísticas HUD
         this.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
@@ -1502,7 +1671,9 @@ export class UIManager {
             overlay.addClass('hidden').removeClass('flex');
         });
         $('#btn-omit-test').off('click').on('click', () => {
-            this.handleOmitTest(npc);
+            if (!npc.optOut) {
+                this.handleOmitTest(npc);
+            }
             overlay.addClass('hidden').removeClass('flex');
         });
     }
@@ -1698,13 +1869,13 @@ export class UIManager {
                 
                 if (type === 'purged') {
                     typeClass = 'cat-purged';
-                    statusIcon = '<i class="fa-solid fa-skull text-alert/50 text-[8px] absolute top-1 right-1"></i>';
+                    statusIcon = '<i class="fa-solid fa-skull text-alert/50 text-[10px] absolute top-1 right-1"></i>';
                 } else if (type === 'escaped') {
                     typeClass = 'cat-escaped';
-                    statusIcon = '<i class="fa-solid fa-person-running text-yellow-500/50 text-[8px] absolute top-1 right-1"></i>';
+                    statusIcon = '<i class="fa-solid fa-person-running text-yellow-500/50 text-[10px] absolute top-1 right-1"></i>';
                 } else if (type === 'night') {
                     typeClass = 'cat-night';
-                    statusIcon = '<i class="fa-solid fa-moon text-blue-400/50 text-[8px] absolute top-1 right-1"></i>';
+                    statusIcon = '<i class="fa-solid fa-moon text-blue-400/50 text-[10px] absolute top-1 right-1"></i>';
                 }
 
                 let isRevealedInfected = false;
@@ -1740,7 +1911,7 @@ export class UIManager {
                 
                 const role = $('<span>', { 
                     text: npc.occupation || 'DESCONOCIDO', 
-                    class: 'text-[8px] font-mono text-gray-600 truncate w-full text-center uppercase opacity-60' 
+                    class: 'text-[10px] font-mono text-gray-600 truncate w-full text-center uppercase opacity-60' 
                 });
 
                 if (statusIcon) card.append($(statusIcon));

@@ -28,6 +28,9 @@ export class NPC {
         // Track scans
         this.scanCount = 0;
         this.maxScans = 2;
+        this.optOut = false;
+        this.dialogueStarted = false;
+        this.history = []; // Initialize history array
         this.revealedStats = []; // Tracks which stats (temperature, pulse, etc) have been scanned
         this.dayAfter = null; // Will be initialized if admitted
     }

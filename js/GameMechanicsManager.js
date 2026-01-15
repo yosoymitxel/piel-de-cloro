@@ -90,7 +90,7 @@ export class GameMechanicsManager {
         }
         this.ui.renderGeneratorRoom();
         this.game.updateHUD();
-        this.ui.updateInspectionTools();
+        this.ui.updateInspectionTools(State.currentNPC);
     }
 
     toggleGenerator() {
@@ -112,7 +112,7 @@ export class GameMechanicsManager {
             State.generator.restartLock = true;
             this.ui.showFeedback("SISTEMA REINICIADO: MODO AHORRO", "yellow", 4000);
 
-            const noActivity = State.currentNPC && State.currentNPC.scanCount === 0 && !State.dialogueStarted;
+            const noActivity = State.currentNPC && State.currentNPC.scanCount === 0 && !State.currentNPC.dialogueStarted;
             const hadFailure = State.currentNPC && State.currentNPC.scanCount >= 90;
 
             if (State.currentNPC && !State.generator.emergencyEnergyGranted && (noActivity || hadFailure)) {
@@ -142,7 +142,7 @@ export class GameMechanicsManager {
 
         this.ui.renderGeneratorRoom();
         this.game.updateHUD();
-        this.ui.updateInspectionTools();
+        this.ui.updateInspectionTools(State.currentNPC);
     }
 
     checkSecurityDegradation() {
@@ -622,7 +622,7 @@ export class GameMechanicsManager {
             
             // Check if capacity increase is allowed
             const npc = State.currentNPC;
-            const actionTaken = (npc && npc.scanCount > 0) || State.dialogueStarted || State.generator.restartLock;
+            const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || State.generator.restartLock;
             const currentMax = State.generator.maxModeCapacityReached;
 
             if (actionTaken && newCap > currentMax) {
@@ -663,13 +663,16 @@ export class GameMechanicsManager {
         this.calculatePurgeConsequences(target);
         this.ui.closeModal();
 
-        if (State.isNight) {
-            this.startNightPhase();
-        } else if (State.isDayOver()) {
-            this.startNightPhase();
-        } else {
-            this.game.events.navigateToShelter();
-        }
+        // Trigger Purge Animation
+        this.ui.triggerPurgeAnimation(() => {
+            if (State.isNight) {
+                this.startNightPhase();
+            } else if (State.isDayOver()) {
+                this.startNightPhase();
+            } else {
+                this.game.events.navigateToShelter();
+            }
+        });
     }
 
     clearMorgue() {

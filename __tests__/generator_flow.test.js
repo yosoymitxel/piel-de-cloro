@@ -34,8 +34,7 @@ describe('Generator System Flow', () => {
                 power: 63,
                 restartLock: false
             },
-            currentNPC: { scanCount: 1 }, // Action taken!
-            dialogueStarted: false
+            currentNPC: { scanCount: 1, dialogueStarted: false }, // Action taken!
         };
 
         // Try to switch to overload (up) -> should fail

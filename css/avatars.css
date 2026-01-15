@@ -24,14 +24,14 @@
 
 /* SIZES */
 .pixel-avatar.lg {
-    width: 160px;
-    height: 160px;
+    width: 130px; /* Reduced from 160px */
+    height: 130px; /* Reduced from 160px */
     border: 2px solid #333;
 }
 
 .pixel-avatar.sm {
-    width: 60px;
-    height: 60px;
+    width: 40px;
+    height: 40px;
     border: 1px solid #333;
 }
 
@@ -326,8 +326,246 @@
     height: 100%;
     top: 0;
     left: 0;
-    z-index: 4;
+    z-index: 10;
     pointer-events: none;
+}
+
+/* ==========================================================================
+   NPC VIEWPORT SYSTEM (Improved Visuals)
+   ========================================================================== */
+
+.npc-view-container {
+    position: relative;
+    width: 200px; /* Reduced from 240px */
+    height: 200px; /* Reduced from 240px */
+    background: #020402;
+    border: 1px solid rgba(45, 90, 37, 0.4);
+    box-shadow: 
+        inset 0 0 40px rgba(0, 0, 0, 1),
+        0 0 20px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    image-rendering: pixelated;
+}
+
+/* Variant for perimeter (keeps original size or as requested) */
+.npc-view-container.view-perimeter {
+    width: 240px;
+    height: 240px;
+}
+
+/* Small variant for lists/shelter */
+.npc-view-container.view-sm {
+    width: 80px;
+    height: 80px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 1);
+}
+
+.npc-view-container.view-sm .npc-frame-corner {
+    width: 6px;
+    height: 6px;
+    border-width: 1px;
+}
+
+.npc-view-container.view-sm .npc-frame-tl { top: 3px; left: 3px; border-width: 2px 0 0 2px; }
+.npc-view-container.view-sm .npc-frame-tr { top: 3px; right: 3px; border-width: 2px 2px 0 0; }
+.npc-view-container.view-sm .npc-frame-bl { bottom: 3px; left: 3px; border-width: 0 0 2px 2px; }
+.npc-view-container.view-sm .npc-frame-br { bottom: 3px; right: 3px; border-width: 0 2px 2px 0; }
+
+.npc-view-container.view-sm .npc-id-tag {
+    font-size: 7px;
+    top: 4px;
+    left: 4px;
+}
+
+.npc-view-container.view-sm .npc-status-bit {
+    font-size: 6px;
+    bottom: 4px;
+    right: 4px;
+    padding: 1px 2px;
+}
+
+/* Industrial Frame Corners */
+.npc-frame-corner {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border-color: #3d7a36;
+    border-style: solid;
+    z-index: 50;
+    opacity: 0.8;
+}
+
+.npc-frame-tl { top: 10px; left: 10px; border-width: 3px 0 0 3px; }
+.npc-frame-tr { top: 10px; right: 10px; border-width: 3px 3px 0 0; }
+.npc-frame-bl { bottom: 10px; left: 10px; border-width: 0 0 3px 3px; }
+.npc-frame-br { bottom: 10px; right: 10px; border-width: 0 3px 3px 0; }
+
+/* CRT Effects */
+.npc-crt-glass {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.4) 100%);
+    pointer-events: none;
+    z-index: 30;
+}
+
+.npc-scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15) 0px,
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+    z-index: 31;
+}
+
+.npc-vignette {
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 80px rgba(0,0,0,0.9);
+    pointer-events: none;
+    z-index: 32;
+}
+
+/* Dynamic Noise Overlay */
+.npc-noise-overlay {
+    position: absolute;
+    inset: -50%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3%3Ffilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.08;
+    pointer-events: none;
+    z-index: 33;
+    animation: noise-jitter 0.2s steps(2) infinite;
+}
+
+@keyframes noise-jitter {
+    0% { transform: translate(0,0); }
+    10% { transform: translate(-1%,-1%); }
+    20% { transform: translate(1%,1%); }
+    30% { transform: translate(-2%,1%); }
+    40% { transform: translate(2%,-1%); }
+    50% { transform: translate(-1%,2%); }
+    60% { transform: translate(1%,-2%); }
+    70% { transform: translate(-2%,-2%); }
+    80% { transform: translate(2%,2%); }
+    90% { transform: translate(-1%,-1%); }
+    100% { transform: translate(0,0); }
+}
+
+/* Glitch Layer */
+.npc-glitch-layer {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.02);
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 34;
+    opacity: 0;
+}
+
+.npc-infected-presence .npc-glitch-layer {
+    animation: npc-glitch-pulse 4s ease-in-out infinite;
+}
+
+@keyframes npc-glitch-pulse {
+    0%, 100% { opacity: 0; }
+    92% { opacity: 0; transform: scaleY(1); }
+    93% { opacity: 0.2; transform: scaleY(1.1) skewX(10deg); background: rgba(255, 0, 0, 0.1); }
+    94% { opacity: 0.1; transform: scaleY(0.9) skewX(-10deg); }
+    95% { opacity: 0; transform: scaleY(1); }
+}
+
+/* Content Wrapper */
+.npc-content-wrapper {
+    position: relative;
+    z-index: 10;
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+}
+
+.npc-view-container:hover .npc-content-wrapper {
+    transform: scale(1.15);
+}
+
+/* HUD Overlay */
+.npc-hud-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    font-family: var(--font-term);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.npc-id-tag {
+    font-size: 10px;
+    color: rgba(168, 213, 162, 0.4);
+    letter-spacing: 1px;
+    border-left: 2px solid rgba(168, 213, 162, 0.2);
+    padding-left: 5px;
+}
+
+.npc-status-bit {
+    align-self: flex-end;
+    font-size: 10px;
+    color: rgba(168, 213, 162, 0.4);
+    background: rgba(0,0,0,0.3);
+    padding: 2px 6px;
+    border: 1px solid rgba(168, 213, 162, 0.1);
+}
+
+.npc-infected-presence .npc-status-bit {
+    color: var(--color-alert);
+    border-color: rgba(255, 51, 51, 0.3);
+    animation: alert-blink 1s steps(2) infinite;
+}
+
+/* Infected State Tweaks */
+.npc-infected-presence {
+    border-color: rgba(255, 51, 51, 0.2);
+    box-shadow: inset 0 0 60px rgba(74, 14, 14, 0.4);
+}
+
+.npc-infected-presence .npc-frame-corner {
+    border-color: rgba(255, 51, 51, 0.4);
+}
+
+.npc-infected-presence .npc-crt-glass {
+    background: radial-gradient(circle at center, transparent 30%, rgba(74, 14, 14, 0.3) 100%);
+}
+
+/* Adjust pixel avatar inside container */
+.npc-view-container .pixel-avatar {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.npc-view-container .pixel-avatar.lg {
+    width: 180px;
+    height: 180px;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 640px) {
+    .npc-view-container {
+        width: 180px;
+        height: 180px;
+    }
+    .npc-view-container .pixel-avatar.lg {
+        width: 140px;
+        height: 140px;
+    }
 }
 
 .acc-glasses {
