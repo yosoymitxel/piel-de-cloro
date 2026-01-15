@@ -7,10 +7,10 @@ export class NPC {
         // Default: ~40% infectados (Math.random() > 0.6)
         // Sesgo configurable: usar infectedChance como probabilidad directa
         this.isInfected = infectedChance != null ? (Math.random() < infectedChance) : (Math.random() > 0.6);
-        
+
         // Género aleatorio (influye en nombres y avatar)
         this.gender = Math.random() > 0.5 ? 'male' : 'female';
-        
+
         this.name = this.generateName(this.gender);
         this.occupation = this.generateOccupation();
         this.attributes = this.generateAttributes(this.isInfected);
@@ -24,6 +24,16 @@ export class NPC {
         const set = selectDialogueSet({ personality: this.personality, infected: this.isInfected, isLore: this.isLore, loreId: this.loreId });
         this.conversation = new Conversation(this, set);
         this.dialogueTree = this.conversation.getRawTreeForCompatibility();
+
+        // Apply lore-specific overrides if this is a lore NPC
+        if (this.isLore && set && set.id) {
+            this.loreId = set.id;
+            this.applyUniqueNPCData(set.id, 'lore');
+        }
+
+        // Unique NPC metadata (generic system for special characters)
+        this.uniqueType = this.isLore ? 'lore' : null; // 'lore', 'vip', 'special', etc.
+        this.uniqueBadge = this.isLore ? { label: 'ANOMALÍA', color: 'alert', icon: 'fa-skull-crossbones' } : null;
 
         // Track scans
         this.scanCount = 0;
@@ -42,7 +52,7 @@ export class NPC {
             female: ['Noa', 'Elo', 'Sofía', 'Luna', 'Mía', 'Emma', 'Valeria', 'Camila', 'Renata', 'Elena', 'Alba', 'Julia', 'Sara', 'Clara', 'Nora', 'Olivia', 'Maya', 'Inés', 'Zoe', 'Lola']
         };
         const lasts = ['Maro', 'Sierra', 'Vega', 'Luz', 'Rojas', 'Sol', 'Mora', 'Rivera', 'Ortega', 'Campos', 'Valle', 'Cruz', 'Rey', 'Luna', 'Blanco', 'Guerra', 'Santos', 'Pons', 'Vidal', 'Bosc'];
-        
+
         const pick = arr => arr[Math.floor(Math.random() * arr.length)];
         return `${pick(names[gender])} ${pick(lasts)}`;
     }
@@ -60,23 +70,23 @@ export class NPC {
     getEpithet() {
         // Dynamic epithet based on infection or global paranoia
         const infectedEpithets = [
-            'Se lo ve con la piel pálida', 
-            'Ves que sus manos están sucias', 
+            'Se lo ve con la piel pálida',
+            'Ves que sus manos están sucias',
             'Tiene un tic constante en el ojo',
             'Despide un olor metálico'
         ];
         const paranoiaEpithets = [
-            'Ves que tiembla', 
-            'No está haciendo contacto visual', 
-            'Parece extremadamente nervioso', 
+            'Ves que tiembla',
+            'No está haciendo contacto visual',
+            'Parece extremadamente nervioso',
             'Suda ligeramente',
             'Habla entre dientes'
         ];
         const neutralEpithets = [
-            'Porta una ropa peculiar', 
-            'Está sin refugio', 
-            'Se encuentra de paso', 
-            'Tiene la mirada perdida', 
+            'Porta una ropa peculiar',
+            'Está sin refugio',
+            'Se encuentra de paso',
+            'Tiene la mirada perdida',
             'Lleva un accesorio llamativo',
             'Parece cansado del viaje'
         ];
@@ -138,8 +148,8 @@ export class NPC {
 
     pickPersonality() {
         const types = [
-            'nervous', 'aggressive', 'stoic', 'confused', 
-            'fanatic', 'paranoid', 'obsessive', 'manic', 
+            'nervous', 'aggressive', 'stoic', 'confused',
+            'fanatic', 'paranoid', 'obsessive', 'manic',
             'sick', 'body_horror'
         ];
         return types[Math.floor(Math.random() * types.length)];
@@ -157,6 +167,97 @@ export class NPC {
         // 70% chance of having a trait
         if (Math.random() > 0.7) return traits.find(t => t.id === 'none');
         return traits[Math.floor(Math.random() * (traits.length - 1))];
+    }
+
+    applyUniqueNPCData(id, type = 'lore') {
+        // Generic system for unique NPC overrides
+        // Can be extended for other types: 'vip', 'special', etc.
+        const uniqueNPCData = {
+            'lore_patient_zero': {
+                name: 'Dr. Vargas',
+                occupation: 'Científico (Expulsado)',
+                attributes: {
+                    temperature: '31.2',
+                    pulse: 12,
+                    skinTexture: 'translucent',
+                    pupils: 'dilated'
+                },
+                visual: {
+                    hair: 'wild',
+                    clothes: 'rags',
+                    accessory: 'none',
+                    eyeType: 'tired',
+                    mouthType: 'tight',
+                    skinColor: 'var(--avatar-skin-1)',
+                    facialHair: this.gender === 'male' ? 'stubble' : 'none'
+                }
+            },
+            'lore_kael': {
+                name: 'Kael',
+                occupation: 'Arquitectura Viva',
+                attributes: {
+                    temperature: '28.5',
+                    pulse: 8,
+                    skinTexture: 'metallic',
+                    pupils: 'narrow'
+                },
+                visual: {
+                    hair: 'short',
+                    clothes: 'worker',
+                    accessory: 'scar',
+                    eyeType: 'narrow',
+                    mouthType: 'tight',
+                    skinColor: 'var(--avatar-skin-3)',
+                    facialHair: this.gender === 'male' ? 'beard' : 'none'
+                }
+            },
+            'lore_hive': {
+                name: 'La Colmena',
+                occupation: 'Envase',
+                attributes: {
+                    temperature: '33.0',
+                    pulse: 15,
+                    skinTexture: 'moving',
+                    pupils: 'dilated'
+                },
+                visual: {
+                    hair: 'short',
+                    clothes: 'rags',
+                    accessory: 'none',
+                    eyeType: 'big',
+                    mouthType: 'open',
+                    skinColor: 'var(--avatar-skin-2)',
+                    facialHair: 'none'
+                }
+            },
+            'lore_archivist': {
+                name: 'El Archivista',
+                occupation: 'Escriba de Carne',
+                attributes: {
+                    temperature: '32.8',
+                    pulse: 18,
+                    skinTexture: 'scarred',
+                    pupils: 'normal'
+                },
+                visual: {
+                    hair: 'bald',
+                    clothes: 'scavenger',
+                    accessory: 'scar',
+                    eyeType: 'squint',
+                    mouthType: 'frown',
+                    skinColor: 'var(--avatar-skin-4)',
+                    facialHair: this.gender === 'male' ? 'stubble' : 'none'
+                }
+            }
+        };
+
+        const data = uniqueNPCData[id];
+        if (data) {
+            this.name = data.name;
+            this.occupation = data.occupation;
+            this.attributes = data.attributes;
+            Object.assign(this.visualFeatures, data.visual);
+        }
     }
 
     generateDialogueTree(infected, personality) {

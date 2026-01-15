@@ -20,10 +20,14 @@ export const State = {
         dayIntrusionIntervalMin: 1,
         dayIntrusionIntervalMax: 3,
         dayIntrusionProbability: 0.8,
+        dayIntrusionProbability: 0.8,
         dayIntrusionInfectedChance: 0.65,
         dayDeactivationProbability: 0.9,
         // Jugador infectado
         playerInfectedProbability: 0.15,
+        // Configuración Inicial (Dev/Difficulty)
+        initialSupplies: 15,
+        initialParanoia: 0,
         // Noche sin infectados: prob de muerte del guardia
         noInfectedGuardDeathChance: 0.05,
         // Generador
@@ -108,21 +112,31 @@ export const State = {
         chlorineSutil: '#3d7a36',
         chlorineDark: '#1b571b',
         alert: '#ff3333',
+        critical: '#ff0000', // Added
         safe: '#00FF00',
-        warning: '#ffcc66',
+        terminalGreen: '#00ff41', // Added
+        warning: '#ffcc66', // Used for mid-level alerts
+        orange: '#ff8c00', // Added
+        yellow: '#e2e254', // Added
+        textGreen: '#aaffaa', // Added
+        textRed: '#ffaaaa', // Added
+        textGray: '#cccccc', // Added
         energy: '#00FF00',
         save: '#00ced1',
         overload: '#ffaa00',
         off: '#333333',
-        offStatus: '#ff2b2b'
+        offStatus: '#ff2b2b',
+        blood: '#a83232', // Added
+        bgDark: '#0a0a0a', // Added
+        bgBlack: '#050505' // Added
     },
 
     updateParanoia(amount) {
         this.paranoia = Math.max(0, Math.min(100, this.paranoia + amount));
-        
+
         // La paranoia alta ya no drena la cordura directamente de forma lineal
         // sino que aumenta la dificultad de mantenerla (se gestiona en GameMechanicsManager)
-        
+
         if (typeof document !== 'undefined') {
             document.dispatchEvent(new CustomEvent('paranoia-updated', { detail: { value: this.paranoia } }));
         }
@@ -131,9 +145,9 @@ export const State = {
 
     updateSanity(amount) {
         // La cordura es más difícil de recuperar que la paranoia
-        const finalAmount = amount > 0 ? amount * 0.8 : amount; 
+        const finalAmount = amount > 0 ? amount * 0.8 : amount;
         this.sanity = Math.max(0, Math.min(100, this.sanity + finalAmount));
-        
+
         if (typeof document !== 'undefined') {
             document.dispatchEvent(new CustomEvent('sanity-updated', { detail: { value: this.sanity } }));
         }
@@ -176,14 +190,14 @@ export const State = {
         restartLock: false // Bloqueo tras reinicio
     },
     paused: false,
-    debug: false, // Cambiar a false para producción
+    debug: true, // Cambiar a false para producción
     gameLog: [], // Historial cronológico
     dialogueStarted: false,
 
     reset() {
-        this.paranoia = 0;
+        this.paranoia = this.config.initialParanoia || 0;
         this.sanity = 100;
-        this.supplies = 15;
+        this.supplies = this.config.initialSupplies || 15;
         this.cycle = 1;
         this.dayTime = 1;
         this.admittedNPCs = [];
@@ -218,7 +232,7 @@ export const State = {
         this.dialogueMemory = [];
         this.gameLog = [];
         this.addLogEntry('system', 'Sistema RUTA-01 inicializado. Ciclo 1.');
-        
+
         // NO RESETEAR: unlockedEndings ni audioSettings ya que son persistentes
     },
 
@@ -243,6 +257,9 @@ export const State = {
     },
 
     addPurged(npc) {
+        // Prevent duplicates
+        if (this.purgedNPCs.includes(npc)) return;
+
         // Remove from admitted if present
         const index = this.admittedNPCs.indexOf(npc);
         if (index > -1) {
@@ -287,7 +304,7 @@ export const State = {
 
         for (let i = 0; i < count; i++) {
             let t = types[Math.floor(Math.random() * types.length)];
-            
+
             // Garantizar solo 1 alarma
             if (t === 'alarma') {
                 if (alarmCount >= 1) {
@@ -381,16 +398,16 @@ export const State = {
         this.nightPurgePerformed = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
-        
+
         // Mantener el estado del generador (encendido/apagado) pero resetear flags temporales
         this.generator.blackoutUntil = 0;
         this.generator.emergencyEnergyGranted = false;
         this.generator.restartLock = false;
-        
+
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight.occurred = true;
         this.addLogEntry('system', `Inicio del Ciclo ${this.cycle}.`);
-        
+
         this.purgedNPCs.forEach(n => {
             if (n.death) n.death.revealed = true;
         });

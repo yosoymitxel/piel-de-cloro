@@ -3,7 +3,158 @@
    Estilos base para botones, paneles y elementos interactivos
    ========================================================================== */
 
-/* 1. BOTONES BASE: horror-tool-btn (Cian/Azul) */
+/* 1. COMPONENTES BASE (CORE UI) */
+
+/* 1.1 BOTONES BASE */
+.horror-btn {
+    font-family: var(--font-head);
+    text-transform: uppercase;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid var(--color-chlorine);
+    background: var(--color-dark);
+    color: var(--color-chlorine);
+    position: relative;
+    overflow: visible;
+    min-height: 44px;
+    /* Base height for standard buttons */
+    will-change: transform, box-shadow;
+    /* Jagged edges default */
+    clip-path: polygon(2% 0, 100% 0, 100% 90%, 98% 100%, 0 100%, 0 10%);
+}
+
+.horror-btn:hover {
+    background: var(--color-chlorine);
+    color: var(--color-dark);
+    box-shadow: 0 0 10px var(--color-chlorine);
+    transform: translate(-1px, -1px);
+    outline: none;
+}
+
+.horror-btn:active {
+    transform: translate(1px, 1px);
+}
+
+.horror-btn:focus-visible {
+    box-shadow: 0 0 0 3px rgba(168, 213, 162, 0.5);
+}
+
+.horror-btn.rounded-full {
+    clip-path: none;
+}
+
+.horror-btn.btn-disabled,
+.horror-btn:disabled {
+    opacity: 0.3;
+    pointer-events: none;
+    filter: grayscale(100%);
+    border-color: #333;
+    cursor: not-allowed;
+}
+
+/* Interactive Effects */
+.btn-interactive {
+    min-width: 150px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    will-change: transform, box-shadow, filter;
+}
+
+.btn-interactive:hover {
+    transform: translate(-1px, -1px) scale(1.03);
+    box-shadow: 0 0 14px rgba(0, 255, 0, 0.2);
+    filter: brightness(1.05);
+}
+
+.btn-click-flash {
+    animation: btnFlash 220ms ease-in-out;
+}
+
+@keyframes btnFlash {
+    0% {
+        box-shadow: 0 0 0 rgba(0, 255, 0, 0.0);
+    }
+
+    50% {
+        box-shadow: 0 0 14px rgba(0, 255, 0, 0.35);
+    }
+
+    100% {
+        box-shadow: 0 0 0 rgba(0, 255, 0, 0.0);
+    }
+}
+
+/* 1.2 VARIABLES DE GENERADOR & ESTADOS */
+.horror-btn-primary {
+    background: var(--color-chlorine);
+    color: var(--color-dark);
+    border-color: var(--color-chlorine-light);
+}
+
+.horror-btn-primary:hover {
+    background: var(--color-chlorine-light);
+    box-shadow: 0 0 15px var(--color-chlorine-light);
+}
+
+.btn-on {
+    background: #00FF00 !important;
+    color: #000 !important;
+    border-color: #aaffaa !important;
+    box-shadow: 0 0 12px #00FF00aa;
+}
+
+.btn-off {
+    background: #ff2b2b !important;
+    color: #000 !important;
+    border-color: #ff6666 !important;
+    box-shadow: 0 0 12px #ff2b2baa;
+}
+
+/* Generator Active States */
+.horror-btn-save-active {
+    background: #008b8b !important;
+    color: #fff !important;
+    border-color: #00ced1 !important;
+    box-shadow: 0 0 15px #008b8b;
+}
+
+.horror-btn-normal-active {
+    background: var(--color-chlorine) !important;
+    color: var(--color-dark) !important;
+    border-color: var(--color-chlorine-light) !important;
+    box-shadow: 0 0 15px var(--color-chlorine);
+}
+
+.horror-btn-overload-active {
+    background: #ffaa00 !important;
+    color: #000 !important;
+    border-color: #ffcc00 !important;
+    box-shadow: 0 0 15px #ffaa00;
+}
+
+.horror-btn-warning {
+    border-color: var(--color-warning);
+    color: var(--color-warning);
+}
+
+.horror-btn-warning:hover {
+    background: var(--color-warning);
+    color: var(--color-dark);
+    box-shadow: 0 0 10px var(--color-warning);
+}
+
+.horror-btn-alert {
+    border-color: var(--color-alert);
+    color: var(--color-alert);
+}
+
+.horror-btn-alert:hover {
+    background: var(--color-alert);
+    color: var(--color-dark);
+    box-shadow: 0 0 10px var(--color-alert);
+}
+
+/* 1.3 TOOLS */
 .horror-tool-btn {
     border: 1px solid var(--color-save);
     color: var(--color-save);
@@ -35,7 +186,12 @@
     padding: 1rem;
     font-size: 1.1rem;
     letter-spacing: 0.05em;
-    min-height: 60px;
+    height: 70px;
+    /* Enforce 70px to match RetroLayout */
+    flex: 1;
+    /* Ensure equal width distribution */
+    min-width: 0;
+    /* Prevent overflow */
 }
 
 .horror-tool-btn--main i {
@@ -48,7 +204,6 @@
     font-size: 0.95rem;
     width: 100%;
     justify-content: flex-start;
-    margin-bottom: 0.5rem;
 }
 
 .horror-tool-btn--dialogue i {
@@ -68,7 +223,7 @@
     font-size: 1.2rem;
 }
 
-/* 2. BOTONES DE DIÁLOGO Y ACCIÓN */
+/* 2. BOTONES DE DIÁLOGO (Unificados) */
 .btn-action-lg {
     flex-grow: 1;
     padding: 1rem;
@@ -77,18 +232,41 @@
 }
 
 .horror-btn-dialogue {
-    border: 1px solid var(--color-chlorine);
-    color: var(--color-chlorine);
-    background: rgba(0, 0, 0, 0.6);
+    /* Base overrides over normal horror-btn */
+    background: #111;
+    border: 1px solid #333;
+    color: #aaa;
     font-family: var(--font-term);
+    /* Consistency with game style */
+    padding: 8px 15px;
+    /* STRICT PADDING to prevent huge buttons */
+    min-height: auto;
+    /* STRICT RESET: Do not force 44px height */
+
     transition: all 0.2s ease;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 1px;
+    clip-path: none;
+    /* Dialog options usually rectangular or custom list style */
+    display: block;
+    /* Typically block in a list */
+    width: 100%;
+    /* Typically full width in list */
+    text-align: left;
 }
 
 .horror-btn-dialogue:hover {
-    background: var(--color-chlorine-light);
-    color: var(--color-black);
+    background: #222;
+    border-color: var(--color-chlorine);
+    color: #fff;
     transform: translateX(4px);
     box-shadow: 0 0 10px rgba(168, 213, 162, 0.3);
+}
+
+.horror-btn-dialogue:focus {
+    outline: none;
+    border-color: var(--color-chlorine-light);
 }
 
 /* Variantes de Diálogo */
@@ -123,13 +301,13 @@
 }
 
 .horror-btn-dismiss {
-    border-color: #7a5a1a;
-    color: #ffcc66;
+    border-color: #7a5a1a !important;
+    color: #ffcc66 !important;
 }
 
 .horror-btn-dismiss:hover {
-    background: #7a5a1a;
-    color: #000;
+    background: #7a5a1a !important;
+    color: #000 !important;
 }
 
 .horror-btn-dialogue.option-omit {
@@ -150,7 +328,8 @@
 .system-status-bar {
     border: 1px solid #4a4a4a;
     background: rgba(20, 20, 20, 0.8);
-    color: #8a7a5a; /* Dull gold/brown for system messages */
+    color: #8a7a5a;
+    /* Dull gold/brown for system messages */
     font-family: var(--font-term);
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -469,18 +648,35 @@
 
 /* 8. EFECTOS ESPECIALES Y ANIMACIONES */
 .glitch-text {
-    animation: glitch-skew 0.3s cubic-bezier(.25,.46,.45,.94) infinite;
+    animation: glitch-skew 0.3s cubic-bezier(.25, .46, .45, .94) infinite;
     color: #ff3333 !important;
     text-shadow: 2px 0 #00ffff, -2px 0 #ff00ff;
 }
 
 @keyframes glitch-skew {
-    0% { transform: skew(0deg); }
-    20% { transform: skew(3deg); }
-    40% { transform: skew(-3deg); }
-    60% { transform: skew(1deg); }
-    80% { transform: skew(-1deg); }
-    100% { transform: skew(0deg); }
+    0% {
+        transform: skew(0deg);
+    }
+
+    20% {
+        transform: skew(3deg);
+    }
+
+    40% {
+        transform: skew(-3deg);
+    }
+
+    60% {
+        transform: skew(1deg);
+    }
+
+    80% {
+        transform: skew(-1deg);
+    }
+
+    100% {
+        transform: skew(0deg);
+    }
 }
 
 @keyframes buttonSlideIn {
@@ -488,6 +684,7 @@
         opacity: 0;
         transform: translateY(10px);
     }
+
     100% {
         opacity: 1;
         transform: translateY(0);
@@ -503,6 +700,7 @@
         opacity: 0;
         transform: translateX(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -541,6 +739,24 @@
     border-color: var(--color-chlorine);
     box-shadow: 0 0 10px rgba(45, 90, 39, 0.3);
     outline: none;
+}
+
+.settings-input-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+    height: 30px;
+    font-family: var(--font-mono);
+    border: 1px solid rgba(255, 50, 50, 0.3);
+    background: rgba(50, 0, 0, 0.3);
+    color: #ffaAAA;
+    transition: all 0.2s ease;
+}
+
+.settings-input-small:focus {
+    border-color: #ff3333;
+    background: rgba(50, 0, 0, 0.6);
+    outline: none;
+    box-shadow: 0 0 5px rgba(255, 50, 50, 0.4);
 }
 
 /* Horror Range Input */

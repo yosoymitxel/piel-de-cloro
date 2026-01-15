@@ -14,7 +14,7 @@ export class LoreManager {
         };
     }
 
-    showLore(type, onClose) {
+    showLore(type, onClose, options = {}) {
         const data = LoreData[type];
         if (!data && type !== 'intermediate') return;
 
@@ -44,6 +44,18 @@ export class LoreManager {
         } else {
             titleText = data.title;
             contentHtml = data.content;
+
+            // Reemplazar variables dinámicas (como {loreName})
+            if (options.loreName) {
+                contentHtml = contentHtml.replace(/{loreName}/g, options.loreName);
+            } else if (this.ui.game && this.ui.game.endings && this.ui.game.endings.loreNPCName) {
+                // Fallback a endings manager
+                contentHtml = contentHtml.replace(/{loreName}/g, this.ui.game.endings.loreNPCName);
+            }
+
+            // Convertir saltos de línea en <br> para renderizado HTML
+            contentHtml = contentHtml.replace(/\n/g, '<br>');
+
             audioKey = data.audio;
             sfxKey = data.sfx;
             isDanger = data.type === 'danger';
@@ -122,7 +134,7 @@ export class LoreManager {
         };
         const key = audioMap[kind];
         if (key) {
-            this.audio.playLoreByKey(key, { loop: false, volume: 0.22, crossfade: 500 });
+            this.audio.playLoreByKey(key, { loop: true, volume: 0.22, crossfade: 1000 });
         }
     }
 }

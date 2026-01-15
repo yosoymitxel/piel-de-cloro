@@ -1,3 +1,5 @@
+import { State } from './State.js';
+
 export class GeneratorManager {
     constructor(uiManager, audioManager, game = null) {
         this.ui = uiManager;
@@ -18,7 +20,7 @@ export class GeneratorManager {
         // Update warnings immediately
         if (this.elements.genWarningGame) this.elements.genWarningGame.addClass('hidden');
         if (this.elements.genWarningShelter) this.elements.genWarningShelter.addClass('hidden');
-        
+
         // El panel de advertencia ahora tiene un estilo CRT
         const warningPanel = $('#generator-warning-panel');
         if (warningPanel.length) {
@@ -44,14 +46,14 @@ export class GeneratorManager {
 
         let statusText = state.generator.isOn ? `MODE_${state.generator.mode.toUpperCase()}` : 'SYSTEM_OFF';
         modeLabel.text(statusText);
-        
+
         // Color mapping for modes
         let color = '#666';
         if (state.generator.isOn) {
             switch (state.generator.mode) {
-                case 'save': color = '#00ced1'; break;
-                case 'normal': color = '#00ff41'; break;
-                case 'overload': color = '#ffaa00'; break;
+                case 'save': color = State.colors.save; break;
+                case 'normal': color = State.colors.terminalGreen; break;
+                case 'overload': color = State.colors.overload; break;
             }
         }
         modeLabel.css('color', color);
@@ -61,7 +63,7 @@ export class GeneratorManager {
         this.updateStatusSummary(state);
         this.setupModeButtons(state);
         this.setupToggleEvent(state);
-        
+
         // Sincronizar estado del cristal
         const glassCover = $('#gen-glass-cover');
         if (state.generator.isOn) {
@@ -99,12 +101,12 @@ export class GeneratorManager {
 
         // Power 0-100 mapped to -90 to 90 degrees
         const degrees = (power * 1.8) - 90;
-        
+
         if (isOn) {
             needle.css('transform', `rotate(${degrees}deg)`);
             needle.css('--deg', `${degrees}deg`);
-            needle.css('stroke', power > 80 ? '#ff3333' : '#00ff41');
-            
+            needle.css('stroke', power > 80 ? State.colors.alert : State.colors.terminalGreen);
+
             // Temblor en zona roja o sobrecarga
             if (power > 85) {
                 // Delay adding the trembling class to allow the transition to complete
@@ -131,7 +133,7 @@ export class GeneratorManager {
     updateScreenEffects(state) {
         const monitor = $('.crt-monitor');
         const isOverload = state.generator.isOn && state.generator.mode === 'overload';
-        
+
         if (isOverload) {
             monitor.addClass('overload-vibration overload-tint');
         } else {
@@ -168,7 +170,7 @@ export class GeneratorManager {
             const game = this.game || window.game;
             if (game && game.mechanics && typeof game.mechanics.toggleGenerator === 'function') {
                 game.mechanics.toggleGenerator();
-                
+
                 // Audio mecánico
                 if (this.audio) {
                     this.audio.playSFXByKey(state.generator.isOn ? 'ui_button_click' : 'glitch_low', { volume: 0.6 });
@@ -217,15 +219,15 @@ export class GeneratorManager {
             // Trigger level change animation with more robustness
             const monitor = $('.crt-monitor');
             monitor.removeClass('glitch-level-change');
-            
+
             // Clear any existing timeout to avoid premature removal
             if (this._glitchTimeout) clearTimeout(this._glitchTimeout);
-            
+
             // Force reflow and restart animation
             requestAnimationFrame(() => {
                 monitor.each((i, el) => void el.offsetWidth);
                 monitor.addClass('glitch-level-change');
-                
+
                 this._glitchTimeout = setTimeout(() => {
                     monitor.removeClass('glitch-level-change');
                     this._glitchTimeout = null;

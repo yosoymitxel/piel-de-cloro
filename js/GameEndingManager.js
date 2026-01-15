@@ -8,7 +8,7 @@ export class GameEndingManager {
         this.audio = game.audio;
     }
 
-    triggerEnding(endingId) {
+    triggerEnding(endingId, loreName = null) {
         // Bloquear cualquier otra acción
         this.game.isAnimating = true;
         State.endingTriggered = true;
@@ -24,9 +24,14 @@ export class GameEndingManager {
         State.unlockEnding(endingId);
         this.game.lastEndingId = endingId;
 
+        // Store lore NPC name if applicable
+        if (loreName) {
+            this.loreNPCName = loreName;
+        }
+
         // Si es un final de peligro, añadir efecto visual
         const isDanger = endingId.includes('death') || endingId.includes('corrupted') || endingId.includes('off') || endingId.includes('abandonment');
-        
+
         if (isDanger) {
             this.audio.playSFXByKey('glitch_burst', { volume: 0.8 });
             if (this.ui.applyVHS) this.ui.applyVHS(1.0, 2000);
@@ -35,7 +40,7 @@ export class GameEndingManager {
         // Animación de cierre de sistema antes de mostrar el lore
         const protocolOptions = {
             title: isDanger ? 'FALLO CRÍTICO' : 'TURNO FINALIZADO',
-            statusUpdates: isDanger 
+            statusUpdates: isDanger
                 ? ['CORRUPCIÓN DETECTADA...', 'FALLO DE INTEGRIDAD...', 'SISTEMA COMPROMETIDO.']
                 : ['GUARDANDO REGISTROS...', 'CERRANDO TERMINAL...', 'SESIÓN FINALIZADA.'],
             sfx: isDanger ? 'alarm_activate' : 'purge_confirm',
@@ -45,7 +50,7 @@ export class GameEndingManager {
                 this.ui.showLore('post_final', () => {
                     this.ui.showLore(endingId, () => {
                         this.endGame();
-                    });
+                    }, { loreName: this.loreNPCName });
                 });
             }
         };
@@ -55,7 +60,7 @@ export class GameEndingManager {
 
     endGame() {
         this.audio.stopAmbient({ fadeOut: 1000 });
-        
+
         const renderFn = () => {
             if (typeof this.ui.renderFinalStats === 'function') {
                 this.ui.renderFinalStats(State, this.game.lastEndingId);

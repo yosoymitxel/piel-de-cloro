@@ -293,7 +293,7 @@ export class UIManager {
                     $btnScale.removeClass('text-chlorine-light border-white/20').addClass('border-white/10');
                     $(`.btn-scale[data-scale="${scale}"]`).addClass('text-chlorine-light border-white/20').removeClass('border-white/10');
                 }
-                
+
                 const $body = $('body');
                 if ($body.length) $body.toggleClass('is-full-ui', scale === 'full');
             }
@@ -447,15 +447,15 @@ export class UIManager {
 
         this.elements.dbNavBtns.on('click', (e) => {
             const target = $(e.currentTarget).data('target');
-            
+
             // UI Update
             this.elements.dbNavBtns.removeClass('active');
             $(e.currentTarget).addClass('active');
-            
+
             // Content Update
             this.elements.dbSections.addClass('hidden');
             $(`#${target}`).removeClass('hidden');
-            
+
             if (this.audio) this.audio.playSFXByKey('ui_hover', { volume: 0.2 });
         });
     }
@@ -466,7 +466,7 @@ export class UIManager {
         const allEndings = Object.keys(LoreData).filter(key => key.startsWith('final_'));
         // Asegurar que solo mostramos finales únicos y válidos
         const uniqueUnlocked = Array.from(new Set((State.unlockedEndings || []).filter(key => allEndings.includes(key))));
-        
+
         // Actualizar contador en el header del modal si existe un lugar
         const titleEl = this.elements.modalEndings.find('h3');
         titleEl.html(`Base de Datos: Finales Recuperados <span class="text-xs ml-2 opacity-50">(${uniqueUnlocked.length}/${allEndings.length})</span>`);
@@ -483,7 +483,7 @@ export class UIManager {
         } else {
             // Ordenar por ID para que sea consistente
             const sortedUnlocked = [...uniqueUnlocked].sort();
-            
+
             sortedUnlocked.forEach((id, index) => {
                 const lore = LoreData[id];
                 if (!lore) return;
@@ -542,7 +542,7 @@ export class UIManager {
         const progressBar = overlay.find('.purge-progress-bar');
         const statusText = overlay.find('#purge-status-text');
         const titleEl = overlay.find('.purge-glitch-text');
-        
+
         if (!overlay.length) {
             if (onComplete) onComplete();
             return;
@@ -562,24 +562,24 @@ export class UIManager {
             'opacity': '1',
             'z-index': '9999'
         });
-        
+
         progressBar.css('width', '0%');
         statusText.text('INICIANDO...').removeClass('animate-pulse');
-        
+
         if (this.audio) {
-            this.audio.playSFXByKey(sfx, { volume: 0.6, priority: 2 });
+            this.audio.playSFXByKey(sfx, { volume: 0.6, priority: 2, overlap: true }); // Allow overlap so clicks don't cut it
         }
 
         this.purgeTimers = this.purgeTimers || [];
-        
+
         // Animación más rápida (tiempos reducidos a la mitad)
         this.purgeTimers.push(setTimeout(() => {
             progressBar.css('width', '100%');
-            
+
             statusUpdates.forEach((text, i) => {
                 this.purgeTimers.push(setTimeout(() => {
                     statusText.text(text).addClass('animate-pulse');
-                    if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.2 });
+                    if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.2, overlap: true });
                 }, i * 175));
             });
 
@@ -620,15 +620,15 @@ export class UIManager {
 
     applySanityEffects(sanity) {
         const intensity = (40 - sanity) / 40; // 0 a 1 (empieza a los 40)
-        
+
         if (Math.random() < intensity * 0.15) {
             const hue = Math.random() * (30 * intensity) - (15 * intensity);
             const saturate = 1 + (Math.random() * intensity);
             const contrast = 1 + (Math.random() * intensity * 0.5);
             const blur = intensity > 0.6 ? `blur(${intensity * 0.5}px)` : '';
-            
+
             $('body').css('filter', `hue-rotate(${hue}deg) saturate(${saturate}) contrast(${contrast}) ${blur}`);
-            
+
             // Glitch auditivo ocasional si hay AudioManager
             if (this.audio && Math.random() < 0.1) {
                 this.audio.playSFXByKey('glitch_burst', { volume: 0.15 * intensity });
@@ -662,7 +662,7 @@ export class UIManager {
         // MECÁNICA CORDURA: Interfaz mentirosa
         // Si la cordura es baja, los valores del HUD pueden fluctuar erróneamente
         const isHallucinatingUI = sanity < 30 && Math.random() < 0.2;
-        
+
         let displayParanoia = paranoia;
         let displaySanity = sanity;
         let displaySupplies = supplies !== undefined ? supplies : State.supplies;
@@ -672,11 +672,11 @@ export class UIManager {
             displayParanoia = Math.min(100, paranoia + (Math.random() > 0.5 ? 20 : -20));
             displaySanity = Math.max(0, sanity + (Math.random() > 0.5 ? 15 : -15));
             displaySupplies = Math.max(0, displaySupplies + (Math.random() > 0.5 ? 2 : -2));
-            
+
             // Efecto visual de glitch en el texto
             this.elements.paranoia.addClass('glitch-text');
             if (this.elements.sanity) this.elements.sanity.addClass('glitch-text');
-            
+
             setTimeout(() => {
                 this.elements.paranoia.removeClass('glitch-text');
                 if (this.elements.sanity) this.elements.sanity.removeClass('glitch-text');
@@ -719,22 +719,22 @@ export class UIManager {
 
         // Actualizar colores de paranoia (texto e icono)
         const paranoiaIcon = this.elements.paranoia.parent().find('i.fa-brain');
-        let paranoiaColor = '#a8d5a2'; // Default: chlorine-light
+        let paranoiaColor = this.colors.chlorineLight; // Default: chlorine-light
 
         if (paranoia >= 100) {
-            paranoiaColor = '#ff0000';
+            paranoiaColor = this.colors.critical;
             this.elements.paranoia.addClass('animate-pulse');
             paranoiaIcon.addClass('animate-pulse');
         } else if (paranoia > 75) {
-            paranoiaColor = '#ff3333'; // Alert red
+            paranoiaColor = this.colors.alert; // Alert red
             this.elements.paranoia.removeClass('animate-pulse');
             paranoiaIcon.removeClass('animate-pulse');
         } else if (paranoia > 50) {
-            paranoiaColor = '#ff8c00'; // Orange
+            paranoiaColor = this.colors.orange; // Orange
             this.elements.paranoia.removeClass('animate-pulse');
             paranoiaIcon.removeClass('animate-pulse');
         } else if (paranoia > 25) {
-            paranoiaColor = '#e2e254'; // Yellowish
+            paranoiaColor = this.colors.yellow; // Yellowish
             this.elements.paranoia.removeClass('animate-pulse');
             paranoiaIcon.removeClass('animate-pulse');
         } else {
@@ -744,7 +744,7 @@ export class UIManager {
 
         this.elements.paranoia.css('color', paranoiaColor);
         paranoiaIcon.css('color', paranoiaColor);
-        
+
         // Aplicar color al texto de diálogo si existe
         if (this.elements.dialogue) {
             this.elements.dialogue.css('--paranoia-color', paranoiaColor);
@@ -752,7 +752,7 @@ export class UIManager {
             // También al nombre del NPC para que todo el bloque de diálogo se sienta "contaminado"
             this.elements.dialogue.find('.npc-name').css('color', paranoiaColor);
         }
-        
+
         // Brillo sutil si la paranoia es alta
         if (paranoia > 50) {
             this.elements.paranoia.css('text-shadow', `0 0 8px ${paranoiaColor}`);
@@ -772,7 +772,7 @@ export class UIManager {
         this.updateGeneratorNavStatus();
         const energySpan = $('#scan-energy');
         const energyIcon = $('#hud-energy-container i');
-        
+
         if (currentNPC) {
             // Definir límite máximo según modo
             const mode = State.generator.mode;
@@ -876,7 +876,7 @@ export class UIManager {
                         <i class="fa-solid fa-check mr-2"></i> ADMITIR
                     </button>
                 </div>`;
-            
+
             const ignoreBtn = `
                 <div class="tool-wrapper col-span-2">
                     <button id="btn-ignore" class="horror-btn-ignore horror-tool-btn--main btn-interactive w-full py-4">
@@ -888,7 +888,7 @@ export class UIManager {
             this.elements.inspectionToolsContainer
                 .removeClass('flex flex-col grid-cols-1 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 lg:grid-cols-6')
                 .addClass('grid grid-cols-4');
-            
+
             this.elements.inspectionToolsContainer.html(`
                 <button id="btn-goto-generator" class="col-span-4 horror-btn horror-btn-alert w-full p-4 text-lg flex items-center justify-center gap-3 animate-pulse mb-2">
                     <i class="fa-solid fa-bolt"></i>
@@ -920,7 +920,7 @@ export class UIManager {
                     <i class="fa-solid fa-check mr-2"></i> ADMITIR
                 </button>
             </div>`;
-        
+
         const ignoreBtn = `
             <div class="tool-wrapper col-span-2">
                 <button id="btn-ignore" class="horror-btn-ignore horror-tool-btn--main btn-interactive w-full py-4">
@@ -933,7 +933,7 @@ export class UIManager {
             this.elements.inspectionToolsContainer
                 .removeClass('flex flex-col grid-cols-1 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 lg:grid-cols-6')
                 .addClass('grid grid-cols-4');
-            
+
             this.elements.inspectionToolsContainer.html(`
                 <div class="col-span-4 system-status-bar w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed mb-2">
                     <i class="fa-solid fa-comment-slash mr-2"></i>
@@ -948,7 +948,7 @@ export class UIManager {
             this.elements.inspectionToolsContainer
                 .removeClass('flex flex-col grid-cols-1 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 lg:grid-cols-6')
                 .addClass('grid grid-cols-4');
-            
+
             this.elements.inspectionToolsContainer.html(`
                 <div class="col-span-4 system-status-bar w-full p-4 text-center opacity-70 cursor-not-allowed border-dashed mb-2">
                     <i class="fa-solid fa-battery-empty mr-2"></i>
@@ -1004,14 +1004,14 @@ export class UIManager {
                 ${admitBtn}
                 ${ignoreBtn}
             `);
-            
+
             // Forzar layout de grid y gap
             this.elements.inspectionToolsContainer.css({
                 'display': 'grid',
                 'grid-template-columns': 'repeat(4, minmax(0, 1fr))',
                 'gap': '0.75rem'
             });
-            
+
             this.refreshToolsReferences();
         }
     }
@@ -1029,7 +1029,7 @@ export class UIManager {
         if (events && typeof events.bindInspectionTools === 'function') {
             events.bindInspectionTools();
         }
-        
+
         // Los botones de admitir/ignorar se manejan vía delegación en GameEventManager.js
         // para evitar ejecuciones duplicadas y problemas con la recreación de elementos.
     }
@@ -1039,7 +1039,7 @@ export class UIManager {
         this.closeModal(true);
         this.closeRelocationModal();
         if (this.elements.modalTutorial) this.elements.modalTutorial.addClass('hidden').removeClass('flex');
-        
+
         // Resetear navegación de base de datos
         this.elements.dbNavBtns.removeClass('active');
         this.elements.dbNavBtns.first().addClass('active');
@@ -1056,7 +1056,7 @@ export class UIManager {
         if (this.elements.morgueGridEscaped) this.elements.morgueGridEscaped.empty();
         if (this.elements.morgueGridNight) this.elements.morgueGridNight.empty();
         if (this.elements.securityGrid) this.elements.securityGrid.empty();
-        
+
         // Resetear contadores de UI
         if (this.elements.shelterCount) this.elements.shelterCount.text('0/0');
         if (this.elements.securityCount) this.elements.securityCount.text('0');
@@ -1067,26 +1067,26 @@ export class UIManager {
         // Resetear estados visuales de navegación
         this.clearAllNavStatuses();
         this.updateSecurityNavStatus([]);
-        
+
         // Resetear HUD a valores iniciales (usando State ya reseteado)
         this.updateStats(
-            State.paranoia, 
-            State.sanity, 
-            State.cycle, 
-            State.dayTime, 
-            State.config.dayLength, 
-            null, 
+            State.paranoia,
+            State.sanity,
+            State.cycle,
+            State.dayTime,
+            State.config.dayLength,
+            null,
             State.supplies
         );
-        
+
         // Resetear herramientas
         this.updateInspectionTools(null);
-        
+
         // Quitar filtros globales y efectos
         $('body').css('filter', 'none');
         $('.vhs-target').removeClass('vhs-active');
         $('#screen-game').removeClass('is-paused');
-        
+
         // Resetear feedback
         this.hideFeedback();
     }
@@ -1094,7 +1094,7 @@ export class UIManager {
     renderNPC(npc) {
         // Update action buttons and tools based on generator status
         this.updateGameActions();
-        
+
         // Limpiamos el estado visual de herramientas antes de renderizar
         if (this.elements.inspectionToolsContainer) {
             this.elements.inspectionToolsContainer.css('opacity', '0').html('');
@@ -1106,7 +1106,7 @@ export class UIManager {
         // Reset Visuals
         this.elements.npcDisplay.css({ transform: 'none', filter: 'none' });
         this.elements.npcDisplay.empty().removeClass('glitch-fade');
-        
+
         // Trigger small glitch-fade animation for NPC change
         setTimeout(() => {
             this.elements.npcDisplay.addClass('glitch-fade');
@@ -1120,7 +1120,9 @@ export class UIManager {
         if (npc.history && npc.history.length === 0 && npc.conversation) {
             const initialNode = npc.conversation.getCurrentNode();
             if (initialNode) {
-                npc.history.push({ speaker: 'npc', text: initialNode.text });
+                // Filtrar acciones (*texto*) para el historial inicial
+                const cleanText = initialNode.text.replace(/\*.*?\*/g, '').trim();
+                if (cleanText) npc.history.push({ speaker: 'npc', text: cleanText });
             }
         }
         this.updateDialogueBox(npc);
@@ -1135,7 +1137,7 @@ export class UIManager {
 
     updateDialogueBox(npc) {
         if (!npc || !npc.conversation) return;
-        
+
         // Reset tools animation flag if it's a completely new NPC interaction (no history)
         if (npc.history && npc.history.length === 0) {
             npc._toolsAnimated = false;
@@ -1152,10 +1154,10 @@ export class UIManager {
 
         const nameHtml = `<span class="npc-name font-bold text-chlorine">${baseName}</span>`;
         this.elements.dialogue.html(`${nameHtml} <span class="npc-text"></span>`);
-        
+
         // Re-aplicar colores de paranoia al nuevo contenido del diálogo
         this.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
-        
+
         const textEl = this.elements.dialogue.find('.npc-text');
         this.elements.dialogueOptions.empty();
 
@@ -1189,7 +1191,12 @@ export class UIManager {
 
         // Play node audio on enter
         if (convNode && convNode.audio && this.audio) {
-            this.audio.playSFXByKey(convNode.audio, { volume: 0.5 });
+            if (convNode.audio.startsWith('lore_')) {
+                // Play as music (lore channel) with loop and fade
+                this.audio.playLoreByKey(convNode.audio, { loop: true, volume: 0.25, crossfade: 1000 });
+            } else {
+                this.audio.playSFXByKey(convNode.audio, { volume: 0.5 });
+            }
         }
 
         // Ocultar herramientas inicialmente para sincronizar (si el generador está OK)
@@ -1234,23 +1241,43 @@ export class UIManager {
         // Build option buttons
         if (convNode && convNode.options && convNode.options.length) {
             const optionsCount = convNode.options.length;
-            this.elements.dialogueOptions.removeClass('grid-cols-1 grid-cols-2');
-            
-            if (optionsCount === 2) {
+
+            // Pre-calculate if any option is a tooltip (interaction)
+            const hasTooltip = convNode.options.some(opt => {
+                const label = (opt.label || '').toLowerCase();
+                const fnName = opt.onclick ? opt.onclick.name : '';
+                return opt.onclick && (
+                    fnName.includes('test') ||
+                    label.includes('analizar') ||
+                    label.includes('termómetro') ||
+                    label.includes('pulso') ||
+                    label.includes('pupilas') ||
+                    label.includes('uv')
+                );
+            });
+
+            // Layout rules: 
+            // - If only 1 option, or if ANY option is a tooltip, use a full-width column layout.
+            // - Otherwise, if exactly 2 options, use the 2-column grid.
+            const forceFullWidth = optionsCount === 1 || hasTooltip;
+
+            this.elements.dialogueOptions.removeClass('grid grid-cols-1 grid-cols-2 flex flex-col gap-2');
+
+            if (optionsCount === 2 && !forceFullWidth) {
                 this.elements.dialogueOptions.addClass('grid grid-cols-2 gap-2');
             } else {
-                this.elements.dialogueOptions.addClass('flex flex-col gap-2');
+                this.elements.dialogueOptions.addClass('grid grid-cols-1 gap-2');
             }
 
             convNode.options.forEach((opt, idx) => {
                 const label = opt.label.toLowerCase();
                 const fnName = opt.onclick ? opt.onclick.name : '';
-                
+
                 // Determinar si es un botón de tooltip (inspección)
                 const isTooltip = opt.onclick && (
-                    fnName === 'testUV' || 
-                    fnName === 'testThermo' || 
-                    fnName === 'testPulse' || 
+                    fnName === 'testUV' ||
+                    fnName === 'testThermo' ||
+                    fnName === 'testPulse' ||
                     fnName === 'testPupils' ||
                     fnName === 'test' ||
                     label.includes('analizar') ||
@@ -1262,8 +1289,8 @@ export class UIManager {
 
                 const tooltipIcon = isTooltip ? (
                     (fnName === 'testThermo' || label.includes('termómetro')) ? 'fa-temperature-half' :
-                    (fnName === 'testPulse' || label.includes('pulso')) ? 'fa-heart-pulse' :
-                    (fnName === 'testPupils' || label.includes('pupilas')) ? 'fa-eye' : 'fa-lightbulb'
+                        (fnName === 'testPulse' || label.includes('pulso')) ? 'fa-heart-pulse' :
+                            (fnName === 'testPupils' || label.includes('pupilas')) ? 'fa-eye' : 'fa-lightbulb'
                 ) : null;
 
                 // Asignar clases automáticas según la acción para restaurar estilos perdidos
@@ -1276,8 +1303,11 @@ export class UIManager {
                     else if (isTooltip || fnName.includes('test') || label.includes('analizar')) autoClass = 'horror-btn-analyze';
                 }
 
+                // If forceFullWidth is active, every item gets col-span-2 to ensure layering on the grid
+                const spanClass = forceFullWidth ? 'col-span-2' : '';
+
                 const btn = $('<button>', {
-                    class: `${isTooltip ? 'horror-tool-btn horror-tool-btn--dialogue' : 'horror-btn-dialogue'} ${opt.cssClass || ''} ${autoClass} animate-dialogue-in w-full`,
+                    class: `${isTooltip ? 'horror-tool-btn horror-tool-btn--dialogue' : 'horror-btn-dialogue'} ${opt.cssClass || ''} ${autoClass} animate-dialogue-in w-full ${spanClass}`,
                     html: `${tooltipIcon ? `<i class="fa-solid ${tooltipIcon}"></i>` : '&gt; '} ${escapeHtml(opt.label)}`,
                     style: `animation-delay: ${idx * 0.1}s`
                 });
@@ -1320,7 +1350,7 @@ export class UIManager {
                     }
 
                     const res = npc.conversation.getNextDialogue(idx);
-                    
+
                     if (res.error) {
                         this.showMessage(res.error, () => { }, 'warning');
                         return;
@@ -1331,9 +1361,12 @@ export class UIManager {
                     if (res.end) {
                         this.showFeedback('FIN DE DIÁLOGO', 'green', 2500);
                         this.elements.dialogueOptions.empty();
-                        
-                        // Si es la opción de salida dinámica, tratarla como omisión de test
-                        if (res.id === 'exit_conversation') {
+
+                        // Stop ongoing lore audio if it was a lore dialogue
+                        if (this.audio) this.audio.stopLore({ fadeOut: 1000 });
+
+                        // Si es la opción de salida dinámica o fin automático, tratarla como omisión de test
+                        if (res.id === 'exit_conversation' || res.id === 'auto_end') {
                             this.handleOmitTest(npc);
                         }
 
@@ -1351,7 +1384,7 @@ export class UIManager {
 
                     // Otherwise render the next node
                     this.updateDialogueBox(npc);
-                    
+
                     const nextNode = npc.conversation.getCurrentNode();
                     if (nextNode) {
                         // Filtrar acciones (*texto*) para el historial
@@ -1371,16 +1404,13 @@ export class UIManager {
             });
         }
 
-        // Omit option: show if no tests performed yet (allow during dialogue)
-        // Only show if not already present as a dynamic option
+        // Omit option: show if not already present as a dynamic option
         const hasDynamicExit = convNode && convNode.options && convNode.options.some(o => o.id === 'exit_conversation');
-        
-        if (!npc.optOut && npc.scanCount === 0 && !hasDynamicExit) {
-            const optionsCount = convNode && convNode.options ? convNode.options.length : 0;
-            const spanClass = optionsCount === 2 ? 'col-span-2' : '';
-            
+
+        // Temporarily persistent as requested by user
+        if (!npc.optOut && !hasDynamicExit) {
             const omitBtn = $('<button>', {
-                class: `horror-btn-dialogue option-omit w-full mt-2 ${spanClass}`,
+                class: `horror-btn-dialogue option-omit w-full my-2 col-span-2`,
                 html: '&gt; Omitir por diálogo'
             });
             omitBtn.on('click', (e) => {
@@ -1401,26 +1431,28 @@ export class UIManager {
         npc.optOut = true;
         npc.dialogueStarted = true;
         // Agotamos las energías mecánicamente
-        npc.scanCount = 99; 
-        
+        npc.scanCount = 99;
+
         if (!npc.history) npc.history = [];
-        npc.history.push({ 
-            text: 'Test omitido voluntariamente mediante protocolo de diálogo.', 
-            type: 'warning' 
+        npc.history.push({
+            text: 'Test omitido voluntariamente mediante protocolo de diálogo.',
+            type: 'warning'
         });
+
+        if (this.audio) this.audio.stopLore({ fadeOut: 1000 });
 
         this.showFeedback('TEST OMITIDO: SIN EVIDENCIA MÉDICA', 'yellow', 3000);
         this.updateInspectionTools(npc);
         this.hideOmitOption();
         this.elements.dialogueOptions.empty();
-        
+
         // Limpiar el texto de diálogo para reflejar el cambio de estado
         const textEl = this.elements.dialogue.find('.npc-text');
         if (textEl.length) {
             const statusMsg = '<span class="text-warning italic">* Protocolo de inspección omitido. El sujeto espera una decisión final. *</span>';
             this.typeText(textEl, statusMsg, 10);
         }
-        
+
         // Actualizar estadísticas HUD
         this.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
     }
@@ -1678,7 +1710,7 @@ export class UIManager {
         });
     }
 
-    showLore(type, onClose) { return this.modules.lore.showLore(type, onClose); }
+    showLore(type, onClose, options = {}) { return this.modules.lore.showLore(type, onClose, options); }
 
     renderNightScreen(state) {
         const count = state.admittedNPCs.length;
@@ -1707,7 +1739,7 @@ export class UIManager {
         }
 
         $('#btn-finalize-day-no-purge').addClass('hidden');
-        
+
         this.showScreen('night');
     }
 
@@ -1771,7 +1803,7 @@ export class UIManager {
             const isValidated = npc.dayAfter && npc.dayAfter.validated;
             const isPurgeLocked = npc.purgeLockedUntil && State.cycle < npc.purgeLockedUntil;
             const canTest = !isValidated && !isPurgeLocked && (npc.dayAfter && npc.dayAfter.usedNightTests < 1);
-            
+
             let extraClasses = '';
             let statusIcon = '';
 
@@ -1790,12 +1822,26 @@ export class UIManager {
                 extraClasses = 'test-ready';
             }
 
+            // Add unique NPC styling
+            if (npc.uniqueType) {
+                extraClasses += ` npc-card-unique unique-${npc.uniqueType}`;
+            }
+
             const card = $('<div>', {
                 class: `survivor-card ${extraClasses}`
             });
 
             const avatar = this.renderAvatar(npc, 'sm', isValidated ? 'perimeter' : 'normal');
             const name = $('<span>', { text: npc.name, class: 'mt-2 text-xs' });
+
+            // Add unique badge if applicable
+            if (npc.uniqueBadge) {
+                const badge = $(`<div class="npc-unique-badge badge-${npc.uniqueType}">
+                    <i class="fas ${npc.uniqueBadge.icon}"></i>
+                    <span>${npc.uniqueBadge.label}</span>
+                </div>`);
+                card.append(badge);
+            }
 
             if (statusIcon) card.append($(statusIcon));
             card.append(avatar, name);
@@ -1854,9 +1900,9 @@ export class UIManager {
         const renderList = (list, container, type) => {
             container.empty();
             if (!list || list.length === 0) {
-                container.append($('<div>', { 
-                    class: 'text-sm text-gray-800 italic p-4 font-mono uppercase text-center w-full col-span-full', 
-                    text: '// SIN REGISTROS EN ESTA CATEGORÍA //' 
+                container.append($('<div>', {
+                    class: 'text-sm text-gray-800 italic p-4 font-mono uppercase text-center w-full col-span-full',
+                    text: '// SIN REGISTROS EN ESTA CATEGORÍA //'
                 }));
                 return;
             }
@@ -1866,7 +1912,7 @@ export class UIManager {
                 // Estilos según tipo
                 let typeClass = '';
                 let statusIcon = '';
-                
+
                 if (type === 'purged') {
                     typeClass = 'cat-purged';
                     statusIcon = '<i class="fa-solid fa-skull text-alert/50 text-[10px] absolute top-1 right-1"></i>';
@@ -1891,8 +1937,14 @@ export class UIManager {
 
                 const statusColorClass = isRevealedInfected ? 'infected-alert' : typeClass;
 
+                let cardClasses = `morgue-card ${statusColorClass} group`;
+                // Add unique NPC styling
+                if (npc.uniqueType) {
+                    cardClasses += ` npc-card-unique unique-${npc.uniqueType}`;
+                }
+
                 const card = $('<div>', {
-                    class: `morgue-card ${statusColorClass} group`
+                    class: cardClasses
                 });
 
                 const avatar = this.renderAvatar(npc, 'sm', 'perimeter');
@@ -1904,30 +1956,41 @@ export class UIManager {
                 }
 
                 const infoContainer = $('<div>', { class: 'flex flex-col items-center mt-2 w-full overflow-hidden' });
-                const name = $('<span>', { 
-                    text: npc.name, 
-                    class: 'name text-sm font-mono text-gray-400 group-hover:text-white truncate w-full text-center uppercase tracking-tighter' 
-                });
-                
-                const role = $('<span>', { 
-                    text: npc.occupation || 'DESCONOCIDO', 
-                    class: 'text-[10px] font-mono text-gray-600 truncate w-full text-center uppercase opacity-60' 
+                const name = $('<span>', {
+                    text: npc.name,
+                    class: 'name text-sm font-mono text-gray-400 group-hover:text-white truncate w-full text-center uppercase tracking-tighter'
                 });
 
+                const role = $('<span>', {
+                    text: npc.occupation || 'DESCONOCIDO',
+                    class: 'text-[10px] font-mono text-gray-600 truncate w-full text-center uppercase opacity-60'
+                });
+
+
                 if (statusIcon) card.append($(statusIcon));
-                
+
+                // Add unique badge if applicable
+                if (npc.uniqueBadge) {
+                    const badge = $(`<div class="npc-unique-badge badge-${npc.uniqueType}">
+                        <i class="fas ${npc.uniqueBadge.icon}"></i>
+                        <span>${npc.uniqueBadge.label}</span>
+                    </div>`);
+                    card.append(badge);
+                }
+
                 // Add DEAD stamp for purged
                 if (type === 'purged') {
+
                     card.append($('<div>', { class: 'stamp-dead', text: 'DEAD' }));
                 }
 
                 infoContainer.append(name, role);
                 card.append(avatar, infoContainer);
-                
+
                 card.on('click', () => {
                     if (onDetailClick) onDetailClick(npc);
                 });
-                
+
                 batch.push(card[0]);
             });
             container.append(batch);
@@ -1970,7 +2033,7 @@ export class UIManager {
             const icon = it.type === 'alarma' ? 'fa-bell' : it.type === 'puerta' ? 'fa-door-closed' : it.type === 'ventana' ? 'fa-window-maximize' : it.type === 'tuberias' ? 'fa-water' : 'fa-question';
             const activeOrSecured = it.type === 'alarma' ? it.active : it.secured;
             const stateClass = activeOrSecured ? 'secured' : 'unsecured';
-            
+
             const card = $('<div>', {
                 class: `security-item-card ${stateClass} relative overflow-hidden group flex flex-col items-center justify-between p-4 min-h-[140px] cursor-pointer hover:bg-white/5 transition-colors`
             });
@@ -1988,7 +2051,7 @@ export class UIManager {
                     if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.4 });
                     return;
                 }
-                
+
                 if (it.type === 'alarma') {
                     it.active = !it.active;
                     if (it.active && this.audio) this.audio.playSFXByKey('alarm_activate', { volume: 0.6, priority: 1 });
@@ -2015,11 +2078,11 @@ export class UIManager {
             card.append('<div class="panel-screw screw-bl" style="width:4px;height:4px;bottom:2px;left:2px;"></div>');
             card.append('<div class="panel-screw screw-br" style="width:4px;height:4px;bottom:2px;right:2px;"></div>');
 
-            const statusColor = activeOrSecured ? '#00FF00' : '#ff2b2b';
-            
+            const statusColor = activeOrSecured ? this.colors.safe : this.colors.offStatus;
+
             // Visual Animation Box
             const visualBox = $('<div>', { class: 'security-visual-box', style: `color: ${statusColor}` });
-            
+
             if (it.type === 'alarma') {
                 visualBox.append($('<div>', { class: `visual-alarm-ring ${it.active ? 'active' : ''}` }));
                 visualBox.append($('<i>', { class: 'fa-solid fa-tower-broadcast absolute text-sm opacity-40' }));
@@ -2032,9 +2095,9 @@ export class UIManager {
             } else {
                 visualBox.append($('<i>', { class: `fa-solid ${icon} text-2xl opacity-20` }));
             }
-            
+
             card.append(visualBox);
-            
+
             const label = it.type === 'alarma' ? 'ALARMA' : (it.type === 'tuberias' ? 'TUBERÍAS' : it.type.toUpperCase());
             card.append($('<span>', { text: label, class: 'text-sm font-mono font-bold tracking-widest text-white/80' }));
 
@@ -2123,19 +2186,19 @@ export class UIManager {
         const countLabel = $('#relocate-count');
         const confirmBtn = $('#btn-relocate-confirm');
         const restrictionLabel = $('#relocate-restrictions-text');
-        
+
         // Dinámico: Máximo de la mitad de la capacidad O menos del total de sujetos que llegan al día
         // Aseguramos que siempre haya espacio para los nuevos sujetos del siguiente nivel
         const halfCapacity = Math.floor(State.config.maxShelterCapacity / 2);
         const nextDaySpace = State.config.maxShelterCapacity - State.config.dayLength;
         const maxSelection = Math.min(halfCapacity, nextDaySpace);
-        
+
         let selected = [];
 
         grid.empty();
         countLabel.text(`0 / ${maxSelection}`);
-        confirmBtn.prop('disabled', false); 
-        
+        confirmBtn.prop('disabled', false);
+
         // Actualizar el texto de restricciones dinámicamente
         restrictionLabel.text(`RESTRICCIONES: El transporte es limitado. Solo puedes llevar contigo a un máximo de ${maxSelection} sujetos. Los no seleccionados serán abandonados en el sector actual.`);
 
@@ -2179,7 +2242,7 @@ export class UIManager {
         confirmBtn.off('click').on('click', () => {
             onConfirm(selected);
         });
-        
+
         $('#btn-relocate-cancel').off('click').on('click', () => {
             this.closeRelocationModal();
         });
@@ -2238,7 +2301,7 @@ export class UIManager {
     setNavItemStatus(navId, level) {
         const btn = $(`#${navId}`);
         if (!btn.length) return;
-        
+
         // Clear any global sidebar status to prefer per-item indicators
         if (this.elements.sidebar) {
             this.elements.sidebar.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5');
@@ -2284,7 +2347,7 @@ export class UIManager {
                 $el.prop('disabled', false).removeClass('nav-locked active');
             }
         });
-        
+
         if (this.elements.sidebar) {
             this.elements.sidebar.toggleClass('nav-locked', locked);
             if (locked) {
@@ -2307,7 +2370,7 @@ export class UIManager {
         const origEyeColor = eyes.css('background-color');
         avatar.css({ filter: 'hue-rotate(90deg) contrast(130%)' });
         head.css('background-color', State.colors.chlorine);
-        eyes.css('background-color', '#ff0000');
+        eyes.css('background-color', State.colors.critical);
         if (this.audio) this.audio.playSFXByKey('morgue_reveal_infected', { volume: 0.5 });
         setTimeout(() => {
             head.css('background-color', origHeadColor);

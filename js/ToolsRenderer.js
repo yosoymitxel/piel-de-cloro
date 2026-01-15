@@ -10,17 +10,17 @@ export class ToolsRenderer {
 
     _getTargetContainer(container) {
         let target = container || this.elements.npcDisplay;
-        
+
         // If the container is a string selector, wrap it
         if (typeof target === 'string') {
             target = $(target);
         }
-        
+
         // If the jQuery object is empty or doesn't exist, try to find it by ID
         if (!target || (target.jquery && target.length === 0)) {
             target = $('#npc-display');
         }
-        
+
         return target;
     }
 
@@ -55,7 +55,7 @@ export class ToolsRenderer {
             css: {
                 width: '20px',
                 height: '120px',
-                background: '#0a0a0a',
+                background: State.colors.bgDark,
                 border: '1px solid #555',
                 position: 'relative',
                 boxShadow: 'inset 0 0 8px #000'
@@ -64,7 +64,7 @@ export class ToolsRenderer {
 
         const fillColor = value < 35
             ? (isInfected ? State.colors.chlorineSutil : State.colors.safe)
-            : (isInfected ? State.colors.chlorineLight : '#a83232');
+            : (isInfected ? State.colors.chlorineLight : State.colors.blood);
 
         const fill = $('<div>', {
             css: {
@@ -227,7 +227,7 @@ export class ToolsRenderer {
                 transform: 'translate(-50%, -50%)',
                 width: pupilSize,
                 height: pupilSize,
-                background: isInfected ? State.colors.chlorine : '#050505',
+                background: isInfected ? State.colors.chlorine : State.colors.bgBlack,
                 borderRadius: '50%',
                 transition: 'all 0.8s ease-in-out',
                 boxShadow: isInfected ? `0 0 25px ${State.colors.chlorine}` : 'inset 0 0 10px rgba(255,255,255,0.1)'
@@ -248,7 +248,7 @@ export class ToolsRenderer {
         setTimeout(() => {
             const reactionSize = type === 'dilated' ? '55px' : '12px';
             pupil.css({ width: reactionSize, height: reactionSize });
-            
+
             // Si es infectado, pequeño parpadeo de color
             if (isInfected) {
                 setTimeout(() => {
@@ -296,7 +296,7 @@ export class ToolsRenderer {
         const canvas = $('<canvas>', {
             css: { width: '100%', height: '100%' }
         })[0];
-        
+
         overlay.append(canvas);
         targetContainer.append(overlay);
 
@@ -361,7 +361,7 @@ export class ToolsRenderer {
                     left: `${2 + Math.random() * 14}px`,
                     width: '3px',
                     height: '3px',
-                    background: '#2d5a27',
+                    background: State.colors.chlorine,
                     borderRadius: '50%',
                     opacity: 0.0
                 }

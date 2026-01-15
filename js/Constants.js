@@ -2,8 +2,8 @@
  * Constantes globales de configuración y equilibrio del juego.
  */
 export const CONSTANTS = {
-    VERSION: '2.1.0',
-    VERSION_LABEL: 'RUTA-01 TERMINAL CORE',
+    VERSION: '0.2.7',
+    VERSION_LABEL: 'PIEL DE CLORO - TERMINAL CORE',
     NAV_ITEMS: {
         GUARD: 'nav-guard',
         ROOM: 'nav-room',

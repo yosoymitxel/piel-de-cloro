@@ -136,9 +136,9 @@ beforeEach(() => {
 
 test('UIManager renders dialogue markup and plays node audio (no real DOM)', async () => {
     const ui = global.__uiInstance;
-    const audioStub = { playSFXByKey: jest.fn() };
+    const audioStub = { playSFXByKey: jest.fn(), stopLore: jest.fn() };
     ui.audio = audioStub;
-    
+
     // Stub updateStats to avoid paranoia parent issues in this simple test
     ui.updateStats = jest.fn();
 

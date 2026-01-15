@@ -63,6 +63,7 @@ beforeEach(() => {
 
 test('renderSecurityRoom marks nav-room warning while unsecured items exist and clears when secured', () => {
     const ui = Object.create(UIManager.prototype);
+    ui.colors = State.colors;
     ui.setNavItemStatus = jest.fn();
 
     // Two items, one secured and one unsecured

@@ -11,7 +11,7 @@ export class AudioManager {
         this.unlocked = false;
         this.fadeTimers = {};
         this.logs = [];
-        this.enableConsole = false; 
+        this.enableConsole = false;
         this.desiredPlay = { ambient: false, lore: false, sfx: false };
         this.ctx = null;
         this.manifest = {};
@@ -74,7 +74,7 @@ export class AudioManager {
                 const audio = new Audio();
                 audio.src = url;
                 audio.preload = 'auto';
-                
+
                 await new Promise((resolve, reject) => {
                     const timeout = setTimeout(() => reject(new Error('timeout')), 10000);
                     audio.oncanplaythrough = () => {
@@ -129,16 +129,16 @@ export class AudioManager {
     async validateManifest() {
         const keys = Object.keys(this.manifest).length ? Object.keys(this.manifest) : [];
         const list = keys.length ? keys : [
-            'ambient_main_loop','ambient_night_loop','ambient_tense_loop',
-            'lore_intro_track','lore_interlude_radio','lore_interlude_seen','lore_interlude_heard',
-            'lore_final_clean','lore_final_corrupted','lore_night_civil_death','lore_night_player_death','lore_night_tranquil',
-            'ui_button_click','ui_modal_open','ui_modal_close','ui_dialogue_type','stats_panel_open',
-            'tool_thermometer_beep','tool_uv_toggle','tool_pulse_beep','tool_pupils_lens',
-            'alarm_activate','alarm_deactivate','intrusion_detected',
-            'door_secure','door_unsecure','window_secure','window_unsecure','pipes_whisper',
-            'purge_confirm','purge_blood_flash','night_transition','sleep_begin','escape_attempt',
-            'dayafter_test_apply','validation_gate_open','preclose_overlay_open',
-            'glitch_burst','vhs_flicker','morgue_reveal_infected'
+            'ambient_main_loop', 'ambient_night_loop', 'ambient_tense_loop',
+            'lore_intro_track', 'lore_interlude_radio', 'lore_interlude_seen', 'lore_interlude_heard',
+            'lore_final_clean', 'lore_final_corrupted', 'lore_night_civil_death', 'lore_night_player_death', 'lore_night_tranquil',
+            'ui_button_click', 'ui_modal_open', 'ui_modal_close', 'ui_dialogue_type', 'stats_panel_open',
+            'tool_thermometer_beep', 'tool_uv_toggle', 'tool_pulse_beep', 'tool_pupils_lens',
+            'alarm_activate', 'alarm_deactivate', 'intrusion_detected',
+            'door_secure', 'door_unsecure', 'window_secure', 'window_unsecure', 'pipes_whisper',
+            'purge_confirm', 'purge_blood_flash', 'night_transition', 'sleep_begin', 'escape_attempt',
+            'dayafter_test_apply', 'validation_gate_open', 'preclose_overlay_open',
+            'glitch_burst', 'vhs_flicker', 'morgue_reveal_infected'
         ];
         const results = [];
         for (const key of list) {
@@ -218,7 +218,7 @@ export class AudioManager {
         if (this.unlocked) return;
         try {
             this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-            if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+            if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => { });
             Object.values(this.channels).forEach(a => { a.muted = false; });
             this.unlocked = true;
         } catch {
@@ -238,10 +238,10 @@ export class AudioManager {
         const ch = this.channels.ambient;
         ch.loop = loop;
         if (ch.src !== src) ch.src = src;
-        
+
         const targetVol = this._clampVolume(volume);
         this.levels.ambient = targetVol;
-        
+
         // Always calculate effective volume respecting master and mute
         const effectiveVolume = this.mutedChannels.ambient ? 0 : targetVol * this.master;
 
@@ -273,12 +273,12 @@ export class AudioManager {
         } else {
             this.stopAmbient(Math.max(200, crossfade));
         }
-        
+
         this.desiredPlay.lore = true;
         const ch = this.channels.lore;
         ch.loop = loop;
         if (ch.src !== src) ch.src = src;
-        
+
         const targetVol = this._clampVolume(volume);
         this.levels.lore = targetVol;
 
@@ -294,9 +294,9 @@ export class AudioManager {
     }
     stopLore({ fadeOut = 400, unduckAmbient = true } = {}) {
         const ch = this.channels.lore;
-        this.fade(ch, 0, fadeOut, 'lore', () => { 
-            ch.pause(); 
-            this.log('[lore] paused'); 
+        this.fade(ch, 0, fadeOut, 'lore', () => {
+            ch.pause();
+            this.log('[lore] paused');
             if (unduckAmbient) {
                 this.unduckAmbient(fadeOut, this.levels.ambient);
             }
@@ -312,9 +312,9 @@ export class AudioManager {
         });
         this.log('all sfx stopped', { includeLooping });
     }
-    playSFX(src, { volume = 0.6, rate = 1.0, priority = 0, lockMs = 100, loop = false } = {}) {
+    playSFX(src, { volume = 0.6, rate = 1.0, priority = 0, lockMs = 100, loop = false, overlap = false } = {}) {
         const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-        
+
         // Priority system: if a sound is locked and the new one has lower priority, skip
         if (now < this.sfxLockUntil && priority < this.sfxPriority) {
             return null;
@@ -322,9 +322,9 @@ export class AudioManager {
 
         if (this.mutedChannels.sfx) return null;
 
-        // CUTOFF LOGIC: Si este es un SFX estándar (no en bucle),
+        // CUTOFF LOGIC: Si este es un SFX estándar (no en bucle) Y no se permite solapamiento,
         // detenemos todos los demás SFX que se estén reproduciendo para evitar solapamientos.
-        if (!loop) {
+        if (!loop && !overlap) {
             this.stopAllSFX(true); // Detener TODO, incluidos bucles cortos como el typewriter
         }
 
@@ -333,7 +333,7 @@ export class AudioManager {
 
         // Try to find an available audio object in the pool
         let ch = this.sfxPool.find(a => a.paused);
-        
+
         if (!ch && this.sfxPool.length < this.maxPoolSize) {
             ch = new Audio();
             ch.crossOrigin = 'anonymous';
@@ -352,7 +352,7 @@ export class AudioManager {
         ch.playbackRate = rate;
         this._safeSetVolume(ch, this._clampVolume(volume) * this.master);
         ch.currentTime = 0;
-        
+
         // Play with error handling
         const playPromise = ch.play();
         if (playPromise !== undefined) {
@@ -363,7 +363,7 @@ export class AudioManager {
                 }
             });
         }
-        
+
         return ch;
     }
     playSFXByKey(key, opts = {}) {
@@ -398,10 +398,10 @@ export class AudioManager {
     fade(audio, target, ms, key, onDone) {
         if (!audio) return;
         target = this._clampVolume(target);
-        
+
         // Validación robusta de ms para evitar división por NaN/0
         if (typeof ms !== 'number' || !Number.isFinite(ms) || ms < 0) {
-            ms = 300; 
+            ms = 300;
         }
 
         const start = audio.volume || 0;

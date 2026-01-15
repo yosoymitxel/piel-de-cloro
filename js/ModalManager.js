@@ -31,9 +31,9 @@ export class ModalManager {
         const modal = this.elements.msgModal;
         const content = this.elements.msgContent;
         const panel = modal.find('.horror-panel-modal');
-        
+
         modal.removeClass('hidden').addClass('flex');
-        
+
         // Reset classes
         panel.removeClass('military-order horror-panel-message horror-panel-confirm horror-panel-danger');
         panel.find('.order-stamp, .digital-glitch-stain').remove();
@@ -73,7 +73,7 @@ export class ModalManager {
         const modal = this.elements.confirmModal;
         const content = this.elements.confirmContent;
         const panel = modal.find('.horror-panel-modal');
-        
+
         modal.removeClass('hidden').addClass('flex');
 
         // Reset classes
@@ -101,7 +101,7 @@ export class ModalManager {
 
         content.html(`
             <div class="flex flex-col items-center gap-4">
-                <i class="fa-solid fa-circle-question text-3xl mb-2 opacity-50"></i>
+                <!-- <i class="fa-solid fa-circle-question text-3xl mb-2 opacity-50"></i> -->
                 <span class="text-center font-mono uppercase tracking-tight">${text}</span>
             </div>
         `);
@@ -132,11 +132,11 @@ export class ModalManager {
             const trait = npc.trait || { id: 'none', name: 'Ninguno', description: 'Sin rasgos especiales.' };
             if (trait.id !== 'none') {
                 this.elements.modalTrait.html(`
-                    <div class="flex flex-col gap-1 w-full">
+                    <div class="flex flex-col gap-1 w-full text-xs">
                         <div class="flex items-center justify-between">
                             <span class="text-white font-bold uppercase tracking-wider">Rasgo: ${trait.name}</span>
                             <button id="btn-modal-help-traits" class="text-[9px] bg-blue-900/40 hover:bg-blue-800 text-blue-300 px-2 py-0.5 border border-blue-700/50 rounded flex items-center gap-1 transition-colors uppercase font-mono">
-                                <i class="fa-solid fa-circle-info"></i> Ayuda
+                                <i class="fa-solid fa-circle-info"></i>
                             </button>
                         </div>
                         <span class="text-sm text-gray-400 italic leading-tight">${trait.description}</span>
@@ -147,11 +147,11 @@ export class ModalManager {
                 $('#btn-modal-help-traits').on('click', (e) => {
                     e.stopPropagation();
                     this.closeModal(true);
-                    
+
                     // Navegar a la Base de Datos
                     if (this.ui && typeof this.ui.showScreen === 'function') {
                         this.ui.showScreen('database'); // Usamos el string 'database' que es el ID estándar
-                        
+
                         // Seleccionar la sección de rasgos en la DB
                         setTimeout(() => {
                             const traitBtn = $(`.db-nav-btn[data-target="db-traits"]`);
@@ -160,7 +160,7 @@ export class ModalManager {
                             }
                         }, 50);
                     }
-                    
+
                     if (this.audio) this.audio.playSFXByKey('ui_hover', { volume: 0.3 });
                 });
             } else {
@@ -173,8 +173,8 @@ export class ModalManager {
         // Limpiar todo excepto los overlays fijos (título y cerrar)
         visualContainer.children().not('.absolute').remove();
 
-        const isRevealedInfected = (npc.death && npc.death.revealed && npc.isInfected) || 
-                                   (npc.dayAfter && npc.dayAfter.validated && npc.isInfected);
+        const isRevealedInfected = (npc.death && npc.death.revealed && npc.isInfected) ||
+            (npc.dayAfter && npc.dayAfter.validated && npc.isInfected);
         const modifier = (npc.dayAfter && npc.dayAfter.validated) || (npc.death && npc.death.revealed) ? 'perimeter' : 'normal';
         const avatar = this.ui.renderAvatar(npc, 'lg', modifier);
         visualContainer.append(avatar);
@@ -182,6 +182,26 @@ export class ModalManager {
         const avatarEl = avatar; // Referencia para efectos
         if (isRevealedInfected) {
             avatarEl.addClass('infected');
+        }
+
+        // Add DANGER WARNING for lore NPCs
+        if (npc.uniqueType === 'lore') {
+            const warningSection = $(`
+                <div class="unique-info-section unique-lore" style="margin: 1rem; border-left: 3px solid var(--alert); background: rgba(255, 50, 50, 0.1); padding: 0.75rem;">
+                    <h4 style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.5rem; color: var(--alert); font-family: 'Courier New', monospace;">
+                        <i class="fa-solid fa-skull-crossbones"></i> ADVERTENCIA DE ANOMALÍA
+                    </h4>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; padding: 0.25rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-family: 'Courier New', monospace;">
+                        <span style="color: rgba(255, 255, 255, 0.6);">Nivel de Amenaza</span>
+                        <span style="color: var(--alert); font-weight: 600; animation: anomaly-flash 2s ease-in-out infinite;">CRÍTICO</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; padding: 0.25rem 0; font-family: 'Courier New', monospace;">
+                        <span style="color: rgba(255, 255, 255, 0.6);">Riesgo Nocturno</span>
+                        <span style="color: var(--alert); font-weight: 600; animation: anomaly-flash 2s ease-in-out infinite;">80% LETAL</span>
+                    </div>
+                </div>
+            `);
+            visualContainer.append(warningSection);
         }
 
         this.updateModalStatus(npc, allowPurge, state);
@@ -221,23 +241,23 @@ export class ModalManager {
             this.elements.modalStatus.text("EN REFUGIO").css('color', '#fff');
         } else {
             let statusText = 'POR DETERMINAR';
-            let color = '#cccccc';
+            let color = State.colors.textGray;
             if (npc.death && npc.death.revealed) {
                 if (npc.death.reason === 'purga') {
                     statusText = npc.isInfected ? 'PURGADO — CLORO' : 'PURGADO — CIVIL';
-                    color = npc.isInfected ? this.colors.chlorine : "#cccccc";
+                    color = npc.isInfected ? this.colors.chlorine : State.colors.textGray;
                 } else if (npc.death.reason === 'asesinado') {
                     statusText = npc.isInfected ? 'ASESINADO — CLORO' : 'ASESINADO — CIVIL';
-                    color = npc.isInfected ? this.colors.chlorine : "#cccccc";
+                    color = npc.isInfected ? this.colors.chlorine : State.colors.textGray;
                 }
             } else if (npc.exitCycle && state && npc.exitCycle < state.cycle) {
                 // Ignorados / Fugitivos
                 statusText = npc.isInfected ? 'FUGITIVO — CLORO' : 'FUGITIVO — CIVIL';
-                color = npc.isInfected ? this.colors.chlorine : "#cccccc";
+                color = npc.isInfected ? this.colors.chlorine : State.colors.textGray;
             } else if (npc.left && state && npc.left.cycle <= state.cycle) {
                 // Salidas nocturnas
                 statusText = npc.isInfected ? 'DESERCIÓN — CLORO' : 'DESERCIÓN — CIVIL';
-                color = npc.isInfected ? this.colors.chlorine : "#cccccc";
+                color = npc.isInfected ? this.colors.chlorine : State.colors.textGray;
             }
             this.elements.modalStatus.text(statusText).css('color', color);
         }
@@ -406,9 +426,9 @@ export class ModalManager {
                 if (typeof text === 'string') {
                     text = text.replace(/\*.*?\*/g, '').trim();
                 }
-                
+
                 if (!text) return; // No mostrar si quedó vacío tras filtrar
-                
+
                 const html = `
                     <div class="mb-2 border-b border-gray-900 pb-1 text-xs">
                         <span class="${speakerClass}">${speakerName}:</span>

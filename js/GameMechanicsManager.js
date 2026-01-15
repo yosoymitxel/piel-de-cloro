@@ -12,10 +12,10 @@ export class GameMechanicsManager {
     startNightPhase() {
         State.isNight = true;
         State.dayClosed = true;
-        
+
         // Limpiar indicadores y bloquear navegación durante la fase nocturna
         this.ui.clearAllNavStatuses();
-        
+
         // Solo procesar intrusiones si es el inicio de la fase nocturna (no tras volver de purga)
         if (!State.lastNight.occurred) {
             this.processIntrusions();
@@ -101,9 +101,9 @@ export class GameMechanicsManager {
         if (State.generator.isOn && wasOff) {
             this.audio.playSFXByKey('generator_start', { volume: 0.7 });
 
-        if (this.ui && typeof this.ui.updateGeneratorNavStatus === 'function') {
-            this.ui.updateGeneratorNavStatus();
-        }
+            if (this.ui && typeof this.ui.updateGeneratorNavStatus === 'function') {
+                this.ui.updateGeneratorNavStatus();
+            }
 
             State.generator.mode = 'save';
             State.generator.power = 32;
@@ -192,17 +192,58 @@ export class GameMechanicsManager {
         this.game.updateHUD();
     }
 
+    checkLoreNPCDanger() {
+        // Check if any lore NPCs are in the shelter
+        const loreNPCs = State.admittedNPCs.filter(npc => npc.uniqueType === 'lore');
+
+        if (loreNPCs.length === 0) {
+            return { triggered: false };
+        }
+
+        // 80% probability of death PER lore NPC
+        for (const loreNPC of loreNPCs) {
+            if (Math.random() < 0.8) {
+                return {
+                    triggered: true,
+                    loreNPC: loreNPC,
+                    count: loreNPCs.length
+                };
+            }
+        }
+
+        // Survived - track for potential final_lore_survivor ending
+        State.loreSurvivalStreak = (State.loreSurvivalStreak || 0) + 1;
+        return { triggered: false, survived: true, count: loreNPCs.length };
+    }
+
     sleep() {
         if (State.paused) return;
+
+        // CRITICAL: Check for lore NPC danger FIRST (80% death probability)
+        const loreDanger = this.checkLoreNPCDanger();
+        if (loreDanger.triggered) {
+            this.audio.playSFXByKey('glitch_burst', { volume: 0.8 });
+
+            // Trigger appropriate lore ending
+            if (loreDanger.count >= 2) {
+                this.game.endings.triggerEnding('final_lore_collector');
+            } else {
+                // Replace {loreName} in lore text
+                this.game.endings.loreNPCName = loreDanger.loreNPC.name;
+                this.game.endings.triggerEnding('final_lore_assimilation');
+            }
+            return;
+        }
+
         this.audio.playSFXByKey('night_transition', { volume: 0.5 });
         this.audio.playAmbientByKey('ambient_night_loop', { loop: true, volume: this.audio.levels.ambient, fadeIn: 800 });
-        
+
         const admitted = State.admittedNPCs;
         const count = admitted.length;
 
         // Procesar recursos y rasgos antes de determinar el resultado de la noche
         const resourceSummary = this.processNightResourcesAndTraits();
-        
+
         const infectedInShelter = admitted.filter(n => n.isInfected);
         const civilians = admitted.filter(n => !n.isInfected);
 
@@ -229,7 +270,7 @@ export class GameMechanicsManager {
             const victimIndex = civilians.length > 0
                 ? admitted.findIndex(n => !n.isInfected && (n.trait && n.trait.id !== 'tough'))
                 : -1;
-            
+
             // Si no hay civiles normales, buscar uno con rasgo 'tough' (más difícil de matar)
             let finalVictimIndex = victimIndex;
             if (finalVictimIndex === -1 && civilians.length > 0) {
@@ -261,7 +302,7 @@ export class GameMechanicsManager {
         const paranoiaModifier = State.paranoia / 250;
         const roll = Math.random();
         if (roll < (baseDeathChance + paranoiaModifier)) {
-            State.lastNight.message = State.paranoia > 80 
+            State.lastNight.message = State.paranoia > 80
                 ? "Tu mente finalmente cedió. Las sombras del refugio tomaron forma y te arrastraron al vacío."
                 : "Aunque no había cloro dentro, algo te encontró en la oscuridad.";
             State.lastNight.victims = 1;
@@ -269,21 +310,29 @@ export class GameMechanicsManager {
             return;
         }
 
-        State.lastNight.message = `${resourceSummary}La noche pasó tranquila.`;
+        // Check if player survived with lore NPC (special log entry)
+        const loreNPCs = State.admittedNPCs.filter(npc => npc.uniqueType === 'lore');
+        let loreMessage = '';
+        if (loreNPCs.length > 0) {
+            const loreNames = loreNPCs.map(npc => npc.name).join(', ');
+            loreMessage = `\n\n⚠️ ALERTA: Sobreviviste la noche con ${loreNames} en el refugio. Los registros muestran anomalías en los sensores.`;
+        }
+
+        State.lastNight.message = `${resourceSummary}La noche pasó tranquila.${loreMessage}`;
         State.lastNight.victims = 0;
         this.audio.playSFXByKey('lore_night_tranquil', { volume: 0.4 });
         this.ui.showLore('night_tranquil', () => {
             // REBALANCEO: Reducir paranoia base
             let reduction = -10;
-            
+
             // Si hay más civiles que cloros (infectados) en el refugio, la paranoia baja más
             const civilians = State.admittedNPCs.filter(n => !n.isInfected).length;
             const infected = State.admittedNPCs.filter(n => n.isInfected).length;
-            
+
             if (civilians > infected) {
                 reduction -= 5; // Reducción extra por sensación de seguridad
             }
-            
+
             State.updateParanoia(reduction);
             this.continueDay();
         });
@@ -292,7 +341,7 @@ export class GameMechanicsManager {
     processNightResourcesAndTraits() {
         const admitted = State.admittedNPCs;
         let summary = "";
-        
+
         if (admitted.length === 0) return summary;
 
         let totalConsumption = 0;
@@ -302,8 +351,7 @@ export class GameMechanicsManager {
 
         admitted.forEach(npc => {
             // Consumo base
-            let consumption = 1;
-            if (npc.trait && npc.trait.id === 'sickly') consumption = 2;
+            const consumption = (npc.trait && npc.trait.id === 'sickly') ? 2 : 1;
             totalConsumption += consumption;
 
             // Efectos de rasgos
@@ -317,7 +365,7 @@ export class GameMechanicsManager {
 
         // Aplicar suministros
         State.updateSupplies(scavenged - totalConsumption);
-        
+
         if (scavenged > 0) {
             summary += `Los recolectores encontraron ${scavenged} suministros. `;
         }
@@ -376,12 +424,12 @@ export class GameMechanicsManager {
 
     startNextDay() {
         State.startNextDay();
-        
+
         // Trigger random daily event
         if (this.game.randomEvents) {
             this.game.randomEvents.triggerRandomEvent();
         }
-        
+
         // Restore main ambient music when a new day starts
         if (this.audio) {
             this.audio.playAmbientByKey('ambient_main_loop', { loop: true, volume: 0.28, fadeIn: 1000 });
@@ -412,11 +460,11 @@ export class GameMechanicsManager {
         const prob = State.config.securityIntrusionProbability * State.getIntrusionModifier();
         if (State.isShelterFull()) return;
         if (Math.random() >= prob) return;
-        
+
         const alarm = items.find(i => i.type === 'alarma');
         const otherMethods = items.filter(i => i.type !== 'alarma');
         const unsecuredChannels = otherMethods.filter(i => !i.secured);
-        
+
         let via = null;
         if (otherMethods.length > 0 && unsecuredChannels.length === 0) {
             return;
@@ -470,11 +518,11 @@ export class GameMechanicsManager {
         npc.revealedStats.push(s);
         npc.scanCount = 1;
         npc.history = npc.history || [];
-        
+
         const items = State.securityItems || [];
         const alarm = items.find(i => i.type === 'alarma');
         const otherSecured = items.filter(i => i.type !== 'alarma' && i.secured).length;
-        
+
         let logMessage = '';
         const periodText = period === 'diurna' ? 'Día' : 'Noche';
         const timeText = period === 'diurna' ? `Ciclo ${State.cycle}, ${State.dayTime}:00` : `Ciclo ${State.cycle}, Noche`;
@@ -495,7 +543,7 @@ export class GameMechanicsManager {
         }
 
         npc.history.push({ text: logMessage, type: 'warning' });
-        npc.purgeLockedUntil = State.cycle + 1; 
+        npc.purgeLockedUntil = State.cycle + 1;
         State.addLogEntry('system', `ALERTA: ${logMessage}`);
         State.addAdmitted(npc);
 
@@ -506,7 +554,7 @@ export class GameMechanicsManager {
             this.ui.setNavItemStatus('nav-room', 4);
             this.ui.setNavItemStatus('nav-shelter', 3);
         }
-        
+
         if (alarm && alarm.active === false) {
             this.audio.playSFXByKey('alarm_activate', { volume: 0.8 });
             this.ui.showMessage(`ALARMA ACTIVADA: ${logMessage}`, () => { }, 'warning');
@@ -615,11 +663,11 @@ export class GameMechanicsManager {
         const modes = ['save', 'normal', 'overload'];
         let currentIndex = modes.indexOf(State.generator.mode);
         let newIndex = currentIndex + delta;
-        
+
         if (newIndex >= 0 && newIndex < modes.length) {
             const newMode = modes[newIndex];
             const newCap = newIndex + 1;
-            
+
             // Check if capacity increase is allowed
             const npc = State.currentNPC;
             const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || State.generator.restartLock;
@@ -633,7 +681,7 @@ export class GameMechanicsManager {
 
             State.generator.mode = newMode;
             State.generator.maxModeCapacityReached = Math.max(currentMax, newCap);
-            
+
             switch (newMode) {
                 case 'normal': State.generator.power = 63; break;
                 case 'save': State.generator.power = 32; break;
@@ -659,7 +707,7 @@ export class GameMechanicsManager {
         if (this.ui && this.ui.setNavItemStatus) {
             this.ui.setNavItemStatus('nav-morgue', 3);
         }
-        
+
         this.calculatePurgeConsequences(target);
         this.ui.closeModal();
 
@@ -677,7 +725,7 @@ export class GameMechanicsManager {
 
     clearMorgue() {
         if (State.purgedNPCs.length === 0 && State.ignoredNPCs.length === 0 && State.departedNPCs.length === 0) return;
-        
+
         this.ui.showConfirm('¿VACIAR LA MORGUE? SE ELIMINARÁN TODOS LOS REGISTROS.', () => {
             State.purgedNPCs = [];
             State.ignoredNPCs = [];

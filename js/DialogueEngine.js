@@ -5,7 +5,7 @@ import { State } from './State.js';
  * - Conversation holds current node id, history and can progress with getNextDialogue(choiceID)
  * - selectDialogueSet picks an unused pool for generic NPCs or returns a lore subject
  */
-export function selectDialogueSet({ personality = null, infected = false, isLore = false, loreId = null, freshWindow = 8 } = {}) {
+export function selectDialogueSet({ personality = null, infected = false, isLore = false, loreId = null, freshWindow = 20 } = {}) {
     // Prefer lore subjects if requested
     if (isLore) {
         if (loreId) {
@@ -22,7 +22,7 @@ export function selectDialogueSet({ personality = null, infected = false, isLore
     if (personality) {
         // Buscamos pools que coincidan con la personalidad específica
         const specificMatches = candidates.filter(p => (p.tags || []).includes(personality));
-        
+
         // Si hay pools específicos para esa personalidad, los priorizamos
         if (specificMatches.length > 0) {
             candidates = specificMatches;
@@ -37,7 +37,7 @@ export function selectDialogueSet({ personality = null, infected = false, isLore
 
     // Prefer pools that haven't been used in the last N dialogues to reduce perceived repetition
     const fresh = candidates.filter(p => !State.wasDialogueUsedRecently(p.id, freshWindow));
-    
+
     if (fresh.length) {
         // De los frescos, priorizamos los que NUNCA se han usado en esta partida
         const unusedFresh = fresh.filter(p => !State.isDialogueUsed(p.id));
@@ -97,9 +97,9 @@ export class Conversation {
         // Apply madness/glitch modifier if paranoia high
         if (State.paranoia > 30 || (State.getGlitchModifier && State.getGlitchModifier() > 1.0)) {
             // Intensidad gradual: de 0.05 a 0.4 según paranoia (30-100)
-            const baseIntensity = Math.min(0.4, (State.paranoia - 20) / 180); 
+            const baseIntensity = Math.min(0.4, (State.paranoia - 20) / 180);
             const glitchedChars = ['$', '#', '@', '&', '%', '!', '?', '¿', '¡', '·', '=', '+', ':', ';', '0', '1'];
-            
+
             const words = out.split(' ');
             out = words.map(word => {
                 // Solo glitcheamos palabras de cierta longitud para mantener legibilidad mínima
@@ -107,7 +107,7 @@ export class Conversation {
 
                 // Probabilidad de glitchear esta palabra específica
                 const wordGlitchChance = baseIntensity * 0.8;
-                
+
                 if (Math.random() < wordGlitchChance) {
                     return word.split('').map(c => {
                         // Glitchear caracteres individuales con una probabilidad menor
@@ -132,8 +132,8 @@ export class Conversation {
         let options = (node.options || []).map(o => ({ ...o }));
 
         // Lógica para añadir una tercera opción de "finalizar diálogo" 
-        // cuando hay exactamente 2 opciones y ambas tienen una acción
-        if (options.length === 2 && options.every(o => o.onclick)) {
+        // cuando hay acciones disponibles (no solo si son 2)
+        if (options.length > 0 && options.every(o => o.onclick)) {
             const endTexts = [
                 "Omitir por diálogo",
                 "Terminar conversación",
@@ -144,7 +144,7 @@ export class Conversation {
                 "Pasa al siguiente"
             ];
             const randomText = endTexts[Math.floor(Math.random() * endTexts.length)];
-            
+
             options.push({
                 id: 'exit_conversation',
                 label: randomText,
@@ -163,15 +163,15 @@ export class Conversation {
     getNextDialogue(choice) {
         const node = this.set.nodes[this.currentId];
         if (!node) return { error: 'Nodo no encontrado' };
-        
+
         let opt = null;
         const nodeOptions = node.options || [];
 
         if (typeof choice === 'number') {
             if (nodeOptions.length === 0 && choice === 0) {
                 opt = { id: 'auto_end', label: 'Entendido', next: null };
-            } else if (choice === nodeOptions.length && nodeOptions.length === 2 && nodeOptions.every(o => o.onclick)) {
-                // Caso especial: opción de salida inyectada dinámicamente
+            } else if (choice === nodeOptions.length && nodeOptions.length > 0 && nodeOptions.every(o => o.onclick)) {
+                // Caso especial: opción de salida inyectada dinámicamente SI todas las opciones son acciones
                 opt = { id: 'exit_conversation', label: 'Terminar diálogo', next: null, resultText: 'El sujeto asiente y espera en silencio.' };
             } else if (choice >= nodeOptions.length) {
                 // Otros casos de salida (compatibilidad)
@@ -225,7 +225,7 @@ export class Conversation {
         if (!opt.next) {
             // End of branch
             this.currentId = null;
-            return { end: true, audio, message: opt.resultText || null };
+            return { end: true, id: opt.id, audio, message: opt.resultText || null };
         }
         this.currentId = opt.next;
         const nextNodeRaw = this.set.nodes[this.currentId];

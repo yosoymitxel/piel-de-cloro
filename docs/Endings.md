@@ -82,6 +82,37 @@ Al disparar un final:
 |-------|-------------------------|-------|
 | Clean | Alta | Requiere escaneos precisos y gestión de recursos. |
 | Corrupted | Media | Pasa si eres negligente o te arriesgas con sujetos dudosos. |
-| Paranoia | Media/Alta | Sube al purgar civiles o ignorar sujetos. |
+|Paranoia | Media/Alta | Sube al purgar civiles o ignorar sujetos. |
 | Generator | Baja | Solo si descuidas totalmente el combustible. |
 | Alone | Media | Si purgas a demasiada gente por miedo. |
+
+---
+
+## 4. Finales de Lore (Anomalías)
+
+### **Asimilación (`final_lore_assimilation`)**
+- **Condición**: Tener un NPC de lore (Anomalía) en el refugio durante la noche (**80% probabilidad de muerte**).
+- **Lore**: El cloro no vino a convivir. [Nombre del NPC] te encontró mientras dormías. Hay cosas que no se pueden contener.
+- **Tipo**: Peligro (Rojo).
+- **Notas**: Extremadamente peligroso admitir NPCs con badge "⚠ ANOMALÍA".
+
+### **Coleccionista de Abismos (`final_lore_collector`)**
+- **Condición**: Admitir **2 o más NPCs de lore** y sobrevivir la noche (4% probabilidad combinada).
+- **Lore**: Reuniste a las voces del cloro bajo un mismo techo. Ellos se reconocen entre sí. La resonancia comienza.
+- **Tipo**: Peligro (Rojo).
+- **Notas**: Ending especial muy raro, requiere múltiples encuentros de lore.
+
+### **Conocimiento Prohibido (`final_lore_survivor`)**
+- **Condición**: Sobrevivir una noche con NPC de lore (20% probabilidad) Y purgarlo al día siguiente antes de escapar.
+- **Lore**: Sobreviviste a la noche con la anomalía. Viste lo que no deberías. La verdad del cloro está ahora en tu mente... permanentemente.
+- **Tipo**: Ambiguo (Normal).
+- **Notas**: Logro raro, requiere supervivencia + decisión consciente de purgar.
+
+---
+
+## 📊 Total de Finales: **12**
+
+- **Escape**: 4 (Clean, Corrupted, Player Infected, Refugio Tomado)
+- **Supervivencia/Derrota**: 4 (Paranoia, Generator, Alone, Abandonment)
+- **Guardia**: 2 (Night Player Death, Overload Death)
+- **Lore**: 3 (Asimilación, Coleccionista, Conocimiento Prohibido)

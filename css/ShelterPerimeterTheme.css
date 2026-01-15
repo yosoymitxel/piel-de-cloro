@@ -13,19 +13,26 @@
 }
 
 /* 1. EFECTOS CRT PARA ESTAS PANTALLAS */
-#screen-shelter, #screen-morgue, #screen-room {
+#screen-shelter,
+#screen-morgue,
+#screen-room {
     background: #050705 !important;
     position: relative;
     overflow: hidden;
 }
 
-#screen-shelter::before, #screen-morgue::before, #screen-room::before {
+#screen-shelter::before,
+#screen-morgue::before,
+#screen-room::before {
     content: " ";
     display: block;
     position: absolute;
-    top: 0; left: 0; bottom: 0; right: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
     z-index: 30;
     background-size: 100% 4px, 3px 100%;
     pointer-events: none;
@@ -35,10 +42,10 @@
 .industrial-panel {
     background: var(--panel-metallic);
     border: 4px solid var(--panel-border);
-    box-shadow: 
-        inset 4px 4px 0 rgba(255,255,255,0.05),
-        inset -4px -4px 0 rgba(0,0,0,0.4),
-        0 10px 20px rgba(0,0,0,0.5);
+    box-shadow:
+        inset 4px 4px 0 rgba(255, 255, 255, 0.05),
+        inset -4px -4px 0 rgba(0, 0, 0, 0.4),
+        0 10px 20px rgba(0, 0, 0, 0.5);
     position: relative;
     padding: 20px;
     margin: 10px;
@@ -51,29 +58,46 @@
     background: #555;
     border-radius: 50%;
     position: absolute;
-    box-shadow: inset 2px 2px 2px rgba(255,255,255,0.2), 2px 2px 4px rgba(0,0,0,0.5);
+    box-shadow: inset 2px 2px 2px rgba(255, 255, 255, 0.2), 2px 2px 4px rgba(0, 0, 0, 0.5);
     z-index: 25;
 }
 
 .panel-screw::after {
     content: '';
     position: absolute;
-    top: 50%; left: 50%;
-    width: 80%; height: 2px;
+    top: 50%;
+    left: 50%;
+    width: 80%;
+    height: 2px;
     background: #333;
     transform: translate(-50%, -50%) rotate(45deg);
 }
 
-.screw-tl { top: 10px; left: 10px; }
-.screw-tr { top: 10px; right: 10px; }
-.screw-bl { bottom: 10px; left: 10px; }
-.screw-br { bottom: 10px; right: 10px; }
+.screw-tl {
+    top: 10px;
+    left: 10px;
+}
+
+.screw-tr {
+    top: 10px;
+    right: 10px;
+}
+
+.screw-bl {
+    bottom: 10px;
+    left: 10px;
+}
+
+.screw-br {
+    bottom: 10px;
+    right: 10px;
+}
 
 /* 2.1 SIDEBAR NAVIGATION RETRO-INDUSTRIAL */
 #sidebar-left {
     background: #111;
     border-right: 4px solid #333;
-    box-shadow: inset -5px 0 15px rgba(0,0,0,0.5);
+    box-shadow: inset -5px 0 15px rgba(0, 0, 0, 0.5);
     z-index: 40;
     position: relative;
 }
@@ -91,11 +115,11 @@
     margin-bottom: 8px;
     position: relative;
     transition: all 0.2s steps(4);
-    box-shadow: 
-        inset 2px 2px 2px rgba(255,255,255,0.05),
-        inset -2px -2px 2px rgba(0,0,0,0.3),
-        2px 2px 5px rgba(0,0,0,0.5);
-    opacity: 0.6;
+    box-shadow:
+        inset 2px 2px 2px rgba(255, 255, 255, 0.05),
+        inset -2px -2px 2px rgba(0, 0, 0, 0.3),
+        2px 2px 5px rgba(0, 0, 0, 0.5);
+    opacity: 0.8;
     filter: grayscale(0.8);
     overflow: hidden;
 }
@@ -103,7 +127,9 @@
 .nav-sidebar-btn::after {
     content: '';
     position: absolute;
-    left: 0; top: 0; bottom: 0;
+    left: 0;
+    top: 0;
+    bottom: 0;
     width: 0;
     background: var(--color-chlorine);
     transition: width 0.2s steps(4);
@@ -139,9 +165,9 @@
     opacity: 1;
     background: #252525 !important;
     filter: grayscale(0);
-    box-shadow: 
-        inset -2px -2px 2px rgba(255,255,255,0.05),
-        inset 4px 4px 8px rgba(0,0,0,0.8);
+    box-shadow:
+        inset -2px -2px 2px rgba(255, 255, 255, 0.05),
+        inset 4px 4px 8px rgba(0, 0, 0, 0.8);
 }
 
 .nav-sidebar-btn.active::after {
@@ -167,7 +193,7 @@
     height: 6px;
     background: #111;
     border-radius: 50%;
-    box-shadow: inset 1px 1px 1px rgba(0,0,0,0.8), 0 0 1px rgba(255,255,255,0.1);
+    box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.1);
     transition: all 0.3s steps(2);
     z-index: 5;
 }
@@ -191,13 +217,27 @@
 }
 
 @keyframes blink-fast {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
 }
 
 @keyframes blink-slow {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
 }
 
 .nav-sidebar-btn.status-level-4 i {
@@ -239,7 +279,10 @@
 .bio-validation-terminal::after {
     content: "";
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
     background-size: 100% 2px;
     pointer-events: none;
@@ -258,7 +301,7 @@
 
 .stat-box {
     border: 1px solid rgba(77, 166, 255, 0.1);
-    background: rgba(0,0,0,0.4);
+    background: rgba(0, 0, 0, 0.4);
     transition: all 0.2s steps(4);
     position: relative;
 }
@@ -274,8 +317,8 @@
     padding: 6px;
     position: relative;
     transition: all 0.2s steps(2);
-    box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
-    display: flex; 
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+    display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
@@ -284,13 +327,16 @@
 .survivor-card::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; width: 100%; height: 4px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
     background: #333;
 }
 
 .survivor-card:hover {
     transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 rgba(0,0,0,0.6);
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.6);
     border-color: #555;
 }
 
@@ -323,8 +369,13 @@
 }
 
 @keyframes alert-blink {
-    from { border-color: var(--perimeter-alert); }
-    to { border-color: transparent; }
+    from {
+        border-color: var(--perimeter-alert);
+    }
+
+    to {
+        border-color: transparent;
+    }
 }
 
 /* 4. PERIMETER SPECIFIC STYLES */
@@ -334,7 +385,7 @@
 }
 
 .perimeter-log-section {
-    border: 2px solid rgba(255,255,255,0.03);
+    border: 2px solid rgba(255, 255, 255, 0.03);
     background: #000000 !important;
     box-shadow: inset 0 0 100px rgba(0, 0, 0, 1);
     position: relative;
@@ -355,16 +406,27 @@
 }
 
 .log-entry-row {
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     padding: 8px;
     font-family: 'VT323', monospace;
     font-size: 14px;
 }
 
 /* Colores de Categoría */
-.cat-purged { color: var(--perimeter-alert); border-color: rgba(255, 51, 51, 0.3); }
-.cat-escaped { color: var(--perimeter-warning); border-color: rgba(255, 204, 0, 0.3); }
-.cat-night { color: var(--shelter-blue); border-color: rgba(77, 166, 255, 0.3); }
+.cat-purged {
+    color: var(--perimeter-alert);
+    border-color: rgba(255, 51, 51, 0.3);
+}
+
+.cat-escaped {
+    color: var(--perimeter-warning);
+    border-color: rgba(255, 204, 0, 0.3);
+}
+
+.cat-night {
+    color: var(--shelter-blue);
+    border-color: rgba(77, 166, 255, 0.3);
+}
 
 /* 4. HUD & GLOBAL INTERFACE */
 #screen-game header {
@@ -372,14 +434,17 @@
     border: 2px solid #333;
     padding: 10px 15px;
     margin-bottom: 10px;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
     position: relative;
 }
 
 #screen-game header::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; width: 100%; height: 2px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
     background: linear-gradient(90deg, transparent, var(--color-chlorine), transparent);
     opacity: 0.3;
 }
@@ -418,7 +483,7 @@
     gap: 10px;
     position: relative;
     transition: all 0.2s steps(2);
-    box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 .security-item-card.secured {
@@ -474,7 +539,10 @@
 /* Scan effect for Perimeter */
 .radar-sweep {
     position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: linear-gradient(to bottom, transparent, rgba(77, 166, 255, 0.05));
     animation: sweep 4s linear infinite;
     pointer-events: none;
@@ -482,15 +550,20 @@
 }
 
 @keyframes sweep {
-    from { transform: translateY(-100%); }
-    to { transform: translateY(100%); }
+    from {
+        transform: translateY(-100%);
+    }
+
+    to {
+        transform: translateY(100%);
+    }
 }
 
 /* 7. MODAL RETRO-INDUSTRIAL (NPC Detail) */
 #modal-npc .horror-panel {
     background: #080808 !important;
     border: 3px solid #444 !important;
-    box-shadow: 0 0 30px rgba(0,0,0,0.9);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
     position: relative;
 }
 
@@ -503,7 +576,10 @@
 #modal-visual-container::after {
     content: "";
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
     background-size: 100% 4px;
     pointer-events: none;
@@ -530,7 +606,7 @@
     background: #151515 !important;
     border: 2px solid #333 !important;
     border-top: none !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .hud-stat-box {

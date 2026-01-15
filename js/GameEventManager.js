@@ -33,7 +33,7 @@ export class GameEventManager {
         // Apply visual and state changes
         this.ui.lastNav = screenId;
         if (sound) this.audio.playSFXByKey(sound, { volume });
-        
+
         // Detener sonidos cortos al cambiar de navegación (incluyendo bucles de escritura)
         if (this.audio && typeof this.audio.stopAllSFX === 'function') {
             this.audio.stopAllSFX(true);
@@ -94,9 +94,9 @@ export class GameEventManager {
                         State.addPurged(target);
                         if (State.isNight) State.nightPurgePerformed = true;
                         if (this.ui.setNavItemStatus) this.ui.setNavItemStatus(CONSTANTS.NAV_ITEMS.MORGUE, 3);
-                        
+
                         this.game.mechanics.calculatePurgeConsequences(target);
-                        
+
                         if (State.isNight || State.isDayOver()) {
                             this.game.mechanics.startNightPhase();
                         } else {
@@ -151,41 +151,41 @@ export class GameEventManager {
 
     bindAll() {
         $('#tool-thermo, #tool-flash, #tool-pulse, #tool-pupils, #btn-admit, #btn-ignore').addClass('btn-interactive');
-        
+
         // Fullscreen Toggle
         $('#btn-toggle-fullscreen, #btn-pause-fullscreen').on('click', () => this.game.toggleFullscreen());
 
-        $(document).on('fullscreenchange', () => { 
-            const iconElement = $('#btn-pause-fullscreen i, #btn-toggle-fullscreen i'); 
-            if (document.fullscreenElement) { 
-                iconElement.removeClass('fa-expand').addClass('fa-compress'); 
-            } else { 
-                iconElement.removeClass('fa-compress').addClass('fa-expand'); 
-            } 
+        $(document).on('fullscreenchange', () => {
+            const iconElement = $('#btn-pause-fullscreen i, #btn-toggle-fullscreen i');
+            if (document.fullscreenElement) {
+                iconElement.removeClass('fa-expand').addClass('fa-compress');
+            } else {
+                iconElement.removeClass('fa-compress').addClass('fa-expand');
+            }
         });
 
         // Notificaciones de Bitácora
-        $(document).on('log-added', (e) => { 
-            const type = e.detail?.type; 
-            if (type === 'lore' || type === 'note') { 
-                this.ui.setNavItemStatus(CONSTANTS.NAV_ITEMS.LOG, 2); 
-            } 
+        $(document).on('log-added', (e) => {
+            const type = e.detail?.type;
+            if (type === 'lore' || type === 'note') {
+                this.ui.setNavItemStatus(CONSTANTS.NAV_ITEMS.LOG, 2);
+            }
         });
 
         // Start & Settings
-        $('#btn-start-game').on('click', async () => { 
+        $('#btn-start-game').on('click', async () => {
             $('#btn-pause').removeClass('hidden');
             const $btn = $('#btn-start-game');
             const $text = $('#btn-start-game-text');
-            
+
             if ($btn.hasClass('loading')) return;
-            
+
             $btn.addClass('loading opacity-50 cursor-wait');
             $text.text('CARGANDO...');
-            
-            this.audio.unlock(); 
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); 
-            
+
+            this.audio.unlock();
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+
             try {
                 if (Object.keys(this.audio.manifest).length === 0) {
                     await this.audio.loadManifest();
@@ -196,7 +196,7 @@ export class GameEventManager {
             } finally {
                 $text.text('INICIAR PARTIDA');
                 $btn.removeClass('loading opacity-50 cursor-wait');
-                this.game.startGame(); 
+                this.game.startGame();
             }
         });
 
@@ -205,11 +205,32 @@ export class GameEventManager {
             $('#config-max-shelter').val(State.config.maxShelterCapacity);
             $('#config-day-length').val(State.config.dayLength);
             $('#config-dayafter-tests').val(State.config.dayAfterTestsDefault);
-            
+
             $('#config-volume-master').val(Math.round(this.audio.master * 100));
             $('#config-volume-ambient').val(Math.round(this.audio.levels.ambient * 100));
             $('#config-volume-lore').val(Math.round(this.audio.levels.lore * 100));
             $('#config-volume-sfx').val(Math.round(this.audio.levels.sfx * 100));
+            $('#config-volume-lore').val(Math.round(this.audio.levels.lore * 100));
+            $('#config-volume-sfx').val(Math.round(this.audio.levels.sfx * 100));
+
+            // Developer Section Visibility & Population
+            if (State.debug) {
+                $('#settings-dev-section').removeClass('hidden').addClass('flex');
+
+                // Populate dev fields
+                $('#dev-config-intrusion').val(Math.round(State.config.securityIntrusionProbability * 100));
+                $('#dev-config-supplies').val(State.config.initialSupplies || 15);
+                $('#dev-config-paranoia').val(State.config.initialParanoia || 0);
+
+                // Energy cost mapping
+                let energyMode = 'normal';
+                if (State.config.generator.consumption.normal === 1) energyMode = 'low';
+                else if (State.config.generator.consumption.normal === 3) energyMode = 'high';
+                $('#dev-config-energy-cost').val(energyMode);
+            } else {
+                $('#settings-dev-section').addClass('hidden').removeClass('flex');
+            }
+
             this.ui.showScreen('settings');
         });
 
@@ -217,12 +238,12 @@ export class GameEventManager {
             State.config.maxShelterCapacity = parseInt($('#config-max-shelter').val());
             State.config.dayLength = parseInt($('#config-day-length').val());
             State.config.dayAfterTestsDefault = parseInt($('#config-dayafter-tests').val());
-            
+
             const mv = Math.max(0, Math.min(100, parseInt($('#config-volume-master').val()))) / 100;
             const av = Math.max(0, Math.min(100, parseInt($('#config-volume-ambient').val()))) / 100;
             const lv = Math.max(0, Math.min(100, parseInt($('#config-volume-lore').val()))) / 100;
             const sv = Math.max(0, Math.min(100, parseInt($('#config-volume-sfx').val()))) / 100;
-            
+
             this.audio.setMasterVolume(mv);
             this.audio.setChannelLevel('ambient', av);
             this.audio.setChannelLevel('lore', lv);
@@ -238,18 +259,28 @@ export class GameEventManager {
         // Navigation & Tooltips
         $('#nav-guard').on('click', () => this.navigateToGuard());
         $('#nav-room').on('click', () => this.navigateToRoom());
-        
+
         // Tooltip dinámico para refugio
         $('#nav-shelter')
-            .on('click', () => this.navigateToShelter())
+            .on('click', () => {
+                // Only play if not disabled (logic inside navigateToShelter handles checks but UI click should feedback)
+                this.audio.playSFXByKey('ui_button_click', { volume: 0.5, overlap: true });
+                this.navigateToShelter();
+            })
             .on('mouseenter', () => {
                 const count = State.admittedNPCs.length;
                 const max = State.config.maxShelterCapacity;
                 $('#nav-shelter').attr('title', `REFUGIO: ${count}/${max} sujetos`);
             });
 
-        $('#nav-morgue').on('click', () => this.navigateToMorgue());
-        $('#nav-generator').on('click', () => this.navigateToGenerator());
+        $('#nav-morgue').on('click', () => {
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5, overlap: true });
+            this.navigateToMorgue();
+        });
+        $('#nav-generator').on('click', () => {
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5, overlap: true });
+            this.navigateToGenerator();
+        });
         $('#hud-energy-container').on('click', () => this.navigateToGenerator());
         $('#btn-bitacora, #btn-open-log').on('click', () => this.navigateToLog());
         $('#btn-log-close-header, #btn-log-back').on('click', () => {
@@ -257,29 +288,29 @@ export class GameEventManager {
             this.ui.showScreen('game');
         });
         $('#nav-morgue-stats').on('click', () => this.game.toggleMorgueStats());
-        
+
         // Night Screen Actions
-        $('#btn-night-sleep').on('click', () => { 
-            if (State.paused) return; 
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); 
-            this.game.mechanics.sleep(); 
+        $('#btn-night-sleep').on('click', () => {
+            if (State.paused) return;
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.game.mechanics.sleep();
         });
 
-        $('#btn-night-relocate').on('click', () => { 
-            if (State.paused) return; 
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); 
-            this.game.actions.relocateShelter(); 
+        $('#btn-night-relocate').on('click', () => {
+            if (State.paused) return;
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.game.actions.relocateShelter();
         });
 
-        $('#btn-night-shelter').on('click', () => { 
-            if (State.paused) return; 
-            this.navigateToShelter(); 
+        $('#btn-night-shelter').on('click', () => {
+            if (State.paused) return;
+            this.navigateToShelter();
         });
 
-        $('#btn-night-escape').on('click', () => { 
-            if (State.paused) return; 
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); 
-            this.game.mechanics.finishRun(); 
+        $('#btn-night-escape').on('click', () => {
+            if (State.paused) return;
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.game.mechanics.finishRun();
         });
 
         // Botón de pausa (Global)
@@ -290,6 +321,12 @@ export class GameEventManager {
             $('#modal-pause').removeClass('hidden').addClass('flex');
             $('#toggle-mute-music').prop('checked', !this.audio.mutedChannels.ambient);
             $('#toggle-mute-sfx').prop('checked', !this.audio.mutedChannels.sfx);
+
+
+            // Menu de Pausa simplificado (sin panel dev duplicado)
+            if (State.debug) {
+                // Si quisieras mantener algo en el menú de pausa, iría aquí, pero el usuario pidió moverlo al settings
+            }
         });
 
         $('#btn-resume').on('click', () => {
@@ -314,20 +351,22 @@ export class GameEventManager {
             State.savePersistentData();
         });
 
-        $('#btn-pause-restart-day').on('click', () => { 
-            this.ui.showConfirm('¿REINICIAR EL DÍA ACTUAL? SE PERDERÁ TODO EL PROGRESO DE HOY.', () => { 
-                this.game.restartDay(); 
-            }, null, 'warning'); 
+        $('#btn-pause-restart-day').on('click', () => {
+            this.ui.showConfirm('¿REINICIAR EL DÍA ACTUAL?<br>SE PERDERÁ TODO EL PROGRESO DE HOY.', () => {
+                this.game.restartDay();
+            }, null, 'warning');
         });
 
-        $('#btn-pause-restart-game').on('click', () => { 
-            this.ui.showConfirm('¿REINICIAR TODA LA PARTIDA? SE PERDERÁ EL PROGRESO.', () => { 
-                this.game.restartGame(); 
-            }, null, 'warning'); 
+
+        $('#btn-pause-restart-game').on('click', () => {
+            this.ui.showConfirm('<span class="text-red-400">¿REINICIAR TODA LA PARTIDA?</span><br>SE PERDERÁ EL PROGRESO.', () => {
+                this.game.restartGame();
+            }, null, 'warning');
         });
+
 
         $('#btn-pause-to-start').on('click', () => {
-            this.ui.showConfirm('¿VOLVER AL MENÚ PRINCIPAL? SE PERDERÁ EL PROGRESO NO GUARDADO.', () => {
+            this.ui.showConfirm('¿VOLVER AL MENÚ PRINCIPAL?<br>SE PERDERÁ EL PROGRESO NO GUARDADO.', () => {
                 this.game.goToStart();
             }, null, 'warning');
         });
@@ -344,45 +383,45 @@ export class GameEventManager {
         });
 
         // Inspection Tools (Delegated to document for maximum resilience)
-        $(document).on('click', '#inspection-tools-container #tool-thermo', () => { 
+        $(document).on('click', '#inspection-tools-container #tool-thermo', () => {
             if (State.paused) {
                 return;
             }
-            this.game.actions.inspect('thermometer'); 
+            this.game.actions.inspect('thermometer');
         });
-        $(document).on('click', '#inspection-tools-container #tool-flash', () => { 
+        $(document).on('click', '#inspection-tools-container #tool-flash', () => {
             if (State.paused) {
                 return;
             }
-            this.game.actions.inspect('flashlight'); 
+            this.game.actions.inspect('flashlight');
         });
-        $(document).on('click', '#inspection-tools-container #tool-pulse', () => { 
+        $(document).on('click', '#inspection-tools-container #tool-pulse', () => {
             if (State.paused) {
                 return;
             }
-            this.game.actions.inspect('pulse'); 
+            this.game.actions.inspect('pulse');
         });
-        $(document).on('click', '#inspection-tools-container #tool-pupils', () => { 
+        $(document).on('click', '#inspection-tools-container #tool-pupils', () => {
             if (State.paused) {
                 return;
             }
-            this.game.actions.inspect('pupils'); 
+            this.game.actions.inspect('pupils');
         });
 
-        $(document).on('click', '#inspection-tools-container #btn-goto-generator', () => { 
+        $(document).on('click', '#inspection-tools-container #btn-goto-generator', () => {
             this.navigateToGenerator();
         });
 
         // Decisions
-        $(document).on('click', '#btn-admit', () => { 
+        $(document).on('click', '#btn-admit', () => {
             if (State.paused) return;
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); 
-            this.game.actions.handleDecision('admit'); 
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.game.actions.handleDecision('admit');
         });
-        $(document).on('click', '#btn-ignore', () => { 
+        $(document).on('click', '#btn-ignore', () => {
             if (State.paused) return;
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 }); 
-            this.game.actions.handleDecision('ignore'); 
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.game.actions.handleDecision('ignore');
         });
 
         // Day After Decisions
@@ -396,7 +435,7 @@ export class GameEventManager {
         $('#btn-preclose-stay').on('click', () => this.game.actions.handlePreCloseAction('stay'));
         $('#btn-preclose-escape').on('click', () => this.game.actions.handlePreCloseAction('escape'));
         $('#btn-preclose-relocate').on('click', () => this.game.actions.handlePreCloseAction('relocate'));
-        
+
         $('#btn-finalize-day-no-purge').on('click', () => this.game.actions.handlePreCloseAction('finalize'));
 
         // Generator
@@ -408,7 +447,7 @@ export class GameEventManager {
         $('#btn-morgue-clear').on('click', () => this.game.mechanics.clearMorgue());
 
         // Volver al inicio desde estadísticas finales
-        $('#btn-final-to-start').on('click', () => { 
+        $('#btn-final-to-start').on('click', () => {
             this.game.goToStart();
         });
 
@@ -443,10 +482,48 @@ export class GameEventManager {
             $('#screen-game').removeClass('is-paused');
         });
 
+        // Developer Apply Changes
+        $('#btn-dev-apply').on('click', () => {
+            if (!State.debug) return;
+
+            // Update Config
+            State.config.maxShelterCapacity = parseInt($('#dev-config-shelter').val()) || 10;
+            State.config.dayLength = parseInt($('#dev-config-daylength').val()) || 5;
+
+            const intrusionProb = parseInt($('#dev-config-intrusion').val());
+            State.config.securityIntrusionProbability = !isNaN(intrusionProb) ? intrusionProb / 100 : 0.25;
+
+            State.config.initialSupplies = parseInt($('#dev-config-supplies').val()) || 15;
+            State.config.initialParanoia = parseInt($('#dev-config-paranoia').val()) || 0;
+
+            // Apply immediate changes if sensible
+            State.supplies = State.config.initialSupplies;
+            // Only force paranoia reset if explicitly changed, but let's just stick to update current
+
+            // Energy Cost Logic
+            const energyMode = $('#dev-config-energy-cost').val();
+            if (energyMode === 'low') {
+                State.config.generator.consumption = { save: 0, normal: 1, overload: 2 };
+            } else if (energyMode === 'high') {
+                State.config.generator.consumption = { save: 2, normal: 3, overload: 4 };
+            } else {
+                State.config.generator.consumption = { save: 1, normal: 2, overload: 3 }; // Normal
+            }
+
+            // Feedback
+            const fb = $('#dev-feedback');
+            fb.removeClass('hidden');
+
+            if (this.audio) this.audio.playSFXByKey('ui_confirm', { volume: 0.5 });
+            setTimeout(() => fb.addClass('hidden'), 2000);
+
+            this.game.updateHUD();
+        });
+
         // Controles de potencia del generador
         $('.btn-generator-control').on('click', (e) => {
             const mode = $(e.currentTarget).attr('id').replace('btn-gen-', '');
-            
+
             // Visual feedback: marcar activo
             $('.btn-generator-control').removeClass('active');
             $(e.currentTarget).addClass('active');

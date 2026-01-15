@@ -7,7 +7,7 @@ describe('Game Action Handler', () => {
 
     beforeEach(() => {
         State.reset();
-        
+
         uiMock = {
             showFeedback: jest.fn(),
             hideFeedback: jest.fn(),
@@ -21,18 +21,19 @@ describe('Game Action Handler', () => {
             closeModal: jest.fn(),
             openRelocationModal: jest.fn()
         };
-        
+
         audioMock = {
-            playSFXByKey: jest.fn()
+            playSFXByKey: jest.fn(),
+            stopLore: jest.fn()
         };
-        
+
         mechanicsMock = {
             checkSecurityDegradation: jest.fn(),
             sleep: jest.fn(),
             finishRun: jest.fn(),
             continueDay: jest.fn()
         };
-        
+
         gameMock = {
             ui: uiMock,
             audio: audioMock,
@@ -84,9 +85,9 @@ describe('Game Action Handler', () => {
         test('inspect blocks if generator is off', () => {
             State.generator.isOn = false;
             State.currentNPC = new NPC();
-            
+
             gah.inspect('thermometer');
-            
+
             expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("GENERADOR APAGADO"), "red", expect.any(Number));
         });
 
@@ -95,9 +96,9 @@ describe('Game Action Handler', () => {
             State.generator.mode = 'save';
             State.currentNPC = new NPC();
             State.currentNPC.scanCount = 1; // Limit for save mode
-            
+
             gah.inspect('thermometer');
-            
+
             expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("ENERGÍA INSUFICIENTE"), "yellow", expect.any(Number));
         });
 
@@ -106,9 +107,9 @@ describe('Game Action Handler', () => {
             State.generator.mode = 'normal';
             State.currentNPC = new NPC();
             State.currentNPC.scanCount = 0;
-            
+
             gah.inspect('thermometer');
-            
+
             expect(State.currentNPC.scanCount).toBe(1);
             expect(State.currentNPC.revealedStats).toContain('temperature');
             expect(mechanicsMock.checkSecurityDegradation).toHaveBeenCalled();
@@ -120,9 +121,9 @@ describe('Game Action Handler', () => {
             State.generator.mode = 'normal';
             State.currentNPC = new NPC();
             State.currentNPC.revealedStats = ['temperature'];
-            
+
             gah.inspect('thermometer');
-            
+
             expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("TEST YA REALIZADO"), "yellow", expect.any(Number));
         });
     });
@@ -132,9 +133,9 @@ describe('Game Action Handler', () => {
             const npc = new NPC();
             State.currentNPC = npc;
             npc.scanCount = 1; // Allow decision
-            
+
             gah.handleDecision('admit');
-            
+
             expect(State.admittedNPCs).toContain(npc);
             expect(gameMock.nextTurn).toHaveBeenCalled();
         });
@@ -144,12 +145,12 @@ describe('Game Action Handler', () => {
             State.currentNPC = npc;
             npc.scanCount = 1;
             const initialParanoia = State.paranoia;
-            
+
             // Mock random to be predictable (max factor for human is 4)
             const spy = jest.spyOn(Math, 'random').mockReturnValue(0.99);
-            
+
             gah.handleDecision('ignore');
-            
+
             expect(State.ignoredNPCs).toContain(npc);
             // Math.floor(0.99 * 3) + 1 = 3 + 1 = 4
             expect(State.paranoia).toBe(initialParanoia + 4);
@@ -160,9 +161,9 @@ describe('Game Action Handler', () => {
             const npc = new NPC();
             State.currentNPC = npc;
             npc.scanCount = 0;
-            
+
             gah.handleDecision('admit');
-            
+
             expect(uiMock.showValidationGate).toHaveBeenCalled();
             expect(State.admittedNPCs).not.toContain(npc);
         });

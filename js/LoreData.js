@@ -160,5 +160,23 @@ export const LoreData = {
         content: 'El sistema eléctrico colapsó violentamente. La falta de personal para estabilizar los núcleos provocó una explosión térmica. El refugio ahora es una tumba de metal fundido y estática.',
         type: 'danger',
         sfx: 'glitch_burst'
+    },
+    final_lore_assimilation: {
+        title: 'Asimilación',
+        content: 'El cloro no vino a convivir.\n\n{loreName} te encontró mientras dormías.\n\nHay cosas que no se pueden contener.',
+        type: 'danger',
+        sfx: 'glitch_burst'
+    },
+    final_lore_collector: {
+        title: 'Coleccionista de Abismos',
+        content: 'Reuniste a las voces del cloro bajo un mismo techo.\n\nEllos se reconocen entre sí.\n\nLa resonancia comienza.',
+        type: 'danger',
+        sfx: 'glitch_burst'
+    },
+    final_lore_survivor: {
+        title: 'Conocimiento Prohibido',
+        content: 'Sobreviviste a la noche con la anomalía.\n\nViste lo que no deberías.\n\nLa verdad del cloro está ahora en tu mente... permanentemente.',
+        type: 'normal',
+        sfx: 'ui_modal_open'
     }
 };

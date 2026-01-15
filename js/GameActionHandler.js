@@ -18,7 +18,7 @@ export class GameActionHandler {
         if (State.paused) {
             return { allowed: false, reason: "JUEGO EN PAUSA", code: "PAUSED" };
         }
-        
+
         if (this.game.isAnimating) {
             return { allowed: false, reason: "ANIMACIÓN EN CURSO", code: "ANIMATING" };
         }
@@ -63,16 +63,16 @@ export class GameActionHandler {
 
     inspect(tool) {
         State.log(`[GameActionHandler] --- INICIO INSPECCIÓN: ${tool} ---`);
-        
+
         const validation = this.validateInspection(tool);
         State.log(`[GameActionHandler] Resultado Validación:`, validation);
-        
+
         const npc = State.currentNPC;
         if (!validation.allowed) {
             State.warn(`[GameActionHandler] Inspección cancelada: ${validation.reason} (${validation.code})`);
-            
+
             // Mostrar feedback visual según el error
-            switch(validation.code) {
+            switch (validation.code) {
                 case "ANIMATING":
                     this.ui.showFeedback("ESPERA A QUE TERMINE LA ACCIÓN", "orange", 2500);
                     break;
@@ -115,7 +115,7 @@ export class GameActionHandler {
             this.ui.applyVHS(1.0, 1500);
             this.audio.playSFXByKey('ui_hover', { volume: 0.8 }); // Sonido de error
             this.ui.showFeedback("ERROR DE LECTURA: INTERFERENCIA EN EL SECTOR", "red");
-            
+
             setTimeout(() => {
                 this.game.isAnimating = false;
                 this.game.updateHUD();
@@ -127,9 +127,9 @@ export class GameActionHandler {
         this.game.isAnimating = true;
         State.verificationsCount++;
         npc.scanCount += energyCost;
-        this.game.mechanics.checkSecurityDegradation(); 
-        this.game.updateHUD(); 
-        
+        this.game.mechanics.checkSecurityDegradation();
+        this.game.updateHUD();
+
         let result = "";
         let color = "yellow";
         let animDuration = 1000;
@@ -176,7 +176,7 @@ export class GameActionHandler {
             case 'thermometer':
                 animDuration = 2200;
                 result = `TEMP: ${toolValue}°C`;
-                if (parseFloat(toolValue) < 35) color = '#aaffaa';
+                if (parseFloat(toolValue) < 35) color = State.colors.textGreen;
                 if (!npc.revealedStats.includes('temperature')) npc.revealedStats.push('temperature');
                 this.ui.applyVHS(0.4, 700);
                 this.audio.playSFXByKey('tool_thermometer_beep', { volume: 0.6 });
@@ -198,7 +198,7 @@ export class GameActionHandler {
             case 'pulse':
                 animDuration = 2200;
                 result = `PULSO: ${toolValue} PPM`;
-                if (parseInt(toolValue) < 40) color = '#ffaaaa';
+                if (parseInt(toolValue) < 40) color = State.colors.textRed;
                 if (!npc.revealedStats.includes('pulse')) npc.revealedStats.push('pulse');
                 this.ui.applyVHS(0.5, 700);
                 this.audio.playSFXByKey('tool_pulse_sensor', { volume: 0.6 });
@@ -248,27 +248,29 @@ export class GameActionHandler {
         } else if (action === 'ignore') {
             npc.exitCycle = State.cycle;
             State.ignoredNPCs.push(npc);
-            
+
             // Consecuencia por ignorar: la paranoia aumenta porque no sabes qué has dejado fuera
             // REBALANCEO: Ahora es un factor aleatorio que no supera los 7 (antes era 5 o 10 fijo)
             const maxIncrease = npc.isInfected ? 7 : 4;
             const amount = Math.floor(Math.random() * maxIncrease) + 1;
             State.updateParanoia(amount);
-            
-            const msg = npc.isInfected 
+
+            const msg = npc.isInfected
                 ? `Has permitido que ${npc.name} se marche. Sientes un escalofrío mientras desaparece en la niebla.`
                 : `Has permitido que ${npc.name} se marche. La incertidumbre crece.`;
 
-            
+
             if (npc.isInfected && Math.random() < 0.2) {
                 this.ui.showMessage(msg, null, npc.isInfected ? 'warning' : 'normal');
             }
         }
 
+        if (this.audio) this.audio.stopLore({ fadeOut: 1000 });
+
         State.nextSubject();
         this.game.nextTurn();
         this.ui.updateRunStats(State);
-        
+
         // Reset flag for next NPC
         this.processingDecision = false;
     }
@@ -279,7 +281,7 @@ export class GameActionHandler {
         // Mecánica de suministros: Solicitar suministros de emergencia
         // Coste: Aumenta la paranoia significativamente (ruido logístico)
         // Beneficio: +3 suministros
-        
+
         const paranoiaCost = 15;
         const supplyGain = 3;
 
@@ -329,12 +331,12 @@ export class GameActionHandler {
     confirmRelocation(selectedNPCs = []) {
         const paranoiaReduction = 30;
         State.updateParanoia(-paranoiaReduction);
-        
+
         this.ui.setNavLocked(false);
 
         const abandoned = State.admittedNPCs.filter(npc => !selectedNPCs.includes(npc));
         const abandonedCount = abandoned.length;
-        
+
         abandoned.forEach(npc => {
             State.departedNPCs.push(npc);
         });
@@ -343,12 +345,12 @@ export class GameActionHandler {
 
         this.audio.playSFXByKey('preclose_overlay_open', { volume: 0.8 });
         State.addLogEntry('system', `MUDANZA: Sector abandonado. ${abandonedCount} sujetos dejados atrás. ${selectedNPCs.length} mantenidos.`);
-        
+
         let msg = `MUDANZA COMPLETADA: Has abandonado el sector. `;
         if (abandonedCount > 0) msg += `${abandonedCount} refugiados quedaron atrás. `;
         if (selectedNPCs.length > 0) msg += `Te llevas contigo a ${selectedNPCs.length} sujetos. `;
         msg += `La paranoia ha disminuido.`;
-        
+
         this.ui.closeRelocationModal();
 
         this.ui.showMessage(msg, () => {
