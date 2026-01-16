@@ -23,7 +23,9 @@ describe('Energy, Battery & Guard System', () => {
             updateInspectionTools: jest.fn(),
             renderAvatar: jest.fn(() => '<div>avatar</div>'),
             closeModal: jest.fn(),
-            showMessage: jest.fn()
+            showMessage: jest.fn(),
+            renderSecurityRoom: jest.fn(),
+            updateSecurityNavStatus: jest.fn()
         };
 
         audioMock = {

@@ -228,15 +228,13 @@ export class GameEventManager {
     }
 
     navigateToRoomByKey(key) {
-        switch (key) {
-            case 'game': this.navigateToGuard(); break;
-            case 'room': this.navigateToRoom(); break;
-            case 'shelter': this.navigateToShelter(); break;
-            case 'generator': this.navigateToGenerator(); break;
-            case 'supplies': this.navigateToSuppliesHub(); break;
-            case 'morgue': this.navigateToMorgue(); break;
-            case 'database': this.ui.showScreen(CONSTANTS.SCREENS.DATABASE); break;
-            case 'meditation': this.navigateToMeditation(); break;
+        const config = CONSTANTS.ROOM_CONFIG[key];
+        if (!config) return;
+
+        if (config.method && typeof this[config.method] === 'function') {
+            this[config.method]();
+        } else if (config.screen) {
+            this.ui.showScreen(config.screen);
         }
     }
 

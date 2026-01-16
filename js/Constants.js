@@ -46,5 +46,35 @@ export const CONSTANTS = {
     },
     SECURITY: {
         DEGRADATION_CHANCE_MODIFIER: 0.3
+    },
+    ROOM_CONFIG: {
+        game: { method: 'navigateToGuard', label: 'PUESTO DE GUARDIA' },
+        room: { method: 'navigateToRoom', label: 'HABITACIÓN' },
+        shelter: { method: 'navigateToShelter', label: 'REFUGIO' },
+        generator: { method: 'navigateToGenerator', label: 'GENERADOR' },
+        supplies: { method: 'navigateToSuppliesHub', label: 'SUMINISTROS' },
+        morgue: { method: 'navigateToMorgue', label: 'MORGUE' },
+        database: { screen: 'database', label: 'ARCHIVOS' },
+        meditation: { method: 'navigateToMeditation', label: 'SALA_DE_SUEÑO_Z' }
+    },
+    SECTOR_CONFIG: {
+        generator: {
+            name: 'GENERADOR',
+            icon: 'fa-bolt',
+            sabotageMsg: 'SABOTAJE: Fallo provocado en generador por {npc}.',
+            feedback: '¡SABOTAJE EN EL GENERADOR!'
+        },
+        security: {
+            name: 'SEGURIDAD',
+            icon: 'fa-shield-halved',
+            sabotageMsg: 'SABOTAJE: Seguridad comprometida vía {item} por {npc}.',
+            feedback: '¡PUERTA ABIERTA DESDE DENTRO!'
+        },
+        supplies: {
+            name: 'SUMINISTROS',
+            icon: 'fa-box-open',
+            sabotageMsg: 'SABOTAJE: Desaparición de {amount} suministros por {npc}.',
+            feedback: '¡SUMINISTROS ROBADOS!'
+        }
     }
 };

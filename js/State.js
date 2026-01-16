@@ -9,22 +9,6 @@ export const State = {
         dayLength: 5, // Subjects per day
         difficulty: 'normal',
         dayAfterTestsDefault: 3,
-        // Seguridad / intrusiones
-        securityItemsMin: 1,
-        securityItemsMax: 5,
-        securityIntrusionProbability: 0.25,
-        // Entradas aleatorias al iniciar la run
-        initialEntrantProbability: 0.2,
-        initialEntrantMaxFraction: 0.5,
-        // Intrusiones diurnas
-        dayIntrusionIntervalMin: 1,
-        dayIntrusionIntervalMax: 3,
-        dayIntrusionProbability: 0.8,
-        dayIntrusionProbability: 0.8,
-        dayIntrusionInfectedChance: 0.65,
-        dayDeactivationProbability: 0.9,
-        // Jugador infectado
-        playerInfectedProbability: 0.15,
         // Configuración Inicial (Dev/Difficulty)
         initialSupplies: 15,
         initialParanoia: 0,
@@ -69,6 +53,28 @@ export const State = {
         muted: { ambient: false, lore: false, sfx: false }
     },
     pinnedRooms: ['generator', 'shelter'], // Hasta 3 salas rápidas
+    shelter: {
+        id: 'alpha-01',
+        name: 'REFUGIO ALPHA-01',
+        maxCapacity: 10,
+        rooms: ['game', 'room', 'shelter', 'generator', 'supplies', 'morgue', 'database', 'meditation'],
+        security: {
+            minItems: 1,
+            maxItems: 5,
+            types: ['alarma', 'puerta', 'ventana', 'tuberias']
+        },
+        config: {
+            securityIntrusionProbability: 0.25,
+            initialEntrantProbability: 0.2,
+            initialEntrantMaxFraction: 0.5,
+            dayIntrusionIntervalMin: 1,
+            dayIntrusionIntervalMax: 3,
+            dayIntrusionProbability: 0.8,
+            dayIntrusionInfectedChance: 0.65,
+            dayDeactivationProbability: 0.9,
+            playerInfectedProbability: 0.15
+        }
+    },
 
     savePersistentData() {
         const data = {
@@ -337,9 +343,10 @@ export const State = {
     },
 
     generateSecurityItems() {
-        const types = ['alarma', 'puerta', 'ventana', 'tuberias'];
-        const min = this.config.securityItemsMin;
-        const max = this.config.securityItemsMax;
+        const sec = this.shelter.security;
+        const types = sec.types || ['alarma', 'puerta', 'ventana', 'tuberias'];
+        const min = sec.minItems || 1;
+        const max = sec.maxItems || 5;
         const count = Math.max(min, Math.min(max, Math.floor(min + Math.random() * (max - min + 1))));
         const items = [];
         let alarmCount = 0;

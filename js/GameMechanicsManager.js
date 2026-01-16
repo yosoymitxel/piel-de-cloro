@@ -7,6 +7,66 @@ export class GameMechanicsManager {
         this.game = game;
         this.ui = game.ui;
         this.audio = game.audio;
+        this.nightResolutionHooks = [];
+        this.registerDefaultHooks();
+    }
+
+    registerNightHook(hookFn) {
+        if (typeof hookFn === 'function') {
+            this.nightResolutionHooks.push(hookFn);
+        }
+    }
+
+    registerDefaultHooks() {
+        // 1. Hook de Recarga del Generador
+        this.registerNightHook((state) => {
+            let summary = "";
+            if (state.generator.power < 100) {
+                let rechargeAmount = 25;
+                if (state.generator.assignedGuardId) {
+                    const guard = state.admittedNPCs.find(n => n.id === state.generator.assignedGuardId);
+                    if (guard && !guard.isInfected) rechargeAmount += 10;
+                }
+                state.generator.power = Math.min(100, state.generator.power + rechargeAmount);
+            }
+            return summary;
+        });
+
+        // 2. Hook de Soporte Vital
+        this.registerNightHook((state) => {
+            let summary = "";
+            const sys = state.generator.systems;
+            if (sys && sys.lifeSupport && !sys.lifeSupport.active) {
+                const admitted = state.admittedNPCs;
+                for (let i = admitted.length - 1; i >= 0; i--) {
+                    const npc = admitted[i];
+                    if (npc.trait && npc.trait.id === 'sickly' && Math.random() < 0.5) {
+                        admitted.splice(i, 1);
+                        npc.death = { reason: 'fallo_soporte_vital', cycle: state.cycle, revealed: false };
+                        state.purgedNPCs.push(npc);
+                        summary += `${npc.name} ha muerto debido a la falta de soporte vital. `;
+                        state.addLogEntry('danger', `CRÍTICO: ${npc.name} falleció por fallo en soporte vital.`, { icon: 'fa-lungs-virus' });
+                    }
+                }
+            }
+            return summary;
+        });
+
+        // 3. Hook de Inestabilidad por Paranoia
+        this.registerNightHook((state) => {
+            let summary = "";
+            if (state.paranoia > 70 && Math.random() < 0.4) {
+                const items = state.securityItems;
+                const target = items[Math.floor(Math.random() * items.length)];
+                if (target) {
+                    if (target.type === 'alarma') target.active = false;
+                    else target.secured = false;
+                    const targetName = target.type === 'alarma' ? 'ALARMA' : (target.type === 'tuberias' ? 'TUBERÍAS' : target.type.toUpperCase());
+                    summary += `La tensión en el sector ha provocado un fallo en: ${targetName}. `;
+                }
+            }
+            return summary;
+        });
     }
 
     startNightPhase() {
@@ -364,7 +424,9 @@ export class GameMechanicsManager {
             if ($('#screen-room').is(':visible')) {
                 this.ui.renderSecurityRoom(State.securityItems, (idx, item) => { State.securityItems[idx] = item; });
             }
-            this.ui.updateSecurityNavStatus(State.securityItems);
+            if (this.ui.updateSecurityNavStatus) {
+                this.ui.updateSecurityNavStatus(State.securityItems);
+            }
         }
     }
 
@@ -596,20 +658,7 @@ export class GameMechanicsManager {
         }
 
         // --- EFECTO: SOPORTE VITAL OFF (RIESGO PARA ENFERMOS) ---
-        const sys = State.generator.systems;
-        if (sys.lifeSupport && !sys.lifeSupport.active) {
-            // Usamos un bucle hacia atrás o filtramos para evitar problemas de índice al hacer splice
-            for (let i = admitted.length - 1; i >= 0; i--) {
-                const npc = admitted[i];
-                if (npc.trait && npc.trait.id === 'sickly' && Math.random() < 0.5) {
-                    admitted.splice(i, 1);
-                    npc.death = { reason: 'fallo_soporte_vital', cycle: State.cycle, revealed: false };
-                    State.purgedNPCs.push(npc);
-                    summary += `${npc.name} ha muerto debido a la falta de soporte vital. `;
-                    State.addLogEntry('danger', `CRÍTICO: ${npc.name} falleció por fallo en soporte vital.`, { icon: 'fa-lungs-virus' });
-                }
-            }
-        }
+        // Movido a Hook #2
 
         // MECÁNICA DIFERENCIADA: Pesadillas vs Fallos de Seguridad
         // La baja cordura provoca "Incidentes Mentales"
@@ -624,29 +673,16 @@ export class GameMechanicsManager {
         }
 
         // La alta paranoia provoca "Inestabilidad de Sistemas"
-        if (State.paranoia > 70 && Math.random() < 0.4) {
-            const items = State.securityItems;
-            const target = items[Math.floor(Math.random() * items.length)];
-            if (target) {
-                if (target.type === 'alarma') target.active = false;
-                else target.secured = false;
-                const targetName = target.type === 'alarma' ? 'ALARMA' : (target.type === 'tuberias' ? 'TUBERÍAS' : target.type.toUpperCase());
-                summary += `La tensión en el sector ha provocado un fallo en: ${targetName}. `;
-            }
-        }
+        // Movido a Hook #3
 
         // Recarga Nocturna del Generador (Mantenimiento Automático)
-        if (State.generator.power < 100) {
-            let rechargeAmount = 25;
-            // Si hay guardia asignado y es bueno, recarga más
-            if (State.generator.assignedGuardId) {
-                const guard = State.admittedNPCs.find(n => n.id === State.generator.assignedGuardId);
-                if (guard && !guard.isInfected) {
-                    rechargeAmount += 10;
-                }
-            }
-            State.generator.power = Math.min(100, State.generator.power + rechargeAmount);
-        }
+        // Movido a Hook #1
+
+        // --- EJECUTAR HOOKS DE RESOLUCIÓN ---
+        this.nightResolutionHooks.forEach(hook => {
+            const hookSummary = hook(State);
+            if (hookSummary) summary += hookSummary;
+        });
 
         return summary;
     }
@@ -739,29 +775,37 @@ export class GameMechanicsManager {
     }
 
     triggerSabotage(sector, npc) {
+        const config = CONSTANTS.SECTOR_CONFIG[sector];
+        if (!config) return;
+
         this.audio.playSFXByKey('glitch_low', { volume: 0.6 });
-        switch (sector) {
-            case 'generator':
+
+        const handlers = {
+            generator: () => {
                 State.generator.isOn = false;
-                State.addLogEntry('system', `SABOTAJE: Fallo provocado en generador por ${npc.name}.`);
-                this.ui.showFeedback("¡SABOTAJE EN EL GENERADOR!", "red", 4000);
-                break;
-            case 'security':
+                State.addLogEntry('system', config.sabotageMsg.replace('{npc}', npc.name));
+            },
+            security: () => {
                 const items = State.securityItems.filter(i => i.type !== 'alarma' && i.secured);
                 if (items.length > 0) {
                     const target = items[Math.floor(Math.random() * items.length)];
                     target.secured = false;
-                    State.addLogEntry('system', `SABOTAJE: Seguridad comprometida vía ${target.type} por ${npc.name}.`);
-                    this.ui.showFeedback(`¡PUERTA ABIERTA DESDE DENTRO! (${npc.name})`, "red", 4000);
+                    const itemLabel = target.type === 'tuberias' ? 'TUBERÍAS' : target.type.toUpperCase();
+                    State.addLogEntry('system', config.sabotageMsg.replace('{item}', itemLabel).replace('{npc}', npc.name));
                 }
-                break;
-            case 'supplies':
+            },
+            supplies: () => {
                 const stolen = Math.min(State.supplies, Math.floor(Math.random() * 3) + 1);
                 State.updateSupplies(-stolen);
-                State.addLogEntry('system', `SABOTAJE: Desaparición de ${stolen} suministros (Sector: ${npc.name}).`);
-                this.ui.showFeedback(`¡SUMINISTROS ROBADOS! (${npc.name})`, "red", 4000);
-                break;
+                State.addLogEntry('system', config.sabotageMsg.replace('{amount}', stolen).replace('{npc}', npc.name));
+            }
+        };
+
+        if (handlers[sector]) {
+            handlers[sector]();
+            this.ui.showFeedback(config.feedback || "¡SABOTAJE DETECTADO!", "red", 4000);
         }
+
         this.game.updateHUD();
     }
 
