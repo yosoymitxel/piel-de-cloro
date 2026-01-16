@@ -266,15 +266,12 @@ export class UIManager {
 
     initUIScaling() {
         const scaleMap = {
-            small: { width: '1000px', height: '650px', label: '80%' },
-            normal: { width: '1400px', height: '900px', label: '100%' },
-            large: { width: '1800px', height: '1100px', label: '120%' },
+            large: { width: '1800px', height: '1100px', label: '100%' },
             full: { width: '100vw', height: '100vh', label: 'FULL' }
         };
 
         const updateScale = (scale) => {
-            const config = scaleMap[scale];
-            if (!config) return;
+            const config = scaleMap[scale] || scaleMap.large;
 
             // Use optional chaining for environment where document might be missing (like some tests)
             if (typeof document !== 'undefined' && document.documentElement && document.documentElement.style) {
@@ -310,8 +307,8 @@ export class UIManager {
             if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.2 });
         });
 
-        // Load saved preference
-        const savedScale = localStorage.getItem('ruta01_ui_scale') || 'normal';
+        // Load saved preference - Default to 'large' (100%) now
+        const savedScale = localStorage.getItem('ruta01_ui_scale') || 'large';
         updateScale(savedScale);
     }
 
@@ -1092,6 +1089,9 @@ export class UIManager {
     }
 
     renderNPC(npc) {
+        // Stop lore audio on NPC change
+        if (this.audio) this.audio.stopLore({ fadeOut: 500 });
+
         // Update action buttons and tools based on generator status
         this.updateGameActions();
 
@@ -1105,7 +1105,11 @@ export class UIManager {
 
         // Reset Visuals
         this.elements.npcDisplay.css({ transform: 'none', filter: 'none' });
-        this.elements.npcDisplay.empty().removeClass('glitch-fade');
+        this.elements.npcDisplay.empty().removeClass('glitch-fade npc-display-lore');
+
+        if (npc.uniqueType === 'lore') {
+            this.elements.npcDisplay.addClass('npc-display-lore');
+        }
 
         // Trigger small glitch-fade animation for NPC change
         setTimeout(() => {
@@ -1115,6 +1119,15 @@ export class UIManager {
         // Use new Render System
         const avatar = this.renderAvatar(npc, 'lg');
         this.elements.npcDisplay.append(avatar);
+
+        // Add Unique Badge in main display
+        if (npc.uniqueBadge) {
+            const badge = $(`<div class="npc-unique-badge badge-${npc.uniqueType}" style="position: absolute; top: 20px; right: 20px; z-index: 20;">
+                <i class="fas ${npc.uniqueBadge.icon}"></i>
+                <span>${npc.uniqueBadge.label}</span>
+            </div>`);
+            this.elements.npcDisplay.append(badge);
+        }
 
         // Initial Dialogue (Conversation engine)
         if (npc.history && npc.history.length === 0 && npc.conversation) {
@@ -1192,6 +1205,8 @@ export class UIManager {
         // Play node audio on enter
         if (convNode && convNode.audio && this.audio) {
             if (convNode.audio.startsWith('lore_')) {
+                // Stop existing lore audio before playing new to prevent overlap
+                this.audio.stopLore({ fadeOut: 500 });
                 // Play as music (lore channel) with loop and fade
                 this.audio.playLoreByKey(convNode.audio, { loop: true, volume: 0.25, crossfade: 1000 });
             } else {
@@ -1428,8 +1443,11 @@ export class UIManager {
 
     handleOmitTest(npc) {
         if (!npc || npc.optOut) return;
+        
+        // Bloquear el NPC inmediatamente para evitar llamadas dobles
         npc.optOut = true;
-        npc.dialogueStarted = true;
+        npc.dialogueStarted = true; // Marcar como que el diálogo ha avanzado (evita validación_pendiente)
+        
         // Agotamos las energías mecánicamente
         npc.scanCount = 99;
 
@@ -1439,22 +1457,32 @@ export class UIManager {
             type: 'warning'
         });
 
+        // Detener audio de lore inmediatamente con fade
         if (this.audio) this.audio.stopLore({ fadeOut: 1000 });
 
+        // Feedback visual
         this.showFeedback('TEST OMITIDO: SIN EVIDENCIA MÉDICA', 'yellow', 3000);
+        
+        // Actualizar herramientas (esto quita el botón de omitir de la UI de herramientas)
         this.updateInspectionTools(npc);
+        
+        // Ocultar opción de omitir en el diálogo
         this.hideOmitOption();
+        
+        // Limpiar opciones de diálogo para evitar clics extra
         this.elements.dialogueOptions.empty();
 
         // Limpiar el texto de diálogo para reflejar el cambio de estado
         const textEl = this.elements.dialogue.find('.npc-text');
         if (textEl.length) {
-            const statusMsg = '<span class="text-warning italic">* Protocolo de inspección omitido. El sujeto espera una decisión final. *</span>';
+            const statusMsg = '<br><span class="text-warning italic">* Protocolo de inspección omitido. El sujeto espera una decisión final. *</span>';
             this.typeText(textEl, statusMsg, 10);
         }
 
         // Actualizar estadísticas HUD
-        this.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
+        if (typeof State !== 'undefined') {
+            this.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC);
+        }
     }
 
     typeText(el, text, speed = 20, onComplete = null) {
@@ -2204,8 +2232,14 @@ export class UIManager {
 
         npcs.forEach((npc, index) => {
             const isValidated = npc.dayAfter && npc.dayAfter.validated;
+            let cardClasses = 'bg-black/60 border border-chlorine/20 p-2 flex flex-col items-center gap-2 cursor-pointer hover:border-warning/50 transition-all group relative';
+            
+            if (npc.uniqueType) {
+                cardClasses += ` npc-card-unique unique-${npc.uniqueType}`;
+            }
+
             const card = $('<div>', {
-                class: 'bg-black/60 border border-chlorine/20 p-2 flex flex-col items-center gap-2 cursor-pointer hover:border-warning/50 transition-all group relative',
+                class: cardClasses,
                 html: `
                     <div class="relocate-avatar-container scale-75 origin-top"></div>
                     <span class="text-sm font-mono text-gray-400 group-hover:text-white truncate w-full text-center">${npc.name}</span>
@@ -2214,6 +2248,15 @@ export class UIManager {
                     </div>
                 `
             });
+
+            // Add unique badge if applicable
+            if (npc.uniqueBadge) {
+                const badge = $(`<div class="npc-unique-badge badge-${npc.uniqueType}" style="transform: scale(0.6); top: -5px; right: -5px;">
+                    <i class="fas ${npc.uniqueBadge.icon}"></i>
+                    <span>${npc.uniqueBadge.label}</span>
+                </div>`);
+                card.append(badge);
+            }
 
             const avatar = this.renderAvatar(npc, 'sm', isValidated ? 'perimeter' : 'normal');
             card.find('.relocate-avatar-container').append(avatar);

@@ -134,24 +134,8 @@ export class Conversation {
         // Lógica para añadir una tercera opción de "finalizar diálogo" 
         // cuando hay acciones disponibles (no solo si son 2)
         if (options.length > 0 && options.every(o => o.onclick)) {
-            const endTexts = [
-                "Omitir por diálogo",
-                "Terminar conversación",
-                "No tengo más tiempo",
-                "Suficiente por ahora",
-                "Ya puedes retirarte",
-                "Hablaremos luego",
-                "Pasa al siguiente"
-            ];
-            const randomText = endTexts[Math.floor(Math.random() * endTexts.length)];
-
-            options.push({
-                id: 'exit_conversation',
-                label: randomText,
-                next: null,
-                resultText: 'El sujeto asiente y espera en silencio.',
-                cssClass: 'exit-option-dynamic'
-            });
+            // No añadimos la opción extra para reducir el número de botones según petición del usuario
+            // El usuario ahora tiene el botón de omitir diálogo en la interfaz de herramientas
         }
 
         return { id: node.id, text, options, audio: node.audio || null, meta: node.meta || {} };

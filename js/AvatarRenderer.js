@@ -43,7 +43,7 @@ export class AvatarRenderer {
 
                 <!-- NPC Content Area -->
                 <div class="npc-content-wrapper">
-                    <div class="pixel-avatar ${sizeClass} ${npc.isInfected ? 'infected' : ''} state-${modifier}">
+                    <div class="pixel-avatar ${sizeClass} ${npc.isInfected ? 'infected' : ''} ${npc.loreId ? 'lore-' + npc.loreId.replace('lore_', '') : ''} state-${modifier}">
                         <div class="avatar-body ${npc.visualFeatures.clothes || 'civilian'}">
                             <div class="clothes-detail"></div>
                         </div>
