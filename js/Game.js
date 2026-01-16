@@ -17,13 +17,13 @@ class Game {
         this.audio = dependencies.audio || new AudioManager();
         State.loadPersistentData();
         State.reset(); // Inicializar el estado global del juego
-        
+
         this.ui = dependencies.ui || new UIManager(this.audio, { game: this });
         this.stats = dependencies.stats || new StatsManager();
         this.isAnimating = false; // Bloquear acciones durante animaciones
-        
+
         this.applySavedAudioSettings();
-        
+
         // Modules initialization (Phase 2 & 3)
         this.mechanics = new GameMechanicsManager(this);
         this.actions = new GameActionHandler(this);
@@ -33,7 +33,7 @@ class Game {
 
         this.events.bindAll();
         this.audio.loadManifest('assets/audio/audio_manifest.json');
-        
+
         // Bloquear navegación al inicio
         this.ui.setNavLocked(true);
     }
@@ -48,14 +48,14 @@ class Game {
             this.audio.setChannelLevel('ambient', s.ambient !== undefined ? s.ambient : 0.3);
             this.audio.setChannelLevel('lore', s.lore !== undefined ? s.lore : 0.25);
             this.audio.setChannelLevel('sfx', s.sfx !== undefined ? s.sfx : 0.6);
-            
+
             if (s.muted) {
                 this.audio.muteChannel('ambient', !!s.muted.ambient);
                 this.audio.muteChannel('lore', !!s.muted.lore);
                 this.audio.muteChannel('sfx', !!s.muted.sfx);
             }
         }
-        
+
         // Cargar logs iniciales si la partida está empezando
         if (State.cycle === 1 && State.dayTime === 1 && (!State.gameLog || State.gameLog.length === 0)) {
             State.gameLog = [
@@ -126,7 +126,7 @@ class Game {
         State.nightPurgePerformed = false;
         State.generatorCheckedThisTurn = false;
         State.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
-        
+
         this.isAnimating = false;
         this.ui.resetUI();
 
@@ -148,7 +148,7 @@ class Game {
         State.reset();
         this.isAnimating = false;
         this.ui.resetUI();
-        
+
         State.paused = false;
         $('body').removeClass('paused');
         $('#screen-game').removeClass('is-paused');
@@ -161,7 +161,7 @@ class Game {
         State.reset();
         this.isAnimating = false;
         this.ui.resetUI();
-        
+
         State.paused = false;
         $('body').removeClass('paused');
         $('#screen-game').removeClass('is-paused');
@@ -183,6 +183,11 @@ class Game {
 
         // Actualizar estado del generador al pasar de turno
         this.mechanics.updateGenerator();
+
+        // Limpiar advertencias visuales del generador al cambiar de turno
+        if ($('#generator-warning-panel').length) {
+            $('#generator-warning-panel').addClass('hidden').removeClass('animate-pulse');
+        }
 
         // Si la paranoia es extrema, colapso mental inmediato
         if (State.paranoia >= CONSTANTS.GAME.PARANOIA_DEATH_THRESHOLD) {
@@ -211,14 +216,14 @@ class Game {
         // Primero verificamos si el refugio está lleno. 
         // Si está lleno, forzamos el flujo de cierre para que el jugador tome una decisión estratégica.
         const isShelterFull = State.admittedNPCs.length >= State.config.maxShelterCapacity;
-        
+
         if (isShelterFull) {
             this.ui.showFeedback("REFUGIO LLENO: Debes tomar una decisión estratégica.", "yellow", 5000);
             this.mechanics.startNightPhase();
             return;
         }
 
-// Probabilidad de NPC de Lore (12%)
+        // Probabilidad de NPC de Lore (12%)
         let isLore = false;
         if (Math.random() < 0.12) {
             const unusedLore = DialogueData.loreSubjects.filter(s => !State.isDialogueUsed(s.id));

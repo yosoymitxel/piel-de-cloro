@@ -1,0 +1,649 @@
+/* Estilos para las nuevas mecánicas de Piel de Cloro */
+
+/* Analizador de Hemoglobina */
+.horror-tool-btn--blood {
+    background: linear-gradient(135deg, rgba(168, 50, 50, 0.2) 0%, rgba(20, 20, 20, 0.8) 100%);
+    border: 1px solid rgba(168, 50, 50, 0.4);
+    color: #ffaaaa;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 12px !important;
+    transition: all 0.3s ease;
+}
+
+.horror-tool-btn--blood:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(168, 50, 50, 0.4) 0%, rgba(40, 20, 20, 0.9) 100%);
+    border-color: #ff3333;
+    box-shadow: 0 0 15px rgba(255, 51, 51, 0.3);
+    color: #fff;
+}
+
+.horror-tool-btn--blood.processing {
+    background: rgba(168, 50, 50, 0.1);
+    color: #aa7777;
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
+}
+
+/* Hallucination / Glitch HUD */
+.glitch-text {
+    animation: glitch-skew 0.5s infinite;
+    position: relative;
+    text-shadow: 2px 0 red, -2px 0 blue;
+}
+
+@keyframes glitch-skew {
+    0% {
+        transform: skew(0deg);
+    }
+
+    20% {
+        transform: skew(2deg);
+    }
+
+    40% {
+        transform: skew(-1deg);
+    }
+
+    60% {
+        transform: skew(1deg);
+    }
+
+    80% {
+        transform: skew(-2deg);
+    }
+
+    100% {
+        transform: skew(0deg);
+    }
+}
+
+/* Sector Assignment UI */
+.sector-tag {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid rgba(0, 255, 65, 0.3);
+    color: #00ff41;
+    margin-top: 4px;
+    display: inline-block;
+}
+
+.sector-selector {
+    background: #000;
+    color: #00ff41;
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    font-size: 10px;
+    padding: 2px;
+    font-family: 'Courier New', monospace;
+    margin-top: 8px;
+    cursor: pointer;
+    width: 100%;
+}
+
+/* --- GENERATOR OVERHAUL UI --- */
+
+.energy-gauge-container {
+    width: 60px;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 0 3px #000;
+}
+
+.energy-gauge-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--terminal-green);
+    transition: width 0.5s cubic-bezier(0.17, 0.67, 0.83, 0.67), background 0.3s ease;
+    box-shadow: 0 0 10px var(--terminal-green-glow);
+}
+
+/* Colores de Carga */
+.energy-load-safe {
+    background: #00ff41;
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+}
+
+.energy-load-warning {
+    background: #ffaa00;
+    box-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+}
+
+.energy-load-danger {
+    background: #ff3333;
+    box-shadow: 0 0 15px rgba(255, 51, 51, 0.8);
+    animation: energy-vibrate 0.1s steps(2) infinite;
+}
+
+/* Animaciones de Stress */
+@keyframes energy-vibrate {
+    0% {
+        transform: translate(0.5px, 0.5px);
+    }
+
+    100% {
+        transform: translate(-0.5px, -0.5px);
+    }
+}
+
+.needle-vibration {
+    animation: needle-pulse 0.05s steps(2) infinite;
+}
+
+@keyframes needle-pulse {
+    0% {
+        transform: rotate(var(--deg, 0deg)) translateX(0.5px);
+    }
+
+    100% {
+        transform: rotate(var(--deg, 0deg)) translateX(-0.5px);
+    }
+}
+
+.system-flicker {
+    animation: sys-flicker 0.2s steps(2) infinite;
+}
+
+@keyframes sys-flicker {
+
+    0%,
+    100% {
+        opacity: 1;
+        filter: brightness(1);
+    }
+
+    50% {
+        opacity: 0.8;
+        filter: brightness(1.5);
+    }
+}
+
+/* Generator System Toggles */
+.system-toggle-card {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.system-toggle-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.system-toggle-card.active {
+    border-color: var(--terminal-green);
+}
+
+.system-status-led {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #333;
+    box-shadow: 0 0 2px #000;
+}
+
+.system-status-led.on {
+    background: var(--terminal-green);
+    box-shadow: 0 0 8px var(--terminal-green-glow);
+}
+
+.sector-selector:hover {
+    border-color: rgba(0, 255, 65, 0.5);
+}
+
+/* --- GENERATOR NAV & MONITOR FEEDBACK --- */
+
+/* Niveles de Estado en Navegación (Centralizado) */
+.status-level-save {
+    color: #ffaa00 !important;
+    text-shadow: 0 0 5px rgba(255, 170, 0, 0.5);
+}
+
+.status-level-overload {
+    color: #ff3333 !important;
+    text-shadow: 0 0 8px rgba(255, 51, 51, 0.7);
+    animation: energy-vibrate 0.2s steps(2) infinite;
+}
+
+/* Vibración del Monitor en Carga Extrema */
+.overload-vibration {
+    animation: monitor-shake 0.1s infinite;
+}
+
+@keyframes monitor-shake {
+    0% {
+        transform: translate(1px, 1px) rotate(0deg);
+    }
+
+    20% {
+        transform: translate(-1px, -2px) rotate(-1deg);
+    }
+
+    40% {
+        transform: translate(-3px, 0px) rotate(1deg);
+    }
+
+    60% {
+        transform: translate(3px, 2px) rotate(0deg);
+    }
+
+    80% {
+        transform: translate(1px, -1px) rotate(1deg);
+    }
+
+    100% {
+        transform: translate(-1px, 2px) rotate(-1deg);
+    }
+}
+
+/* Efecto de Cambio de Nivel (Sync) */
+.glitch-level-change {
+    animation: level-glitch 0.4s ease-out;
+}
+
+@keyframes level-glitch {
+    0% {
+        filter: brightness(1) contrast(1);
+        transform: scale(1);
+    }
+
+    20% {
+        filter: brightness(3) contrast(2) invert(0.1);
+        transform: scale(1.02) skewX(2deg);
+    }
+
+    40% {
+        filter: brightness(0.5) contrast(0.5);
+        transform: scale(0.98) skewX(-2deg);
+    }
+
+    60% {
+        filter: brightness(2) contrast(1.5);
+        transform: scale(1.01) skewX(1deg);
+    }
+
+    100% {
+        filter: brightness(1) contrast(1);
+        transform: scale(1);
+    }
+}
+
+/* --- GUARD PANEL UI --- */
+.guard-card {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+}
+
+.guard-card.active {
+    border-color: var(--terminal-green);
+    background: linear-gradient(180deg, rgba(0, 50, 0, 0.2) 0%, rgba(0, 0, 0, 0.6) 100%);
+}
+
+.guard-card.empty {
+    border-style: dashed;
+    opacity: 0.7;
+}
+
+.guard-logs-container {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(0, 255, 65, 0.1);
+    padding: 8px;
+    margin-top: 8px;
+    max-height: 80px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+}
+
+.guard-logs-container::-webkit-scrollbar {
+    width: 3px;
+}
+
+.guard-logs-container::-webkit-scrollbar-thumb {
+    background: var(--terminal-green);
+}
+
+.candidate-btn:hover .w-10 {
+    border-color: var(--terminal-green);
+    box-shadow: 0 0 5px var(--terminal-green-glow);
+}
+
+/* Emergency Charge Button specific pulsing */
+#btn-gen-emergency-charge:active {
+    background: rgba(255, 170, 0, 0.3);
+    transform: scale(0.98);
+}
+
+/* --- BUNKER MAP UI: HORIZONTAL & ENHANCED --- */
+#screen-map .map-container-horizontal {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    gap: 0;
+    margin: 0 auto;
+    min-width: 1100px;
+    padding: 2rem;
+}
+
+.map-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+    padding: 2rem 4rem;
+    border-right: 1px dashed rgba(45, 90, 39, 0.2);
+    position: relative;
+    flex: 1;
+}
+
+.map-column:last-child {
+    border-right: none;
+}
+
+.map-column-title {
+    font-size: 11px;
+    font-weight: 900;
+    color: rgba(168, 213, 162, 0.4);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 10px 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(168, 213, 162, 0.1);
+    width: 100%;
+}
+
+/* ENHANCED MAP NODES */
+.map-node-btn {
+    background: rgba(0, 5, 0, 0.8);
+    border: 1px solid rgba(45, 90, 39, 0.3);
+    padding: 1rem;
+    width: 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+    cursor: pointer;
+    text-align: left;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.map-node-btn:hover {
+    background: rgba(45, 90, 39, 0.12);
+    border-color: rgba(168, 213, 162, 0.5);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), 0 0 15px rgba(45, 90, 39, 0.2);
+    z-index: 10;
+}
+
+.map-node-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.map-node-title {
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: #a8d5a2;
+    font-size: 14px;
+    text-shadow: 0 0 8px rgba(168, 213, 162, 0.3);
+}
+
+.map-node-pin-btn {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.2);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.map-node-pin-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffd700;
+}
+
+.map-node-pin-btn.active {
+    color: #ffd700;
+    text-shadow: 0 0 5px #ffd700;
+}
+
+.map-node-indicators {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.map-info-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: rgba(168, 213, 162, 0.6);
+    display: flex;
+    justify-content: space-between;
+    border-left: 2px solid rgba(45, 90, 39, 0.4);
+    padding: 1px 0 1px 8px;
+}
+
+.map-info-value {
+    color: #fff;
+    font-weight: 600;
+}
+
+/* NODE STATUS LIGHT */
+.map-status-light {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #1b3d1b;
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+}
+
+.map-node-btn.status-active .map-status-light {
+    background: #00FF00;
+    box-shadow: 0 0 5px #00FF00;
+}
+
+.map-node-btn.status-alert .map-status-light {
+    background: #ffcc66;
+    box-shadow: 0 0 8px #ffcc66;
+    animation: map-pulse-warn 1s infinite linear;
+}
+
+.map-node-btn.status-critical .map-status-light {
+    background: #ff3333;
+    box-shadow: 0 0 12px #ff3333;
+    animation: map-pulse-crit 0.4s infinite linear;
+}
+
+@keyframes map-pulse-warn {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes map-pulse-crit {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1.2);
+    }
+
+    50% {
+        opacity: 0.1;
+        transform: translateY(-50%) scale(0.8);
+    }
+}
+
+/* SIDEBAR PINNED ROOMS */
+.pinned-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: rgba(45, 90, 39, 0.05);
+    border: none;
+    border-left: 3px solid transparent;
+    color: rgba(168, 213, 162, 0.7);
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    transition: all 0.2s cubic-bezier(0.19, 1, 0.22, 1);
+    cursor: pointer;
+    position: relative;
+    min-height: 48px;
+}
+
+.pinned-nav-btn:hover {
+    background: rgba(45, 90, 39, 0.15);
+    border-left-color: rgba(168, 213, 162, 0.3);
+    color: #a8d5a2;
+}
+
+.pinned-nav-btn.status-active {
+    border-left-color: #00FF00;
+}
+
+.pinned-nav-btn.status-alert {
+    border-left-color: #ffcc66;
+    box-shadow: inset 2px 0 5px rgba(255, 204, 102, 0.2);
+}
+
+.pinned-nav-btn.status-critical {
+    border-left-color: #ff3333;
+    animation: pin-border-pulse-crit 0.5s infinite alternate;
+}
+
+@keyframes pin-border-pulse-crit {
+    from {
+        border-left-color: #ff3333;
+        box-shadow: inset 2px 0 10px rgba(255, 51, 51, 0.3);
+    }
+
+    to {
+        border-left-color: #880000;
+        box-shadow: none;
+    }
+}
+
+.pinned-nav-btn i {
+    font-size: 11px;
+    width: 16px;
+    text-align: center;
+    opacity: 0.8;
+}
+
+
+.pinned-nav-btn .pinned-label {
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- SUBSYSTEM VISUAL MARKERS --- */
+.subsystem-link {
+    cursor: pointer !important;
+    position: relative;
+}
+
+.subsystem-link::after {
+    content: "LINK::SYS";
+    position: absolute;
+    bottom: -10px;
+    right: 0;
+    font-size: 7px;
+    color: #4facfe;
+    font-weight: bold;
+    opacity: 0.6;
+    letter-spacing: 1px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+#map-node-generador.subsystem-link::after,
+#map-node-suministros.subsystem-link::after,
+#map-node-meditacion.subsystem-link::after {
+    bottom: 6px;
+    right: 6px;
+}
+
+/* Meditation Effects */
+.meditation-visualizer {
+    background: radial-gradient(circle, rgba(147, 197, 253, 0.05) 0%, transparent 70%);
+}
+
+.meditation-wave {
+    animation: meditation-expand 4s infinite ease-out;
+}
+
+@keyframes meditation-expand {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 0.2;
+    }
+
+    100% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
+}
+
+#btn-med-breath:hover {
+    color: #93c5fd;
+    border-color: #93c5fd !important;
+}
+
+#btn-med-music:hover {
+    color: #93c5fd;
+    border-color: #93c5fd !important;
+}
+
+/* Supplies Hub Special Styles */
+#screen-supplies-hub .industrial-panel {
+    border-color: rgba(251, 191, 36, 0.1) !important;
+}

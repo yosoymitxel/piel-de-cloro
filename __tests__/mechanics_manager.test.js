@@ -29,6 +29,7 @@ describe('GameMechanicsManager', () => {
             renderGeneratorRoom: jest.fn(),
             renderSecurityRoom: jest.fn(),
             updateGeneratorNavStatus: jest.fn(),
+            updateEnergyHUD: jest.fn(),
             updateSecurityNavStatus: jest.fn(),
             updateInspectionTools: jest.fn(),
             clearAllNavStatuses: jest.fn(),

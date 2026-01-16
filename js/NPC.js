@@ -4,6 +4,9 @@ import { State } from './State.js';
 
 export class NPC {
     constructor(infectedChance = null, opts = {}) {
+        // Generate unique ID for this NPC
+        this.id = `npc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
         // Default: ~40% infectados (Math.random() > 0.6)
         // Sesgo configurable: usar infectedChance como probabilidad directa
         this.isInfected = infectedChance != null ? (Math.random() < infectedChance) : (Math.random() > 0.6);
@@ -184,11 +187,11 @@ export class NPC {
                 },
                 visual: {
                     hair: 'wild',
-                    clothes: 'rags',
+                    clothes: 'worker', // Bata blanca de laboratorio
                     accessory: 'none',
                     eyeType: 'tired',
                     mouthType: 'tight',
-                    skinColor: 'var(--avatar-skin-1)',
+                    skinColor: '#f0f4f8', // Forzar piel pálida clínica en datos base
                     facialHair: this.gender === 'male' ? 'stubble' : 'none'
                 }
             },

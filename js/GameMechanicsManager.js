@@ -41,43 +41,123 @@ export class GameMechanicsManager {
         }, 'danger');
     }
 
+    calculateTotalLoad() {
+        if (!State.generator.isOn) return 0;
+
+        let total = State.generator.baseConsumption || 0;
+
+        // Efecto del Guardia: Reduce consumo base si está asignado y saludable
+        if (State.generator.assignedGuardId) {
+            total -= 5; // Optimización de mantenimiento
+        }
+
+        // Sumar consumo de sub-sistemas activos
+        if (State.generator.systems) {
+            Object.values(State.generator.systems).forEach(system => {
+                if (system.active) total += (system.load || 0);
+            });
+        }
+
+        // Cargas dinámicas adicionales
+        if (State.generator.bloodTestCountdown > 0) {
+            total += 45;
+        }
+
+        if (State.paranoia > 80) total += 5;
+        if (State.sanity < 20) total += 5;
+
+        State.generator.load = Math.max(0, total);
+        return State.generator.load;
+    }
+
     updateGenerator() {
         if (State.paused) return;
         if (!State.generator.isOn) {
-            if (State.currentNPC) {
-                State.currentNPC.scanCount = 99;
-                this.game.updateHUD();
-            }
+            State.generator.load = 0;
             return;
         }
 
-        const mode = State.generator.mode;
-        const chance = State.config.generator.failureChance[mode];
+        const totalLoad = this.calculateTotalLoad();
+        const capacity = State.generator.capacity;
 
-        if (State.generator.overloadRiskTurns > 0) {
-            if (Math.random() < 0.25) {
-                this.triggerGeneratorFailure();
-                State.generator.overloadRiskTurns = 0;
-                return;
-            }
-            State.generator.overloadRiskTurns--;
-        }
+        // --- Lógica de Batería (Reserva) ---
+        // Se descarga gradualmente según la carga total
+        // La descarga es: (carga / 100) puntos de batería por turno
+        const batteryDrain = totalLoad / 20;
+        State.generator.power = Math.max(0, State.generator.power - batteryDrain);
 
-        if (mode === 'overload') {
-            if (State.admittedNPCs.length < 3 && Math.random() < 0.1) {
-                this.game.endings.triggerEnding('final_overload_death');
-                return;
-            }
-            State.generator.overloadRiskTurns = 2;
-        }
-
-        if (Math.random() < chance) {
+        if (State.generator.power <= 0) {
+            this.audio.playSFXByKey('generator_stop', { volume: 0.6 });
             this.triggerGeneratorFailure();
+            this.ui.showFeedback("¡BATERÍA AGOTADA!", "red", 5000);
+            return;
+        }
+
+        // Lógica de Estabilidad
+        if (totalLoad > capacity) {
+            State.generator.overloadTimer++;
+            const excess = (totalLoad - capacity) / capacity;
+            const stabilityDrain = 2 + (excess * 15);
+            State.generator.stability = Math.max(0, State.generator.stability - stabilityDrain);
+
+            if (State.generator.stability < 30) {
+                const failureChance = 0.1 + (excess * 0.4);
+                if (Math.random() < failureChance) {
+                    this.triggerGeneratorFailure();
+                    return;
+                }
+            }
+        } else {
+            State.generator.overloadTimer = 0;
+            if (State.generator.stability < 100) {
+                State.generator.stability = Math.min(100, State.generator.stability + 1);
+            }
+        }
+
+        // COMPATIBILIDAD LEGACY
+        let legacyFailureChance = 0;
+        if (State.config && State.config.generator && State.config.generator.failureChance) {
+            legacyFailureChance = State.config.generator.failureChance[State.generator.mode || 'normal'] || 0;
+        }
+        if (State.generator.overloadRiskTurns > 0) {
+            legacyFailureChance = Math.max(legacyFailureChance, 0.25);
+            State.generator.overloadRiskTurns = 0;
+        }
+
+        if (legacyFailureChance > 0 && Math.random() < legacyFailureChance) {
+            this.triggerGeneratorFailure();
+            return;
+        }
+
+        if (State.generator.isOn && State.generator.stability < 70) {
+            const residualChance = (70 - State.generator.stability) / 1000;
+            if (Math.random() < residualChance) {
+                this.triggerGeneratorFailure();
+            }
+        }
+
+        // --- EFECTOS DE SUBSISTEMAS ---
+        if (State.generator.isOn) {
+            const sys = State.generator.systems;
+
+            // Iluminación
+            if (sys.lighting && !sys.lighting.active) {
+                State.updateParanoia(2);
+                if (Math.random() < 0.1) this.ui.showFeedback("OSCURIDAD: PARANOIA EN AUMENTO", "red", 3000);
+            }
+
+            // Soporte Vital
+            if (sys.lifeSupport && !sys.lifeSupport.active) {
+                State.updateSanity(-5);
+                if (Math.random() < 0.1) this.ui.showFeedback("AIRE VICIADO: CORDURA DISMINUYENDO", "red", 3000);
+            }
         }
     }
 
     triggerGeneratorFailure() {
         State.generator.isOn = false;
+        State.generator.mode = 'normal'; // Reset mode for next start
+        State.generator.power = 0;
         if (State.currentNPC) {
             State.currentNPC.scanCount = 99;
         }
@@ -93,6 +173,40 @@ export class GameMechanicsManager {
         this.ui.updateInspectionTools(State.currentNPC);
     }
 
+    setGeneratorProtocol(newMode) {
+        if (!State.generator.isOn) return false;
+
+        const capMap = { 'save': 1, 'normal': 2, 'overload': 3 };
+        const powerMap = { 'save': 32, 'normal': 63, 'overload': 95 };
+        const newCap = capMap[newMode] || 2;
+
+        const npc = State.currentNPC;
+        const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || State.generator.restartLock;
+        const currentMax = State.generator.maxModeCapacityReached || 2;
+
+        // Validación de Protocolo (No se puede aumentar carga si ya se empezó a actuar)
+        if (actionTaken && newCap > currentMax) {
+            this.ui.showFeedback("PROTOCOLO BLOQUEADO: ACCIÓN EN CURSO", "red", 3000);
+            return false;
+        }
+
+        State.generator.mode = newMode;
+        State.generator.power = powerMap[newMode];
+        State.generator.maxModeCapacityReached = Math.max(currentMax, newCap);
+
+        this.ui.showFeedback(`PROTOCOLO ${newMode.toUpperCase()} CARGADO`, "green", 3000);
+        this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+
+        // Sincronizar UI centralmente
+        this.ui.updateGeneratorNavStatus();
+        this.ui.updateEnergyHUD();
+        if (State.currentScreen === 'generator') {
+            this.ui.renderGeneratorRoom();
+        }
+
+        return true;
+    }
+
     toggleGenerator() {
         if (State.paused) return;
         const wasOff = !State.generator.isOn;
@@ -105,12 +219,23 @@ export class GameMechanicsManager {
                 this.ui.updateGeneratorNavStatus();
             }
 
+            // Reinicio parcial tras fallo
             State.generator.mode = 'save';
-            State.generator.power = 32;
-            State.generator.overclockCooldown = true;
             State.generator.maxModeCapacityReached = 1;
+            State.generator.load = this.calculateTotalLoad();
+            State.generator.stability = Math.min(40, State.generator.stability + 10);
+
+            // Si la batería estaba en 0, dar un poquito para arrancar
+            if (State.generator.power <= 0) {
+                State.generator.power = 5;
+            }
+
             State.generator.restartLock = true;
-            this.ui.showFeedback("SISTEMA REINICIADO: MODO AHORRO", "yellow", 4000);
+            this.ui.showFeedback("SISTEMA REINICIADO: MODO AHORRO ACTIVO", "yellow", 4000);
+
+            // Sync UI
+            this.ui.updateGeneratorNavStatus();
+            this.ui.updateEnergyHUD();
 
             const noActivity = State.currentNPC && State.currentNPC.scanCount === 0 && !State.currentNPC.dialogueStarted;
             const hadFailure = State.currentNPC && State.currentNPC.scanCount >= 90;
@@ -119,15 +244,8 @@ export class GameMechanicsManager {
                 State.currentNPC.scanCount = 0;
                 State.generator.emergencyEnergyGranted = true;
                 this.ui.showFeedback("ENERGÍA RESTAURADA: 1 TEST DISPONIBLE", "green", 4000);
-            } else if (State.currentNPC && State.currentNPC.scanCount >= 90) {
-                this.ui.showFeedback("GENERADOR REINICIADO (SIN CARGAS EXTRAS)", "yellow", 4000);
             }
 
-            if (State.generator.power <= 0) {
-                State.generator.power = 1;
-                State.generator.overclockCooldown = true;
-                this.ui.showFeedback("RECUPERACIÓN DE EMERGENCIA: 1 ENERGÍA. SOBRECARGA BLOQUEADA.", "yellow", 5000);
-            }
         } else if (!State.generator.isOn) {
             this.audio.playSFXByKey('generator_stop', { volume: 0.6 });
             if (State.currentNPC) {
@@ -143,6 +261,77 @@ export class GameMechanicsManager {
         this.ui.renderGeneratorRoom();
         this.game.updateHUD();
         this.ui.updateInspectionTools(State.currentNPC);
+    }
+
+    assignGuardToGenerator(npcId) {
+        if (!npcId) {
+            State.generator.assignedGuardId = null;
+            this.ui.showFeedback("GENERADOR SIN GUARDIA", "yellow");
+            return;
+        }
+
+        const npc = State.admittedNPCs.find(n => n.id === npcId);
+        if (!npc) return;
+
+        State.generator.assignedGuardId = npcId;
+        this.ui.showFeedback(`GUARDIA ASIGNADO: ${npc.name}`, "green");
+
+        // Registrar log inicial
+        this.processGuardEffects(true);
+
+        this.ui.renderGeneratorRoom();
+        this.ui.updateEnergyHUD();
+    }
+
+    processGuardEffects(initial = false) {
+        const guardId = State.generator.assignedGuardId;
+        if (!guardId) return;
+
+        const npc = State.admittedNPCs.find(n => n.id === guardId);
+        if (!npc) {
+            State.generator.assignedGuardId = null;
+            return;
+        }
+
+        // Generar Log según estado del NPC
+        let message = "";
+        const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+
+        if (npc.isInfected) {
+            const lies = [
+                "Núcleo estable. Todo bajo control.",
+                "Se detectaron moscas en el conducto, pero ya las limpié.",
+                "La carga parece un poco alta, pero el dial miente.",
+                "He ajustado las bobinas. Debería ir mejor ahora."
+            ];
+            message = lies[Math.floor(Math.random() * lies.length)];
+
+            if (!initial) {
+                State.generator.power = Math.max(0, State.generator.power - 2);
+            }
+        } else {
+            message = `Estado nominal. Carga actual: ${Math.floor((State.generator.load / State.generator.capacity) * 100)}%. Batería: ${Math.floor(State.generator.power)}%`;
+        }
+
+        if (!State.generator.guardShiftLogs) State.generator.guardShiftLogs = [];
+        State.generator.guardShiftLogs.push(`[${time}] ${npc.name}: ${message}`);
+        if (State.generator.guardShiftLogs.length > 5) State.generator.guardShiftLogs.shift();
+    }
+
+    manualEmergencyCharge() {
+        if (State.supplies < 3) {
+            this.ui.showFeedback("SUMINISTROS INSUFICIENTES (Req: 3)", "red");
+            return;
+        }
+
+        State.updateSupplies(-3);
+        State.generator.power = Math.min(100, State.generator.power + 15);
+        this.audio.playSFXByKey('ui_button_click', { volume: 0.8 });
+        this.ui.showFeedback("CARGA DE EMERGENCIA REALIZADA (+15%)", "green");
+
+        this.ui.updateEnergyHUD();
+        this.game.updateHUD();
+        if (State.currentScreen === 'generator') this.ui.renderGeneratorRoom();
     }
 
     checkSecurityDegradation() {
@@ -257,6 +446,10 @@ export class GameMechanicsManager {
             } else {
                 State.lastNight.message = "Te mantuviste en vela. Nadie llegó.";
                 State.lastNight.victims = 0;
+
+                // Recarga ligera si el jugador está despierto cuidando (manual adjustments could go here)
+                // Pero por diseño, la recarga "automática" es el mantenimiento nocturno general.
+
                 this.audio.playSFXByKey('sleep_begin', { volume: 0.4 });
                 this.ui.showLore('night_tranquil', () => {
                     State.updateParanoia(-5);
@@ -358,9 +551,16 @@ export class GameMechanicsManager {
             if (npc.trait && npc.trait.id === 'scavenger' && Math.random() < 0.4) {
                 const found = Math.floor(Math.random() * 5) + 1;
                 scavenged += found;
+                State.addLogEntry('system', `RASGO: ${npc.name} (Recolector) encontró ${found} suministros.`, { icon: 'fa-box-open' });
             }
-            if (npc.trait && npc.trait.id === 'optimist') paranoiaMod -= 10;
-            if (npc.trait && npc.trait.id === 'paranoid') paranoiaMod += 5;
+            if (npc.trait && npc.trait.id === 'optimist') {
+                paranoiaMod -= 10;
+                State.addLogEntry('system', `RASGO: ${npc.name} (Optimista) calmó los nervios del grupo.`, { icon: 'fa-face-smile' });
+            }
+            if (npc.trait && npc.trait.id === 'paranoid') {
+                paranoiaMod += 5;
+                State.addLogEntry('system', `RASGO: ${npc.name} (Paranoico) difundió rumores inquietantes.`, { icon: 'fa-user-secret' });
+            }
         });
 
         // Aplicar suministros
@@ -395,6 +595,22 @@ export class GameMechanicsManager {
             if (paranoiaMod < 0) summary += "La presencia de líderes positivos calma los nervios del grupo. ";
         }
 
+        // --- EFECTO: SOPORTE VITAL OFF (RIESGO PARA ENFERMOS) ---
+        const sys = State.generator.systems;
+        if (sys.lifeSupport && !sys.lifeSupport.active) {
+            // Usamos un bucle hacia atrás o filtramos para evitar problemas de índice al hacer splice
+            for (let i = admitted.length - 1; i >= 0; i--) {
+                const npc = admitted[i];
+                if (npc.trait && npc.trait.id === 'sickly' && Math.random() < 0.5) {
+                    admitted.splice(i, 1);
+                    npc.death = { reason: 'fallo_soporte_vital', cycle: State.cycle, revealed: false };
+                    State.purgedNPCs.push(npc);
+                    summary += `${npc.name} ha muerto debido a la falta de soporte vital. `;
+                    State.addLogEntry('danger', `CRÍTICO: ${npc.name} falleció por fallo en soporte vital.`, { icon: 'fa-lungs-virus' });
+                }
+            }
+        }
+
         // MECÁNICA DIFERENCIADA: Pesadillas vs Fallos de Seguridad
         // La baja cordura provoca "Incidentes Mentales"
         if (State.sanity < 30 && Math.random() < 0.4) {
@@ -417,6 +633,19 @@ export class GameMechanicsManager {
                 const targetName = target.type === 'alarma' ? 'ALARMA' : (target.type === 'tuberias' ? 'TUBERÍAS' : target.type.toUpperCase());
                 summary += `La tensión en el sector ha provocado un fallo en: ${targetName}. `;
             }
+        }
+
+        // Recarga Nocturna del Generador (Mantenimiento Automático)
+        if (State.generator.power < 100) {
+            let rechargeAmount = 25;
+            // Si hay guardia asignado y es bueno, recarga más
+            if (State.generator.assignedGuardId) {
+                const guard = State.admittedNPCs.find(n => n.id === State.generator.assignedGuardId);
+                if (guard && !guard.isInfected) {
+                    rechargeAmount += 10;
+                }
+            }
+            State.generator.power = Math.min(100, State.generator.power + rechargeAmount);
         }
 
         return summary;
@@ -448,7 +677,92 @@ export class GameMechanicsManager {
             lockNav: false
         });
         this.game.nextTurn();
+        this.updateTurnEndSystems();
         this.ui.updateRunStats(State);
+    }
+
+    updateTurnEndSystems() {
+        // 1. Procesar Blood Analyzer
+        if (State.generator.bloodTestCountdown > 0) {
+            State.generator.bloodTestCountdown--;
+            if (State.generator.bloodTestCountdown === 0 && State.generator.bloodTestId) {
+                // Revelar resultado
+                const npc = State.admittedNPCs.find(n => n.id === State.generator.bloodTestId) || (State.currentNPC && State.currentNPC.id === State.generator.bloodTestId ? State.currentNPC : null);
+                if (npc) {
+                    if (!npc.revealedStats.includes('isInfected')) npc.revealedStats.push('isInfected');
+                    npc.isBloodValidated = true;
+                    State.addLogEntry('system', `ANÁLISIS COMPLETADO: ${npc.name} -> ${npc.isInfected ? 'INFECTADO' : 'LIMPIO'}`);
+                    this.ui.showFeedback(`ANALISIS: ${npc.name} (${npc.isInfected ? 'INFECTADO' : 'LIMPIO'})`, npc.isInfected ? "red" : "green", 5000);
+                }
+                State.generator.bloodTestId = null;
+            }
+        }
+
+        // 2. Procesar Sabotajes de Sectores
+        this.processSectorSabotages();
+    }
+
+    assignNPCToSector(npc, sector) {
+        if (!State.sectorAssignments[sector]) State.sectorAssignments[sector] = [];
+
+        // Quitar de otros sectores
+        Object.keys(State.sectorAssignments).forEach(s => {
+            const idx = State.sectorAssignments[s].indexOf(npc.id);
+            if (idx > -1) State.sectorAssignments[s].splice(idx, 1);
+        });
+
+        State.sectorAssignments[sector].push(npc.id);
+        npc.assignedSector = sector;
+
+        // UNIFY: If assigned to generator, update generator property
+        if (sector === 'generator') {
+            State.generator.assignedGuardId = npc.id;
+        } else if (State.generator.assignedGuardId === npc.id) {
+            // If it was the guard but moved to another sector, clear guard
+            State.generator.assignedGuardId = null;
+        }
+    }
+
+    processSectorSabotages() {
+        let sabotageHappened = false;
+        Object.keys(State.sectorAssignments).forEach(sector => {
+            const assignedIds = State.sectorAssignments[sector];
+            assignedIds.forEach(id => {
+                const npc = State.admittedNPCs.find(n => n.id === id);
+                if (npc && npc.isInfected && Math.random() < 0.15) { // 15% prob de sabotaje por infectado
+                    sabotageHappened = true;
+                    this.triggerSabotage(sector, npc);
+                }
+            });
+        });
+        return sabotageHappened;
+    }
+
+    triggerSabotage(sector, npc) {
+        this.audio.playSFXByKey('glitch_low', { volume: 0.6 });
+        switch (sector) {
+            case 'generator':
+                State.generator.isOn = false;
+                State.addLogEntry('system', `SABOTAJE: Fallo provocado en generador por ${npc.name}.`);
+                this.ui.showFeedback("¡SABOTAJE EN EL GENERADOR!", "red", 4000);
+                break;
+            case 'security':
+                const items = State.securityItems.filter(i => i.type !== 'alarma' && i.secured);
+                if (items.length > 0) {
+                    const target = items[Math.floor(Math.random() * items.length)];
+                    target.secured = false;
+                    State.addLogEntry('system', `SABOTAJE: Seguridad comprometida vía ${target.type} por ${npc.name}.`);
+                    this.ui.showFeedback(`¡PUERTA ABIERTA DESDE DENTRO! (${npc.name})`, "red", 4000);
+                }
+                break;
+            case 'supplies':
+                const stolen = Math.min(State.supplies, Math.floor(Math.random() * 3) + 1);
+                State.updateSupplies(-stolen);
+                State.addLogEntry('system', `SABOTAJE: Desaparición de ${stolen} suministros (Sector: ${npc.name}).`);
+                this.ui.showFeedback(`¡SUMINISTROS ROBADOS! (${npc.name})`, "red", 4000);
+                break;
+        }
+        this.game.updateHUD();
     }
 
     continueDay() {
@@ -478,7 +792,7 @@ export class GameMechanicsManager {
 
         if (!via) return;
 
-        this.createIntrusion(via, 'nocturna');
+        this.handleIntrusionCombat(via, 'nocturna');
     }
 
     attemptDayIntrusion() {
@@ -504,10 +818,69 @@ export class GameMechanicsManager {
                 }
 
                 if (via) {
-                    this.createIntrusion(via, 'diurna');
+                    this.handleIntrusionCombat(via, 'diurna');
                 }
             }
             State.rescheduleIntrusion();
+        }
+    }
+
+    handleIntrusionCombat(via, period) {
+        const securityNPCId = State.sectorAssignments?.security?.[0];
+        const guard = State.admittedNPCs.find(n => n.id === securityNPCId);
+
+        if (!guard) {
+            // No hay guardias, la intrusión entra libremente
+            this.createIntrusion(via, period);
+            return;
+        }
+
+        // Simulación de combate
+        const intrusionStrength = Math.random() * 100;
+        let guardModifier = 50; // Poder base
+
+        if (guard.trait) {
+            if (guard.trait.id === 'scavenger') guardModifier += 25; // Más fuerte
+            if (guard.trait.id === 'sickly') guardModifier -= 35; // Más débil
+        }
+
+        const winChance = guardModifier / (guardModifier + intrusionStrength);
+
+        if (Math.random() < winChance) {
+            // Éxito: Intrusión detenida
+            State.addLogEntry('system', `SEGURIDAD: ${guard.name} interceptó una intrusión vía ${via.type}.`, { icon: 'fa-shield-halved' });
+            this.ui.showFeedback(`INTRUSIÓN DETENIDA POR ${guard.name}`, "green", 5000);
+            this.ui.updateSecurityCombatLog(`${guard.name}: Contacto visual en ${via.type}. Objetivo neutralizado.`);
+
+            // Riesgo de herida (puramente visual por ahora)
+            if (Math.random() < 0.2) {
+                this.ui.updateSecurityCombatLog(`${guard.name}: Enviando reporte médico. Heridas leves.`);
+            }
+        } else {
+            // Fallo: El guardia muere o es superado
+            const fatal = Math.random() < 0.4;
+            if (fatal) {
+                // MUERTE
+                const idx = State.admittedNPCs.indexOf(guard);
+                if (idx > -1) {
+                    State.admittedNPCs.splice(idx, 1);
+                    guard.death = { reason: `combate contra intruso (${via.type})`, cycle: State.cycle, revealed: true };
+                    State.purgedNPCs.push(guard);
+
+                    State.addLogEntry('system', `CRÍTICO: ${guard.name} murió defendiendo el refugio contra una intrusión vía ${via.type}.`, { icon: 'fa-skull' });
+                    this.ui.showFeedback(`${guard.name} HA CAÍDO EN COMBATE`, "red", 7000);
+                    this.ui.updateSecurityCombatLog(`ALERTA: Bio-señal de ${guard.name} perdida en ${via.type}.`);
+                }
+
+                // La intrusión entra de todos modos
+                this.createIntrusion(via, period);
+            } else {
+                // Superado pero vivo (el intruso entra)
+                State.addLogEntry('system', `SEGURIDAD: ${guard.name} fue superado por un intruso en ${via.type}.`, { icon: 'fa-person-falling' });
+                this.ui.showFeedback(`${guard.name} SUPERADO EN COMBATE`, "orange", 5000);
+                this.ui.updateSecurityCombatLog(`${guard.name}: Superado numéricamente. El intruso ha penetrado el perímetro.`);
+                this.createIntrusion(via, period);
+            }
         }
     }
 
@@ -580,6 +953,95 @@ export class GameMechanicsManager {
 
         if (State.admittedNPCs.length > 0 && this.ui && this.ui.setNavItemStatus) {
             this.ui.setNavItemStatus('nav-shelter', 3);
+        }
+    }
+
+    startScavengingExpedition(npc) {
+        if (!npc || State.paused) return;
+
+        // Mostrar pantalla de expedición
+        this.game.events.switchScreen(CONSTANTS.SCREENS.EXPEDITION, {
+            force: true,
+            lockNav: true,
+            sound: 'ui_heavy_click'
+        });
+
+        $('#expedition-npc-name span').text(npc.name);
+
+        // Calcular riesgo y recompensa
+        let risk = 15 + (Math.random() * 20); // Base 15-35%
+        let minLoot = 5;
+        let maxLoot = 15;
+
+        if (npc.trait) {
+            if (npc.trait.id === 'scavenger') {
+                risk -= 5;
+                minLoot += 3;
+                maxLoot += 5;
+            }
+            if (npc.trait.id === 'sickly') {
+                risk += 15;
+            }
+        }
+
+        const riskFormatted = Math.min(100, Math.max(0, Math.round(risk)));
+        const lootValue = Math.floor(Math.random() * (maxLoot - minLoot + 1)) + minLoot;
+
+        $('#expedition-risk-value').text(`${riskFormatted}%`);
+        $('#expedition-loot-value').text(lootValue);
+
+        // Animación de carga
+        let progress = 0;
+        const fill = $('#expedition-progress-fill');
+        const text = $('#expedition-progress-text');
+
+        this.audio.playSFXByKey('expedition_ambient', { loop: true, volume: 0.3, id: 'exp_loop' });
+
+        const interval = setInterval(() => {
+            if (State.paused) return;
+
+            progress += Math.random() * 5;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                this.audio.stopSFX('exp_loop');
+                this.finalizeExpedition(npc, riskFormatted, lootValue);
+            }
+
+            fill.css('width', `${progress}%`);
+            text.text(`${Math.round(progress)}%`);
+
+            if (Math.random() < 0.1) this.audio.playSFXByKey('radio_chatter', { volume: 0.15 });
+        }, 150);
+    }
+
+    finalizeExpedition(npc, risk, loot) {
+        const survived = Math.random() * 100 > risk;
+
+        if (survived) {
+            State.updateSupplies(loot);
+            State.addLogEntry('system', `EXPEDICIÓN: ${npc.name} regresó con ${loot} suministros.`, { icon: 'fa-box-open' });
+            this.ui.showFeedback(`EXPEDICIÓN EXITOSA: +${loot} SUMINISTROS`, "green", 5000);
+
+            // Volver al mapa después de una pausa dramática
+            setTimeout(() => {
+                this.game.events.navigateToMap();
+            }, 1500);
+        } else {
+            // MUERTE
+            const idx = State.admittedNPCs.indexOf(npc);
+            if (idx > -1) {
+                State.admittedNPCs.splice(idx, 1);
+                npc.death = { reason: 'muerto en expedición externa (suministros)', cycle: State.cycle, revealed: true };
+                State.purgedNPCs.push(npc);
+
+                State.addLogEntry('system', `PÉRDIDA: La señal de ${npc.name} se perdió permanentemente durante la búsqueda de suministros.`, { icon: 'fa-skull' });
+                this.ui.showFeedback(`${npc.name} NO REGRESÓ DE LA EXPEDICIÓN`, "red", 7000);
+            }
+
+            setTimeout(() => {
+                this.game.events.navigateToMap();
+            }, 2500);
         }
     }
 

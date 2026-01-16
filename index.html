@@ -36,6 +36,9 @@
     <link rel="stylesheet" href="css/ShelterPerimeterTheme.css">
     <link rel="stylesheet" href="css/RetroLayout.css">
     <link rel="stylesheet" href="css/unique_npcs.css">
+    <link rel="stylesheet" href="css/NewFeatures.css">
+    <link rel="stylesheet" href="css/VisualRoom.css">
+    <link rel="stylesheet" href="css/HUDComponents.css">
 </head>
 
 <body class="flex justify-center items-center min-h-screen">
@@ -68,31 +71,17 @@
                         <i class="fa-solid fa-shield-halved text-2xl"></i>
                         <span class="font-bold">PUESTO</span>
                     </button>
-                    <button id="nav-shelter" class="nav-btn nav-sidebar-btn" title="Gestión de Refugio">
+                    <button id="nav-map" class="nav-btn nav-sidebar-btn" title="Mapa del Búnker">
                         <div class="nav-status-light"></div>
-                        <i class="fa-solid fa-house text-2xl"></i>
-                        <span class="font-bold">REFUGIO</span>
+                        <i class="fa-solid fa-map text-2xl"></i>
+                        <span class="font-bold">MAPA</span>
                     </button>
-                    <button id="nav-room" class="nav-btn nav-sidebar-btn" title="Sala de Vigilancia">
-                        <div class="nav-status-light"></div>
-                        <i class="fa-solid fa-bell text-2xl"></i>
-                        <span class="font-bold">SALA</span>
-                    </button>
-                    <button id="nav-generator" class="nav-btn nav-sidebar-btn" title="Sistema Eléctrico">
-                        <div class="nav-status-light"></div>
-                        <i class="fa-solid fa-bolt text-2xl"></i>
-                        <span class="font-bold">GENERADOR</span>
-                    </button>
-                    <button id="nav-morgue" class="nav-btn nav-sidebar-btn" title="Registro de Perímetro">
-                        <div class="nav-status-light"></div>
-                        <i class="fa-solid fa-clipboard-list text-2xl"></i>
-                        <span class="font-bold">PERÍMETRO</span>
-                    </button>
-                    <button id="nav-database" class="nav-btn nav-sidebar-btn" title="Base de Datos">
-                        <div class="nav-status-light"></div>
-                        <i class="fa-solid fa-database text-2xl"></i>
-                        <span class="font-bold">ARCHIVOS</span>
-                    </button>
+
+                    <div id="sidebar-pinned-rooms"
+                        class="flex flex-col gap-1 border-b border-chlorine/10 pb-2 mt-1 mb-1">
+                        <!-- Botones de salas pineadas se inyectan aquí -->
+                    </div>
+
 
                     <div class="sidebar-label mt-4">DISPLAY</div>
                     <div class="flex flex-col gap-1 px-2 mb-4">
@@ -102,17 +91,11 @@
                         </div>
                         <div class="flex gap-1">
                             <button
-                                class="btn-scale flex-1 bg-black border border-white/10 text-[10px] py-1 hover:bg-white/5 transition-colors"
-                                data-scale="small">S</button>
-                            <button
                                 class="btn-scale flex-1 bg-black border border-white/20 text-chlorine-light text-[10px] py-1 hover:bg-white/5 transition-colors"
-                                data-scale="normal">N</button>
+                                data-scale="large">100</button>
                             <button
                                 class="btn-scale flex-1 bg-black border border-white/10 text-[10px] py-1 hover:bg-white/5 transition-colors"
-                                data-scale="large">L</button>
-                            <button
-                                class="btn-scale flex-1 bg-black border border-white/10 text-[10px] py-1 hover:bg-white/5 transition-colors"
-                                data-scale="full">F</button>
+                                data-scale="full">FULL</button>
                         </div>
                     </div>
 
@@ -122,6 +105,12 @@
                             <div class="nav-status-light"></div>
                             <i class="fa-solid fa-terminal text-xl"></i>
                             <span>LOG</span>
+                        </button>
+
+                        <button id="nav-database" class="nav-btn nav-sidebar-btn !h-auto py-3" title="Base de Datos">
+                            <div class="nav-status-light"></div>
+                            <i class="fa-solid fa-database text-xl"></i>
+                            <span class="font-bold">ARCHIVOS</span>
                         </button>
                         <div class="speaker-grille"></div>
                         <div class="panel-screw screw-bl" style="width:8px; height:8px; bottom:5px; left:5px;"></div>
@@ -204,6 +193,284 @@
                         </div>
                     </div>
 
+                    <!-- SCREEN: MAPA DEL BÚNKER -->
+                    <section id="screen-map" class="h-full flex flex-col hidden crt-flicker">
+                        <header class="flex justify-between items-center border-b border-chlorine/30 p-6 bg-black/40">
+                            <div>
+                                <h1
+                                    class="text-3xl text-glow tracking-tighter uppercase font-black text-chlorine-light">
+                                    MAPA_ESTRUCTURAL_BÚNKER</h1>
+                                <p class="font-mono text-[10px] opacity-60 tracking-widest text-[#a8d5a2]">SISTEMA DE
+                                    TRÁNSITO INTERNO // PROTOCOLO DE CONFINAMIENTO ACTIVO</p>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="industrial-tag flex flex-col items-end">
+                                    <span class="text-[9px] opacity-40 uppercase">Estado Red</span>
+                                    <span class="text-xs font-bold text-green-500">OPTIMAL_LINK</span>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div
+                            class="flex-grow overflow-x-auto custom-scrollbar bg-[#050505] flex items-center shadow-inner">
+                            <div class="map-container-horizontal">
+                                <!-- Columna: Superficie -->
+                                <div class="map-column">
+                                    <h3 class="map-column-title">NIVEL_0: SUPERFICIE</h3>
+                                    <button class="map-node-btn" data-room="game" id="map-node-puesto">
+                                        <div class="map-status-light"></div>
+                                        <div class="map-node-header">
+                                            <span class="map-node-title"><i
+                                                    class="fa-solid fa-shield-halved mr-2"></i>PUESTO GUARDIA</span>
+                                            <div class="map-node-pin-btn" data-room="game" title="Pineado rápido"><i
+                                                    class="fa-solid fa-thumbtack"></i></div>
+                                        </div>
+                                        <div class="map-node-indicators">
+                                            <div class="map-info-line"><span>SITUACIÓN:</span> <span
+                                                    class="map-info-value text-green-500">NOMINAL</span></div>
+                                            <div class="map-info-line"><span>PROTOCOLO:</span> <span
+                                                    class="map-info-value">TRIAJE</span></div>
+                                        </div>
+                                    </button>
+                                </div>
+
+                                <!-- Columna: Seguridad -->
+                                <div class="map-column">
+                                    <h3 class="map-column-title">NIVEL_-1: CONTROL</h3>
+                                    <button class="map-node-btn" data-room="room" id="map-node-sala">
+                                        <div class="map-status-light"></div>
+                                        <div class="map-node-header">
+                                            <span class="map-node-title"><i
+                                                    class="fa-solid fa-bell mr-2"></i>VIGILANCIA</span>
+                                            <div class="map-node-pin-btn" data-room="room" title="Pineado rápido"><i
+                                                    class="fa-solid fa-thumbtack"></i></div>
+                                        </div>
+                                        <div class="map-node-indicators">
+                                            <div class="map-info-line"><span>DEFENSA:</span> <span
+                                                    id="map-status-security-guard" class="map-info-value">VACANTE</span>
+                                            </div>
+                                            <div class="map-info-line"><span>ALERTAS:</span> <span
+                                                    id="map-status-security-alerts" class="map-info-value">0</span>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+
+                                <!-- Columna: Hábitat y Energía -->
+                                <div class="map-column">
+                                    <h3 class="map-column-title">NIVEL_-2: HÁBITAT</h3>
+
+                                    <button class="map-node-btn" data-room="shelter" id="map-node-refugio">
+                                        <div class="map-status-light"></div>
+                                        <div class="map-node-header">
+                                            <span class="map-node-title"><i
+                                                    class="fa-solid fa-house mr-2"></i>REFUGIO</span>
+                                            <div class="map-node-pin-btn" data-room="shelter" title="Pineado rápido"><i
+                                                    class="fa-solid fa-thumbtack"></i></div>
+                                        </div>
+                                        <div class="map-node-indicators">
+                                            <div class="map-info-line"><span>POBLACIÓN:</span> <span
+                                                    id="map-status-shelter-count" class="map-info-value">0/0</span>
+                                            </div>
+                                            <div class="map-info-line"><span>MORAL:</span> <span
+                                                    class="map-info-value">ESTABLE</span></div>
+                                        </div>
+                                    </button>
+
+                                    <button class="map-node-btn subsystem-link" data-room="meditation"
+                                        id="map-node-meditacion">
+                                        <div class="map-status-light"></div>
+                                        <div class="map-node-header">
+                                            <span class="map-node-title"><i
+                                                    class="fa-solid fa-spa mr-2"></i>MEDITACIÓN</span>
+                                            <div class="map-node-pin-btn" data-room="meditation" title="Pineado rápido">
+                                                <i class="fa-solid fa-thumbtack"></i>
+                                            </div>
+                                        </div>
+                                        <div class="map-node-indicators">
+                                            <div class="map-info-line"><span>BALANCE:</span> <span
+                                                    class="map-info-value">RELATIVO</span></div>
+                                            <div class="map-info-line"><span>VÍNCULO:</span> <span
+                                                    class="map-info-value text-blue-400">HUD_STAT</span></div>
+                                        </div>
+                                    </button>
+
+                                    <button class="map-node-btn subsystem-link" data-room="supplies"
+                                        id="map-node-suministros">
+                                        <div class="map-status-light"></div>
+                                        <div class="map-node-header">
+                                            <span class="map-node-title"><i
+                                                    class="fa-solid fa-box mr-2"></i>SUMINISTROS</span>
+                                            <div class="map-node-pin-btn" data-room="supplies" title="Pineado rápido"><i
+                                                    class="fa-solid fa-thumbtack"></i></div>
+                                        </div>
+                                        <div class="map-node-indicators">
+                                            <div class="map-info-line"><span>VÍVERES:</span> <span
+                                                    id="map-status-supplies-count" class="map-info-value">0</span></div>
+                                            <div class="map-info-line"><span>VÍNCULO:</span> <span
+                                                    class="map-info-value text-blue-400">HUD_STAT</span></div>
+                                        </div>
+                                    </button>
+
+                                    <button class="map-node-btn subsystem-link" data-room="generator"
+                                        id="map-node-generador">
+                                        <div class="map-status-light"></div>
+                                        <div class="map-node-header">
+                                            <span class="map-node-title"><i
+                                                    class="fa-solid fa-bolt mr-2"></i>GENERADOR</span>
+                                            <div class="map-node-pin-btn" data-room="generator" title="Pineado rápido">
+                                                <i class="fa-solid fa-thumbtack"></i>
+                                            </div>
+                                        </div>
+                                        <div class="map-node-indicators">
+                                            <div class="map-info-line"><span>CARGA:</span> <span
+                                                    id="map-status-gen-load" class="map-info-value">0%</span></div>
+                                            <div class="map-info-line"><span>VÍNCULO:</span> <span
+                                                    class="map-info-value text-blue-400">HUD_STAT</span></div>
+                                        </div>
+                                    </button>
+                                </div>
+
+                                <!-- Columna: Almacenamiento y Archivos -->
+                                <div class="map-column">
+                                    <h3 class="map-column-title">NIVEL_-3: SISTEMAS</h3>
+
+                                    <button class="map-node-btn" data-room="morgue" id="map-node-morgue">
+                                        <div class="map-status-light"></div>
+                                        <div class="map-node-header">
+                                            <span class="map-node-title"><i
+                                                    class="fa-solid fa-shield-halved mr-2"></i>PERÍMETRO</span>
+                                            <div class="map-node-pin-btn" data-room="morgue" title="Pineado rápido"><i
+                                                    class="fa-solid fa-thumbtack"></i></div>
+                                        </div>
+                                        <div class="map-node-indicators">
+                                            <div class="map-info-line"><span>ESTADO:</span> <span
+                                                    id="map-status-morgue-count" class="map-info-value">SEGURO</span>
+                                            </div>
+                                            <div class="map-info-line"><span>ALGO:</span> <span
+                                                    class="map-info-value text-alert">LOW</span></div>
+                                        </div>
+                                    </button>
+
+                                    <button class="map-node-btn" data-room="database" id="map-node-database">
+                                        <div class="map-status-light"></div>
+                                        <div class="map-node-header">
+                                            <span class="map-node-title"><i
+                                                    class="fa-solid fa-database mr-2"></i>ARCHIVOS</span>
+                                            <div class="map-node-pin-btn" data-room="database" title="Pineado rápido"><i
+                                                    class="fa-solid fa-thumbtack"></i></div>
+                                        </div>
+                                        <div class="map-node-indicators">
+                                            <div class="map-info-line"><span>REGISTROS:</span> <span
+                                                    class="map-info-value text-blue-400">SYNC</span></div>
+                                            <div class="map-info-line"><span>INTEGRIDAD:</span> <span
+                                                    class="map-info-value">100%</span></div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- SCREEN: SALA DE MEDITACIÓN -->
+                    <section id="screen-meditation" class="h-full flex flex-col hidden crt-flicker overflow-y-auto">
+                        <header class="flex justify-between items-center border-b border-chlorine/30 p-6 bg-black/40">
+                            <div>
+                                <h1 class="text-3xl text-glow tracking-tighter uppercase font-black text-blue-300">
+                                    SALA_DE_SUEÑO_Z</h1>
+                                <p class="font-mono text-[10px] opacity-60 tracking-widest text-blue-200">SISTEMA DE
+                                    RECUPERACIÓN PSICOSOMÁTICA</p>
+                            </div>
+                            <div class="flex gap-4 items-center">
+                                <div class="comp-paranoia"></div>
+                                <div class="comp-sanity"></div>
+                                <div class="industrial-tag flex flex-col items-end">
+                                    <span class="text-[9px] opacity-40 uppercase">Aislamiento</span>
+                                    <span class="text-xs font-bold text-blue-400">ACTIVE_SILENCE</span>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="flex-grow flex flex-col items-center justify-center gap-12 p-8">
+                            <div
+                                class="meditation-visualizer w-48 h-48 border-2 border-blue-400/20 rounded-full flex items-center justify-center relative">
+                                <div
+                                    class="meditation-wave absolute w-full h-full rounded-full border border-blue-400/40 animate-ping opacity-20">
+                                </div>
+                                <div
+                                    class="meditation-core w-10 h-10 bg-blue-400/30 rounded-full blur-xl animate-pulse">
+                                </div>
+                                <i class="fa-solid fa-spa text-3xl text-blue-400/60 z-10"></i>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-[700px]">
+                                <button id="btn-med-breath"
+                                    class="horror-btn border-blue-500/30 hover:bg-blue-500/10 p-4 flex flex-col items-center gap-2 group">
+                                    <i class="fa-solid fa-wind text-xl group-hover:animate-bounce"></i>
+                                    <span class="font-bold">RESPIRACIÓN GUIADA</span>
+                                    <span class="text-[9px] opacity-60 uppercase">REDUCE PARANOIA (-5)</span>
+                                </button>
+
+                                <button id="btn-med-music"
+                                    class="horror-btn border-blue-500/30 hover:bg-blue-500/10 p-4 flex flex-col items-center gap-2 group">
+                                    <i class="fa-solid fa-music text-xl group-hover:scale-110"></i>
+                                    <span class="font-bold">FRECUENCIAS_Z</span>
+                                    <span class="text-[9px] opacity-60 uppercase">RESTAURA CORDURA (+5)</span>
+                                </button>
+                            </div>
+
+                            <div class="text-center font-mono text-[10px] opacity-40 max-w-[500px]">
+                                "Respira. Ignora los rasguños en la ventilación."
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- SCREEN: ALMACÉN DE SUMINISTROS -->
+                    <section id="screen-supplies-hub" class="h-full flex flex-col hidden crt-flicker overflow-y-auto">
+                        <header class="flex justify-between items-center border-b border-chlorine/30 p-6 bg-black/40">
+                            <div>
+                                <h1 class="text-3xl text-glow tracking-tighter uppercase font-black text-amber-300">
+                                    ALMACÉN_LOGÍSTICO</h1>
+                                <p class="font-mono text-[10px] opacity-60 tracking-widest text-amber-200">CENTRO DE
+                                    DISTRIBUCIÓN // DEPOSITO_B2</p>
+                            </div>
+                            <div class="flex gap-4 items-center">
+                                <div class="comp-supplies"></div>
+                                <div class="industrial-tag flex flex-col items-end">
+                                    <span class="text-[9px] opacity-40 uppercase">Inventario</span>
+                                    <span id="supplies-hub-count" class="text-xs font-bold text-amber-400">0
+                                        UNITS</span>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="flex-grow flex flex-col items-center justify-center p-12">
+                            <div
+                                class="industrial-panel p-12 border border-amber-500/20 bg-black/60 flex flex-col items-center gap-8">
+                                <div class="grid grid-cols-4 gap-4 opacity-20">
+                                    <i class="fa-solid fa-box text-3xl"></i><i class="fa-solid fa-box text-3xl"></i><i
+                                        class="fa-solid fa-box text-3xl"></i><i class="fa-solid fa-box text-3xl"></i>
+                                </div>
+                                <h2 class="text-xl font-bold text-amber-500 uppercase tracking-widest">CONTROL DE
+                                    RECOLECCIÓN</h2>
+                                <p class="text-center text-sm opacity-60 max-w-[400px]">Desplegar personal asignado para
+                                    recuperar víveres en el exterior.</p>
+
+                                <button id="btn-start-expedition-hub"
+                                    class="horror-btn border-amber-500/40 hover:bg-amber-500/10 px-12 py-4 font-bold">
+                                    INICIAR EXPEDICIÓN
+                                </button>
+
+                                <div
+                                    class="mt-4 pt-4 border-t border-white/10 w-full flex justify-between items-center">
+                                    <span class="text-[9px] uppercase opacity-40">Encargado actual:</span>
+                                    <span id="supplies-hub-assigned"
+                                        class="text-sm font-bold text-amber-200 uppercase">---</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
                     <!-- SCREEN 2: GAME (Guard Post) -->
                     <section id="screen-game" class="h-full flex flex-col p-4 gap-4 hidden crt-flicker">
                         <header
@@ -214,32 +481,12 @@
                             <div class="panel-screw screw-br" style="width:6px;height:6px;bottom:2px;right:2px;"></div>
 
                             <div class="flex flex-wrap gap-2 items-center justify-center">
-                                <div class="hud-stat-box" title="Nivel de Paranoia">
-                                    <span class="hud-stat-label">PARANOIA</span>
-                                    <span class="hud-stat-value text-chlorine-light"><i
-                                            class="fa-solid fa-brain mr-1 text-xs"></i><span
-                                            id="paranoia-level">0%</span></span>
-                                </div>
-                                <div class="hud-stat-box" title="Salud Mental">
-                                    <span class="hud-stat-label">CORDURA</span>
-                                    <span class="hud-stat-value text-rose-300"><i
-                                            class="fa-solid fa-heart-pulse mr-1 text-xs"></i><span
-                                            id="sanity-level">100%</span></span>
-                                </div>
-                                <div id="hud-supplies-container"
-                                    class="hud-stat-box cursor-pointer hover:bg-white/5 transition-colors"
-                                    title="Suministros">
-                                    <span class="hud-stat-label">VÍVERES</span>
-                                    <span class="hud-stat-value text-amber-300"><i
-                                            class="fa-solid fa-box mr-1 text-xs"></i><span
-                                            id="supplies-level">15</span></span>
-                                </div>
-                                <div id="hud-energy-container"
-                                    class="hud-stat-box cursor-pointer hover:bg-white/5 transition-colors"
-                                    title="Energía de Escaneo">
-                                    <span class="hud-stat-label">ENERGÍA</span>
-                                    <span id="scan-energy" class="hud-stat-value text-cyan-400 text-glow">⚡⚡</span>
-                                </div>
+                                <div class="comp-paranoia"></div>
+                                <div class="comp-sanity"></div>
+                                <div class="comp-supplies"></div>
+                                <div class="comp-gen-load"></div>
+                                <div class="comp-gen-battery"></div>
+                                <div class="comp-gen-station"></div>
                             </div>
 
                             <!-- Workstation Status Panel (Diferenciador Visual Industrial) -->
@@ -815,7 +1062,18 @@
 
                             <header
                                 class="flex justify-between items-center border-b border-shelter-blue/30 pb-2 relative z-20">
-                                <h2 class="text-2xl text-glow font-mono tracking-wider">RECURSOS_HABITANTES_V2.1</h2>
+                                <div class="flex flex-col">
+                                    <h2 class="text-2xl text-glow font-mono tracking-wider">RECURSOS_HABITANTES_V2.1
+                                    </h2>
+                                    <div id="shelter-generator-watch"
+                                        class="text-[9px] font-mono text-shelter-blue/50 flex items-center gap-2">
+                                        <i class="fa-solid fa-bolt-lightning animate-pulse"></i>
+                                        <span>GEN_WATCH: <span id="shelter-gen-watch-status"
+                                                class="text-shelter-blue">OFFLINE</span></span>
+                                        <span id="shelter-gen-watch-guard" class="hidden text-shelter-blue/70"> //
+                                            GUARDIA: <span id="shelter-gen-watch-guard-name">NONE</span></span>
+                                    </div>
+                                </div>
                                 <span class="font-mono text-xl text-shelter-blue">OCUPACIÓN: <span
                                         id="shelter-count">0/10</span></span>
                             </header>
@@ -881,7 +1139,17 @@
 
                             <header
                                 class="flex justify-between items-center border-b border-green-500/30 pb-2 relative z-20">
-                                <h2 class="text-2xl text-glow font-mono tracking-wider">SALA_VIGILANCIA_V1.0</h2>
+                                <div class="flex flex-col">
+                                    <h2 class="text-2xl text-glow font-mono tracking-wider">SALA_VIGILANCIA_V1.0</h2>
+                                    <div id="security-generator-watch"
+                                        class="text-[9px] font-mono text-terminal-green/50 flex items-center gap-2">
+                                        <i class="fa-solid fa-bolt-lightning animate-pulse"></i>
+                                        <span>GEN_WATCH: <span id="gen-watch-status"
+                                                class="text-terminal-green">OFFLINE</span></span>
+                                        <span id="gen-watch-guard" class="hidden text-terminal-green/70"> // GUARDIA:
+                                            <span id="gen-watch-guard-name">NONE</span></span>
+                                    </div>
+                                </div>
                                 <span class="font-mono text-xl text-green-500">PUNTOS: <span
                                         id="security-count">0</span></span>
                             </header>
@@ -897,9 +1165,76 @@
                                 INTRUSIONES NOCTURNAS.
                             </div>
 
-                            <div id="security-grid"
-                                class="flex-1 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4 overflow-y-auto p-2 custom-scrollbar z-20">
-                                <!-- Items -->
+                            <div class="flex flex-1 gap-4 overflow-hidden z-20">
+                                <!-- Grid de Items (Cámaras/Sensores) -->
+                                <div id="security-grid"
+                                    class="flex-grow grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4 overflow-y-auto p-2 custom-scrollbar">
+                                    <!-- Items -->
+                                </div>
+
+                                <!-- Panel del Guardia -->
+                                <div id="security-guard-panel"
+                                    class="hidden md:flex w-64 border-l border-green-500/20 pl-4 flex-col gap-4">
+                                    <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">PERSONAL
+                                        DE SEGURIDAD</div>
+                                    <div id="security-guard-display"
+                                        class="flex flex-col items-center gap-2 p-4 bg-black/40 border border-green-500/10 rounded relative overflow-hidden group">
+                                        <!-- Avatar y nombre inyectados por JS -->
+                                        <div class="text-xs italic opacity-40 py-8">ESTACIÓN VACANTE</div>
+                                    </div>
+
+                                    <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-2">
+                                        REGISTRO DE COMBATE</div>
+                                    <div id="security-combat-log"
+                                        class="flex-grow bg-black/60 border border-green-900/30 p-2 font-mono text-[9px] overflow-y-auto custom-scrollbar">
+                                        <div class="opacity-30">ESCUCHANDO FRECUENCIAS...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- SCREEN: EXPEDICIÓN DE SUMINISTROS -->
+                    <section id="screen-expedition"
+                        class="h-full flex flex-col p-8 items-center justify-center gap-8 hidden crt-flicker bg-[#050505]">
+                        <div class="industrial-panel max-w-2xl w-full p-12 flex flex-col items-center gap-8 relative">
+                            <i class="fa-solid fa-person-walking-luggage text-6xl text-amber-500 animate-pulse"></i>
+
+                            <div class="text-center">
+                                <h2 class="text-4xl text-glow text-amber-500 tracking-tighter mb-2">
+                                    OPERACIÓN_EXTERNA_ACTIVA</h2>
+                                <p id="expedition-npc-name" class="font-mono text-gray-400">PERSONAL REPLEGADO: <span
+                                        class="text-white">---</span></p>
+                            </div>
+
+                            <!-- Barra de Progreso -->
+                            <div class="w-full space-y-2">
+                                <div class="flex justify-between font-mono text-xs text-amber-600">
+                                    <span>ESTADO: BUSCANDO EN EL PERÍMETRO</span>
+                                    <span id="expedition-progress-text">0%</span>
+                                </div>
+                                <div class="w-full h-4 bg-black border border-amber-900/30 p-0.5">
+                                    <div id="expedition-progress-fill"
+                                        class="h-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)] transition-all duration-300"
+                                        style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-8 w-full">
+                                <div class="bg-black/40 border border-red-900/20 p-4 flex flex-col items-center">
+                                    <span class="text-[10px] font-mono text-gray-500 uppercase">Riesgo de
+                                        Letalidad</span>
+                                    <span id="expedition-risk-value" class="text-2xl font-bold text-red-500">0%</span>
+                                </div>
+                                <div class="bg-black/40 border border-green-900/20 p-4 flex flex-col items-center">
+                                    <span class="text-[10px] font-mono text-gray-500 uppercase">Suministros
+                                        Estimados</span>
+                                    <span id="expedition-loot-value" class="text-2xl font-bold text-green-500">0</span>
+                                </div>
+                            </div>
+
+                            <div class="italic text-xs text-gray-600 font-mono text-center">
+                                ADVERTENCIA: INTERRUPCIÓN DE LA SEÑAL DURANTE LA EXTRACCIÓN.
                             </div>
                         </div>
                     </section>
@@ -936,9 +1271,53 @@
                         <div class="noise-overlay"></div>
 
                         <header
-                            class="flex justify-center items-center border-b border-terminal-green/30 pb-2 relative z-20">
-                            <h2 class="text-3xl text-glow font-mono tracking-widest text-terminal-green">
-                                CORE_GENERATOR_V8.4</h2>
+                            class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-terminal-green/30 pb-2 relative z-20 gap-4">
+                            <!-- Left: Terminal ID -->
+                            <div class="flex items-center gap-2 min-w-fit">
+                                <div class="w-2 h-2 bg-terminal-green/50 animate-pulse"></div>
+                                <span class="text-xs font-mono text-terminal-green opacity-70">TERMINAL X-01</span>
+                            </div>
+
+                            <!-- Center: Title -->
+                            <h2
+                                class="text-xl md:text-2xl text-glow font-mono tracking-widest text-terminal-green text-center w-full md:w-auto">
+                                CORE_GENERATOR_V8.4
+                            </h2>
+
+                            <!-- Right: Status Icons (Interactive & Separated) -->
+                            <div
+                                class="flex items-center gap-6 text-xs font-mono text-terminal-green w-full md:w-auto justify-end">
+                                <button id="btn-header-status"
+                                    class="flex flex-col items-center group cursor-pointer hover:text-white transition-colors">
+                                    <div
+                                        class="p-1 rounded bg-terminal-green/10 group-hover:bg-terminal-green/30 transition-colors mb-1">
+                                        <i class="fa-solid fa-bolt"></i>
+                                    </div>
+                                    <span id="header-gen-status" class="text-[9px] uppercase">ONLINE</span>
+                                </button>
+
+                                <div class="w-[1px] h-6 bg-terminal-green/20"></div>
+
+                                <button id="btn-header-battery"
+                                    class="flex flex-col items-center group cursor-pointer hover:text-amber-400 transition-colors">
+                                    <div
+                                        class="p-1 rounded bg-terminal-green/10 group-hover:bg-terminal-green/30 transition-colors mb-1">
+                                        <i class="fa-solid fa-battery-half"></i>
+                                    </div>
+                                    <span id="header-bat-level" class="text-[9px]">--%</span>
+                                </button>
+
+                                <div class="w-[1px] h-6 bg-terminal-green/20"></div>
+
+                                <button id="btn-header-load"
+                                    class="flex flex-col items-center group cursor-pointer hover:text-red-400 transition-colors">
+                                    <div
+                                        class="p-1 rounded bg-terminal-green/10 group-hover:bg-terminal-green/30 transition-colors mb-1">
+                                        <i class="fa-solid fa-server"></i>
+                                    </div>
+                                    <span id="header-load-level" class="text-[9px]">--%</span>
+                                </button>
+                            </div>
                         </header>
                         <div class="flex-1 flex items-center justify-center relative">
                             <!-- Background Cables -->
@@ -967,9 +1346,10 @@
                                         INTERRUPTOR PRINCIPAL
                                     </div>
 
-                                    <div id="generator-gauges" class="w-full flex flex-col items-center justify-center">
-                                        <!-- Analog Dial -->
-                                        <div class="dial-container">
+                                    <div id="generator-gauges"
+                                        class="w-full flex flex-col md:flex-row items-center justify-center gap-8">
+                                        <!-- Analog Dial (Main) -->
+                                        <div class="dial-container flex-shrink-0">
                                             <svg class="dial-svg" viewBox="0 0 240 140">
                                                 <!-- Dial Background -->
                                                 <path d="M 30 130 A 90 90 0 0 1 210 130" fill="none" stroke="#222"
@@ -999,14 +1379,57 @@
                                             </div>
                                         </div>
 
-                                        <div class="flex flex-col items-center gap-1 mt-2">
-                                            <span class="font-mono text-xs opacity-50 uppercase">Sistema:</span>
-                                            <span id="generator-mode-label" class="font-mono text-xl text-glow"></span>
+                                        <!-- NEW: Animated Battery Section -->
+                                        <div
+                                            class="flex flex-col items-center justify-center p-4 border border-terminal-green/20 bg-black/40 rounded w-full md:w-auto h-full">
+                                            <div
+                                                class="relative w-16 h-32 border-2 border-terminal-green p-1 rounded-sm mb-2 shadow-[0_0_10px_rgba(0,255,65,0.2)]">
+                                                <!-- Battery Top Nub -->
+                                                <div
+                                                    class="absolute w-8 h-2 bg-terminal-green/50 -top-3 left-1/2 transform -translate-x-1/2">
+                                                </div>
+
+                                                <!-- Animated Fill -->
+                                                <div id="gen-battery-visual-fill"
+                                                    class="w-full bg-terminal-green bottom-0 absolute left-0 transition-all duration-1000 ease-out"
+                                                    style="height: 0%;">
+                                                    <!-- Liquid Effect Interface -->
+                                                    <div
+                                                        class="w-full h-[2px] bg-white/50 absolute top-0 shadow-[0_0_5px_white]">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Grid overlaid -->
+                                                <div
+                                                    class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] opacity-30 z-10 pointer-events-none">
+                                                </div>
+                                            </div>
+                                            <span id="gen-battery-text"
+                                                class="text-2xl font-mono font-bold text-terminal-green text-glow">--</span>
+                                            <span
+                                                class="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Batería</span>
                                         </div>
                                     </div>
 
-                                    <div id="generator-status-summary" class="w-full">
-                                        <!-- Se llena dinámicamente desde JS -->
+                                    <div class="flex flex-col items-center gap-1 mt-2">
+                                        <span class="font-mono text-xs opacity-50 uppercase">Sistema:</span>
+                                        <span id="generator-mode-label" class="font-mono text-xl text-glow"></span>
+                                    </div>
+
+                                    <div id="generator-status-summary" class="w-full flex flex-col gap-2">
+                                        <div
+                                            class="text-[10px] font-mono text-gray-500 uppercase border-b border-white/5 pb-1">
+                                            Gestión de Sub-sistemas</div>
+                                        <div id="generator-systems-grid" class="grid grid-cols-2 gap-2 mb-4">
+                                            <!-- Inyectado por JS -->
+                                        </div>
+
+                                        <div
+                                            class="text-[10px] font-mono text-gray-500 uppercase border-b border-white/5 pb-1">
+                                            Vigilancia de Estación</div>
+                                        <div id="generator-guard-panel" class="w-full">
+                                            <!-- Inyectado por JS: Guard info & logs -->
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1044,6 +1467,16 @@
                                                 class="horror-btn btn-generator-control w-full py-2">
                                                 <i class="fa-solid fa-bolt mr-2"></i>SOBRECARGA
                                             </button>
+
+                                            <!-- Emergency Battery Refill (using supplies) -->
+                                            <div class="mt-4 pt-4 border-t border-white/5">
+                                                <button id="btn-gen-emergency-charge"
+                                                    class="horror-btn w-full py-3 bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500/20 text-xs">
+                                                    <i class="fa-solid fa-gas-pump mr-2"></i>CARGA DE EMERGENCIA
+                                                    <div class="text-[8px] opacity-40 font-mono">REQ: 3 SUMINISTROS
+                                                        (+15% BAT)</div>
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <p id="generator-restriction-text"

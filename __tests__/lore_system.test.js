@@ -16,7 +16,9 @@ describe('Lore and Endings System', () => {
             playSFXByKey: jest.fn(),
             duckAmbient: jest.fn(),
             stopLore: jest.fn(),
-            unduckAmbient: jest.fn()
+            unduckAmbient: jest.fn(),
+            getUrl: jest.fn(k => k),
+            channels: { lore: { src: '' } }
         };
 
         lm = new LoreManager(uiMock, audioMock);
@@ -24,7 +26,7 @@ describe('Lore and Endings System', () => {
 
     test('showLore displays correct data for a known type', () => {
         lm.showLore('initial');
-        
+
         expect(uiMock.showScreen).toHaveBeenCalledWith('lore');
         expect(audioMock.playLoreByKey).toHaveBeenCalledWith('lore_intro_track', expect.any(Object));
         // Verify title was set
@@ -33,7 +35,7 @@ describe('Lore and Endings System', () => {
 
     test('showLore handles intermediate variants (randomized)', () => {
         lm.showLore('intermediate');
-        
+
         expect(uiMock.showScreen).toHaveBeenCalledWith('lore');
         expect($).toHaveBeenCalledWith('#lore-screen-content');
     });
@@ -41,7 +43,7 @@ describe('Lore and Endings System', () => {
     test('Ending unlocking logic in State', () => {
         State.unlockedEndings = [];
         State.unlockEnding('final_clean');
-        
+
         expect(State.unlockedEndings).toContain('final_clean');
         // Second unlock should not duplicate
         State.unlockEnding('final_clean');
@@ -57,7 +59,7 @@ describe('Lore and Endings System', () => {
 
     test('Danger type lore adds specific classes', () => {
         lm.showLore('night_civil_death');
-        
+
         expect($).toHaveBeenCalledWith('#lore-screen-title');
         expect($).toHaveBeenCalledWith('#screen-lore .lore-panel');
     });

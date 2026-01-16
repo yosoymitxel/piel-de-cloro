@@ -5,7 +5,7 @@ describe('ModalManager Energy Restriction', () => {
 
     beforeAll(() => {
         global.__fakeDOM = {};
-        
+
         function makeEl(tag = 'div') {
             const el = {
                 _classes: new Set(),
@@ -22,8 +22,8 @@ describe('ModalManager Energy Restriction', () => {
                 prop(k, v) { this._props[k] = v; return this; },
                 on(ev, cb) { return this; },
                 toggleClass(c, cond) { return this; },
-                find(sel) { 
-                    return { length: sel === 'button' ? (el._html.includes('<button') ? 4 : 0) : 0 }; 
+                find(sel) {
+                    return { length: sel === 'button' ? (el._html.includes('<button') ? 4 : 0) : 0 };
                 }
             };
             return el;
@@ -42,11 +42,16 @@ describe('ModalManager Energy Restriction', () => {
                 modalStats: $('<div>'),
                 modalTests: $('<div>'),
                 dayafterTestsLeft: $('<span>')
+            },
+            game: {
+                actions: {
+                    validateBloodTest: jest.fn(() => ({ allowed: true }))
+                }
             }
         };
         audioMock = { playSFXByKey: jest.fn() };
         mm = new ModalManager(uiMock, audioMock);
-        
+
         state = {
             cycle: 1,
             dayAfter: { testsAvailable: 5 },
@@ -62,7 +67,7 @@ describe('ModalManager Energy Restriction', () => {
         };
 
         mm.renderModalStats(npc, true, state);
-        
+
         const testsGrid = uiMock.elements.modalTests;
         expect(testsGrid.hasClass('hidden')).toBe(false);
         // In my mock, if it's not restricted, it appends buttons. 
@@ -80,7 +85,7 @@ describe('ModalManager Energy Restriction', () => {
 
         state.generator.isOn = false;
         mm.renderModalStats(npc, true, state);
-        
+
         const testsGrid = uiMock.elements.modalTests;
         expect(testsGrid.hasClass('grid-cols-1')).toBe(true);
         expect(testsGrid.html()).toContain('SIN ENERGÍA');

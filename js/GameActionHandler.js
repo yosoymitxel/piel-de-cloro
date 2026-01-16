@@ -44,21 +44,77 @@ export class GameActionHandler {
             return { allowed: false, reason: "TEST YA REALIZADO", code: "ALREADY_DONE" };
         }
 
-        // Validar energía
-        let maxEnergy = CONSTANTS.GENERATOR.DEFAULT_MAX_CAPACITY;
-        if (State.generator.mode === 'save') maxEnergy = CONSTANTS.GENERATOR.SAVE_MODE_CAPACITY;
-        if (State.generator.mode === 'overload') maxEnergy = CONSTANTS.GENERATOR.OVERLOAD_MODE_CAPACITY;
+        // Protocolo de seguridad: Límites por modo (Legacy Compatibility)
+        let maxEnergy = 3; // Overload mode
+        if (State.generator.mode === 'save') maxEnergy = 1;
+        if (State.generator.mode === 'normal') maxEnergy = 2;
 
-        let energyCost = 1;
-        if (State.paranoia > 70 && Math.random() < (State.paranoia / 200)) {
-            energyCost = 2;
+        if (npc.scanCount >= maxEnergy) {
+            return { allowed: false, reason: "ENERGÍA INSUFICIENTE PARA ESTE TURNO", code: "NO_ENERGY" };
         }
 
-        if (npc.scanCount + energyCost > maxEnergy) {
-            return { allowed: false, reason: "ENERGÍA INSUFICIENTE", code: "NO_ENERGY" };
+        // Validar capacidad y batería (New Battery/Load System)
+        const potentialLoad = (State.generator.load || 0) + 10;
+        if (potentialLoad > State.generator.capacity * 1.5) {
+            return { allowed: false, reason: "CARGA CRÍTICA: RED INESTABLE", code: "NO_ENERGY" };
         }
 
-        return { allowed: true, reason: "OK", code: "READY", cost: energyCost, statKey: statKey };
+        if (State.generator.power < 5) {
+            return { allowed: false, reason: "BATERÍA INSUFICIENTE (Min: 5%)", code: "NO_ENERGY" };
+        }
+
+        return { allowed: true, reason: "OK", code: "READY", cost: 1, statKey: statKey };
+    }
+
+    /**
+     * Valida si se puede realizar el análisis de hemoglobina.
+     */
+    validateBloodTest(targetNPC = null) {
+        if (State.paused) return { allowed: false, reason: "JUEGO EN PAUSA", code: "PAUSED" };
+        if (this.game.isAnimating) return { allowed: false, reason: "ESPERA...", code: "ANIMATING" };
+        if (!State.generator.isOn) return { allowed: false, reason: "SIN ENERGÍA", code: "POWER_OFF" };
+        if (State.generator.mode === 'save') return { allowed: false, reason: "MODO_AHORRO: Insuficiente para centrifugado", code: "MODE_RESTRICTED" };
+
+        // REQUISITO: LABORATORIO ACTIVO (Fallback para tests si systems no existe)
+        const isLabActive = !State.generator.systems || State.generator.systems.shelterLab.active;
+        if (!isLabActive) return { allowed: false, reason: "LABORATORIO DESACTIVADO EN GENERADOR", code: "NO_LAB" };
+
+        const npc = targetNPC || State.currentNPC;
+        if (!npc) return { allowed: false, reason: "NO HAY SUJETO", code: "NO_NPC" };
+        if (npc.revealedStats.includes('isInfected')) return { allowed: false, reason: "YA ANALIZADO", code: "ALREADY_DONE" };
+        if (State.generator.bloodTestCountdown > 0) return { allowed: false, reason: "PROCESADOR OCUPADO", code: "BUSY" };
+        if (State.generator.power < 20) return { allowed: false, reason: "BATERÍA INSUFICIENTE (Min: 20%)", code: "NO_ENERGY" };
+
+        return { allowed: true, reason: "OK" };
+    }
+
+    startBloodTest(npc) {
+        const validation = this.validateBloodTest(npc);
+        if (!validation.allowed) {
+            this.ui.showFeedback(validation.reason, "red", 3000);
+            return;
+        }
+
+        this.game.isAnimating = true;
+        // Iniciar countdown
+        State.generator.bloodTestId = npc.id || npc.name;
+        State.generator.bloodTestCountdown = 2;
+        State.paranoia += 15; // Coste de tensión mental
+
+        // Recalcular carga inmediatamente
+        if (this.game.mechanics && this.game.mechanics.calculateTotalLoad) {
+            this.game.mechanics.calculateTotalLoad();
+        }
+
+        this.audio.playSFXByKey('glitch_burst', { volume: 0.5 });
+        this.ui.showFeedback("ANÁLISIS INICIADO: RESULTADOS EN 2 TURNOS", "yellow", 4000);
+        this.ui.updateEnergyHUD();
+
+        setTimeout(() => {
+            this.game.isAnimating = false;
+            this.game.updateHUD();
+            this.ui.updateInspectionTools(npc);
+        }, 1000);
     }
 
     inspect(tool) {
@@ -229,6 +285,9 @@ export class GameActionHandler {
         if (State.paused || this.processingDecision) return;
         const npc = State.currentNPC;
         if (!npc) return;
+
+        // Stop visual alerts after decision
+        if (this.ui.stopGlobalFlicker) this.ui.stopGlobalFlicker();
 
         // Validar que se haya realizado alguna acción antes de decidir
         if (npc.scanCount <= 0 && !npc.optOut && !npc.dialogueStarted) {

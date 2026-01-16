@@ -174,9 +174,178 @@
 .unique-info-item {
     display: flex;
     justify-content: space-between;
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     padding: 0.25rem 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================
+   DEEP VISUAL CHANGES FOR LORE NPCs
+   ============================================ */
+
+/* 1. Dr. Vargas - Clinical / Radioactive / Translucent Skin */
+.pixel-avatar.lore-patient_zero .avatar-head,
+.pixel-avatar.lore-patient_zero .avatar-neck {
+    background-color: #f0f4f8 !important; /* Piel pálida clínica */
+    background-image: 
+        radial-gradient(circle at 30% 20%, rgba(0, 0, 0, 0.15) 1px, transparent 1px),
+        radial-gradient(circle at 70% 60%, rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+        linear-gradient(135deg, transparent 45%, rgba(0, 0, 0, 0.05) 50%, transparent 55%);
+    background-size: 10px 10px, 15px 15px, 20px 20px;
+    box-shadow: inset 0 0 12px rgba(0, 255, 127, 0.3);
+    animation: vargas-skin-pulse 5s ease-in-out infinite;
+    position: relative;
+}
+
+/* Venas negras pulsantes (simuladas con un pseudo-elemento) */
+.pixel-avatar.lore-patient_zero .avatar-head::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: 
+        radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0,0,0,0.1) 100%),
+        repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(0,0,0,0.02) 6px);
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.pixel-avatar.lore-patient_zero .avatar-eyes .eye {
+    background: #00ff7f; /* Ojos verdes radiactivos */
+    box-shadow: 0 0 10px #00ff7f, 0 0 20px rgba(0, 255, 127, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.pixel-avatar.lore-patient_zero .avatar-body {
+    background: #f8fafc !important; /* Bata blanca más brillante */
+    border-left: 5px solid #00ff7f;
+    box-shadow: inset 5px 0 15px rgba(0, 255, 127, 0.1);
+}
+
+/* Cabello gris/blanco para el Dr. Vargas */
+.pixel-avatar.lore-patient_zero .hair-style.wild {
+    background: #e2e8f0 !important;
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
+}
+
+/* Ojos más intensos */
+.pixel-avatar.lore-patient_zero .avatar-eyes.tired .eye {
+    height: 3px;
+    background: #00ff7f;
+    animation: eye-vibrate 0.1s infinite alternate;
+}
+
+@keyframes eye-vibrate {
+    from { transform: translateX(-0.5px); }
+    to { transform: translateX(0.5px); }
+}
+
+@keyframes vargas-skin-pulse {
+    0%, 100% { 
+        filter: brightness(1) contrast(1); 
+        box-shadow: inset 0 0 12px rgba(0, 255, 127, 0.3);
+    }
+    50% { 
+        filter: brightness(1.1) contrast(1.1); 
+        box-shadow: inset 0 0 18px rgba(0, 255, 127, 0.5);
+    }
+}
+
+/* 2. Kael - Void / Glitchy */
+.pixel-avatar.lore-kael .avatar-head,
+.pixel-avatar.lore-kael .avatar-neck {
+    background-color: #1a202c !important; /* Piel oscura vacío */
+    position: relative;
+    overflow: hidden;
+}
+
+.pixel-avatar.lore-kael .avatar-head::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(147, 51, 234, 0.1) 3px);
+    pointer-events: none;
+}
+
+.pixel-avatar.lore-kael .avatar-eyes .eye {
+    background: #9333ea; /* Ojos púrpura */
+    box-shadow: 0 0 10px #9333ea;
+    animation: eye-flicker 0.5s infinite alternate;
+}
+
+.pixel-avatar.lore-kael .avatar-body {
+    background: #2d3748 !important;
+    border: 1px solid #4a5568;
+}
+
+@keyframes eye-flicker {
+    0%, 100% { opacity: 1; filter: brightness(1); }
+    50% { opacity: 0.7; filter: brightness(1.5); }
+}
+
+/* 3. La Colmena - Moving Skin / Collective Shadows */
+.pixel-avatar.lore-hive .avatar-head,
+.pixel-avatar.lore-hive .avatar-neck {
+    background-color: #2d3748 !important;
+    background-image: radial-gradient(circle, rgba(0,0,0,0.8) 20%, transparent 25%);
+    background-size: 8px 8px;
+    animation: skin-crawl 2s linear infinite;
+}
+
+.pixel-avatar.lore-hive .avatar-eyes .eye {
+    background: #000;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0,0,0,1);
+}
+
+.pixel-avatar.lore-hive .avatar-body {
+    background: #171923 !important;
+    box-shadow: inset 0 0 25px rgba(0,0,0,1);
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+@keyframes skin-crawl {
+    0% { background-position: 0 0; }
+    100% { background-position: 8px 8px; }
+}
+
+/* 4. El Archivista - Scarred / Bleeding Memory */
+.pixel-avatar.lore-archivist .avatar-head,
+.pixel-avatar.lore-archivist .avatar-neck {
+    background-color: #cbd5e0 !important;
+    background-image: 
+        linear-gradient(45deg, rgba(130, 39, 39, 0.2) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(130, 39, 39, 0.2) 25%, transparent 25%);
+    background-size: 6px 6px;
+}
+
+.pixel-avatar.lore-archivist .avatar-eyes .eye {
+    background: #4a5568;
+    position: relative;
+}
+
+.pixel-avatar.lore-archivist .avatar-eyes .eye::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 2px;
+    height: 0;
+    background: linear-gradient(to bottom, #822727, transparent);
+    animation: tear-drop 4s infinite;
+}
+
+.pixel-avatar.lore-archivist .avatar-body {
+    background: #1a202c !important;
+    border-top: 3px double #822727;
+}
+
+@keyframes tear-drop {
+    0% { height: 0; opacity: 0; top: 100%; }
+    20% { height: 10px; opacity: 1; top: 100%; }
+    80% { height: 15px; opacity: 0.5; top: 110%; }
+    100% { height: 0; opacity: 0; top: 120%; }
 }
 
 .unique-info-item:last-child {

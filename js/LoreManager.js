@@ -64,7 +64,13 @@ export class LoreManager {
             // Reproducir música de lore si tiene, o simplemente atenuar ambiente
             if (this.audio) {
                 if (audioKey) {
-                    this.audio.playLoreByKey(audioKey, { loop: true, volume: 0.25, duckAmbient: true });
+                    const nextUrl = this.audio.getUrl(audioKey);
+                    const currentUrl = this.audio.channels.lore.src;
+                    const isSameTrack = currentUrl && (currentUrl.endsWith(nextUrl) || nextUrl.endsWith(currentUrl));
+
+                    if (!isSameTrack) {
+                        this.audio.playLoreByKey(audioKey, { loop: true, volume: 0.25, duckAmbient: true });
+                    }
                 } else {
                     this.audio.duckAmbient(0.1, 800);
                 }
@@ -134,7 +140,14 @@ export class LoreManager {
         };
         const key = audioMap[kind];
         if (key) {
-            this.audio.playLoreByKey(key, { loop: true, volume: 0.22, crossfade: 1000 });
+            // Verificar si ya se está reproduciendo este track de lore para evitar solapamiento
+            const nextUrl = this.audio.getUrl(key);
+            const currentUrl = this.audio.channels.lore.src;
+            const isSameTrack = currentUrl && (currentUrl.endsWith(nextUrl) || nextUrl.endsWith(currentUrl));
+
+            if (!isSameTrack) {
+                this.audio.playLoreByKey(key, { loop: true, volume: 0.22, crossfade: 1000 });
+            }
         }
     }
 }

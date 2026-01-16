@@ -7,6 +7,7 @@ export class AudioManager {
             sfx: this.createChannel({ loop: false, volume: 0.6 })
         };
         this.sfxPool = []; // Pool for overlapping SFX
+        this.activeSFX = {}; // Track sounds by ID (e.g. loops)
         this.maxPoolSize = 10;
         this.unlocked = false;
         this.fadeTimers = {};
@@ -294,6 +295,12 @@ export class AudioManager {
     }
     stopLore({ fadeOut = 400, unduckAmbient = true } = {}) {
         const ch = this.channels.lore;
+        // Cancelar cualquier fade anterior en este canal usando el objeto fadeTimers correcto
+        if (this.fadeTimers['lore']) {
+            this.fadeTimers['lore'].cancel = true;
+            this.fadeTimers['lore'] = null;
+        }
+
         this.fade(ch, 0, fadeOut, 'lore', () => {
             ch.pause();
             this.log('[lore] paused');
@@ -310,6 +317,7 @@ export class AudioManager {
                 ch.currentTime = 0;
             }
         });
+        this.activeSFX = {};
         this.log('all sfx stopped', { includeLooping });
     }
     playSFX(src, { volume = 0.6, rate = 1.0, priority = 0, lockMs = 100, loop = false, overlap = false } = {}) {
@@ -364,7 +372,33 @@ export class AudioManager {
             });
         }
 
+        // Store in activeSFX if ID is provided
+        const sfxId = (arguments[1] && arguments[1].id);
+        if (sfxId) {
+            this.activeSFX[sfxId] = ch;
+        }
+
         return ch;
+    }
+
+    /**
+     * Detiene un SFX específico por su ID.
+     */
+    stopSFX(id, fadeOut = 300) {
+        const ch = this.activeSFX[id];
+        if (!ch) return;
+
+        const done = () => {
+            ch.pause();
+            ch.currentTime = 0;
+            delete this.activeSFX[id];
+        };
+
+        if (fadeOut > 0 && !ch.paused) {
+            this.fade(ch, 0, fadeOut, `sfx_${id}`, done);
+        } else {
+            done();
+        }
     }
     playSFXByKey(key, opts = {}) {
         return this.playSFX(this.getUrl(key), opts);

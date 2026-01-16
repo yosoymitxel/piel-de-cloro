@@ -11,6 +11,7 @@ export const CONSTANTS = {
         MORGUE: 'nav-morgue',
         GENERATOR: 'nav-generator',
         DATABASE: 'nav-database',
+        MAP: 'nav-map',
         LOG: 'btn-open-log'
     },
     SCREENS: {
@@ -23,7 +24,11 @@ export const CONSTANTS = {
         DATABASE: 'database',
         SETTINGS: 'settings',
         LOG: 'log',
+        MAP: 'map',
+        EXPEDITION: 'expedition',
         NIGHT: 'night',
+        MEDITATION: 'meditation',
+        SUPPLIES_HUB: 'supplies-hub',
         FINAL_STATS: 'finalStats'
     },
     GAME: {

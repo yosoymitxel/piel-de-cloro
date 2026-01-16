@@ -12,6 +12,7 @@ describe('Generator Failure and Recovery', () => {
             showFeedback: jest.fn(),
             renderGeneratorRoom: jest.fn(),
             updateGeneratorNavStatus: jest.fn(),
+            updateEnergyHUD: jest.fn(),
             updateInspectionTools: jest.fn(),
             updateSecurityNavStatus: jest.fn(),
             renderSecurityRoom: jest.fn()
@@ -82,7 +83,7 @@ describe('Generator Failure and Recovery', () => {
         gmm.toggleGenerator();
 
         expect(State.generator.mode).toBe('save');
-        expect(State.generator.power).toBe(32);
+        expect(State.generator.power).toBe(100);
         expect(State.generator.restartLock).toBe(true);
     });
 });

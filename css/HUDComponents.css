@@ -1,0 +1,111 @@
+/* HUD Components Styles */
+
+.hud-component {
+    background: rgba(5, 5, 5, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 4px;
+    min-width: 80px;
+    height: 60px;
+    /* Uniform height for all components */
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.hud-component:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 2px;
+    margin-bottom: 2px;
+}
+
+.stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    text-transform: uppercase;
+    color: #6b7280;
+    /* gray-500 */
+    letter-spacing: 0.1em;
+}
+
+.stat-body {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.stat-icon {
+    font-size: 10px;
+    opacity: 0.8;
+}
+
+.stat-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    text-shadow: 0 0 5px currentColor;
+}
+
+.stat-bar-bg {
+    width: 100%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    margin-top: 2px;
+}
+
+.stat-bar-fill {
+    height: 100%;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Energy Component Specifics */
+.component-energy {
+    min-width: 100px;
+}
+
+.energy-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+}
+
+.energy-sub-stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.energy-sub-label {
+    font-size: 7px;
+    color: #555;
+    text-transform: uppercase;
+}
+
+.energy-battery-segment {
+    display: flex;
+    height: 6px;
+    gap: 1px;
+    margin: 2px 0;
+}
+
+.battery-cell {
+    flex: 1;
+    background: #111;
+    border: 1px solid #333;
+}
+
+.battery-cell.active {
+    background: currentColor;
+    box-shadow: 0 0 2px currentColor;
+}

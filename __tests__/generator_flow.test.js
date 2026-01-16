@@ -16,6 +16,7 @@ describe('Generator System Flow', () => {
             colors: { energy: '#fff', off: '#333', save: '#0f0', overload: '#f00' },
             setNavItemStatus: jest.fn(),
             updateGeneratorNavStatus: jest.fn(),
+            updateEnergyHUD: jest.fn(),
             updateGameActions: jest.fn(),
             updateInspectionTools: jest.fn(),
             updateStats: jest.fn(),
@@ -23,6 +24,14 @@ describe('Generator System Flow', () => {
         };
         audioMock = { playSFXByKey: jest.fn() };
         gm = new GeneratorManager(uiMock, audioMock);
+
+        // Mock internal render methods to avoid DOM issues
+        gm.renderSystemsGrid = jest.fn();
+        gm.renderGuardPanel = jest.fn();
+        gm.updateToggleButton = jest.fn();
+        gm.updateStatusSummary = jest.fn();
+        gm.setupToggleEvent = jest.fn();
+        gm.setupModeButtons = jest.fn();
     });
 
     test('Mode switching logic - can switch down anytime, cannot switch up after action', () => {
@@ -41,7 +50,7 @@ describe('Generator System Flow', () => {
         // Using private-ish handleModeSwitch via setupModeButtons or just testing the logic if exposed
         // Since handleModeSwitch is local to setupModeButtons, we might need to test it via UI clicks 
         // or refactor to expose the logic. For now, let's assume we test the state transitions.
-        
+
         // Mocking the behavior of handleModeSwitch
         const canSwitchUp = (newCap, currentMax, actionTaken) => {
             if (actionTaken && newCap > currentMax) return false;
@@ -61,7 +70,7 @@ describe('Generator System Flow', () => {
         };
 
         gm.renderGeneratorRoom(state);
-        
+
         expect(state.generatorCheckedThisTurn).toBe(true);
         expect(uiMock.updateGeneratorNavStatus).toHaveBeenCalled();
     });
