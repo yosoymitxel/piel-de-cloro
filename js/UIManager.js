@@ -1089,8 +1089,34 @@ export class UIManager {
     }
 
     renderNPC(npc) {
-        // Stop lore audio on NPC change
-        if (this.audio) this.audio.stopLore({ fadeOut: 500 });
+        // Stop lore audio on NPC change ONLY if the new NPC is not Lore or has different audio
+        const currentLoreAudio = (this.audio && this.audio.channels.lore && !this.audio.channels.lore.paused) ? this.audio.channels.lore.src : null;
+        
+        let nextLoreAudioKey = null;
+        if (npc.uniqueType === 'lore' && npc.conversation && npc.conversation.set) {
+            const rootNode = npc.conversation.set.nodes[npc.conversation.set.root];
+            if (rootNode && rootNode.audio && rootNode.audio.startsWith('lore_')) {
+                nextLoreAudioKey = rootNode.audio;
+            }
+        }
+
+        if (this.audio) {
+            if (!nextLoreAudioKey) {
+                // Si el nuevo NPC no tiene música de lore, paramos la anterior
+                this.audio.stopLore({ fadeOut: 800 });
+            } else {
+                // Si el nuevo NPC tiene música de lore, solo la cambiamos si es distinta
+                const nextLoreUrl = this.audio.getUrl(nextLoreAudioKey);
+                
+                // Normalizar URLs para comparación (pueden venir absolutas o relativas)
+                const isSameTrack = currentLoreAudio && (currentLoreAudio.endsWith(nextLoreUrl) || nextLoreUrl.endsWith(currentLoreAudio));
+
+                if (!isSameTrack) {
+                    this.audio.stopLore({ fadeOut: 500, unduckAmbient: false });
+                    this.audio.playLoreByKey(nextLoreAudioKey, { loop: true, volume: 0.25, crossfade: 1000, duckAmbient: false });
+                }
+            }
+        }
 
         // Update action buttons and tools based on generator status
         this.updateGameActions();
@@ -1205,10 +1231,17 @@ export class UIManager {
         // Play node audio on enter
         if (convNode && convNode.audio && this.audio) {
             if (convNode.audio.startsWith('lore_')) {
-                // Stop existing lore audio before playing new to prevent overlap
-                this.audio.stopLore({ fadeOut: 500 });
-                // Play as music (lore channel) with loop and fade
-                this.audio.playLoreByKey(convNode.audio, { loop: true, volume: 0.25, crossfade: 1000 });
+                // Solo reproducir si es una pista distinta a la que ya suena
+                const currentLoreAudio = (this.audio.channels.lore && !this.audio.channels.lore.paused) ? this.audio.channels.lore.src : null;
+                const nextLoreUrl = this.audio.getUrl(convNode.audio);
+                
+                // Normalizar URLs para comparación
+                const isSameTrack = currentLoreAudio && (currentLoreAudio.endsWith(nextLoreUrl) || nextLoreUrl.endsWith(currentLoreAudio));
+
+                if (!isSameTrack) {
+                    this.audio.stopLore({ fadeOut: 500, unduckAmbient: false });
+                    this.audio.playLoreByKey(convNode.audio, { loop: true, volume: 0.25, crossfade: 1000, duckAmbient: false });
+                }
             } else {
                 this.audio.playSFXByKey(convNode.audio, { volume: 0.5 });
             }
@@ -1351,8 +1384,10 @@ export class UIManager {
                     const cleanLabel = opt.label.replace(/\*.*?\*/g, '').trim();
                     npc.history.push({ speaker: 'user', text: `> ${cleanLabel}` });
 
-                    // Play optional sfx tied to option
-                    if (opt.audio && this.audio) this.audio.playSFXByKey(opt.audio, { volume: 0.6 });
+                    // Play optional sfx tied to option (prevent lore tracks from playing as sfx)
+                    if (opt.audio && this.audio && !opt.audio.startsWith('lore_')) {
+                        this.audio.playSFXByKey(opt.audio, { volume: 0.6 });
+                    }
 
                     // Execute custom onclick if defined
                     if (opt.onclick) {
@@ -1371,14 +1406,17 @@ export class UIManager {
                         return;
                     }
 
-                    if (res.audio && this.audio) this.audio.playSFXByKey(res.audio, { volume: 0.6 });
+                    if (res.audio && this.audio && !res.audio.startsWith('lore_')) {
+                        this.audio.playSFXByKey(res.audio, { volume: 0.6 });
+                    }
 
                     if (res.end) {
                         this.showFeedback('FIN DE DIÁLOGO', 'green', 2500);
                         this.elements.dialogueOptions.empty();
 
-                        // Stop ongoing lore audio if it was a lore dialogue
-                        if (this.audio) this.audio.stopLore({ fadeOut: 1000 });
+                        // La música de lore persiste mientras el NPC esté presente, 
+                        // ya no la paramos al terminar el diálogo como se solicitó.
+                        // if (this.audio) this.audio.stopLore({ fadeOut: 1000 });
 
                         // Si es la opción de salida dinámica o fin automático, tratarla como omisión de test
                         if (res.id === 'exit_conversation' || res.id === 'auto_end') {
@@ -1457,8 +1495,8 @@ export class UIManager {
             type: 'warning'
         });
 
-        // Detener audio de lore inmediatamente con fade
-        if (this.audio) this.audio.stopLore({ fadeOut: 1000 });
+        // Detener audio de lore inmediatamente con fade solo si el usuario lo desea (aquí lo quitamos para persistencia)
+        // if (this.audio) this.audio.stopLore({ fadeOut: 1000 });
 
         // Feedback visual
         this.showFeedback('TEST OMITIDO: SIN EVIDENCIA MÉDICA', 'yellow', 3000);

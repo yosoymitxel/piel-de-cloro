@@ -184,11 +184,11 @@ export class NPC {
                 },
                 visual: {
                     hair: 'wild',
-                    clothes: 'rags',
+                    clothes: 'worker', // Bata blanca de laboratorio
                     accessory: 'none',
                     eyeType: 'tired',
                     mouthType: 'tight',
-                    skinColor: 'var(--avatar-skin-1)',
+                    skinColor: '#f0f4f8', // Forzar piel pálida clínica en datos base
                     facialHair: this.gender === 'male' ? 'stubble' : 'none'
                 }
             },

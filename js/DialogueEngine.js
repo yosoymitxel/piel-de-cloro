@@ -202,8 +202,8 @@ export class Conversation {
         this.history.push({ node: node.id, choiceId: opt.id, choiceLabel: opt.label });
         State.recordDialogueMemory({ npc: this.npc.name, node: node.id, choice: opt.id, time: Date.now() });
 
-        // Audio trigger
-        const audio = opt.audio || node.onChooseAudio || node.audio || null;
+        // Audio trigger: inherit from node ONLY if it's NOT a lore track (looping background)
+        const audio = opt.audio || node.onChooseAudio || (node.audio && !node.audio.startsWith('lore_') ? node.audio : null);
 
         // Next node
         if (!opt.next) {

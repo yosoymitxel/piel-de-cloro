@@ -294,11 +294,10 @@ export class AudioManager {
     }
     stopLore({ fadeOut = 400, unduckAmbient = true } = {}) {
         const ch = this.channels.lore;
-        // Cancelar cualquier fade anterior en este canal
-        if (this.fades && this.fades.has('lore')) {
-            const currentFade = this.fades.get('lore');
-            if (currentFade.timer) clearInterval(currentFade.timer);
-            this.fades.delete('lore');
+        // Cancelar cualquier fade anterior en este canal usando el objeto fadeTimers correcto
+        if (this.fadeTimers['lore']) {
+            this.fadeTimers['lore'].cancel = true;
+            this.fadeTimers['lore'] = null;
         }
         
         this.fade(ch, 0, fadeOut, 'lore', () => {
