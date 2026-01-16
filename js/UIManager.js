@@ -2060,11 +2060,10 @@ export class UIManager {
         display.addClass('border-green-500/30').removeClass('border-green-500/10');
 
         // Render Avatar
-        const avatarSize = 80;
-        const avatarHtml = this.avatarRenderer.renderNPC(npc, avatarSize);
+        const avatarHtml = this.renderAvatar(npc, 'sm');
         display.append(`
             <div class="relative mb-2">
-                ${avatarHtml}
+                ${avatarHtml.prop('outerHTML')}
                 <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-black animate-pulse"></div>
             </div>
             <div class="text-sm font-bold text-green-400">${npc.name.toUpperCase()}</div>

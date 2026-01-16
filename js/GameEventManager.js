@@ -149,7 +149,7 @@ export class GameEventManager {
         this.switchScreen(CONSTANTS.SCREENS.LOG, { renderFn });
     }
 
-    navigateToMap() {
+    navigateToMap(options = {}) {
         const renderFn = () => {
             // --- ACTUALIZACIÓN DE INFORMACIÓN DETALLADA ---
 
@@ -190,7 +190,7 @@ export class GameEventManager {
             // Renderizar pines actuales
             this.ui.renderPinnedRooms(State);
         };
-        this.switchScreen(CONSTANTS.SCREENS.MAP, { renderFn });
+        return this.switchScreen(CONSTANTS.SCREENS.MAP, { ...options, renderFn });
     }
 
     navigateToMeditation() {
@@ -397,9 +397,9 @@ export class GameEventManager {
         // Actividades de Meditación
         $('#btn-med-breath').on('click', () => {
             if (State.paranoia > 0) {
-                State.paranoia = Math.max(0, State.paranoia - 5);
+                State.updateParanoia(-5);
                 this.ui.showFeedback("RESPIRACIÓN COMPLETADA: PARANOIA -5", "green", 3000);
-                this.updateGlobalHUD();
+                this.ui.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC, State.supplies);
                 if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.2 });
             } else {
                 this.ui.showFeedback("MENTE EN CALMA", "normal", 2000);
@@ -408,9 +408,9 @@ export class GameEventManager {
 
         $('#btn-med-music').on('click', () => {
             if (State.sanity < 100) {
-                State.sanity = Math.min(100, State.sanity + 5);
+                State.updateSanity(5);
                 this.ui.showFeedback("FRECUENCIAS_Z: CORDURA +5", "green", 3000);
-                this.updateGlobalHUD();
+                this.ui.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC, State.supplies);
                 if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.2 });
             } else {
                 this.ui.showFeedback("CORDURA AL MÁXIMO", "normal", 2000);

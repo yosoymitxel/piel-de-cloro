@@ -39,15 +39,25 @@ Tu salud mental es un recurso.
 - Si llega al 100%, sufres un colapso mental (Game Over).
 - Afecta a tu percepción: el texto se distorsiona, escuchas ruidos y ves cosas que no están ahí.
 
+### 5. Sistema de Gestión y Mapa Estructural
+El búnker ha crecido más allá del puesto de control. Ahora dispones de un **Mapa Estructural** que conecta varios sectores:
+- **Puesto de Control**: Tu área de trabajo principal para la inspección de NPCs.
+- **Logística y Suministros**: Gestiona expediciones externas para recuperar recursos.
+- **Sala de Meditación**: Recupera cordura y reduce la paranoia de forma pasiva.
+- **Laboratorio (Hemoglobina)**: Realiza tests de sangre avanzados (si el generador lo permite).
+
+### 6. HUD Espejado y Navegación Rápida
+- **HUD Global**: Tus estadísticas (Paranoia, Cordura, Energía) se sincronizan en tiempo real en todas las pantallas.
+- **Pines de Navegación**: Fija tus salas más visitadas en la barra lateral para un acceso instantáneo.
+
 ## 📂 Estructura del Proyecto
 
-El juego está construido en **JavaScript (ES6)** modular sin dependencias externas pesadas (solo jQuery y FontAwesome para UI).
+El juego está construido en **JavaScript (ES6)** modular:
 
 - `js/Game.js`: Controlador principal del bucle de juego.
-- `js/State.js`: Gestión del estado global (persistencia, paranoia, NPCs).
-- `js/NPC.js`: Generación procedimental de personajes y sus atributos.
-- `js/DialogueEngine.js`: Sistema de árboles de diálogo con soporte para tags y estados.
-- `js/UIManager.js`: Manejo del DOM y efectos visuales (VHS, glitches).
+- `js/UIManager.js`: Gestión centralizada de la interfaz y sub-managers.
+- `js/components/`: Componentes UI reutilizables (Estadísticas, Botones, etc.).
+- `js/State.js`: Estado global sincronizado.
 
 ## 🛠️ Instalación y Ejecución
 

@@ -1025,7 +1025,7 @@ export class GameMechanicsManager {
 
             // Volver al mapa después de una pausa dramática
             setTimeout(() => {
-                this.game.events.navigateToMap();
+                this.game.events.navigateToMap({ force: true, lockNav: false });
             }, 1500);
         } else {
             // MUERTE
@@ -1040,7 +1040,7 @@ export class GameMechanicsManager {
             }
 
             setTimeout(() => {
-                this.game.events.navigateToMap();
+                this.game.events.navigateToMap({ force: true, lockNav: false });
             }, 2500);
         }
     }
