@@ -50,39 +50,83 @@ export class GeneratorManager {
         // --- NEW UI UPDATES (Header & Battery) ---
         const batLevel = Math.floor(Math.min(100, Math.max(0, state.generator.power || 0)));
 
+        // Determine Color based on Mode
+        let modeColor = State.colors.terminalGreen; // Default/Normal
+        if (state.generator.mode === 'save') modeColor = State.colors.save;
+        else if (state.generator.mode === 'overload') modeColor = State.colors.overload;
+        
+        // If battery is critical (<20), override with Alert color for safety warning
+        // if (batLevel < 20) modeColor = State.colors.alert; // REMOVED: Battery shouldn't override Mode color
+
         // Header Status
-        $('#header-gen-status').text(state.generator.isOn ? 'ONLINE' : 'OFFLINE').toggleClass('text-alert', !state.generator.isOn);
-        $('#header-bat-level').text(`${batLevel}%`);
+        $('#header-gen-status').text(state.generator.isOn ? 'ONLINE' : 'OFFLINE')
+            .removeClass('text-alert text-terminal-green text-save text-overload') // Clear potential classes
+            .css('color', state.generator.isOn ? modeColor : State.colors.alert);
+            
+        // Battery Text Color Logic (Decoupled)
+        let batTextColor = State.colors.terminalGreen;
+        if (batLevel < 20) batTextColor = State.colors.alert;
+        else if (batLevel < 50) batTextColor = State.colors.yellow;
+
+        $('#header-bat-level').text(`${batLevel}%`).css('color', batTextColor);
         $('#header-load-level').text(`${Math.floor(loadPercent)}%`);
 
-        // Visual Battery Fill (Animated via CSS transition + classes)
+        // Visual Battery Fill
         const batteryFill = $('#gen-battery-visual-fill');
-        batteryFill.css('height', `${batLevel}%`);
-        $('#gen-battery-text').text(`${batLevel}%`);
+        const batteryText = $('#gen-battery-text');
+        const batteryContainer = batteryFill.closest('.relative');
 
-        // Manage animation classes
-        batteryFill.removeClass('charging low');
+        // Fix: Ensure filling from bottom and color sync (Decoupled from mode)
+        let batteryColorClass = 'bg-terminal-green';
+        let batteryTextColorClass = 'text-terminal-green';
+        let batteryColorHex = State.colors.terminalGreen;
+
+        if (batLevel < 20) {
+            batteryColorClass = 'bg-alert'; // Red
+            batteryTextColorClass = 'text-alert';
+            batteryColorHex = State.colors.alert;
+        } else if (batLevel < 50) {
+            batteryColorClass = 'bg-yellow-500'; // Yellow/Amber
+            batteryTextColorClass = 'text-yellow-500';
+            batteryColorHex = State.colors.yellow; // Assuming available or fallback
+        }
+
+        batteryFill.css({
+            'height': `${batLevel}%`,
+            'position': 'absolute',
+            'bottom': '0',
+            'width': '100%',
+            'transition': 'height 0.5s ease-out'
+        });
+        
+        // Remove old classes and add new ones
+        batteryFill.removeClass('bg-terminal-green bg-amber-500 bg-yellow-500 bg-red-600 bg-alert bg-blue-500 low charging')
+                   .addClass(batteryColorClass);
+                   
+        // Reset background-color inline style to allow class to work, or set it explicitly if needed
+        batteryFill.css('background-color', ''); 
+
+        batteryText.text(`${batLevel}%`)
+                   .removeClass('text-terminal-green text-amber-500 text-yellow-500 text-red-500 text-blue-500 text-alert animate-pulse')
+                   .addClass(batteryTextColorClass);
+        
+        // Container Glow
+        batteryContainer.css({
+            'border-color': batteryColorHex,
+            'box-shadow': `0 0 10px ${batteryColorHex}40`
+        });
+
         if (state.generator.isOn) {
             batteryFill.addClass('charging');
         }
 
         if (batLevel < 20) {
-            batteryFill.removeClass('bg-terminal-green bg-amber-500 charging').addClass('bg-red-600 low');
-            $('#gen-battery-text').addClass('text-alert animate-pulse');
-        } else if (batLevel < 50) {
-            batteryFill.removeClass('bg-terminal-green bg-red-600 low').addClass('bg-amber-500');
-            $('#gen-battery-text').removeClass('text-alert animate-pulse').addClass('text-amber-500');
-        } else {
-            batteryFill.removeClass('bg-red-600 bg-amber-500 low').addClass('bg-terminal-green');
-            $('#gen-battery-text').removeClass('text-alert animate-pulse text-amber-500').addClass('text-terminal-green');
+             batteryText.addClass('animate-pulse');
         }
 
-        // Color mapping based on load
-        let color = State.colors.terminalGreen;
-        if (loadPercent > 90) color = State.colors.alert;
-        else if (loadPercent > 70) color = State.colors.overload;
-        modeLabel.css('color', color);
-        modeLabel.css('text-shadow', state.generator.isOn ? `0 0 10px ${color}` : 'none');
+        // Color mapping based on load for the Label (requested sync)
+        modeLabel.css('color', modeColor);
+        modeLabel.css('text-shadow', state.generator.isOn ? `0 0 10px ${modeColor}` : 'none');
 
         this.updateToggleButton(state);
         this.renderSystemsGrid(state);
@@ -514,18 +558,14 @@ export class GeneratorManager {
 
         container.empty();
 
-        // DEBUGGING: Check state
-        console.log('[GuardPanel] Rendering with state:', {
-            assignedGuardId: state?.generator?.assignedGuardId,
-            globalStateId: State?.generator?.assignedGuardId,
-            admittedNPCs: state?.admittedNPCs?.length
-        });
-
         // Use the global State for consistency
-        const guardId = State.generator.assignedGuardId;
+        let guardId = null;
+        if (State.assignments && State.assignments.generator) {
+            guardId = State.assignments.generator.occupants[0];
+        } else {
+            guardId = State.generator.assignedGuardId;
+        }
         const guard = guardId ? State.admittedNPCs.find(n => n.id === guardId) : null;
-
-        console.log('[GuardPanel] Guard lookup result:', { guardId, guardFound: !!guard, guardName: guard?.name });
 
         if (guard) {
             // GUARD ASSIGNED - Show active guard card
@@ -548,18 +588,27 @@ export class GeneratorManager {
                             <i class="fa-solid fa-rotate mr-1"></i>CAMBIAR
                         </button>
                     </div>
-                    <div class="mt-2 pt-2 border-t border-terminal-green/10">
-                        <div class="text-[8px] font-mono text-gray-500 uppercase mb-1">Último registro</div>
-                        <div class="text-[9px] font-mono text-terminal-green/70">CICLO ${state.cycle}: Vigilancia en curso</div>
-                    </div>
                 </div>
             `;
 
             container.html(html);
 
+            // Render logs using UIManager helper (Targeting the new location in Manual)
+            if (this.ui.renderRoomLog) {
+                const logContainer = $('#generator-room-log');
+                if (logContainer.length) {
+                    this.ui.renderRoomLog('generator', logContainer);
+                }
+            }
+
             // Attach event
             container.find('.btn-reassign-guard').one('click', () => {
-                this.showGuardSelectionModal(state);
+                this.ui.showSectorAssignmentModal('generator', state, (npc) => {
+                    if (npc && this.game.assignments) {
+                        this.game.assignments.assign(npc.id, 'generator');
+                    }
+                    this.renderGuardPanel(state);
+                });
             });
 
         } else {
@@ -585,142 +634,16 @@ export class GeneratorManager {
 
             // Both card and button trigger assignment
             container.find('.guard-card, .btn-assign-guard').one('click', () => {
-                this.showGuardSelectionModal(state);
-            });
-        }
-    }
-
-    showGuardSelectionModal(state) {
-        // Filter eligible NPCs: must have been admitted BEFORE this cycle
-        const currentCycle = state.cycle || 1;
-        console.log('[GuardModal] Current cycle:', currentCycle, 'Admitted NPCs:', state.admittedNPCs?.length);
-
-        const candidates = (state.admittedNPCs || []).filter(npc => {
-            const admittedCycle = npc.admittedCycle || npc.cycle || 0;
-            const eligible = admittedCycle < currentCycle;
-            console.log(`[GuardModal] NPC ${npc.name}: admittedCycle=${admittedCycle}, eligible=${eligible}`);
-            return eligible; // Exclude NPCs from current cycle
-        });
-
-        console.log('[GuardModal] Eligible candidates:', candidates.length);
-
-        if (candidates.length === 0) {
-            if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
-            if (this.ui && this.ui.showFeedback) {
-                this.ui.showFeedback("NO HAY PERSONAL DISPONIBLE (Los NPCs deben esperar un turno)", "orange", 3000);
-            }
-            return;
-        }
-
-        // Store reference to this
-        const self = this;
-
-        // Remove any existing guard modal
-        $('#guard-selection-modal').remove();
-
-        // Build modal HTML candidates
-        let candidatesHtml = '';
-        candidates.forEach(npc => {
-            console.log('[GuardModal] Building HTML for NPC:', npc.name, 'ID:', npc.id); // DEBUG
-            const avatarEl = this.ui.renderAvatar ? this.ui.renderAvatar(npc, 'md') : null;
-            const avatarHtml = avatarEl && avatarEl.prop ? avatarEl.prop('outerHTML') : '<div class="text-xs text-gray-500">?</div>';
-            const isCurrentGuard = npc.id === State.generator.assignedGuardId;
-
-            candidatesHtml += `
-                <div class="guard-candidate-item cursor-pointer w-full flex items-center gap-3 p-3 ${isCurrentGuard ? 'bg-terminal-green/10 border-terminal-green/40' : 'bg-white/5 border-white/10'} border hover:bg-terminal-green/20 hover:border-terminal-green/50 transition-all rounded mb-2" data-npcid="${npc.id}">
-                    <div class="w-10 h-10 border border-white/10 bg-black rounded overflow-hidden flex-shrink-0">
-                        ${avatarHtml}
-                    </div>
-                    <div class="flex flex-col flex-1 min-w-0">
-                        <span class="text-sm font-bold text-white truncate">${npc.name}</span>
-                        <span class="text-[10px] opacity-50 font-mono">${npc.uniqueType === 'lore' ? 'Sujeto Especial' : 'Civil Admitido'}</span>
-                    </div>
-                    ${isCurrentGuard ? '<span class="text-[9px] text-terminal-green font-mono uppercase flex-shrink-0">● Actual</span>' : '<i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>'}
-                </div>
-            `;
-        });
-
-        // Create modal overlay directly in DOM
-        const modalHtml = `
-            <div id="guard-selection-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-                <div class="horror-panel-modal w-full max-w-sm p-0 overflow-hidden border border-terminal-green/30 bg-[#0a0a0a] rounded animate__animated animate__fadeIn animate__faster">
-                    <div class="p-3 border-b border-terminal-green/20 flex justify-between items-center bg-terminal-green/5">
-                        <h3 class="text-sm font-bold uppercase tracking-widest text-terminal-green">
-                            <i class="fa-solid fa-user-shield mr-2"></i>Asignar Guardia
-                        </h3>
-                        <button id="guard-modal-close" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fa-solid fa-xmark text-lg"></i>
-                        </button>
-                    </div>
-                    <div class="p-4 max-h-[400px] overflow-y-auto custom-scrollbar">
-                        ${candidatesHtml}
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Append to body
-        $('body').append(modalHtml);
-        console.log('[GuardModal] Custom modal created and appended to body');
-
-        // Bind close button
-        $('#guard-modal-close').on('click', function () {
-            console.log('[GuardModal] Close button clicked');
-            $('#guard-selection-modal').fadeOut(150, function () {
-                $(this).remove();
-            });
-        });
-
-        // Bind overlay click to close
-        $('#guard-selection-modal').on('click', function (e) {
-            if (e.target === this) {
-                console.log('[GuardModal] Overlay clicked, closing');
-                $(this).fadeOut(150, function () {
-                    $(this).remove();
+                this.ui.showSectorAssignmentModal('generator', state, (npc) => {
+                    if (npc && this.game.assignments) {
+                        this.game.assignments.assign(npc.id, 'generator');
+                    }
+                    this.renderGuardPanel(state);
                 });
-            }
-        });
-
-        // Bind candidate clicks
-        $('.guard-candidate-item').on('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            // Use attr() for reliable attribute access (data() has issues with hyphenated names)
-            const selectedId = $(this).attr('data-npcid');
-            console.log('[GuardModal] CANDIDATE CLICKED! NPC ID:', selectedId, 'typeof:', typeof selectedId);
-
-            // ASSIGN GUARD - USE GLOBAL STATE FOR PERSISTENCE
-            State.generator.assignedGuardId = selectedId;
-            console.log('[GuardModal] ASSIGNED! State.generator.assignedGuardId =', State.generator.assignedGuardId);
-
-            const selectedNPC = State.admittedNPCs.find(n => n.id === selectedId);
-
-            // UNIFY WITH SECTOR ASSIGNMENTS
-            const game = self.game || window.game;
-            if (game && game.mechanics && typeof game.mechanics.assignNPCToSector === 'function' && selectedNPC) {
-                game.mechanics.assignNPCToSector(selectedNPC, 'generator');
-                console.log('[GuardModal] Unified with SectorAssignments: generator');
-            }
-
-            // Play sound and show feedback
-            if (self.audio) self.audio.playSFXByKey('ui_success', { volume: 0.5 });
-            if (self.ui && self.ui.showFeedback) {
-                self.ui.showFeedback(`✓ GUARDIA ASIGNADO: ${selectedNPC ? selectedNPC.name : 'NPC'}`, "green", 2000);
-            }
-
-            // Close modal
-            $('#guard-selection-modal').fadeOut(150, function () {
-                $(this).remove();
             });
-
-            // Re-render guard panel with fresh State
-            setTimeout(() => {
-                self.renderGuardPanel(State);
-            }, 200);
-        });
-
-        console.log('[GuardModal] All event handlers bound successfully');
+        }
     }
+
+    // showGuardSelectionModal REMOVED - Using UIManager.showSectorAssignmentModal instead
 }
 

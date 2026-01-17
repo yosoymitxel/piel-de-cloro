@@ -8,6 +8,7 @@ El generador ha sido rediseñado para actuar como el eje central de la gestión 
 - **Capacidad**: El límite nominal de energía que el generador puede producir de forma segura (Defecto: 100u).
 - **Carga (Load)**: La suma dinámica de todos los consumos activos.
 - **Estabilidad**: La salud física del núcleo. Operar por encima de la capacidad drena la estabilidad.
+- **Batería (Power)**: Reserva de energía (0-100%). Se consume más rápido a mayor carga. Si llega a 0, el generador se apaga.
 - **Consumo Base**: El gasto mínimo pasivo del refugio (Defecto: 5u).
 
 ### 2. Sub-sistemas
@@ -27,7 +28,8 @@ Cuando `Carga > Capacidad`:
 
 ## Feedback UI
 - **Medidor de Aguja**: Muestra la carga actual en porcentaje.
-- **Vibración**: La aguja vibra cuando la carga supera el 90%.
+- **Barra de Batería**: Indicador visual que cambia de color según el nivel (Verde >50%, Amarillo <50%, Rojo <20%).
+- **Vibración**: La aguja y el monitor vibran suavemente cuando la carga supera el 90%.
 - **Glitch Térmico**: La pantalla del monitor CRT flaquea si la estabilidad cae por debajo del 30%.
 - **Barra HUD**: Indicador persistente en el HUD principal con carga y estabilidad.
 

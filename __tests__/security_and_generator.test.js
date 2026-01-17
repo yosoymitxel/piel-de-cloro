@@ -18,7 +18,12 @@ beforeAll(async () => {
                 css(k, v) { if (typeof k === 'string') { this._css[k] = v; } else Object.assign(this._css, k); return this; },
                 prop() { return this; },
                 html() { return this; },
-                find() { return { css: () => this }; },
+                empty() { this._children = []; return this; },
+                append(node) { this._children = this._children || []; this._children.push(node); return this; },
+                before() { return this; },
+                after() { return this; },
+                scrollTop() { return this; },
+                find() { return { css: () => this, one: () => this }; },
                 length: 1
             };
         }

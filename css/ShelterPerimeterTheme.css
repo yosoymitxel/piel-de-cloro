@@ -251,13 +251,13 @@
 
 /* Specific generator states */
 #nav-generator.status-level-save .nav-status-light {
-    background: #4ade80;
-    box-shadow: 0 0 8px #4ade80;
+    background: #00ced1;
+    box-shadow: 0 0 8px #00ced1;
 }
 
 #nav-generator.status-level-overload .nav-status-light {
-    background: #f87171;
-    box-shadow: 0 0 10px #f87171;
+    background: #ffaa00;
+    box-shadow: 0 0 10px #ffaa00;
     animation: blink-fast 0.4s steps(2) infinite;
 }
 

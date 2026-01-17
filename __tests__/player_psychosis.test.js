@@ -20,7 +20,8 @@ describe('Player Psychosis & HUD Lies', () => {
             off: jest.fn().mockImplementation(() => mockEl),
             on: jest.fn().mockImplementation(() => mockEl),
             css: jest.fn().mockImplementation(() => mockEl),
-            find: jest.fn().mockImplementation(() => mockEl)
+            find: jest.fn().mockImplementation(() => mockEl),
+            is: jest.fn().mockImplementation(() => true) // Added mock
         };
 
         global.$ = jest.fn().mockReturnValue(mockEl);

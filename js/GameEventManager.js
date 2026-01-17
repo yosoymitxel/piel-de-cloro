@@ -156,12 +156,14 @@ export class GameEventManager {
             // 1. Refugio
             const admittedPercent = (State.admittedNPCs.length / State.config.maxShelterCapacity) * 100;
             $('#map-status-shelter-count').text(`${State.admittedNPCs.length}/${State.config.maxShelterCapacity}`);
-            const shelterLevel = State.admittedNPCs.length >= State.config.maxShelterCapacity ? 4 : (State.admittedNPCs.length > State.config.maxShelterCapacity * 0.8 ? 2 : 1);
-            this.ui.setMapNodeStatus('refugio', shelterLevel);
-
-            const shelterNode = $('#map-node-refugio');
-            shelterNode.find('.map-info-value:last').text(admittedPercent >= 100 ? 'CRÍTICO' : 'ESTABLE')
-                .toggleClass('text-alert', admittedPercent >= 100);
+            $('#map-status-shelter-cap').text(`${Math.round(admittedPercent)}%`)
+                .toggleClass('text-alert', admittedPercent >= 90)
+                .toggleClass('text-critical', admittedPercent >= 100);
+                
+            $('#map-status-shelter-threat').text(State.infectedSeenCount > 0 ? 'DETECTADA' : 'BAJA')
+                .toggleClass('text-alert', State.infectedSeenCount > 0);
+                
+            this.ui.setMapNodeStatus('refugio', this.ui.getRoomStatusClass('shelter'));
 
             // 2. Seguridad
             const guardId = State.sectorAssignments?.security?.[0];
@@ -169,12 +171,26 @@ export class GameEventManager {
             $('#map-status-security-guard').text(guard ? guard.name.toUpperCase() : 'VACANTE');
             $('#map-status-security-alerts').text(State.infectedSeenCount || 0)
                 .toggleClass('text-alert', (State.infectedSeenCount || 0) > 0);
-            this.ui.setMapNodeStatus('sala', guard ? 1 : 2);
+            
+            // Security Systems Status
+            const activeSystems = State.securityItems ? State.securityItems.filter(i => (i.type === 'alarma' && i.active) || (i.type !== 'alarma' && i.secured)).length : 0;
+            const totalSystems = State.securityItems ? State.securityItems.length : 0;
+            $('#map-status-security-sys').text(`${activeSystems}/${totalSystems}`)
+                .toggleClass('text-alert', activeSystems < totalSystems);
+                
+            this.ui.setMapNodeStatus('sala', this.ui.getRoomStatusClass('security')); // Updated to 'security'
 
             // 3. Suministros
             $('#map-status-supplies-count').text(State.supplies);
-            const suppliesLevel = State.supplies < 5 ? 4 : (State.supplies < 10 ? 2 : 1);
-            this.ui.setMapNodeStatus('suministros', suppliesLevel);
+            
+            // Estimate days left (supplies / consumption per day)
+            // Assuming consumption ~ shelter population (min 1)
+            const consumption = Math.max(1, State.admittedNPCs.length);
+            const daysLeft = Math.floor(State.supplies / consumption);
+            $('#map-status-supplies-days').text(`${daysLeft} DÍAS`)
+                .toggleClass('text-alert', daysLeft < 3);
+            
+            this.ui.setMapNodeStatus('suministros', this.ui.getRoomStatusClass('supplies'));
 
             const suppliesNode = $('#map-node-suministros');
             suppliesNode.find('.map-info-value:last').text(State.supplies < 5 ? 'RESERVAS BAJAS' : 'RESERVAS OK')
@@ -182,26 +198,37 @@ export class GameEventManager {
                 .toggleClass('text-orange-400', State.supplies >= 5 && State.supplies < 10);
 
             // 4. Combustible
+            const fuelConsumption = State.generator.isOn ? (State.generator.mode === 'overload' ? 2 : 1) : 0;
             $('#map-status-fuel-count').text(`${State.fuel} UNITS`);
-            const fuelLevel = State.fuel < 3 ? 4 : (State.fuel < 6 ? 2 : 1);
-            this.ui.setMapNodeStatus('fuel', fuelLevel);
-
-            const fuelNode = $('#map-node-fuel');
-            fuelNode.find('.map-info-value:last').text(State.fuel < 3 ? 'CRÍTICO' : 'SEGURO')
-                .toggleClass('text-alert', State.fuel < 3);
+            $('#map-status-fuel-drain').text(`${fuelConsumption}/DÍA`);
+            
+            $('#map-status-fuel-press').text(State.fuel > 5 ? 'ESTABLE' : 'BAJA')
+                .toggleClass('text-alert', State.fuel <= 5);
+                
+            this.ui.setMapNodeStatus('fuel', this.ui.getRoomStatusClass('fuel'));
 
             // 5. Generador
             const genLoad = State.generator.isOn ? Math.round((State.generator.load / State.generator.capacity) * 100) : 0;
+            const batLevel = Math.round(Math.max(0, State.generator.power || 0));
+            
             $('#map-status-gen-load').text(`${genLoad}%`);
+            $('#map-status-gen-bat').text(`${batLevel}%`)
+                .toggleClass('text-alert', batLevel < 20);
+                
+            /* Remove old stab text if it doesn't exist anymore or update if needed. 
+               We replaced the stab line with Battery and Mode in HTML.
+            */
+                
             const genMode = State.generator.mode === 'overload' ? 'SOBRECARGA' : (State.generator.mode === 'save' ? 'AHORRO' : 'NORMAL');
-
+            
             const genNode = $('#map-node-generador');
-            genNode.find('.map-info-value:last').text(genMode)
+            // Update MODO text color based on mode
+            genNode.find('.map-info-line:last .map-info-value').text(genMode)
                 .removeClass('text-blue-400 text-orange-500 text-green-500')
                 .addClass(State.generator.mode === 'overload' ? 'text-orange-500' : (State.generator.mode === 'save' ? 'text-blue-400' : 'text-green-500'));
 
-            const genStatusLevel = !State.generator.isOn ? 4 : (genLoad > 90 ? 4 : (genLoad > 70 ? 2 : 1));
-            this.ui.setMapNodeStatus('generador', genStatusLevel);
+            // Use centralized status logic
+            this.ui.setMapNodeStatus('generador', this.ui.getRoomStatusClass('generator'));
 
             // 6. Otros
             this.ui.setMapNodeStatus('puesto', 1);
@@ -219,21 +246,25 @@ export class GameEventManager {
     }
 
     navigateToFuelRoom() {
+        console.log("Navigating to Fuel Room...");
         const renderFn = () => {
+            console.log("Rendering Fuel Room UI...");
             $('#fuel-hub-count').text(`${State.fuel} UNITS`);
-            const assignedId = State.sectorAssignments?.fuel?.[0]; // Reutilizamos sistema si hay guardias
-            const npc = State.admittedNPCs.find(n => n.id === assignedId);
-            $('#fuel-hub-assigned').text(npc ? npc.name.toUpperCase() : 'VACANTE');
+            if (this.ui && this.ui.renderSectorPanel) {
+                console.log("Rendering Fuel Sector Panel...");
+                this.ui.renderSectorPanel('#fuel-guard-panel', 'fuel', State);
+            }
         };
         this.switchScreen(CONSTANTS.SCREENS.FUEL_ROOM, { renderFn });
+        console.log("Switch screen call sent.");
     }
 
     navigateToSuppliesHub() {
         const renderFn = () => {
             $('#supplies-hub-count').text(`${State.supplies} UNITS`);
-            const assignedId = State.sectorAssignments?.supplies?.[0];
-            const npc = State.admittedNPCs.find(n => n.id === assignedId);
-            $('#supplies-hub-assigned').text(npc ? npc.name.toUpperCase() : 'VACANTE');
+            if (this.ui && this.ui.renderSectorPanel) {
+                this.ui.renderSectorPanel('#supplies-guard-panel', 'supplies', State);
+            }
         };
         this.switchScreen(CONSTANTS.SCREENS.SUPPLIES_HUB, { renderFn });
     }
@@ -246,8 +277,8 @@ export class GameEventManager {
             this.ui.showFeedback(`SALA DESANCLADA: ${roomId.toUpperCase()}`, "normal", 2000);
         } else {
             // Pin
-            if (State.pinnedRooms.length >= 3) {
-                this.ui.showFeedback("MÁXIMO 3 SALAS ANCLADAS", "red", 3000);
+            if (State.pinnedRooms.length >= 5) {
+                this.ui.showFeedback("MÁXIMO 5 SALAS ANCLADAS", "red", 3000);
                 return;
             }
             State.pinnedRooms.push(roomId);
@@ -270,7 +301,12 @@ export class GameEventManager {
     }
 
     handleSuppliesClick() {
-        const suppliesNPCId = State.sectorAssignments?.supplies?.[0];
+        let suppliesNPCId = null;
+        if (State.assignments && State.assignments.supplies) {
+             suppliesNPCId = State.assignments.supplies.occupants[0];
+        } else {
+             suppliesNPCId = State.sectorAssignments?.supplies?.[0];
+        }
         const npc = State.admittedNPCs.find(n => n.id === suppliesNPCId);
 
         if (!npc) {
@@ -286,7 +322,12 @@ export class GameEventManager {
     }
 
     handleFuelClick() {
-        const fuelNPCId = State.sectorAssignments?.fuel?.[0];
+        let fuelNPCId = null;
+        if (State.assignments && State.assignments.fuel) {
+             fuelNPCId = State.assignments.fuel.occupants[0];
+        } else {
+             fuelNPCId = State.sectorAssignments?.fuel?.[0];
+        }
         const npc = State.admittedNPCs.find(n => n.id === fuelNPCId);
 
         if (!npc) {
@@ -302,6 +343,18 @@ export class GameEventManager {
     }
 
     bindAll() {
+        // ... (existing bindings) ...
+
+        // Ensure Fuel Room click binding is robust and separate
+        // Use 'off' to prevent duplicate listeners if re-bound
+        $(document).off('click', '#map-node-fuel').on('click', '#map-node-fuel', (e) => {
+            e.preventDefault(); // Prevent default anchor behavior if any
+            e.stopPropagation(); // Stop propagation to parent map handlers
+            console.log('Fuel Room Clicked (Specific Handler)');
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5, overlap: true });
+            this.navigateToFuelRoom();
+        });
+
         $('#tool-thermo, #tool-flash, #tool-pulse, #tool-pupils, #btn-admit, #btn-ignore').addClass('btn-interactive');
 
         // Fullscreen Toggle
@@ -409,10 +462,29 @@ export class GameEventManager {
         });
 
         // Navigation & Tooltips
-        $('#nav-guard').on('click', () => this.navigateToGuard());
+        $('#nav-guard').on('click', () => {
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.navigateToGuard();
+        });
         $('#nav-map').on('click', () => {
             this.audio.playSFXByKey('ui_button_click', { volume: 0.5, overlap: true });
             this.navigateToMap();
+        });
+        $('#nav-room').on('click', () => {
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.navigateToRoom();
+        });
+        $('#nav-shelter').on('click', () => {
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.navigateToShelter();
+        });
+        $('#nav-morgue').on('click', () => {
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.navigateToMorgue();
+        });
+        $('#nav-log').on('click', () => {
+            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.navigateToLog();
         });
 
         // Map Nodes Click
@@ -426,6 +498,7 @@ export class GameEventManager {
                 case 'shelter': this.navigateToShelter(); break;
                 case 'generator': this.navigateToGenerator(); break;
                 case 'supplies': this.navigateToSuppliesHub(); break;
+                case 'fuel-room': this.navigateToFuelRoom(); break;
                 case 'meditation': this.navigateToMeditation(); break;
                 case 'morgue': this.navigateToMorgue(); break;
                 case 'database': this.ui.showScreen(CONSTANTS.SCREENS.DATABASE); break;
@@ -442,24 +515,34 @@ export class GameEventManager {
         // Actividades de Meditación
         $('#btn-med-breath').on('click', () => {
             if (State.paranoia > 0) {
-                State.updateParanoia(-5);
-                this.ui.showFeedback("RESPIRACIÓN COMPLETADA: PARANOIA -5", "green", 3000);
-                this.ui.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC, State.supplies);
-                if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.2 });
+                State.updateParanoia(-2);
+                this.ui.showFeedback("RESPIRACIÓN COMPLETADA: PARANOIA -2", "green", 3000);
+                
+                // Animation Trigger
+                const visualizer = $('.meditation-visualizer');
+                visualizer.removeClass('pulse-grow');
+                void visualizer[0].offsetWidth; // trigger reflow
+                visualizer.addClass('pulse-grow');
             } else {
-                this.ui.showFeedback("MENTE EN CALMA", "normal", 2000);
+                 this.ui.showFeedback("MENTE EN CALMA", "blue", 2000);
             }
+            if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.3 });
         });
 
         $('#btn-med-music').on('click', () => {
-            if (State.sanity < 100) {
-                State.updateSanity(5);
-                this.ui.showFeedback("FRECUENCIAS_Z: CORDURA +5", "green", 3000);
-                this.ui.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC, State.supplies);
-                if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.2 });
-            } else {
-                this.ui.showFeedback("CORDURA AL MÁXIMO", "normal", 2000);
-            }
+             if (State.sanity < 100) {
+                State.updateSanity(2); // Reduced from +5 to balance
+                this.ui.showFeedback("FRECUENCIAS Z: CORDURA +2", "blue", 3000);
+                
+                // Animation Trigger
+                const visualizer = $('.meditation-visualizer');
+                visualizer.removeClass('pulse-grow');
+                void visualizer[0].offsetWidth; // trigger reflow
+                visualizer.addClass('pulse-grow');
+             } else {
+                 this.ui.showFeedback("ESTABILIDAD MENTAL MÁXIMA", "blue", 2000);
+             }
+             if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.3 });
         });
 
         $('#btn-start-expedition-hub').on('click', () => {

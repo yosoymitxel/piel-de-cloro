@@ -218,13 +218,13 @@
 
 /* Niveles de Estado en Navegación (Centralizado) */
 .status-level-save {
-    color: #ffaa00 !important;
-    text-shadow: 0 0 5px rgba(255, 170, 0, 0.5);
+    color: #00ced1 !important;
+    text-shadow: 0 0 5px rgba(0, 206, 209, 0.5);
 }
 
 .status-level-overload {
-    color: #ff3333 !important;
-    text-shadow: 0 0 8px rgba(255, 51, 51, 0.7);
+    color: #ffaa00 !important;
+    text-shadow: 0 0 8px rgba(255, 170, 0, 0.5);
     animation: energy-vibrate 0.2s steps(2) infinite;
 }
 
@@ -235,27 +235,27 @@
 
 @keyframes monitor-shake {
     0% {
-        transform: translate(1px, 1px) rotate(0deg);
+        transform: translate(0.5px, 0.5px) rotate(0deg);
     }
 
     20% {
-        transform: translate(-1px, -2px) rotate(-1deg);
+        transform: translate(-0.5px, -1px) rotate(0deg);
     }
 
     40% {
-        transform: translate(-3px, 0px) rotate(1deg);
+        transform: translate(-1.5px, 0px) rotate(0deg);
     }
 
     60% {
-        transform: translate(3px, 2px) rotate(0deg);
+        transform: translate(1.5px, 1px) rotate(0deg);
     }
 
     80% {
-        transform: translate(1px, -1px) rotate(1deg);
+        transform: translate(0.5px, -0.5px) rotate(0deg);
     }
 
     100% {
-        transform: translate(-1px, 2px) rotate(-1deg);
+        transform: translate(-0.5px, 1px) rotate(0deg);
     }
 }
 
@@ -293,9 +293,6 @@
 
 /* --- GUARD PANEL UI --- */
 .guard-card {
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 10px;
     border-radius: 4px;
     margin-bottom: 5px;
 }
@@ -367,10 +364,10 @@
 }
 
 .map-column-title {
-    font-size: 11px;
-    font-weight: 900;
-    color: rgba(168, 213, 162, 0.4);
-    letter-spacing: 0.2em;
+    /* Missing styles here but likely basic font/color */
+    font-family: monospace;
+    color: var(--terminal-green);
+    margin-bottom: 1rem;
     text-transform: uppercase;
     text-align: center;
     padding: 10px 0;
@@ -414,12 +411,12 @@
     font-weight: 800;
     letter-spacing: -0.01em;
     color: #a8d5a2;
-    font-size: 14px;
+    font-size: 15px;
     text-shadow: 0 0 8px rgba(168, 213, 162, 0.3);
 }
 
 .map-node-pin-btn {
-    font-size: 12px;
+    font-size: 13px;
     color: rgba(255, 255, 255, 0.2);
     width: 24px;
     height: 24px;
@@ -443,17 +440,17 @@
 .map-node-indicators {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 5px;
 }
 
 .map-info-line {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
+    font-size: 11px;
     color: rgba(168, 213, 162, 0.6);
     display: flex;
     justify-content: space-between;
     border-left: 2px solid rgba(45, 90, 39, 0.4);
-    padding: 1px 0 1px 8px;
+    padding: 2px 0 2px 8px;
 }
 
 .map-info-value {
@@ -463,12 +460,12 @@
 
 /* NODE STATUS LIGHT */
 .map-status-light {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: #1b3d1b;
     position: absolute;
-    top: 50%;
+    top: 20%;
     right: 12px;
     transform: translateY(-50%);
 }
@@ -490,6 +487,18 @@
     animation: map-pulse-crit 0.4s infinite linear;
 }
 
+/* New Status Levels for Generator */
+.map-node-btn.status-level-save .map-status-light {
+    background: #00ced1;
+    box-shadow: 0 0 8px #00ced1;
+}
+
+.map-node-btn.status-level-overload .map-status-light {
+    background: #ffaa00;
+    box-shadow: 0 0 12px #ffaa00;
+    animation: map-pulse-warn 0.2s infinite linear;
+}
+
 @keyframes map-pulse-warn {
 
     0%,
@@ -503,7 +512,6 @@
 }
 
 @keyframes map-pulse-crit {
-
     0%,
     100% {
         opacity: 1;
@@ -616,16 +624,25 @@
     justify-content: center;
     transition: all 0.5s ease;
     box-shadow: inset 0 0 20px rgba(147, 197, 253, 0.05);
+    margin: 0 auto; /* Ensure centering */
+    animation: meditation-breathe 4s infinite ease-in-out;
+}
+
+@keyframes meditation-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
 }
 
 .meditation-visualizer:hover {
-    transform: scale(1.02);
     border-color: rgba(147, 197, 253, 0.4) !important;
 }
 
 .meditation-visualizer i {
     text-shadow: 0 0 15px rgba(147, 197, 253, 0.8);
     transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .meditation-wave {
@@ -662,4 +679,15 @@
 /* Supplies Hub Special Styles */
 #screen-supplies-hub .industrial-panel {
     border-color: rgba(251, 191, 36, 0.1) !important;
+}
+
+/* --- NEW ADDITIONS --- */
+@keyframes pulse-grow {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+.pulse-grow {
+    animation: pulse-grow 0.5s ease-out;
 }

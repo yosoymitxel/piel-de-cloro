@@ -40,7 +40,13 @@ describe('Game Action Handler', () => {
             mechanics: mechanicsMock,
             updateHUD: jest.fn(),
             nextTurn: jest.fn(),
-            isAnimating: false
+            isAnimating: false,
+            orchestrator: {
+                add: jest.fn((event) => {
+                    // Execute immediately for testing purposes
+                    if (event.execute) event.execute();
+                })
+            }
         };
 
         gah = new GameActionHandler(gameMock);
@@ -77,7 +83,8 @@ describe('Game Action Handler', () => {
             const spy = jest.spyOn(console, 'log').mockImplementation();
             State.debug = true;
             State.log("test log");
-            expect(spy).toHaveBeenCalledWith("test log");
+            // Expect timestamp tag AND the message
+            expect(spy).toHaveBeenCalledWith(expect.stringMatching(/\[LOG \d{1,2}:\d{2}:\d{2}\]/), "test log");
             spy.mockRestore();
             State.debug = false; // Reset
         });

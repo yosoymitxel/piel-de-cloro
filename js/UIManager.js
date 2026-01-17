@@ -32,7 +32,8 @@ export class UIManager {
             map: $('#screen-map'),
             expedition: $('#screen-expedition'),
             meditation: $('#screen-meditation'),
-            'supplies-hub': $('#screen-supplies-hub')
+            'supplies-hub': $('#screen-supplies-hub'),
+            'fuel-room': $('#screen-fuel-room')
         };
         this.elements = {
             paranoia: $('#paranoia-level'),
@@ -250,6 +251,10 @@ export class UIManager {
     }
 
     resetUI() {
+        if (this.consoleUpdateInterval) {
+            clearInterval(this.consoleUpdateInterval);
+            this.consoleUpdateInterval = null;
+        }
         this.updateVersionLabels();
         if (this.screenManager) {
             this.screenManager.updateEndingsRecord(State);
@@ -282,8 +287,13 @@ export class UIManager {
     }
 
     initConsoleUpdates() {
+        if (this.consoleUpdateInterval) {
+            clearInterval(this.consoleUpdateInterval);
+            this.consoleUpdateInterval = null;
+        }
+
         if (typeof setInterval !== 'undefined') {
-            setInterval(() => {
+            this.consoleUpdateInterval = setInterval(() => {
                 if (this.screens.game && typeof this.screens.game.is === 'function' && this.screens.game.is(':visible')) {
                     this.updateConsoleData();
                 }
@@ -293,7 +303,7 @@ export class UIManager {
 
     updateConsoleData() {
         // Rotar knobs aleatoriamente
-        if (this.elements.knobs && this.elements.knobs.length > 0) {
+        if (this.elements.knobs && typeof this.elements.knobs.each === 'function' && this.elements.knobs.length > 0) {
             this.elements.knobs.each((i, el) => {
                 const rotation = Math.floor(Math.random() * 360);
                 $(el).css('transform', `rotate(${rotation}deg)`);
@@ -303,10 +313,12 @@ export class UIManager {
         // Actualizar barras de mini monitor bio
         if (this.elements.miniMonitorBio && this.elements.miniMonitorBio.length > 0) {
             const bars = this.elements.miniMonitorBio.find('.bg-chlorine');
-            bars.each((i, el) => {
-                const height = 20 + Math.random() * 60;
-                $(el).css('height', `${height}%`);
-            });
+            if (bars.length && typeof bars.each === 'function') {
+                bars.each((i, el) => {
+                    const height = 20 + Math.random() * 60;
+                    $(el).css('height', `${height}%`);
+                });
+            }
         }
 
         // Actualizar datos de mini monitor env
@@ -563,6 +575,77 @@ export class UIManager {
 
         this.elements.modalEndings.removeClass('hidden').addClass('flex');
         if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.5 });
+    }
+
+    showSectorAssignmentModal(sector, state, onAssign) {
+        const candidates = state.admittedNPCs.filter(n => !n.death && !n.left && !n.escaped);
+        const sectorName = CONSTANTS.SECTOR_CONFIG && CONSTANTS.SECTOR_CONFIG[sector] ? CONSTANTS.SECTOR_CONFIG[sector].name : sector.toUpperCase();
+
+        let overlay = $('#modal-sector-assignment');
+        if (!overlay.length) {
+            $('body').append(`
+                <div id="modal-sector-assignment" class="modal-overlay-base z-[100] hidden p-4 backdrop-blur-sm flex items-center justify-center">
+                    <div class="horror-panel-modal w-full max-w-lg flex flex-col p-0 overflow-hidden bg-black border border-terminal-green">
+                        <header class="bg-terminal-green/20 p-3 border-b border-terminal-green flex justify-between items-center">
+                            <h3 class="font-bold text-terminal-green uppercase tracking-widest">ASIGNACIÓN: <span id="assign-sector-name"></span></h3>
+                            <button class="close-assign text-terminal-green hover:text-white"><i class="fa-solid fa-times"></i></button>
+                        </header>
+                        <div id="assign-candidates-list" class="p-4 flex flex-col gap-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                        </div>
+                    </div>
+                </div>
+            `);
+            overlay = $('#modal-sector-assignment');
+            overlay.find('.close-assign').on('click', () => overlay.addClass('hidden').removeClass('flex'));
+        }
+
+        $('#assign-sector-name').text(sectorName);
+        const list = $('#assign-candidates-list');
+        list.empty();
+
+        const unassignBtn = $(`
+            <button class="w-full p-3 border border-dashed border-gray-600 text-gray-400 hover:border-terminal-green hover:text-terminal-green text-left flex items-center gap-3 transition-all mb-2">
+                <div class="w-8 h-8 flex items-center justify-center bg-gray-900 rounded"><i class="fa-solid fa-user-slash"></i></div>
+                <div class="flex flex-col">
+                    <span class="font-bold text-xs uppercase">DEJAR VACANTE</span>
+                    <span class="text-[9px]">Nadie asignado al sector</span>
+                </div>
+            </button>
+        `);
+        unassignBtn.on('click', () => {
+             onAssign(null);
+             overlay.addClass('hidden').removeClass('flex');
+        });
+        list.append(unassignBtn);
+
+        candidates.forEach(npc => {
+            const isAssignedHere = npc.assignedSector === sector;
+            const isAssignedElsewhere = npc.assignedSector && npc.assignedSector !== sector;
+            
+            const btn = $(`
+                <button class="w-full p-2 border ${isAssignedHere ? 'border-terminal-green bg-terminal-green/20' : 'border-white/10 bg-white/5'} hover:bg-white/10 text-left flex items-center gap-3 transition-all">
+                    <div class="w-10 h-10 bg-black border border-white/10 overflow-hidden relative rounded">
+                         ${this.renderAvatar(npc, 'sm').prop('outerHTML')}
+                    </div>
+                    <div class="flex flex-col flex-grow">
+                        <span class="font-bold text-sm text-white ${isAssignedHere ? 'text-terminal-green' : ''}">${npc.name}</span>
+                        <span class="text-[10px] text-gray-400 uppercase">
+                            ${isAssignedHere ? '● ASIGNADO ACTUALMENTE' : (isAssignedElsewhere ? `EN: ${npc.assignedSector.toUpperCase()}` : 'DISPONIBLE')}
+                        </span>
+                    </div>
+                    ${isAssignedHere ? '<i class="fa-solid fa-check text-terminal-green"></i>' : ''}
+                </button>
+            `);
+
+            btn.on('click', () => {
+                onAssign(npc);
+                overlay.addClass('hidden').removeClass('flex');
+            });
+            list.append(btn);
+        });
+
+        overlay.removeClass('hidden').addClass('flex');
+        if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
     }
 
     showScreen(screenName) {
@@ -1982,14 +2065,38 @@ export class UIManager {
                     <option value="generator" ${npc.assignedSector === 'generator' ? 'selected' : ''}>GENERADOR</option>
                     <option value="security" ${npc.assignedSector === 'security' ? 'selected' : ''}>SEGURIDAD</option>
                     <option value="supplies" ${npc.assignedSector === 'supplies' ? 'selected' : ''}>SUMINISTROS</option>
+                    <option value="fuel" ${npc.assignedSector === 'fuel' ? 'selected' : ''}>COMBUSTIBLE</option>
                 `
             });
 
             sectorSelector.on('click', (e) => e.stopPropagation());
             sectorSelector.on('change', (e) => {
                 const sector = e.target.value;
-                this.game.mechanics.assignNPCToSector(npc, sector);
-                this.showFeedback(`TAREA ASIGNADA: ${sector ? sector.toUpperCase() : 'BÚNKER'}`, 'green', 2000);
+                
+                if (sector) {
+                    if (this.game.assignments) {
+                        this.game.assignments.assign(npc.id, sector);
+                    } else {
+                        this.game.mechanics.assignNPCToSector(npc, sector);
+                    }
+                    this.showFeedback(`TAREA ASIGNADA: ${sector.toUpperCase()}`, 'green', 2000);
+                } else {
+                    // Unassign logic
+                    if (npc.assignedSector) {
+                        if (this.game.assignments) {
+                            this.game.assignments.unassign(npc.assignedSector);
+                        } else {
+                            // Fallback if no assignments manager (legacy)
+                            // We can't easily unassign via mechanics if it doesn't expose it, 
+                            // but we can try passing null if supported or just manual state update?
+                            // For now assuming assignments manager exists as per request.
+                        }
+                        this.showFeedback(`TAREA REMOVIDA`, 'yellow', 2000);
+                    }
+                }
+
+                // Refresh grid to show updates (e.g. if someone else was kicked out)
+                this.renderShelterGrid(npcs, max, onPurgeClick, onDetailClick);
             });
 
             card.append(sectorSelector);
@@ -2040,44 +2147,293 @@ export class UIManager {
             $('#btn-shelter-goto-gen').remove();
         }
     }
-    renderSecurityGuard(state) {
-        const display = $('#security-guard-display');
-        if (!display.length) return;
+    // --- SECTOR ASSIGNMENT SYSTEM ---
+    
+    showAssignmentDashboard(state) {
+        // Simple modal to choose sector
+        $('#assignment-dashboard-modal').remove();
+        
+        const sectors = [
+            { id: 'security', label: 'SEGURIDAD', icon: 'fa-shield-halved', color: 'text-terminal-green', border: 'border-terminal-green' },
+            { id: 'generator', label: 'GENERADOR', icon: 'fa-bolt', color: 'text-terminal-green', border: 'border-terminal-green' },
+            { id: 'supplies', label: 'SUMINISTROS', icon: 'fa-box', color: 'text-amber-400', border: 'border-amber-400' },
+            { id: 'fuel', label: 'COMBUSTIBLE', icon: 'fa-gas-pump', color: 'text-rose-400', border: 'border-rose-400' }
+        ];
 
-        const securityNPCId = state.sectorAssignments?.security?.[0];
-        const npc = state.admittedNPCs.find(n => n.id === securityNPCId);
+        let sectorsHtml = '';
+        sectors.forEach(sec => {
+            // Get current assigned
+            let assignedName = 'VACANTE';
+            let assignedId = null;
+            
+            if (sec.id === 'generator') {
+                assignedId = state.generator.assignedGuardId;
+            } else {
+                assignedId = state.sectorAssignments[sec.id]?.[0];
+            }
+            
+            if (assignedId) {
+                const npc = state.admittedNPCs.find(n => n.id === assignedId);
+                if (npc) assignedName = npc.name;
+            }
 
-        if (!npc) {
-            display.html(`
-                <div class="text-xs italic opacity-40 py-8 text-center w-full">ESTACIÓN VACANTE</div>
-                <div class="text-[9px] text-gray-600 mt-2 text-center w-full">ASIGNA UN GUARDIA EN EL REFUGIO</div>
-            `);
-            display.removeClass('border-green-500/30').addClass('border-green-500/10');
+            sectorsHtml += `
+                <button class="sector-select-btn w-full flex items-center justify-between p-4 bg-black/40 border ${sec.border}/30 hover:${sec.border} hover:bg-white/5 transition-all rounded group mb-2" data-sector="${sec.id}">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full border ${sec.border}/50 flex items-center justify-center bg-black">
+                            <i class="fa-solid ${sec.icon} ${sec.color}"></i>
+                        </div>
+                        <div class="flex flex-col items-start">
+                            <span class="text-sm font-bold text-gray-200 group-hover:text-white">${sec.label}</span>
+                            <span class="text-[10px] font-mono opacity-50 uppercase">${assignedName}</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-600 group-hover:text-white"></i>
+                </button>
+            `;
+        });
+
+        const modalHtml = `
+            <div id="assignment-dashboard-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+                <div class="horror-panel-modal w-full max-w-sm p-0 overflow-hidden border border-gray-700 bg-[#0a0a0a] rounded animate__animated animate__fadeIn animate__faster">
+                    <div class="p-3 border-b border-gray-700 flex justify-between items-center bg-gray-900">
+                        <h3 class="text-sm font-bold uppercase tracking-widest text-gray-400">
+                            <i class="fa-solid fa-users-gear mr-2"></i>Gestión de Personal
+                        </h3>
+                        <button id="dashboard-modal-close" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-[10px] text-gray-500 mb-4 font-mono uppercase text-center">Selecciona un sector para asignar o cambiar personal</p>
+                        ${sectorsHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        $('body').append(modalHtml);
+
+        const closeModal = () => {
+             $('#assignment-dashboard-modal').fadeOut(150, function () { $(this).remove(); });
+        };
+
+        $('#dashboard-modal-close').on('click', closeModal);
+        $('#assignment-dashboard-modal').on('click', function(e) { if(e.target === this) closeModal(); });
+
+        $('.sector-select-btn').on('click', (e) => {
+            const sector = $(e.currentTarget).data('sector');
+            closeModal();
+            // Open the specific assignment modal
+            this.showSectorAssignmentModal(sector, state, (npc) => {
+                const game = this.game || window.game;
+                if (game && game.assignments) {
+                    game.assignments.assign(npc.id, sector);
+                } else if (game && game.mechanics) {
+                    game.mechanics.assignNPCToSector(npc, sector);
+                }
+                
+                // Re-open dashboard to show update? Or just close.
+                // User might want to assign multiple, but feedback is important.
+                // Let's just show feedback and stay closed.
+            });
+        });
+    }
+
+    showSectorAssignmentModal(sector, state, onAssign) {
+        // Filter eligible NPCs: must have been admitted BEFORE this cycle
+        const currentCycle = state.cycle || 1;
+        const candidates = (state.admittedNPCs || []).filter(npc => {
+            const admittedCycle = npc.admittedCycle || npc.cycle || 0;
+            return admittedCycle < currentCycle;
+        });
+
+        if (candidates.length === 0) {
+            if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
+            this.showFeedback("NO HAY PERSONAL DISPONIBLE (Los NPCs deben esperar un turno)", "orange", 3000);
             return;
         }
 
-        display.empty();
-        display.addClass('border-green-500/30').removeClass('border-green-500/10');
+        const self = this;
+        $('#sector-assignment-modal').remove();
 
-        // Render Avatar
-        const avatarHtml = this.renderAvatar(npc, 'sm');
-        display.append(`
-            <div class="relative mb-2">
-                ${avatarHtml.prop('outerHTML')}
-                <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-black animate-pulse"></div>
+        let candidatesHtml = '';
+        candidates.forEach(npc => {
+            const avatarEl = this.renderAvatar(npc, 'md');
+            const avatarHtml = avatarEl && avatarEl.prop ? avatarEl.prop('outerHTML') : '<div class="text-xs text-gray-500">?</div>';
+            
+            // Determine if assigned
+            let isCurrent = false;
+            if (sector === 'generator') {
+                isCurrent = state.generator.assignedGuardId === npc.id;
+            } else {
+                isCurrent = state.sectorAssignments && state.sectorAssignments[sector] && state.sectorAssignments[sector].includes(npc.id);
+            }
+
+            candidatesHtml += `
+                <div class="guard-candidate-item cursor-pointer w-full flex items-center gap-3 p-3 ${isCurrent ? 'bg-terminal-green/10 border-terminal-green/40' : 'bg-white/5 border-white/10'} border hover:bg-terminal-green/20 hover:border-terminal-green/50 transition-all rounded mb-2" data-npcid="${npc.id}">
+                    <div class="w-10 h-10 border border-white/10 bg-black rounded overflow-hidden flex-shrink-0">
+                        ${avatarHtml}
+                    </div>
+                    <div class="flex flex-col flex-1 min-w-0">
+                        <span class="text-sm font-bold text-white truncate">${npc.name}</span>
+                        <span class="text-[10px] opacity-50 font-mono">${npc.uniqueType === 'lore' ? 'Sujeto Especial' : 'Civil Admitido'}</span>
+                    </div>
+                    ${isCurrent ? '<span class="text-[9px] text-terminal-green font-mono uppercase flex-shrink-0">● Actual</span>' : '<i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>'}
+                </div>
+            `;
+        });
+
+        const modalHtml = `
+            <div id="sector-assignment-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+                <div class="horror-panel-modal w-full max-w-sm p-0 overflow-hidden border border-terminal-green/30 bg-[#0a0a0a] rounded animate__animated animate__fadeIn animate__faster">
+                    <div class="p-3 border-b border-terminal-green/20 flex justify-between items-center bg-terminal-green/5">
+                        <h3 class="text-sm font-bold uppercase tracking-widest text-terminal-green">
+                            <i class="fa-solid fa-user-shield mr-2"></i>Asignar a ${sector.toUpperCase()}
+                        </h3>
+                        <button id="sector-modal-close" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
+                    <div class="p-4 max-h-[400px] overflow-y-auto custom-scrollbar">
+                        ${candidatesHtml}
+                    </div>
+                </div>
             </div>
-            <div class="text-sm font-bold text-green-400">${npc.name.toUpperCase()}</div>
-            <div class="text-[9px] font-mono text-gray-400">RANGO: ESPECIALISTA</div>
-            <div class="flex gap-1 mt-2">
-                ${npc.trait ? `<span class="text-[8px] bg-green-900/40 border border-green-500/30 px-1 text-green-400">${npc.trait.id.toUpperCase()}</span>` : ''}
-                <span class="text-[8px] bg-blue-900/40 border border-blue-500/30 px-1 text-blue-400">SECURITY</span>
-            </div>
-        `);
+        `;
+
+        $('body').append(modalHtml);
+
+        const closeModal = () => {
+             $('#sector-assignment-modal').fadeOut(150, function () { $(this).remove(); });
+        };
+
+        $('#sector-modal-close').on('click', closeModal);
+        $('#sector-assignment-modal').on('click', function(e) { if(e.target === this) closeModal(); });
+
+        $('.guard-candidate-item').on('click', function (e) {
+            e.preventDefault();
+            const selectedId = $(this).attr('data-npcid');
+            const selectedNPC = state.admittedNPCs.find(n => n.id === selectedId);
+
+            if (selectedNPC) {
+                if (onAssign) {
+                    onAssign(selectedNPC);
+                } else {
+                    // Default logic
+                    const game = self.game || window.game;
+                    if (game && game.mechanics) {
+                        game.mechanics.assignNPCToSector(selectedNPC, sector);
+                    }
+                }
+                
+                if (self.audio) self.audio.playSFXByKey('ui_success', { volume: 0.5 });
+                self.showFeedback(`✓ ASIGNADO A ${sector.toUpperCase()}: ${selectedNPC.name}`, "green", 2000);
+            }
+            closeModal();
+        });
     }
 
+    renderSectorPanel(containerSelector, sector, state, titleOverride = null) {
+        const container = $(containerSelector);
+        if (!container.length) return;
 
-    updateSecurityCombatLog(message) {
-        const log = $('#security-combat-log');
+        container.empty();
+
+        let guardId = null;
+        if (state.assignments && state.assignments[sector]) {
+            // New System
+            guardId = state.assignments[sector].occupants[0];
+        } else if (sector === 'generator') {
+            guardId = state.generator.assignedGuardId;
+        } else {
+            guardId = state.sectorAssignments && state.sectorAssignments[sector] ? state.sectorAssignments[sector][0] : null;
+        }
+        
+        const guard = guardId ? state.admittedNPCs.find(n => n.id === guardId) : null;
+        const title = titleOverride || (guard ? 'OPERADOR ACTIVO' : 'PUESTO VACANTE');
+        
+        // Colors based on sector
+        let colorClass = 'text-terminal-green';
+        let borderClass = 'border-terminal-green';
+        let bgClass = 'bg-terminal-green';
+        
+        if (sector === 'fuel') { colorClass = 'text-rose-400'; borderClass = 'border-rose-400'; bgClass = 'bg-rose-400'; }
+        if (sector === 'supplies') { colorClass = 'text-amber-400'; borderClass = 'border-amber-400'; bgClass = 'bg-amber-400'; }
+
+        if (guard) {
+            const avatarEl = this.renderAvatar(guard, 'sm');
+            const avatarHtml = avatarEl && avatarEl.prop ? avatarEl.prop('outerHTML') : '<div class="text-xs">?</div>';
+
+            const html = `
+                <div class="guard-card active w-full animate__animated animate__fadeIn p-3 border ${borderClass}/20 ${bgClass}/5 rounded">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-10 h-10 bg-black border ${borderClass}/30 overflow-hidden relative rounded">
+                                ${avatarHtml}
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm font-bold ${colorClass}">${guard.name}</span>
+                                <span class="text-[9px] ${colorClass} opacity-70 font-mono uppercase tracking-widest">● ${title}</span>
+                            </div>
+                        </div>
+                        <button class="btn-reassign-guard text-[10px] opacity-60 hover:opacity-100 hover:${colorClass} transition-all px-2 py-1 border border-transparent hover:${borderClass}/30 rounded bg-black/30">
+                            <i class="fa-solid fa-rotate mr-1"></i>CAMBIAR
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.html(html);
+        } else {
+            const html = `
+                <div class="guard-card empty w-full flex items-center justify-between p-3 border border-dashed border-white/20 hover:${borderClass}/40 transition-all bg-white/5 group rounded cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 flex items-center justify-center bg-black/60 rounded border border-white/10 group-hover:${borderClass}/30">
+                            <i class="fa-solid fa-user-shield text-lg opacity-30 group-hover:${colorClass} group-hover:opacity-60 transition-all"></i>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold opacity-70 group-hover:${colorClass} transition-colors">${title}</span>
+                            <span class="text-[9px] opacity-40 font-mono uppercase">Click para asignar</span>
+                        </div>
+                    </div>
+                    <button class="btn-assign-guard horror-btn-sm ${bgClass}/10 hover:${bgClass}/20 border ${borderClass}/30 ${colorClass} text-[10px] py-1.5 px-3 uppercase">
+                        <i class="fa-solid fa-plus mr-1"></i>Asignar
+                    </button>
+                </div>
+            `;
+            container.html(html);
+        }
+
+        container.find('.guard-card, .btn-assign-guard, .btn-reassign-guard').one('click', () => {
+            this.showSectorAssignmentModal(sector, state, (npc) => {
+                const game = this.game || window.game;
+                if (game && game.assignments) {
+                    if (npc) {
+                        game.assignments.assign(npc.id, sector);
+                    } else {
+                        // Logic to unassign current if no NPC selected (though modal usually returns an NPC)
+                        // If we support unassigning via modal, we'd need to handle it.
+                        // For now, assuming replacement.
+                        // To be safe:
+                        const current = game.assignments.getFirstAssigned(sector);
+                        if (current) game.assignments.unassign(current.id, sector);
+                    }
+                } else if (game && game.mechanics) {
+                    // Fallback
+                    game.mechanics.assignNPCToSector(npc, sector);
+                }
+                // Re-render self
+                this.renderSectorPanel(containerSelector, sector, state, titleOverride);
+            });
+        });
+    }
+
+    renderSecurityGuard(state) {
+        this.renderSectorPanel('#security-guard-display', 'security', state);
+    }
+
+    updateSecurityRoomLog(message) {
+        const log = $('#security-room-log');
         if (!log.length) return;
 
         const time = State.isNight ? 'NOCT' : `${State.dayTime}:00`;
@@ -2222,10 +2578,20 @@ export class UIManager {
         }
     }
 
+    updateSecurityCombatLog(message) {
+        State.addSectorLog('security', message, 'COMBATE');
+        this.renderRoomLog('security', $('#security-room-log'));
+    }
+
     renderSecurityRoom(items, onToggle) {
         this.elements.securityGrid.empty();
+
+        // Render Guard in the dedicated right panel
         this.renderSecurityGuard(State);
         this.elements.securityCount.text(items.length);
+
+        // Render Log in the dedicated right panel
+        this.renderRoomLog('security', $('#security-room-log'));
 
         const isGenOn = State.generator && State.generator.isOn;
         const isSecurityActive = State.generator && State.generator.systems && State.generator.systems.security.active;
@@ -2272,24 +2638,41 @@ export class UIManager {
                     return;
                 }
 
-                if (it.type === 'alarma') {
-                    it.active = !it.active;
-                    if (it.active && this.audio) this.audio.playSFXByKey('alarm_activate', { volume: 0.6, priority: 1 });
-                } else {
-                    it.secured = !it.secured;
-                    if (this.audio) {
-                        if (it.secured) {
-                            if (it.type === 'puerta') this.audio.playSFXByKey('door_secure', { volume: 0.6, priority: 1 });
-                            if (it.type === 'ventana') this.audio.playSFXByKey('window_secure', { volume: 0.6, priority: 1 });
-                            if (it.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
-                        } else {
-                            if (it.type === 'puerta') this.audio.playSFXByKey('door_unsecure', { volume: 0.6, priority: 1 });
-                            if (it.type === 'ventana') this.audio.playSFXByKey('window_unsecure', { volume: 0.6, priority: 1 });
+                const toggleAction = () => new Promise(resolve => {
+                    if (it.type === 'alarma') {
+                        it.active = !it.active;
+                        if (it.active && this.audio) this.audio.playSFXByKey('alarm_activate', { volume: 0.6, priority: 1 });
+                    } else {
+                        it.secured = !it.secured;
+                        if (this.audio) {
+                            if (it.secured) {
+                                if (it.type === 'puerta') this.audio.playSFXByKey('door_secure', { volume: 0.6, priority: 1 });
+                                if (it.type === 'ventana') this.audio.playSFXByKey('window_secure', { volume: 0.6, priority: 1 });
+                                if (it.type === 'tuberias') this.audio.playSFXByKey('pipes_whisper', { volume: 0.4, priority: 1 });
+                            } else {
+                                if (it.type === 'puerta') this.audio.playSFXByKey('door_unsecure', { volume: 0.6, priority: 1 });
+                                if (it.type === 'ventana') this.audio.playSFXByKey('window_unsecure', { volume: 0.6, priority: 1 });
+                            }
                         }
                     }
+                    if (onToggle) onToggle(idx, it);
+                    this.renderSecurityRoom(items, onToggle);
+                    
+                    // Resolver tras una breve pausa para evitar spam sónico
+                    setTimeout(resolve, 400); 
+                });
+
+                // Orquestar la acción para evitar conflictos con tests u otros eventos
+                if (this.game && this.game.orchestrator) {
+                    this.game.orchestrator.add({
+                        id: `sec-${it.type}-${Date.now()}`,
+                        type: 'action',
+                        priority: 1,
+                        execute: toggleAction
+                    });
+                } else {
+                    toggleAction();
                 }
-                if (onToggle) onToggle(idx, it);
-                this.renderSecurityRoom(items, onToggle);
             });
 
             // Screws for each card
@@ -2339,6 +2722,31 @@ export class UIManager {
 
         // Update nav status: if any unsecured channels exist, set warning; otherwise clear
         this.updateSecurityNavStatus(items);
+    }
+
+    renderRoomLog(sector, container) {
+        if (!container || !container.length) return;
+        container.empty();
+        
+        const logs = State.roomLogs && State.roomLogs[sector] ? State.roomLogs[sector] : [];
+        if (logs.length === 0) {
+            container.html('<div class="text-[10px] text-gray-600 font-mono italic p-2 text-center">SIN REGISTROS DE ACTIVIDAD</div>');
+            return;
+        }
+
+        logs.forEach(log => {
+            const el = $(`
+                <div class="mb-1 border-l-2 border-terminal-green/20 pl-2 py-1 bg-black/20 hover:bg-white/5 transition-colors">
+                    <div class="flex justify-between items-center text-[9px] text-gray-500 mb-0.5">
+                        <span class="font-mono">${log.timestamp}</span>
+                        <span class="font-bold text-terminal-green uppercase">${log.npcName}</span>
+                    </div>
+                    <div class="text-[10px] text-gray-300 font-mono leading-tight">${log.message}</div>
+                </div>
+            `);
+            container.append(el);
+        });
+        container.scrollTop(container[0].scrollHeight);
     }
 
     renderLog(state) {
@@ -2553,8 +2961,25 @@ export class UIManager {
         }
 
         btn.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5 status-level-save status-level-overload');
-        if (level) {
-            btn.addClass(`status-level-${level}`);
+        
+        // Map abstract statuses to sidebar classes
+        const map = {
+            'status-critical': 'status-level-5',
+            'status-alert': 'status-level-3', 
+            'status-active': 'status-level-2', 
+            'status-level-save': 'status-level-save',
+            'status-level-overload': 'status-level-overload'
+        };
+        
+        let finalClass = map[level];
+        
+        if (!finalClass && level) {
+             // Fallback for direct numbers (1-5) or other strings
+             finalClass = `status-level-${level}`;
+        }
+
+        if (finalClass) {
+            btn.addClass(finalClass);
             btn.attr('data-status', level);
         } else {
             btn.removeAttr('data-status');
@@ -2582,6 +3007,14 @@ export class UIManager {
                 $el.prop('disabled', false).removeClass('nav-locked active');
             }
         });
+
+        // Also lock/unlock pinned rooms
+        const pinnedBtns = $('.pinned-nav-btn');
+        if (locked) {
+            pinnedBtns.prop('disabled', true).addClass('nav-locked');
+        } else {
+            pinnedBtns.prop('disabled', false).removeClass('nav-locked');
+        }
 
         if (this.elements.sidebar) {
             this.elements.sidebar.toggleClass('nav-locked', locked);
@@ -2638,20 +3071,30 @@ export class UIManager {
         if (!node.length) return;
 
         // Limpiar clases de estado previas
-        node.removeClass('status-active status-alert status-critical');
+        node.removeClass('status-active status-alert status-critical status-level-save status-level-overload');
 
-        if (level === 1) {
-            node.addClass('status-active');
-        } else if (level === 2) {
-            node.addClass('status-alert');
-        } else if (level === 4) {
-            node.addClass('status-critical');
+        if (typeof level === 'string') {
+            node.addClass(level);
+        } else {
+            if (level === 1) {
+                node.addClass('status-active');
+            } else if (level === 2) {
+                node.addClass('status-alert');
+            } else if (level === 4) {
+                node.addClass('status-critical');
+            }
         }
     }
 
     renderPinnedRooms(state) {
         const container = $('#sidebar-pinned-rooms');
         if (!container.length) return;
+
+        // Don't render pins on the start screen
+        if ($('#screen-start').is(':visible')) {
+            container.empty();
+            return;
+        }
 
         container.empty();
 
@@ -2661,9 +3104,13 @@ export class UIManager {
             if (!roomConfig) return;
 
             const statusClass = this.getRoomStatusClass(roomId);
+            const isLocked = State.navLocked;
 
             const btn = $(`
-                <button class="pinned-nav-btn btn-interactive ${statusClass}" data-room="${roomId}" title="Ir a ${roomConfig.name}">
+                <button class="pinned-nav-btn btn-interactive ${statusClass} ${isLocked ? 'nav-locked' : ''}" 
+                        data-room="${roomId}" 
+                        title="Ir a ${roomConfig.name}"
+                        ${isLocked ? 'disabled' : ''}>
                     <div class="nav-status-light"></div>
                     <i class="fa-solid ${roomConfig.icon}"></i>
                     <span class="pinned-label">${roomConfig.name}</span>
@@ -2671,6 +3118,7 @@ export class UIManager {
             `);
 
             btn.on('click', () => {
+                if (State.navLocked) return;
                 this.game.events.navigateToRoomByKey(roomId);
             });
 
@@ -2701,31 +3149,12 @@ export class UIManager {
     getRoomStatusClass(roomId) {
         if (!State) return '';
 
-        switch (roomId) {
-            case 'generator':
-                const genLoad = State.generator.isOn ? Math.round((State.generator.load / State.generator.capacity) * 100) : 0;
-                if (!State.generator.isOn || genLoad > 90) return 'status-critical';
-                if (genLoad > 70) return 'status-alert';
-                return 'status-active';
-
-            case 'shelter':
-                const pop = State.admittedNPCs.length;
-                const cap = State.config.maxShelterCapacity;
-                if (pop >= cap) return 'status-critical';
-                if (pop > cap * 0.8) return 'status-alert';
-                return 'status-active';
-
-            case 'supplies':
-                if (State.supplies < 5) return 'status-critical';
-                if (State.supplies < 10) return 'status-alert';
-                return 'status-active';
-
-            case 'room':
-                const guardId = State.sectorAssignments?.security?.[0];
-                return guardId ? 'status-active' : 'status-alert';
-
-            default:
-                return 'status-active';
+        // New Config-based System (Easy to extend)
+        if (CONSTANTS.ROOM_STATUS_CONFIG && CONSTANTS.ROOM_STATUS_CONFIG[roomId]) {
+            return CONSTANTS.ROOM_STATUS_CONFIG[roomId].check(State);
         }
+
+        // Fallback or default
+        return 'status-active';
     }
 }

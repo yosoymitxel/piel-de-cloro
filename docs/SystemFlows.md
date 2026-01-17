@@ -79,3 +79,33 @@ graph LR
 ### Notas Técnicas:
 - El **`restartLock`** impide que el jugador suba la potencia inmediatamente después de un fallo, obligándolo a procesar al menos un NPC en modo AHORRO (mínima información).
 - La **Energía de Emergencia** (`emergencyEnergyGranted`) evita que el jugador se quede bloqueado sin poder hacer ningún test si el fallo ocurrió justo al empezar un turno.
+
+---
+
+## 🛡️ Sistema Unificado de Asignación de Sectores
+
+Se ha implementado un sistema centralizado para gestionar la asignación de NPCs a roles críticos (Guardia, Combustible, Suministros).
+
+### Componentes:
+1. **`UIManager.showSectorAssignmentModal(sector, state)`**: 
+   - Renderiza un modal genérico.
+   - Filtra NPCs elegibles (admitidos en ciclos anteriores).
+   - Maneja la selección visual y feedback.
+2. **`UIManager.renderSectorPanel(container, sector, state)`**: 
+   - Renderiza el panel "in-situ" en cada pantalla (`Fuel`, `Supplies`, `Generator`, `Security`).
+   - Muestra el guardia actual o el estado vacante.
+   - Adapta los colores y bordes según el sector (Verde, Rojo, Ámbar).
+
+### Flujo de Datos:
+1. Usuario clickea "ASIGNAR" en el panel del sector.
+2. Se abre el modal filtrado.
+3. Al seleccionar un NPC:
+   - Se actualiza `State.sectorAssignments[sector]`.
+   - Se reproduce audio `ui_success`.
+   - Se cierra el modal y se refresca el panel.
+
+### Integración en Pantallas:
+- **Generador**: Panel de guardia de seguridad principal.
+- **Sala de Vigilancia**: Panel secundario de personal de seguridad.
+- **Combustible**: "Unidad de Sacrificio" para extracción.
+- **Suministros**: "Encargado de Expedición".

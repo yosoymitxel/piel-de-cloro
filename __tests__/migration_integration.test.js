@@ -196,7 +196,7 @@ describe('Migration Integration Testing Suite', () => {
         jest.spyOn(game.audio, 'fade').mockImplementation(() => {});
     });
 
-    test('Integration: Full cycle (Subject -> Inspect -> Admit -> Night -> Next Day)', () => {
+    test('Integration: Full cycle (Subject -> Inspect -> Admit -> Night -> Next Day)', async () => {
         // 1. Initial State
         expect(State.cycle).toBe(1);
         expect(State.dayTime).toBe(1);
@@ -217,8 +217,13 @@ describe('Migration Integration Testing Suite', () => {
         expect(game.updateHUD).toHaveBeenCalled();
 
         game.isAnimating = false; // Reset animation lock for test
+        
+        // Force orchestrator reset for test environment timing
+        if (game.orchestrator) game.orchestrator.isProcessing = false;
+
         game.actions.inspect('thermometer');
         jest.runAllTimers();
+        await Promise.resolve();
         expect(npc.scanCount).toBe(2);
         
         // Attempt 3rd scan - should be blocked by energy logic in real game

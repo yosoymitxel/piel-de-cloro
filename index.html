@@ -214,9 +214,9 @@
                         <div
                             class="flex-grow overflow-x-auto custom-scrollbar bg-[#050505] flex items-center shadow-inner">
                             <div class="map-container-horizontal">
-                                <!-- Columna: Superficie -->
+                                <!-- Columna: Puesto de Guardia (NIVEL_-1) + CONTROL -->
                                 <div class="map-column">
-                                    <h3 class="map-column-title">NIVEL_0: SUPERFICIE</h3>
+                                    <h3 class="map-column-title">NIVEL_-1: CONTROL</h3>
                                     <button class="map-node-btn" data-room="game" id="map-node-puesto">
                                         <div class="map-status-light"></div>
                                         <div class="map-node-header">
@@ -230,102 +230,6 @@
                                                     class="map-info-value text-green-500">NOMINAL</span></div>
                                             <div class="map-info-line"><span>PROTOCOLO:</span> <span
                                                     class="map-info-value">TRIAJE</span></div>
-                                        </div>
-                                    </button>
-                                </div>
-
-                                <!-- Columna: Seguridad -->
-                                <div class="map-column">
-                                    <h3 class="map-column-title">NIVEL_-1: CONTROL</h3>
-                                    <button class="map-node-btn" data-room="room" id="map-node-sala">
-                                        <div class="map-status-light"></div>
-                                        <div class="map-node-header">
-                                            <span class="map-node-title"><i
-                                                    class="fa-solid fa-bell mr-2"></i>VIGILANCIA</span>
-                                            <div class="map-node-pin-btn" data-room="room" title="Pineado rápido"><i
-                                                    class="fa-solid fa-thumbtack"></i></div>
-                                        </div>
-                                        <div class="map-node-indicators">
-                                            <div class="map-info-line"><span>DEFENSA:</span> <span
-                                                    id="map-status-security-guard" class="map-info-value">VACANTE</span>
-                                            </div>
-                                            <div class="map-info-line"><span>ALERTAS:</span> <span
-                                                    id="map-status-security-alerts" class="map-info-value">0</span>
-                                            </div>
-                                        </div>
-                                    </button>
-                                </div>
-
-                                <!-- Columna: Hábitat y Energía -->
-                                <div class="map-column">
-                                    <h3 class="map-column-title">NIVEL_-2: HÁBITAT</h3>
-
-                                    <button class="map-node-btn" data-room="shelter" id="map-node-refugio">
-                                        <div class="map-status-light"></div>
-                                        <div class="map-node-header">
-                                            <span class="map-node-title"><i
-                                                    class="fa-solid fa-house mr-2"></i>REFUGIO</span>
-                                            <div class="map-node-pin-btn" data-room="shelter" title="Pineado rápido"><i
-                                                    class="fa-solid fa-thumbtack"></i></div>
-                                        </div>
-                                        <div class="map-node-indicators">
-                                            <div class="map-info-line"><span>POBLACIÓN:</span> <span
-                                                    id="map-status-shelter-count" class="map-info-value">0/0</span>
-                                            </div>
-                                            <div class="map-info-line"><span>MORAL:</span> <span
-                                                    class="map-info-value">ESTABLE</span></div>
-                                        </div>
-                                    </button>
-
-                                    <button class="map-node-btn subsystem-link" data-room="meditation"
-                                        id="map-node-meditacion">
-                                        <div class="map-status-light"></div>
-                                        <div class="map-node-header">
-                                            <span class="map-node-title"><i
-                                                    class="fa-solid fa-spa mr-2"></i>MEDITACIÓN</span>
-                                            <div class="map-node-pin-btn" data-room="meditation" title="Pineado rápido">
-                                                <i class="fa-solid fa-thumbtack"></i>
-                                            </div>
-                                        </div>
-                                        <div class="map-node-indicators">
-                                            <div class="map-info-line"><span>BALANCE:</span> <span
-                                                    class="map-info-value">RELATIVO</span></div>
-                                            <div class="map-info-line"><span>VÍNCULO:</span> <span
-                                                    class="map-info-value text-blue-400">HUD_STAT</span></div>
-                                        </div>
-                                    </button>
-
-                                    <button class="map-node-btn subsystem-link" data-room="supplies"
-                                        id="map-node-suministros">
-                                        <div class="map-status-light"></div>
-                                        <div class="map-node-header">
-                                            <span class="map-node-title"><i
-                                                    class="fa-solid fa-box mr-2"></i>SUMINISTROS</span>
-                                            <div class="map-node-pin-btn" data-room="supplies" title="Pineado rápido"><i
-                                                    class="fa-solid fa-thumbtack"></i></div>
-                                        </div>
-                                        <div class="map-node-indicators">
-                                            <div class="map-info-line"><span>VÍVERES:</span> <span
-                                                    id="map-status-supplies-count" class="map-info-value">0</span></div>
-                                            <div class="map-info-line"><span>VÍNCULO:</span> <span
-                                                    class="map-info-value text-blue-400">HUD_STAT</span></div>
-                                        </div>
-                                    </button>
-
-                                    <button class="map-node-btn subsystem-link" data-room="fuel" id="map-node-fuel">
-                                        <div class="map-status-light"></div>
-                                        <div class="map-node-header">
-                                            <span class="map-node-title"><i
-                                                    class="fa-solid fa-gas-pump mr-2"></i>COMBUSTIBLE</span>
-                                            <div class="map-node-pin-btn" data-room="fuel" title="Pineado rápido"><i
-                                                    class="fa-solid fa-thumbtack"></i></div>
-                                        </div>
-                                        <div class="map-node-indicators">
-                                            <div class="map-info-line"><span>RESERVA:</span> <span
-                                                    id="map-status-fuel-count" class="map-info-value">0 units</span>
-                                            </div>
-                                            <div class="map-info-line"><span>RIESGO:</span> <span
-                                                    class="map-info-value text-alert">CRÍTICO</span></div>
                                         </div>
                                     </button>
 
@@ -342,15 +246,120 @@
                                         <div class="map-node-indicators">
                                             <div class="map-info-line"><span>CARGA:</span> <span
                                                     id="map-status-gen-load" class="map-info-value">0%</span></div>
-                                            <div class="map-info-line"><span>VÍNCULO:</span> <span
-                                                    class="map-info-value text-blue-400">HUD_STAT</span></div>
+                                            <div class="map-info-line"><span>BATERÍA:</span> <span
+                                                    id="map-status-gen-bat" class="map-info-value">100%</span></div>
+                                            <div class="map-info-line"><span>MODO:</span> <span
+                                                    class="map-info-value text-blue-400">NORMAL</span></div>
+                                        </div>
+                                    </button>
+
+                                    <button class="map-node-btn" data-room="shelter" id="map-node-refugio">
+                                        <div class="map-status-light"></div>
+                                        <div class="map-node-header">
+                                            <span class="map-node-title"><i
+                                                    class="fa-solid fa-house mr-2"></i>REFUGIO</span>
+                                            <div class="map-node-pin-btn" data-room="shelter" title="Pineado rápido"><i
+                                                    class="fa-solid fa-thumbtack"></i></div>
+                                        </div>
+                                        <div class="map-node-indicators">
+                                            <div class="map-info-line"><span>POBLACIÓN:</span> <span
+                                                    id="map-status-shelter-count" class="map-info-value">0/0</span>
+                                            </div>
+                                            <div class="map-info-line"><span>CAPACIDAD:</span> <span
+                                                    id="map-status-shelter-cap" class="map-info-value">0%</span></div>
+                                            <div class="map-info-line"><span>AMENAZA:</span> <span
+                                                    id="map-status-shelter-threat" class="map-info-value">BAJA</span></div>
+                                        </div>
+                                    </button>
+                                </div>
+
+                                <!-- Columna: Seguridad -->
+                                <div class="map-column">
+                                    <h3 class="map-column-title">NIVEL_-2: LOGÍSTICA</h3>
+
+                                    <button class="map-node-btn subsystem-link" data-room="meditation"
+                                        id="map-node-meditacion">
+                                        <div class="map-status-light"></div>
+                                        <div class="map-node-header">
+                                            <span class="map-node-title"><i
+                                                    class="fa-solid fa-spa mr-2"></i>MEDITACIÓN</span>
+                                            <div class="map-node-pin-btn" data-room="meditation" title="Pineado rápido">
+                                                <i class="fa-solid fa-thumbtack"></i>
+                                            </div>
+                                        </div>
+                                        <div class="map-node-indicators">
+                                            <div class="map-info-line"><span>BALANCE:</span> <span
+                                                    class="map-info-value">RELATIVO</span></div>
+                                            <div class="map-info-line"><span>ESTADO:</span> <span
+                                                    class="map-info-value text-blue-400">ZEN</span></div>
+                                        </div>
+                                    </button>
+
+                                    <button class="map-node-btn subsystem-link" data-room="supplies"
+                                        id="map-node-suministros">
+                                        <div class="map-status-light"></div>
+                                        <div class="map-node-header">
+                                            <span class="map-node-title"><i
+                                                    class="fa-solid fa-box mr-2"></i>SUMINISTROS</span>
+                                            <div class="map-node-pin-btn" data-room="supplies" title="Pineado rápido"><i
+                                                    class="fa-solid fa-thumbtack"></i></div>
+                                        </div>
+                                        <div class="map-node-indicators">
+                                            <div class="map-info-line"><span>VÍVERES:</span> <span
+                                                    id="map-status-supplies-count" class="map-info-value">0</span></div>
+                                            <div class="map-info-line"><span>DURACIÓN:</span> <span
+                                                    id="map-status-supplies-days" class="map-info-value">0 DÍAS</span></div>
+                                            <div class="map-info-line"><span>ESTADO:</span> <span
+                                                    class="map-info-value text-blue-400">---</span></div>
+                                        </div>
+                                    </button>
+
+                                    <button class="map-node-btn subsystem-link" data-room="fuel" id="map-node-fuel">
+                                        <div class="map-status-light"></div>
+                                        <div class="map-node-header">
+                                            <span class="map-node-title"><i
+                                                    class="fa-solid fa-gas-pump mr-2"></i>COMBUSTIBLE</span>
+                                            <div class="map-node-pin-btn" data-room="fuel" title="Pineado rápido"><i
+                                                    class="fa-solid fa-thumbtack"></i></div>
+                                        </div>
+                                        <div class="map-node-indicators">
+                                            <div class="map-info-line"><span>RESERVA:</span> <span
+                                                    id="map-status-fuel-count" class="map-info-value">0 units</span>
+                                            </div>
+                                            <div class="map-info-line"><span>CONSUMO:</span> <span
+                                                    id="map-status-fuel-drain" class="map-info-value">0/DÍA</span>
+                                            </div>
+                                            <div class="map-info-line"><span>PRESIÓN:</span> <span
+                                                    id="map-status-fuel-press" class="map-info-value">OK</span>
+                                            </div>
                                         </div>
                                     </button>
                                 </div>
 
                                 <!-- Columna: Almacenamiento y Archivos -->
                                 <div class="map-column">
-                                    <h3 class="map-column-title">NIVEL_-3: SISTEMAS</h3>
+                                    <h3 class="map-column-title">NIVEL_-3: VIGILANCIA</h3>
+
+                                    <button class="map-node-btn" data-room="room" id="map-node-sala">
+                                        <div class="map-status-light"></div>
+                                        <div class="map-node-header">
+                                            <span class="map-node-title"><i
+                                                    class="fa-solid fa-bell mr-2"></i>SALA SEGURIDAD</span>
+                                            <div class="map-node-pin-btn" data-room="room" title="Pineado rápido"><i
+                                                    class="fa-solid fa-thumbtack"></i></div>
+                                        </div>
+                                        <div class="map-node-indicators">
+                                            <div class="map-info-line"><span>DEFENSA:</span> <span
+                                                    id="map-status-security-guard" class="map-info-value">VACANTE</span>
+                                            </div>
+                                            <div class="map-info-line"><span>CÁMARAS:</span> <span
+                                                    id="map-status-security-sys" class="map-info-value">0/0</span>
+                                            </div>
+                                            <div class="map-info-line"><span>ALERTAS:</span> <span
+                                                    id="map-status-security-alerts" class="map-info-value">0</span>
+                                            </div>
+                                        </div>
+                                    </button>
 
                                     <button class="map-node-btn" data-room="morgue" id="map-node-morgue">
                                         <div class="map-status-light"></div>
@@ -364,8 +373,8 @@
                                             <div class="map-info-line"><span>ESTADO:</span> <span
                                                     id="map-status-morgue-count" class="map-info-value">SEGURO</span>
                                             </div>
-                                            <div class="map-info-line"><span>ALGO:</span> <span
-                                                    class="map-info-value text-alert">LOW</span></div>
+                                            <div class="map-info-line"><span>RIESGO:</span> <span
+                                                    class="map-info-value text-alert">BAJO</span></div>
                                         </div>
                                     </button>
 
@@ -413,9 +422,6 @@
                                 class="meditation-visualizer w-48 h-48 border-2 border-blue-400/20 rounded-full flex items-center justify-center relative">
                                 <div
                                     class="meditation-wave absolute w-full h-full rounded-full border border-blue-400/40 animate-ping opacity-20">
-                                </div>
-                                <div
-                                    class="meditation-core w-10 h-10 bg-blue-400/30 rounded-full blur-xl animate-pulse">
                                 </div>
                                 <i class="fa-solid fa-spa text-3xl text-blue-400/60 z-10"></i>
                             </div>
@@ -527,12 +533,15 @@
                                     INICIAR EXPEDICIÓN
                                 </button>
 
+                                <div id="supplies-guard-panel" class="w-full mt-4"></div>
+                                <!--
                                 <div
                                     class="mt-4 pt-4 border-t border-white/10 w-full flex justify-between items-center">
                                     <span class="text-[9px] uppercase opacity-40">Encargado actual:</span>
                                     <span id="supplies-hub-assigned"
                                         class="text-sm font-bold text-amber-200 uppercase">---</span>
                                 </div>
+                                -->
                             </div>
                         </div>
                     </section>
@@ -1244,17 +1253,15 @@
                                     class="hidden md:flex w-64 border-l border-green-500/20 pl-4 flex-col gap-4">
                                     <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">PERSONAL
                                         DE SEGURIDAD</div>
-                                    <div id="security-guard-display"
-                                        class="flex flex-col items-center gap-2 p-4 bg-black/40 border border-green-500/10 rounded relative overflow-hidden group">
-                                        <!-- Avatar y nombre inyectados por JS -->
-                                        <div class="text-xs italic opacity-40 py-8">ESTACIÓN VACANTE</div>
-                                    </div>
+                                    
+                                    <div id="security-guard-display" class="w-full"></div>
 
-                                    <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-2">
-                                        REGISTRO DE COMBATE</div>
-                                    <div id="security-combat-log"
-                                        class="flex-grow bg-black/60 border border-green-900/30 p-2 font-mono text-[9px] overflow-y-auto custom-scrollbar">
-                                        <div class="opacity-30">ESCUCHANDO FRECUENCIAS...</div>
+                                    <div class="flex-grow flex flex-col gap-2 mt-4 border-t border-green-500/20 pt-4">
+                                        <div class="text-[9px] font-mono text-green-500/70 uppercase">HISTORIAL DE EVENTOS</div>
+                                        <div id="security-room-log"
+                                            class="flex-grow bg-black/60 border border-green-900/30 p-2 font-mono text-[9px] overflow-y-auto custom-scrollbar">
+                                            <div class="opacity-30">ESCUCHANDO FRECUENCIAS...</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1448,33 +1455,38 @@
 
                                         <!-- NEW: Animated Battery Section -->
                                         <div
-                                            class="flex flex-col items-center justify-center p-4 border border-terminal-green/20 bg-black/40 rounded w-full md:w-auto h-full">
-                                            <div
-                                                class="relative w-16 h-32 border-2 border-terminal-green p-1 rounded-sm mb-2 shadow-[0_0_10px_rgba(0,255,65,0.2)]">
-                                                <!-- Battery Top Nub -->
-                                                <div
-                                                    class="absolute w-8 h-2 bg-terminal-green/50 -top-3 left-1/2 transform -translate-x-1/2">
-                                                </div>
+                                            class="flex flex-col items-center justify-center p-4 border border-terminal-green/20 bg-black/40 rounded w-full md:w-auto h-full relative overflow-hidden">
+                                            
+                                            <div class="relative w-20 h-36 bg-black border-2 border-terminal-green/50 rounded-lg mb-2 shadow-[0_0_15px_rgba(0,255,65,0.1)] overflow-hidden ">
+                                                <!-- Inner Glow -->
+                                                <div class="absolute inset-0 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] z-20 pointer-events-none"></div>
 
-                                                <!-- Animated Fill -->
-                                                <div id="gen-battery-visual-fill"
-                                                    class="w-full bg-terminal-green bottom-0 absolute left-0 transition-all duration-1000 ease-out"
-                                                    style="height: 0%;">
-                                                    <!-- Liquid Effect Interface -->
-                                                    <div
-                                                        class="w-full h-[2px] bg-white/50 absolute top-0 shadow-[0_0_5px_white]">
+                                                <!-- Grid Pattern -->
+                                                <div class="absolute inset-0 bg-[linear-gradient(rgba(0,255,65,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,65,0.1)_1px,transparent_1px)] bg-[size:10px_10px] opacity-20 z-10"></div>
+
+                                                <!-- Fill Container -->
+                                                <div class="absolute bottom-0 left-0 w-full h-full bg-black/50 z-0">
+                                                    <div id="gen-battery-visual-fill"
+                                                        class="w-full bg-terminal-green bottom-0 absolute left-0 transition-all duration-700 ease-out"
+                                                        style="height: 0%;">
+                                                        <!-- Top Edge Glow -->
+                                                        <div class="w-full h-1 bg-white/80 absolute top-0 shadow-[0_0_10px_white]"></div>
                                                     </div>
                                                 </div>
-
-                                                <!-- Grid overlaid -->
-                                                <div
-                                                    class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=')] opacity-30 z-10 pointer-events-none">
+                                                
+                                                <!-- Segment Lines (Overlay) -->
+                                                <div class="absolute inset-0 flex flex-col justify-evenly z-20 opacity-30 pointer-events-none">
+                                                    <div class="w-full h-[1px] bg-black"></div>
+                                                    <div class="w-full h-[1px] bg-black"></div>
+                                                    <div class="w-full h-[1px] bg-black"></div>
+                                                    <div class="w-full h-[1px] bg-black"></div>
                                                 </div>
                                             </div>
-                                            <span id="gen-battery-text"
-                                                class="text-2xl font-mono font-bold text-terminal-green text-glow">--</span>
-                                            <span
-                                                class="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Batería</span>
+
+                                            <div class="flex flex-col items-center z-10">
+                                                <span id="gen-battery-text" class="text-3xl font-black font-mono text-terminal-green text-glow tracking-tighter">--</span>
+                                                <span class="text-[10px] font-mono text-terminal-green/60 uppercase tracking-[0.2em] border-t border-terminal-green/20 pt-1 mt-1">BATERÍA</span>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -1579,6 +1591,15 @@
                                                 <p><span class="text-white">SOBRECARGA:</span> 3 cargas. <span
                                                         class="text-alert">Riesgo de fallo catastrófico (35%).</span>
                                                 </p>
+                                            </div>
+                                            
+                                            
+                                        </div>
+
+                                        <div class="mt-4 border-t border-terminal-green/20 pt-2 w-full bg-black/80 border p-4 text-sm font-mono space-y-3">
+                                            <p class="text-terminal-green font-bold mb-2 uppercase text-xs">Bitácora de Operaciones</p>
+                                            <div id="generator-room-log" class="max-h-[150px] overflow-y-auto custom-scrollbar text-[10px]">
+                                                <!-- Logs del generador -->
                                             </div>
                                         </div>
                                     </div>
@@ -2623,7 +2644,7 @@
 
             <div class="p-8 flex flex-col gap-6">
                 <div id="modal-message-content"
-                    class="text-center font-mono text-sm leading-relaxed text-gray-300 uppercase tracking-tight"></div>
+                    class="text-center font-mono text-sm leading-relaxed text-gray-300 uppercase tracking-tight text-center"></div>
                 <button id="btn-message-ok"
                     class="horror-btn horror-btn-primary py-3 text-xs uppercase tracking-[0.2em]">
                     <i class="fa-solid fa-check mr-2"></i>ENTENDIDO

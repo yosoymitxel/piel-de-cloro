@@ -15,6 +15,7 @@ describe('Advanced UI & Navigation Features', () => {
         global.$ = (key) => {
             if (!global.__fakeDOM[key]) {
                 global.__fakeDOM[key] = {
+                    _selector: key,
                     length: 1,
                     empty: jest.fn(function () { return this; }),
                     append: jest.fn(function () { return this; }),
@@ -35,7 +36,11 @@ describe('Advanced UI & Navigation Features', () => {
                     fadeOut: jest.fn(function (d, cb) { if (cb) cb(); return this; }),
                     fadeIn: jest.fn(function (d, cb) { if (cb) cb(); return this; }),
                     prop: jest.fn(function () { return this; }),
-                    eq: jest.fn(function () { return this; })
+                    eq: jest.fn(function () { return this; }),
+                    is: jest.fn(function (sel) { 
+                        if (sel === ':visible' && this._selector === '#screen-start') return false;
+                        return true; 
+                    })
                 };
             }
             return global.__fakeDOM[key];

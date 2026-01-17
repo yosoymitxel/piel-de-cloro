@@ -1,3 +1,5 @@
+import { CONSTANTS } from './Constants.js';
+
 export const State = {
     paranoia: 0,
     sanity: 100,
@@ -54,7 +56,7 @@ export const State = {
         sfx: 0.6,
         muted: { ambient: false, lore: false, sfx: false }
     },
-    pinnedRooms: ['generator', 'shelter'], // Hasta 3 salas rápidas
+    pinnedRooms: ['generator', 'shelter', 'room'], // Salas pineadas por defecto: Generador, Refugio, Vigilancia
     shelter: {
         id: 'alpha-01',
         name: 'REFUGIO ALPHA-01',
@@ -211,11 +213,15 @@ export const State = {
         assignedGuardId: null,      // NPC assigned as guard
         guardShiftLogs: []          // Information provided by the guard
     },
-    sectorAssignments: {
-        generator: [],
-        security: [],
-        supplies: []
+    // Nueva estructura centralizada de asignaciones
+    assignments: {
+        generator: { slots: 1, occupants: [] },
+        security: { slots: 1, occupants: [] },
+        supplies: { slots: 1, occupants: [] },
+        fuel: { slots: 1, occupants: [] }
     },
+    // Deprecated: sectorAssignments (se eliminará tras migración)
+    
     paused: false,
     debug: true, // Cambiar a false para producción
     gameLog: [], // Historial cronológico
@@ -280,7 +286,33 @@ export const State = {
         this.dialoguePoolsLastUsed = {};
         this.gameLog = [];
         this.dialogueMemory = [];
-        this.sectorAssignments = { generator: [], security: [], supplies: [] };
+        
+        // Reset Assignments (Dynamic based on CONSTANTS.SECTOR_CONFIG)
+        this.assignments = {};
+        this.roomLogs = {};
+        
+        if (CONSTANTS.SECTOR_CONFIG) {
+            Object.keys(CONSTANTS.SECTOR_CONFIG).forEach(sectorId => {
+                const config = CONSTANTS.SECTOR_CONFIG[sectorId];
+                this.assignments[sectorId] = { 
+                    slots: config.slots || 1, 
+                    occupants: [] 
+                };
+                this.roomLogs[sectorId] = [];
+            });
+        } else {
+             // Fallback if config missing
+            this.assignments = {
+                generator: { slots: 1, occupants: [] },
+                security: { slots: 1, occupants: [] },
+                supplies: { slots: 1, occupants: [] },
+                fuel: { slots: 1, occupants: [] }
+            };
+            this.roomLogs = { generator: [], security: [], supplies: [], fuel: [] };
+        }
+
+        // Legacy support during migration (proxies to new system if needed, or just kept empty)
+        this.sectorAssignments = {};
         this.addLogEntry('system', 'Sistema RUTA-01 inicializado. Ciclo 1.');
 
         // NO RESETEAR: unlockedEndings ni audioSettings ya que son persistentes
@@ -301,6 +333,26 @@ export const State = {
         }
     },
 
+    addSectorLog(sector, message, npcName = 'SISTEMA') {
+        if (!this.roomLogs) this.roomLogs = {};
+        if (!this.roomLogs[sector]) this.roomLogs[sector] = [];
+        
+        const time = this.isNight ? 'NOCT' : `${this.dayTime}:00`;
+        
+        this.roomLogs[sector].push({
+            timestamp: time,
+            npcName: npcName,
+            message: message,
+            type: npcName === 'SISTEMA' ? 'system' : 'normal'
+        });
+        
+        if (this.roomLogs[sector].length > 20) this.roomLogs[sector].shift();
+        
+        if (typeof document !== 'undefined') {
+            document.dispatchEvent(new CustomEvent('sector-log-added', { detail: { sector } }));
+        }
+    },
+
     addAdmitted(npc) {
         if (!npc.enterCycle) npc.enterCycle = this.cycle;
         this.admittedNPCs.push(npc);
@@ -315,8 +367,26 @@ export const State = {
         if (index > -1) {
             this.admittedNPCs.splice(index, 1);
         }
+        
+        // Remove from assignments (logging included)
+        this._unassignFromAll(npc);
+
         npc.death = { reason: 'purga', cycle: this.cycle, revealed: false };
         this.purgedNPCs.push(npc);
+    },
+
+    _unassignFromAll(npc) {
+        if (!this.assignments) return;
+        Object.keys(this.assignments).forEach(sector => {
+            const idx = this.assignments[sector].occupants.indexOf(npc.id);
+            if (idx > -1) {
+                this.assignments[sector].occupants.splice(idx, 1);
+                this.addSectorLog(sector, `Personal perdido: ${npc.name} ha dejado el puesto.`, npc.name);
+            }
+        });
+        if (this.generator && this.generator.assignedGuardId === npc.id) {
+            this.generator.assignedGuardId = null;
+        }
     },
 
     isShelterFull() {
@@ -416,14 +486,20 @@ export const State = {
 
     // --- Sistema de Logs por niveles ---
     log(...args) {
-        if (this.debug) console.log(...args);
+        if (this.debug) {
+            const time = new Date().toLocaleTimeString();
+            console.log(`[LOG ${time}]`, ...args);
+        }
     },
     warn(...args) {
-        if (this.debug) console.warn(...args);
+        // Warnings always show in tests/dev usually, but can gate with debug if preferred
+        // For this user request: "sistema de errores a nivel console.error, log y warning"
+        const time = new Date().toLocaleTimeString();
+        console.warn(`[WARN ${time}]`, ...args);
     },
     error(...args) {
-        // Los errores se muestran siempre para facilitar depuración en prod
-        console.error(...args);
+        const time = new Date().toLocaleTimeString();
+        console.error(`[ERR ${time}]`, ...args);
     },
 
     getRandomRumor() {
@@ -474,10 +550,19 @@ export const State = {
                     npc.left = { cycle: this.cycle };
                     this.departedNPCs.push(npc);
                     leftNames.push(npc.name);
+                    this._unassignFromAll(npc);
                 }
             }
             const msg = actual === 1 ? `Durante la noche, ${leftNames[0]} abandonó la comuna.` : `Durante la noche, ${actual} integrantes abandonaron la comuna.`;
             this.lastNight.message = this.lastNight.message ? `${this.lastNight.message} ${msg}` : msg;
+        }
+    },
+
+    update(deltaTime) {
+        // Logic for time-based updates (timers, cooldowns)
+        if (this.generator.blackoutUntil > 0) {
+             // Logic related to blackout timer is currently handled by timestamp checks
+             // but could be moved here for cleaner state management
         }
     },
 

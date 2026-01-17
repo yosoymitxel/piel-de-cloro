@@ -52,5 +52,14 @@ El `UIManager` también gestiona el zoom de la terminal (`Small`, `Normal`, `Lar
 ## 🎨 Paleta de Colores Técnica
 Los colores están centralizados en `State.colors` para asegurar consistencia entre el dibujo de los Avatares y el HUD:
 - `chlorine`: `#2d5a27` (Color base)
+- `terminalGreen`: `#00ff41` (Verde terminal estándar)
 - `alert`: `#ff3333` (Fallo crítico)
 - `energy`: `#00FF00` (Generador estable)
+- `save`: `#00ced1` (Modo Ahorro - Cian)
+- `overload`: `#ffaa00` (Modo Sobrecarga - Naranja)
+- `yellow`: `#e2e254` (Advertencia media)
+
+## Feedback del Generador
+- **Monitor Shake**: Vibración suavizada (`translate(0.5px)`) cuando el generador está en carga extrema (>95%), para evitar fatiga visual excesiva.
+- **Battery Colors**: La barra de batería transiciona de Verde (>50%) a Amarillo (<50%) y Rojo (<20%) independientemente del modo de operación.
+- **Mode Indicators**: Los indicadores de modo cambian el color de la interfaz local (Cian/Verde/Naranja) para reforzar el estado actual.

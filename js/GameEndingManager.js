@@ -37,25 +37,80 @@ export class GameEndingManager {
             if (this.ui.applyVHS) this.ui.applyVHS(1.0, 2000);
         }
 
-        // Animación de cierre de sistema antes de mostrar el lore
-        const protocolOptions = {
-            title: isDanger ? 'FALLO CRÍTICO' : 'TURNO FINALIZADO',
-            statusUpdates: isDanger
-                ? ['CORRUPCIÓN DETECTADA...', 'FALLO DE INTEGRIDAD...', 'SISTEMA COMPROMETIDO.']
-                : ['GUARDANDO REGISTROS...', 'CERRANDO TERMINAL...', 'SESIÓN FINALIZADA.'],
-            sfx: isDanger ? 'alarm_activate' : 'purge_confirm',
-            type: 'ending',
-            onComplete: () => {
-                // Mostrar primero la resonancia (post_final) y luego el lore del final específico
-                this.ui.showLore('post_final', () => {
-                    this.ui.showLore(endingId, () => {
-                        this.endGame();
-                    }, { loreName: this.loreNPCName });
-                });
-            }
-        };
+        // --- ORQUESTACIÓN DE FINAL ---
+        // Limpiar cola previa para asegurar que el final tiene prioridad absoluta
+        if (this.game.orchestrator) {
+            this.game.orchestrator.clear();
 
-        this.ui.triggerFullscreenProtocol(protocolOptions);
+            // 1. Animación de Protocolo
+            this.game.orchestrator.add({
+                id: 'ending-protocol',
+                type: 'sequence',
+                priority: 10,
+                execute: () => new Promise(resolve => {
+                    const protocolOptions = {
+                        title: isDanger ? 'FALLO CRÍTICO' : 'TURNO FINALIZADO',
+                        statusUpdates: isDanger
+                            ? ['CORRUPCIÓN DETECTADA...', 'FALLO DE INTEGRIDAD...', 'SISTEMA COMPROMETIDO.']
+                            : ['GUARDANDO REGISTROS...', 'CERRANDO TERMINAL...', 'SESIÓN FINALIZADA.'],
+                        sfx: isDanger ? 'alarm_activate' : 'purge_confirm',
+                        type: 'ending',
+                        onComplete: resolve // Conectar con la promesa
+                    };
+                    this.ui.triggerFullscreenProtocol(protocolOptions);
+                })
+            });
+
+            // 2. Lore: Resonancia (Post-Final)
+            this.game.orchestrator.add({
+                id: 'lore-post-final',
+                type: 'modal',
+                priority: 9,
+                execute: () => new Promise(resolve => {
+                    this.ui.showLore('post_final', resolve);
+                })
+            });
+
+            // 3. Lore: Final Específico
+            this.game.orchestrator.add({
+                id: `lore-${endingId}`,
+                type: 'modal',
+                priority: 9,
+                execute: () => new Promise(resolve => {
+                    this.ui.showLore(endingId, resolve, { loreName: this.loreNPCName });
+                })
+            });
+
+            // 4. Pantalla de Estadísticas
+            this.game.orchestrator.add({
+                id: 'final-screen-switch',
+                type: 'action',
+                priority: 8,
+                execute: async () => {
+                    this.endGame();
+                }
+            });
+
+        } else {
+            // Fallback por si no hay orquestador (legacy)
+            console.warn("Orchestrator not found, using legacy ending flow");
+            const protocolOptions = {
+                title: isDanger ? 'FALLO CRÍTICO' : 'TURNO FINALIZADO',
+                statusUpdates: isDanger
+                    ? ['CORRUPCIÓN DETECTADA...', 'FALLO DE INTEGRIDAD...', 'SISTEMA COMPROMETIDO.']
+                    : ['GUARDANDO REGISTROS...', 'CERRANDO TERMINAL...', 'SESIÓN FINALIZADA.'],
+                sfx: isDanger ? 'alarm_activate' : 'purge_confirm',
+                type: 'ending',
+                onComplete: () => {
+                    this.ui.showLore('post_final', () => {
+                        this.ui.showLore(endingId, () => {
+                            this.endGame();
+                        }, { loreName: this.loreNPCName });
+                    });
+                }
+            };
+            this.ui.triggerFullscreenProtocol(protocolOptions);
+        }
     }
 
     endGame() {

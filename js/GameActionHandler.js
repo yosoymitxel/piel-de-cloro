@@ -118,167 +118,184 @@ export class GameActionHandler {
     }
 
     inspect(tool) {
-        State.log(`[GameActionHandler] --- INICIO INSPECCIÓN: ${tool} ---`);
+        // Validación inicial rápida para evitar encolar si el juego está pausado
+        if (State.paused) return;
 
-        const validation = this.validateInspection(tool);
-        State.log(`[GameActionHandler] Resultado Validación:`, validation);
+        // Delegar la ejecución al orquestador para evitar solapamientos de audio/animación
+        this.game.orchestrator.add({
+            id: `inspect-${tool}-${Date.now()}`,
+            type: 'action',
+            priority: 2, // Prioridad alta sobre items de sala (1)
+            execute: () => new Promise(resolve => {
+                State.log(`[GameActionHandler] --- INICIO INSPECCIÓN ORQUESTADA: ${tool} ---`);
 
-        const npc = State.currentNPC;
-        if (!validation.allowed) {
-            State.warn(`[GameActionHandler] Inspección cancelada: ${validation.reason} (${validation.code})`);
+                const validation = this.validateInspection(tool);
+                State.log(`[GameActionHandler] Resultado Validación:`, validation);
 
-            // Mostrar feedback visual según el error
-            switch (validation.code) {
-                case "ANIMATING":
-                    this.ui.showFeedback("ESPERA A QUE TERMINE LA ACCIÓN", "orange", 2500);
-                    break;
-                case "POWER_OFF":
-                    this.ui.showFeedback("GENERADOR APAGADO: ACCIÓN IMPOSIBLE", "red", 3000);
-                    this.game.updateHUD();
-                    break;
-                case "NO_ENERGY":
-                    this.ui.showFeedback("ENERGÍA INSUFICIENTE PARA ESTE TURNO", "yellow", 3000);
-                    if (npc) this.ui.updateInspectionTools(npc);
-                    break;
-                case "ALREADY_DONE":
-                    this.ui.showFeedback("TEST YA REALIZADO", "yellow", 2000);
-                    if (npc) this.ui.updateInspectionTools(npc);
-                    break;
-                case "PAUSED":
-                    State.warn("[GameActionHandler] Intento de inspección con juego pausado.");
-                    break;
-                case "NO_NPC":
-                    State.error("[GameActionHandler] Intento de inspección sin NPC activo.");
-                    this.ui.showFeedback("ERROR: NO HAY SUJETO QUE INSPECCIONAR", "red", 3000);
-                    break;
-                default:
-                    this.ui.showFeedback(`SISTEMA BLOQUEADO: ${validation.reason}`, "red", 3000);
-            }
-            return;
-        }
+                const npc = State.currentNPC;
+                if (!validation.allowed) {
+                    State.warn(`[GameActionHandler] Inspección cancelada: ${validation.reason} (${validation.code})`);
 
-        State.log(`[GameActionHandler] Ejecutando inspección de ${tool}...`);
-        const { cost: energyCost, statKey } = validation;
+                    // Mostrar feedback visual según el error
+                    switch (validation.code) {
+                        case "ANIMATING":
+                            // Si estamos aquí, es porque otra animación orquestada está corriendo, 
+                            // pero el orquestador debería prevenir esto serializando.
+                            // Aun así, mantenemos el feedback por si acaso.
+                            this.ui.showFeedback("ESPERA A QUE TERMINE LA ACCIÓN", "orange", 2500);
+                            break;
+                        case "POWER_OFF":
+                            this.ui.showFeedback("GENERADOR APAGADO: ACCIÓN IMPOSIBLE", "red", 3000);
+                            this.game.updateHUD();
+                            break;
+                        case "NO_ENERGY":
+                            this.ui.showFeedback("ENERGÍA INSUFICIENTE PARA ESTE TURNO", "yellow", 3000);
+                            if (npc) this.ui.updateInspectionTools(npc);
+                            break;
+                        case "ALREADY_DONE":
+                            this.ui.showFeedback("TEST YA REALIZADO", "yellow", 2000);
+                            if (npc) this.ui.updateInspectionTools(npc);
+                            break;
+                        case "PAUSED":
+                            State.warn("[GameActionHandler] Intento de inspección con juego pausado.");
+                            break;
+                        case "NO_NPC":
+                            State.error("[GameActionHandler] Intento de inspección sin NPC activo.");
+                            this.ui.showFeedback("ERROR: NO HAY SUJETO QUE INSPECCIONAR", "red", 3000);
+                            break;
+                        default:
+                            this.ui.showFeedback(`SISTEMA BLOQUEADO: ${validation.reason}`, "red", 3000);
+                    }
+                    resolve(); // Resolver inmediatamente si falla validación
+                    return;
+                }
 
-        // MECÁNICA PARANOIA: Probabilidad de fallo de hardware (Glitch)
-        const glitchChance = State.paranoia > 60 ? (State.paranoia - 60) / 100 : 0;
-        const isGlitch = Math.random() < glitchChance;
+                State.log(`[GameActionHandler] Ejecutando inspección de ${tool}...`);
+                const { cost: energyCost, statKey } = validation;
 
-        if (isGlitch) {
-            State.log("[GameActionHandler] GLITCH activado");
-            this.game.isAnimating = true;
-            npc.scanCount += energyCost;
-            this.ui.applyVHS(1.0, 1500);
-            this.audio.playSFXByKey('ui_hover', { volume: 0.8 }); // Sonido de error
-            this.ui.showFeedback("ERROR DE LECTURA: INTERFERENCIA EN EL SECTOR", "red");
+                // MECÁNICA PARANOIA: Probabilidad de fallo de hardware (Glitch)
+                const glitchChance = State.paranoia > 60 ? (State.paranoia - 60) / 100 : 0;
+                const isGlitch = Math.random() < glitchChance;
 
-            setTimeout(() => {
-                this.game.isAnimating = false;
+                if (isGlitch) {
+                    State.log("[GameActionHandler] GLITCH activado");
+                    this.game.isAnimating = true;
+                    npc.scanCount += energyCost;
+                    this.ui.applyVHS(1.0, 1500);
+                    this.audio.playSFXByKey('ui_hover', { volume: 0.8 }); // Sonido de error
+                    this.ui.showFeedback("ERROR DE LECTURA: INTERFERENCIA EN EL SECTOR", "red");
+
+                    setTimeout(() => {
+                        this.game.isAnimating = false;
+                        this.game.updateHUD();
+                        this.ui.hideFeedback();
+                        resolve(); // Termina el evento orquestado
+                    }, 1500);
+                    return;
+                }
+
+                this.game.isAnimating = true;
+                State.verificationsCount++;
+                npc.scanCount += energyCost;
+                this.game.mechanics.checkSecurityDegradation();
                 this.game.updateHUD();
-                this.ui.hideFeedback();
-            }, 1500);
-            return;
-        }
 
-        this.game.isAnimating = true;
-        State.verificationsCount++;
-        npc.scanCount += energyCost;
-        this.game.mechanics.checkSecurityDegradation();
-        this.game.updateHUD();
+                let result = "";
+                let color = "yellow";
+                let animDuration = 1000;
 
-        let result = "";
-        let color = "yellow";
-        let animDuration = 1000;
+                // MECÁNICA CORDURA: Alucinación de síntomas
+                // Si la cordura es baja, el resultado puede estar falseado
+                const sanityHallucinationChance = State.sanity < 40 ? (40 - State.sanity) / 100 : 0;
+                const isHallucination = Math.random() < sanityHallucinationChance;
 
-        // MECÁNICA CORDURA: Alucinación de síntomas
-        // Si la cordura es baja, el resultado puede estar falseado
-        const sanityHallucinationChance = State.sanity < 40 ? (40 - State.sanity) / 100 : 0;
-        const isHallucination = Math.random() < sanityHallucinationChance;
+                let toolValue = npc.attributes[statKey];
 
-        let toolValue = npc.attributes[statKey];
+                if (isHallucination) {
+                    State.log("[GameActionHandler] ALUCINACIÓN activada");
+                    // Generar un valor falso (si es humano, mostrar infectado; si es infectado, mostrar humano)
+                    if (npc.isInfected) {
+                        // Falso negativo (peligroso!)
+                        if (statKey === 'temperature') toolValue = (36.5 + Math.random() * 0.5).toFixed(1);
+                        else if (statKey === 'pulse') toolValue = 70 + Math.floor(Math.random() * 20);
+                        else toolValue = 'normal';
+                    } else {
+                        // Falso positivo (paranoia!)
+                        if (statKey === 'temperature') toolValue = (34 + Math.random() * 1).toFixed(1);
+                        else if (statKey === 'pulse') toolValue = 10 + Math.floor(Math.random() * 10);
+                        else toolValue = statKey === 'skinTexture' ? 'dry' : 'dilated';
+                    }
+                    this.ui.applyVHS(0.8, 2000); // Efecto visual de "distorsión mental"
+                }
 
-        if (isHallucination) {
-            State.log("[GameActionHandler] ALUCINACIÓN activada");
-            // Generar un valor falso (si es humano, mostrar infectado; si es infectado, mostrar humano)
-            if (npc.isInfected) {
-                // Falso negativo (peligroso!)
-                if (statKey === 'temperature') toolValue = (36.5 + Math.random() * 0.5).toFixed(1);
-                else if (statKey === 'pulse') toolValue = 70 + Math.floor(Math.random() * 20);
-                else toolValue = 'normal';
-            } else {
-                // Falso positivo (paranoia!)
-                if (statKey === 'temperature') toolValue = (34 + Math.random() * 1).toFixed(1);
-                else if (statKey === 'pulse') toolValue = 10 + Math.floor(Math.random() * 10);
-                else toolValue = statKey === 'skinTexture' ? 'dry' : 'dilated';
-            }
-            this.ui.applyVHS(0.8, 2000); // Efecto visual de "distorsión mental"
-        }
+                State.log(`[GameActionHandler] Ejecutando inspección con '${tool}'. Valor: ${toolValue}, Alucinación: ${isHallucination}`);
 
-        State.log(`[GameActionHandler] Ejecutando inspección con '${tool}'. Valor: ${toolValue}, Alucinación: ${isHallucination}`);
+                const animMap = {
+                    'thermometer': 'animateToolThermometer',
+                    'flashlight': 'animateToolFlashlight',
+                    'pupils': 'animateToolPupils',
+                    'pulse': 'animateToolPulse'
+                };
 
-        const animMap = {
-            'thermometer': 'animateToolThermometer',
-            'flashlight': 'animateToolFlashlight',
-            'pupils': 'animateToolPupils',
-            'pulse': 'animateToolPulse'
-        };
+                const animMethod = animMap[tool];
+                if (this.ui[animMethod]) {
+                    this.ui[animMethod](toolValue, null, npc.isInfected);
+                }
 
-        const animMethod = animMap[tool];
-        if (this.ui[animMethod]) {
-            this.ui[animMethod](toolValue, null, npc.isInfected);
-        }
+                switch (tool) {
+                    case 'thermometer':
+                        animDuration = 2200;
+                        result = `TEMP: ${toolValue}°C`;
+                        if (parseFloat(toolValue) < 35) color = State.colors.textGreen;
+                        if (!npc.revealedStats.includes('temperature')) npc.revealedStats.push('temperature');
+                        this.ui.applyVHS(0.4, 700);
+                        this.audio.playSFXByKey('tool_thermometer_beep', { volume: 0.6, priority: 2, lockMs: 2000 });
+                        break;
+                    case 'flashlight':
+                        animDuration = 900;
+                        result = `DERMIS: ${this.ui.translateValue('skinTexture', toolValue)}`;
+                        if (!npc.revealedStats.includes('skinTexture')) npc.revealedStats.push('skinTexture');
+                        this.ui.applyVHS(0.7, 900);
+                        this.audio.playSFXByKey('tool_uv_toggle', { volume: 0.6, priority: 2, lockMs: 800 });
+                        break;
+                    case 'pupils':
+                        animDuration = 2700;
+                        result = `PUPILAS: ${this.ui.translateValue('pupils', toolValue)}`;
+                        if (!npc.revealedStats.includes('pupils')) npc.revealedStats.push('pupils');
+                        this.ui.applyVHS(0.6, 800);
+                        this.audio.playSFXByKey('tool_pupils_lens', { volume: 0.6, priority: 2, lockMs: 2500 });
+                        break;
+                    case 'pulse':
+                        animDuration = 2200;
+                        result = `PULSO: ${toolValue} PPM`;
+                        if (parseInt(toolValue) < 40) color = State.colors.textRed;
+                        if (!npc.revealedStats.includes('pulse')) npc.revealedStats.push('pulse');
+                        this.ui.applyVHS(0.5, 700);
+                        this.audio.playSFXByKey('tool_pulse_sensor', { volume: 0.6, priority: 2, lockMs: 2000 });
+                        break;
+                }
 
-        switch (tool) {
-            case 'thermometer':
-                animDuration = 2200;
-                result = `TEMP: ${toolValue}°C`;
-                if (parseFloat(toolValue) < 35) color = State.colors.textGreen;
-                if (!npc.revealedStats.includes('temperature')) npc.revealedStats.push('temperature');
-                this.ui.applyVHS(0.4, 700);
-                this.audio.playSFXByKey('tool_thermometer_beep', { volume: 0.6 });
-                break;
-            case 'flashlight':
-                animDuration = 900;
-                result = `DERMIS: ${this.ui.translateValue('skinTexture', toolValue)}`;
-                if (!npc.revealedStats.includes('skinTexture')) npc.revealedStats.push('skinTexture');
-                this.ui.applyVHS(0.7, 900);
-                this.audio.playSFXByKey('tool_uv_toggle', { volume: 0.6 });
-                break;
-            case 'pupils':
-                animDuration = 2700;
-                result = `PUPILAS: ${this.ui.translateValue('pupils', toolValue)}`;
-                if (!npc.revealedStats.includes('pupils')) npc.revealedStats.push('pupils');
-                this.ui.applyVHS(0.6, 800);
-                this.audio.playSFXByKey('tool_pupils_lens', { volume: 0.6 });
-                break;
-            case 'pulse':
-                animDuration = 2200;
-                result = `PULSO: ${toolValue} PPM`;
-                if (parseInt(toolValue) < 40) color = State.colors.textRed;
-                if (!npc.revealedStats.includes('pulse')) npc.revealedStats.push('pulse');
-                this.ui.applyVHS(0.5, 700);
-                this.audio.playSFXByKey('tool_pulse_sensor', { volume: 0.6 });
-                break;
-        }
+                if (isHallucination) {
+                    this.ui.showFeedback("LECTURA INESTABLE", "rose", 2500);
+                }
 
-        if (isHallucination) {
-            this.ui.showFeedback("LECTURA INESTABLE", "rose", 2500);
-        }
+                // Bloquear el botón específico y actualizar estado de energías
+                this.ui.updateInspectionTools(npc);
 
-        // Bloquear el botón específico y actualizar estado de energías
-        this.ui.updateInspectionTools(npc);
+                setTimeout(() => {
+                    this.game.isAnimating = false;
+                    this.ui.hideFeedback();
+                    this.game.updateHUD(); // Asegurar HUD actualizado
+                    resolve(); // Termina el evento orquestado
+                }, animDuration);
 
-        setTimeout(() => {
-            this.game.isAnimating = false;
-            this.ui.hideFeedback();
-            this.game.updateHUD(); // Asegurar HUD actualizado
-        }, animDuration);
-
-        // Feedback textual ocultado para que la evidencia no sea explícita en pantalla
-        this.game.updateHUD(); // To update energy
-        if (npc.scanCount > 0) {
-            this.ui.hideOmitOption();
-        }
+                // Feedback textual ocultado para que la evidencia no sea explícita en pantalla
+                this.game.updateHUD(); // To update energy
+                if (npc.scanCount > 0) {
+                    this.ui.hideOmitOption();
+                }
+            })
+        });
     }
 
     handleDecision(action) {

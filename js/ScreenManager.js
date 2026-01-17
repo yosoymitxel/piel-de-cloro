@@ -38,7 +38,7 @@ export class ScreenManager {
             this.elements.settingsBtn.toggleClass('hidden', screenName !== 'start');
 
             // Logic 2: Sidebar only on Game, Shelter, Morgue, Room, Generator, Database, Log, Map, Meditation, Supplies
-            const showSidebar = ['game', 'shelter', 'morgue', 'room', 'generator', 'database', 'log', 'map', 'meditation', 'supplies-hub'].includes(screenName);
+            const showSidebar = ['game', 'shelter', 'morgue', 'room', 'generator', 'database', 'log', 'map', 'meditation', 'supplies-hub', 'fuel-room'].includes(screenName);
             this.elements.sidebar.toggleClass('hidden', !showSidebar);
 
             // Toggle finalize button visibility in Shelter
@@ -120,7 +120,8 @@ export class ScreenManager {
             map: '#nav-map',
             log: '#btn-open-log',
             meditation: '#map-node-meditacion', // Highlight in map node or sidebar pin
-            'supplies-hub': '#map-node-suministros'
+            'supplies-hub': '#map-node-suministros',
+            'fuel-room': '#map-node-fuel'
         };
         const activeNav = navMap[screenName];
         if (activeNav) $(activeNav).addClass('active');

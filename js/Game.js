@@ -6,8 +6,12 @@ import { AudioManager } from './AudioManager.js';
 import { GameActionHandler } from './GameActionHandler.js';
 import { GameMechanicsManager } from './GameMechanicsManager.js';
 import { GameEventManager } from './GameEventManager.js';
+import { EventOrchestrator } from './EventOrchestrator.js';
 import { GameEndingManager } from './GameEndingManager.js';
 import { RandomEventManager } from './RandomEventManager.js';
+import { AssignmentManager } from './AssignmentManager.js';
+import { GameLoopManager } from './GameLoopManager.js';
+import { RenderManager } from './RenderManager.js';
 import { CONSTANTS } from './Constants.js';
 import { DialogueData } from './DialogueData.js';
 
@@ -19,17 +23,22 @@ class Game {
         State.reset(); // Inicializar el estado global del juego
 
         this.ui = dependencies.ui || new UIManager(this.audio, { game: this });
+        this.renderManager = new RenderManager(this.ui);
         this.stats = dependencies.stats || new StatsManager();
         this.isAnimating = false; // Bloquear acciones durante animaciones
+
+        this.loopManager = new GameLoopManager(this);
 
         this.applySavedAudioSettings();
 
         // Modules initialization (Phase 2 & 3)
+        this.orchestrator = new EventOrchestrator(this); // Init Orchestrator
         this.mechanics = new GameMechanicsManager(this);
         this.actions = new GameActionHandler(this);
         this.events = new GameEventManager(this);
         this.endings = new GameEndingManager(this);
         this.randomEvents = new RandomEventManager(this);
+        this.assignments = new AssignmentManager(this);
 
         this.events.bindAll();
         this.audio.loadManifest('assets/audio/audio_manifest.json');
@@ -101,9 +110,12 @@ class Game {
 
     startGame() {
         // En lugar de empezar directo, mostramos el tutorial inicial
+        this.mechanics.calculateTotalLoad(); // Ensure load is calculated
         this.ui.showScreen('game');
         this.ui.elements.modalTutorial.removeClass('hidden').addClass('flex');
         this.audio.playAmbientByKey('ambient_main_loop', { loop: true, volume: 0.28, fadeIn: 800 });
+        
+        this.loopManager.start();
     }
 
     startFirstDay() {
@@ -125,7 +137,31 @@ class Game {
         State.endingTriggered = false;
         State.nightPurgePerformed = false;
         State.generatorCheckedThisTurn = false;
-        State.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
+        State.generator = { 
+            isOn: true, 
+            mode: 'normal', 
+            power: 100, 
+            blackoutUntil: 0, 
+            overclockCooldown: false, 
+            emergencyEnergyGranted: false, 
+            maxModeCapacityReached: 2, 
+            restartLock: false,
+            load: 0,
+            baseConsumption: 5,
+            stability: 100,
+            overloadTimer: 0,
+            systems: {
+                security: { load: 15, active: true, label: 'Seguridad' },
+                lighting: { load: 10, active: true, label: 'Iluminación' },
+                lifeSupport: { load: 20, active: true, label: 'Soporte Vital' },
+                shelterLab: { load: 25, active: false, label: 'Laboratorio' }
+            },
+            assignedGuardId: null,
+            guardShiftLogs: [] // Legacy, but kept for safety until full migration
+        };
+        
+        // Calculate initial load immediately to ensure UI is correct
+        this.mechanics.calculateTotalLoad();
 
         this.isAnimating = false;
         this.ui.resetUI();
@@ -166,6 +202,8 @@ class Game {
         $('body').removeClass('paused');
         $('#screen-game').removeClass('is-paused');
         $('#modal-pause').addClass('hidden').removeClass('flex');
+
+        this.loopManager.stop();
 
         this.ui.showScreen('start');
         this.audio.stopAmbient({ fadeOut: 800 });
@@ -269,6 +307,21 @@ class Game {
     updateHUD() {
         this.ui.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC, State.supplies);
         this.ui.updateRunStats(State);
+    }
+
+    update(deltaTime) {
+        // Core game update loop
+        if (State.paused) return;
+        
+        State.update(deltaTime);
+        
+        // Future: Update managers that need time-based logic
+        // this.mechanics.update(deltaTime);
+        // this.orchestrator.update(deltaTime);
+    }
+
+    render(deltaTime) {
+        this.renderManager.render(deltaTime);
     }
 
     syncAudioPersistence() {

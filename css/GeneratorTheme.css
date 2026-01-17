@@ -10,6 +10,14 @@
     --switch-red-glow: rgba(204, 0, 0, 0.6);
 }
 
+.bg-terminal-green {
+    background-color: var(--terminal-green) !important;
+}
+
+.text-terminal-green {
+    color: var(--terminal-green) !important;
+}
+
 /* CRT Monitor Simulation */
 #screen-generator {
     background: #0a0f0a;

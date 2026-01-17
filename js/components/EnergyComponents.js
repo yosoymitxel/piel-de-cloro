@@ -133,13 +133,25 @@ export class GenStationComponent extends BaseComponent {
         const dotsContainer = this.container.find('#comp-gen-energy-dots');
         dotsContainer.empty();
 
+        // Determine color based on mode
+        let dotColorClass = 'bg-terminal-green shadow-[0_0_6px_#00ff41]'; // Normal
+        if (mode === 'save') dotColorClass = 'bg-[#00ced1] shadow-[0_0_6px_#00ced1]';
+        else if (mode === 'overload') dotColorClass = 'bg-[#ffaa00] shadow-[0_0_6px_#ffaa00]';
+
         for (let i = 0; i < maxEnergy; i++) {
             const isActive = i < currentEnergy;
-            const dot = $(`<div class="w-3 h-3 rounded-full ${isActive ? 'bg-cyan-400 shadow-[0_0_6px_cyan]' : 'bg-gray-700 border border-gray-600'}"></div>`);
+            const dot = $(`<div class="w-3 h-3 rounded-full ${isActive ? dotColorClass : 'bg-gray-700 border border-gray-600'}"></div>`);
             dotsContainer.append(dot);
         }
 
         // Update text
-        this.container.find('#comp-gen-tests-text').text(`${currentEnergy} TST`);
+        const textEl = this.container.find('#comp-gen-tests-text');
+        textEl.text(`${currentEnergy} TST`);
+        
+        // Update text color too
+        textEl.removeClass('text-cyan-400 text-[#00ced1] text-[#ffaa00] text-terminal-green');
+        if (mode === 'save') textEl.addClass('text-[#00ced1]');
+        else if (mode === 'overload') textEl.addClass('text-[#ffaa00]');
+        else textEl.addClass('text-terminal-green');
     }
 }

@@ -36,7 +36,8 @@ describe('Lore Danger System Deep Tests', () => {
             animate: jest.fn().mockReturnThis(),
             stop: jest.fn().mockReturnThis(),
             length: 1,
-            val: jest.fn().mockReturnThis()
+            val: jest.fn().mockReturnThis(),
+            each: jest.fn(function(cb) { cb(0, this); return this; }) // Added each
         };
         global.$ = jest.fn().mockReturnValue(chainable);
 

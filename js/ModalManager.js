@@ -238,7 +238,11 @@ export class ModalManager {
 
     updateModalStatus(npc, allowPurge, state) {
         if (allowPurge) {
-            this.elements.modalStatus.text("EN REFUGIO").css('color', '#fff');
+            if (npc.assignedSector) {
+                this.elements.modalStatus.text(`ASIGNADO: ${npc.assignedSector.toUpperCase()}`).css('color', '#00ff41'); // Terminal Green
+            } else {
+                this.elements.modalStatus.text("EN REFUGIO").css('color', '#fff');
+            }
         } else {
             let statusText = 'POR DETERMINAR';
             let color = State.colors.textGray;

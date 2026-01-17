@@ -127,6 +127,15 @@ const createJQueryMock = () => {
         append: jest.fn().mockReturnThis(),
         css: jest.fn().mockReturnThis(),
         find: jest.fn().mockReturnThis(),
+        closest: jest.fn().mockReturnThis(),
+        parent: jest.fn().mockReturnThis(),
+        remove: jest.fn().mockReturnThis(),
+        one: jest.fn().mockReturnThis(),
+        each: jest.fn().mockImplementation((fn) => {
+             // Mock executing the callback once
+             if (typeof fn === 'function') fn(0, {});
+             return this;
+        }),
         hide: jest.fn().mockReturnThis(),
         show: jest.fn().mockReturnThis(),
         fadeIn: jest.fn().mockReturnThis(),

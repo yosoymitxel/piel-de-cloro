@@ -10,11 +10,32 @@ describe('NPC Sabotage & Sector Assignment', () => {
         const mockAudio = { playSFXByKey: jest.fn(), stopLore: jest.fn() };
         const mockUI = { showFeedback: jest.fn(), updateHUD: jest.fn() };
         mechanics = new GameMechanicsManager({ ui: mockUI, audio: mockAudio });
-        mechanics.game = { updateHUD: jest.fn() };
+        mechanics.game = { 
+            updateHUD: jest.fn(),
+            assignments: {
+                assign: jest.fn((id, s) => {
+                    // Simple mock for test
+                    const n = State.admittedNPCs.find(x => x.id === id);
+                    if (n) {
+                        // Update new structure
+                        if (!State.assignments[s]) State.assignments[s] = { slots: 1, occupants: [] };
+                        State.assignments[s].occupants.push(id);
+                        
+                        // Update legacy structure (if needed by other parts of test)
+                        if (!State.sectorAssignments[s]) State.sectorAssignments[s] = [];
+                        State.sectorAssignments[s].push(id);
+                        
+                        n.assignedSector = s;
+                    }
+                }),
+                updateShifts: jest.fn()
+            }
+        };
     });
 
     test('Should assign NPC to a sector', () => {
         const npc = new NPC();
+        State.admittedNPCs.push(npc);
         mechanics.assignNPCToSector(npc, 'generator');
         expect(npc.assignedSector).toBe('generator');
         expect(State.sectorAssignments.generator).toContain(npc.id);

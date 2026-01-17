@@ -28,6 +28,7 @@ describe('Generator Core Overhaul Tests', () => {
     test('calculateTotalLoad sums base consumption and active systems', () => {
         State.generator.isOn = true;
         State.generator.baseConsumption = 10;
+        State.generator.mode = 'normal'; // +10
         State.generator.bloodTestCountdown = 0;
         State.paranoia = 0;
         State.sanity = 100;
@@ -39,13 +40,14 @@ describe('Generator Core Overhaul Tests', () => {
 
         const total = mechanics.calculateTotalLoad();
 
-        // 10 (base) + 15 (sec) + 10 (light) = 35
-        expect(total).toBe(35);
+        // 10 (base) + 10 (mode) + 15 (sec) + 10 (light) = 45
+        expect(total).toBe(45);
     });
 
     test('calculateTotalLoad includes blood test spikes', () => {
         State.generator.isOn = true;
         State.generator.baseConsumption = 10;
+        State.generator.mode = 'normal'; // +10
         State.generator.bloodTestCountdown = 2; // Spike of 45
         State.paranoia = 0;
         State.sanity = 100;
@@ -55,13 +57,14 @@ describe('Generator Core Overhaul Tests', () => {
 
         const total = mechanics.calculateTotalLoad();
 
-        // 10 (base) + 45 (spike) = 55
-        expect(total).toBe(55);
+        // 10 (base) + 10 (mode) + 45 (spike) = 65
+        expect(total).toBe(65);
     });
 
     test('calculateTotalLoad handles high paranoia stress', () => {
         State.generator.isOn = true;
         State.generator.baseConsumption = 10;
+        State.generator.mode = 'normal'; // +10
         State.paranoia = 90; // +5 stress
         State.sanity = 100;
         State.generator.bloodTestCountdown = 0;
@@ -70,8 +73,8 @@ describe('Generator Core Overhaul Tests', () => {
 
         const total = mechanics.calculateTotalLoad();
 
-        // 10 (base) + 5 (paranoia) = 15
-        expect(total).toBe(15);
+        // 10 (base) + 10 (mode) + 5 (paranoia) = 25
+        expect(total).toBe(25);
     });
 
     test('updateGenerator decreases stability on overload', () => {

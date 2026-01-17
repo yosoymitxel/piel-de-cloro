@@ -114,6 +114,10 @@ export class GameMechanicsManager {
 
         let total = State.generator.baseConsumption || 0;
 
+        // Mode Consumption Modifier (Make modes consume battery faster)
+        const modeConsumption = { 'save': 0, 'normal': 10, 'overload': 30 };
+        total += modeConsumption[State.generator.mode] || 0;
+
         // Efecto del Guardia: Reduce consumo base si está asignado y saludable
         if (State.generator.assignedGuardId) {
             total -= 5; // Optimización de mantenimiento
@@ -140,6 +144,10 @@ export class GameMechanicsManager {
 
     updateGenerator() {
         if (State.paused) return;
+        
+        // Ensure strictly within bounds
+        State.generator.power = Math.min(100, Math.max(0, State.generator.power));
+
         if (!State.generator.isOn) {
             State.generator.load = 0;
             return;
@@ -259,7 +267,7 @@ export class GameMechanicsManager {
         }
 
         State.generator.mode = newMode;
-        State.generator.power = powerMap[newMode];
+        // REMOVED: State.generator.power = powerMap[newMode]; // Battery level should not jump visually
         State.generator.maxModeCapacityReached = Math.max(currentMax, newCap);
 
         this.ui.showFeedback(`PROTOCOLO ${newMode.toUpperCase()} CARGADO`, "green", 3000);
@@ -333,22 +341,30 @@ export class GameMechanicsManager {
 
     assignGuardToGenerator(npcId) {
         if (!npcId) {
-            State.generator.assignedGuardId = null;
-            this.ui.showFeedback("GENERADOR SIN GUARDIA", "yellow");
+            // Unassign logic handled by AssignmentManager if we use it directly, 
+            // but for backward compatibility/direct call:
+            if (this.game && this.game.assignments) {
+                this.game.assignments.unassign('generator');
+            } else {
+                 State.generator.assignedGuardId = null;
+                 this.ui.showFeedback("GENERADOR SIN GUARDIA", "yellow");
+            }
             return;
         }
 
-        const npc = State.admittedNPCs.find(n => n.id === npcId);
-        if (!npc) return;
-
-        State.generator.assignedGuardId = npcId;
-        this.ui.showFeedback(`GUARDIA ASIGNADO: ${npc.name}`, "green");
-
-        // Registrar log inicial
-        this.processGuardEffects(true);
-
-        this.ui.renderGeneratorRoom();
-        this.ui.updateEnergyHUD();
+        if (this.game && this.game.assignments) {
+            // Fix: pass ID string, not object
+            this.game.assignments.assign(npcId, 'generator'); 
+        } else {
+            // Fallback
+            const npc = State.admittedNPCs.find(n => n.id === npcId);
+            if (!npc) return;
+            State.generator.assignedGuardId = npcId;
+            this.ui.showFeedback(`GUARDIA ASIGNADO: ${npc.name}`, "green");
+            this.processGuardEffects(true);
+            this.ui.renderGeneratorRoom();
+            this.ui.updateEnergyHUD();
+        }
     }
 
     processGuardEffects(initial = false) {
@@ -381,14 +397,18 @@ export class GameMechanicsManager {
             message = `Estado nominal. Carga actual: ${Math.floor((State.generator.load / State.generator.capacity) * 100)}%. Batería: ${Math.floor(State.generator.power)}%`;
         }
 
-        if (!State.generator.guardShiftLogs) State.generator.guardShiftLogs = [];
-        State.generator.guardShiftLogs.push(`[${time}] ${npc.name}: ${message}`);
-        if (State.generator.guardShiftLogs.length > 5) State.generator.guardShiftLogs.shift();
+        // Use unified roomLogs system via State helper
+        State.addSectorLog('generator', message, npc.name);
     }
 
     manualEmergencyCharge() {
         if (State.supplies < 3) {
             this.ui.showFeedback("SUMINISTROS INSUFICIENTES (Req: 3)", "red");
+            return;
+        }
+
+        if (State.generator.power >= 100) {
+            this.ui.showFeedback("BATERÍA AL MÁXIMO", "yellow");
             return;
         }
 
@@ -726,6 +746,11 @@ export class GameMechanicsManager {
     }
 
     updateTurnEndSystems() {
+        // 0. Update Assignment Shifts (Logs)
+        if (this.game.assignments) {
+            this.game.assignments.updateShifts();
+        }
+
         // 1. Procesar Blood Analyzer
         if (State.generator.bloodTestCountdown > 0) {
             State.generator.bloodTestCountdown--;
@@ -747,38 +772,59 @@ export class GameMechanicsManager {
     }
 
     assignNPCToSector(npc, sector) {
-        if (!State.sectorAssignments[sector]) State.sectorAssignments[sector] = [];
-
-        // Quitar de otros sectores
-        Object.keys(State.sectorAssignments).forEach(s => {
-            const idx = State.sectorAssignments[s].indexOf(npc.id);
-            if (idx > -1) State.sectorAssignments[s].splice(idx, 1);
-        });
-
-        State.sectorAssignments[sector].push(npc.id);
-        npc.assignedSector = sector;
-
-        // UNIFY: If assigned to generator, update generator property
-        if (sector === 'generator') {
-            State.generator.assignedGuardId = npc.id;
-        } else if (State.generator.assignedGuardId === npc.id) {
-            // If it was the guard but moved to another sector, clear guard
-            State.generator.assignedGuardId = null;
+        if (this.game.assignments) {
+            this.game.assignments.assign(npc.id, sector);
+        } else {
+            console.error("AssignmentManager not initialized");
+            // Fallback (legacy)
+            if (!State.sectorAssignments[sector]) State.sectorAssignments[sector] = [];
+            Object.keys(State.sectorAssignments).forEach(s => {
+                const idx = State.sectorAssignments[s].indexOf(npc.id);
+                if (idx > -1) State.sectorAssignments[s].splice(idx, 1);
+            });
+            State.sectorAssignments[sector].push(npc.id);
+            npc.assignedSector = sector;
+            if (sector === 'generator') {
+                State.generator.assignedGuardId = npc.id;
+            } else if (State.generator.assignedGuardId === npc.id) {
+                State.generator.assignedGuardId = null;
+            }
         }
     }
 
     processSectorSabotages() {
         let sabotageHappened = false;
-        Object.keys(State.sectorAssignments).forEach(sector => {
-            const assignedIds = State.sectorAssignments[sector];
-            assignedIds.forEach(id => {
-                const npc = State.admittedNPCs.find(n => n.id === id);
-                if (npc && npc.isInfected && Math.random() < 0.15) { // 15% prob de sabotaje por infectado
-                    sabotageHappened = true;
-                    this.triggerSabotage(sector, npc);
-                }
+        
+        // Use new Assignments system if available
+        if (State.assignments) {
+            Object.keys(State.assignments).forEach(sector => {
+                const data = State.assignments[sector];
+                // Skip if data is malformed (should contain occupants)
+                if (!data || !data.occupants) return;
+                
+                const assignedIds = data.occupants;
+                assignedIds.forEach(id => {
+                    const npc = State.admittedNPCs.find(n => n.id === id);
+                    if (npc && npc.isInfected && Math.random() < 0.15) { // 15% prob de sabotaje por infectado
+                        sabotageHappened = true;
+                        this.triggerSabotage(sector, npc);
+                    }
+                });
             });
-        });
+        } else {
+            // Legacy Fallback
+            Object.keys(State.sectorAssignments).forEach(sector => {
+                const assignedIds = State.sectorAssignments[sector];
+                assignedIds.forEach(id => {
+                    const npc = State.admittedNPCs.find(n => n.id === id);
+                    if (npc && npc.isInfected && Math.random() < 0.15) { // 15% prob de sabotaje por infectado
+                        sabotageHappened = true;
+                        this.triggerSabotage(sector, npc);
+                    }
+                });
+            });
+        }
+        
         return sabotageHappened;
     }
 
@@ -916,6 +962,7 @@ export class GameMechanicsManager {
                 const idx = State.admittedNPCs.indexOf(guard);
                 if (idx > -1) {
                     State.admittedNPCs.splice(idx, 1);
+                    State._unassignFromAll(guard);
                     guard.death = { reason: `combate contra intruso (${via.type})`, cycle: State.cycle, revealed: true };
                     State.purgedNPCs.push(guard);
 
@@ -970,6 +1017,7 @@ export class GameMechanicsManager {
         npc.history.push({ text: logMessage, type: 'warning' });
         npc.purgeLockedUntil = State.cycle + 1;
         State.addLogEntry('system', `ALERTA: ${logMessage}`);
+        State.addSectorLog('security', logMessage, 'ALERTA');
         State.addAdmitted(npc);
 
         this.audio.playSFXByKey('intrusion_detected', { volume: 0.6, priority: 1 });
@@ -1084,6 +1132,7 @@ export class GameMechanicsManager {
             const idx = State.admittedNPCs.indexOf(npc);
             if (idx > -1) {
                 State.admittedNPCs.splice(idx, 1);
+                State._unassignFromAll(npc); // Ensure clean removal from posts
                 npc.death = { reason: 'muerto en expedición externa (suministros)', cycle: State.cycle, revealed: true };
                 State.purgedNPCs.push(npc);
 
@@ -1172,6 +1221,7 @@ export class GameMechanicsManager {
             const idx = State.admittedNPCs.indexOf(npc);
             if (idx > -1) {
                 State.admittedNPCs.splice(idx, 1);
+                State._unassignFromAll(npc); // Ensure clean removal from posts
                 npc.death = { reason: 'muerto extrayendo combustible (letalidad alta)', cycle: State.cycle, revealed: true };
                 State.purgedNPCs.push(npc);
 
@@ -1194,6 +1244,8 @@ export class GameMechanicsManager {
         if (item.type === 'alarma') this.audio.playSFXByKey('alarm_deactivate', { volume: 0.6, priority: 1 });
         if (item.type === 'puerta') this.audio.playSFXByKey('door_unsecure', { volume: 0.6, priority: 1 });
         if (item.type === 'ventana') this.audio.playSFXByKey('window_unsecure', { volume: 0.6, priority: 1 });
+
+        State.addSectorLog('security', `SISTEMA COMPROMETIDO: ${item.type.toUpperCase()} DESACTIVADO.`, 'SISTEMA');
 
         this.ui.updateSecurityNavStatus(State.securityItems);
 

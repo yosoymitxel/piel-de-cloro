@@ -53,16 +53,25 @@ describe('Energy, Battery & Guard System', () => {
     });
 
     test('Should calculate total load including systems and base consumption', () => {
+        State.generator.isOn = true;
+        State.generator.systems.security.active = true; // 15 (default load is 15 in State.js? No, test setup?)
+        // Let's check test setup or assumptions.
+        // In this test file, usually we mock or rely on defaults. 
+        // State.js defaults: security: 15, lighting: 10, lifeSupport: 20, shelterLab: 25.
+        // But here we might be mocking systems.
+        
+        // Setup specific systems for control
         State.generator.systems = {
             sys1: { active: true, load: 10 },
             sys2: { active: false, load: 20 },
             sys3: { active: true, load: 5 }
         };
         State.generator.baseConsumption = 5;
+        State.generator.mode = 'normal'; // +10
 
-        // Base 5 + Sys1 10 + Sys3 5 = 20
+        // Base 5 + Mode 10 + Sys1 10 + Sys3 5 = 30
         const load = mechanics.calculateTotalLoad();
-        expect(load).toBe(20);
+        expect(load).toBe(30);
     });
 
     test('Should drain battery based on load when updating generator', () => {
@@ -88,28 +97,29 @@ describe('Energy, Battery & Guard System', () => {
     });
 
     test('Should assign guard and log basic report', () => {
-        const npc = new NPC('John Doe');
-        npc.id = 'npc_1';
+        const npc = { id: 'npc_1', name: 'Guardia 1', isInfected: false };
         State.admittedNPCs = [npc];
-
+        
+        // Use unified assignment system if available, else manual
+        // The manager should handle it.
         mechanics.assignGuardToGenerator('npc_1');
 
         expect(State.generator.assignedGuardId).toBe('npc_1');
-        expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining('GUARDIA ASIGNADO'), 'green');
-        expect(State.generator.guardShiftLogs.length).toBeGreaterThan(0);
+        expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining('GUARDIA ASIGNADO'), 'green');   
+        
+        // Logs moved to State.roomLogs.generator
+        expect(State.roomLogs.generator.length).toBeGreaterThan(0);
     });
 
     test('Should reduce base consumption when guard is assigned', () => {
-        const npc = new NPC('Guard');
-        npc.id = 'g1';
-        State.admittedNPCs = [npc];
-        State.generator.assignedGuardId = 'g1';
         State.generator.baseConsumption = 10;
-        State.generator.systems = {}; // No extra systems
+        State.generator.systems = {};
+        State.generator.mode = 'normal'; // +10
+        State.generator.assignedGuardId = 'npc_1'; // Simulate assigned
 
         const load = mechanics.calculateTotalLoad();
-        // Base 10 - Guard 5 = 5
-        expect(load).toBe(5);
+        // Base 10 + Mode 10 - Guard 5 = 15
+        expect(load).toBe(15);
     });
 
     test('Emergency charge should consume supplies and add battery', () => {
@@ -147,17 +157,23 @@ describe('Energy, Battery & Guard System', () => {
     });
 
     test('Guard sabotage (Infected) should drain extra battery', () => {
-        const npc = new NPC('Infected Guard');
-        npc.id = 'infected_1';
-        npc.isInfected = true; // infected
+        const npc = { id: 'npc_inf', name: 'InfectedGuard', isInfected: true };
         State.admittedNPCs = [npc];
-        State.generator.assignedGuardId = 'infected_1';
         State.generator.power = 50;
+        State.generator.assignedGuardId = 'npc_inf';
 
-        mechanics.processGuardEffects(false); // Not initial
+        // Initial assignment shouldn't drain immediately or maybe it does? 
+        // Logic says: if (!initial) drain. assignGuardToGenerator calls processGuardEffects(true) -> initial=true.
+        mechanics.assignGuardToGenerator('npc_inf');
+        expect(State.generator.power).toBe(50); 
+
+        // Manually trigger effect (simulate turn update or periodic check)
+        mechanics.processGuardEffects(false);
 
         // Should drain extra 2 units
         expect(State.generator.power).toBe(48);
-        expect(State.generator.guardShiftLogs[0]).toMatch(/Bobina|Moscas|Estable|conducto|dial|carga|control/i); // Lies
+        
+        // Check logs in new location
+        expect(State.roomLogs.generator[0].message).toMatch(/Bobina|Moscas|Estable|conducto|dial|carga|control/i); // Lies
     });
 });

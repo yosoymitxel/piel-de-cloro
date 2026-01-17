@@ -12,7 +12,8 @@ beforeAll(async () => {
                 html(h) { if (h === undefined) return this._html; this._html = h; return this; },
                 on(evt, h) { if (evt === 'click') this._click = h; return this; },
                 addClass() { return this; },
-                removeClass() { return this; }
+                removeClass() { return this; },
+                is() { return true; } // Added mock
             };
             return obj;
         }
@@ -26,6 +27,7 @@ beforeAll(async () => {
                     _children: [],
                     _inner: '',
                     _text: '',
+                    is() { return true; }, // Added mock
                     html(h) {
                         if (h === undefined) {
                             if (this._html && this._html.includes('<span class="npc-text"></span>')) {
