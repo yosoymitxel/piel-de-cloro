@@ -33,10 +33,13 @@ describe('Random Event Mechanics', () => {
 
     test('cloro_leak affects state correctly', () => {
         const event = eventManager.events.find(e => e.id === 'cloro_leak');
+        State.paranoia = 0;
+        State.sanity = 100;
+
         event.action();
 
-        expect(State.paranoia).toBe(12);
-        expect(State.sanity).toBe(92);
+        expect(State.paranoia).toBe(14); // 0 + (12 * 1.2) = 14
+        expect(State.sanity).toBe(90); // 100 + (-8 * 1.25) = 90
     });
 
     test('generator_boost increases power', () => {

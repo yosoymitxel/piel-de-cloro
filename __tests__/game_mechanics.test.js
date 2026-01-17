@@ -94,8 +94,9 @@ describe('Game Mechanics Manager', () => {
             const initialParanoia = State.paranoia;
 
             gmm.calculatePurgeConsequences(human);
-
-            expect(State.paranoia).toBe(initialParanoia + 20);
+            
+            // 20 * 1.2 = 24
+            expect(State.paranoia).toBe(initialParanoia + 24);
             expect(uiMock.showMessage).toHaveBeenCalledWith(expect.stringContaining("PURGADO A UN HUMANO"), null, 'warning');
         });
 
@@ -147,8 +148,10 @@ describe('Game Mechanics Manager', () => {
 
             gmm.sleep();
 
-            // 50 - 15 (because civilians > infected)
-            expect(State.paranoia).toBe(35);
+            // 50 - 15 (base -10, bonus -5). 
+            // updateParanoia(-15) -> -15 * 0.9 = -13.5 -> -14.
+            // 50 - 14 = 36.
+            expect(State.paranoia).toBe(36);
             expect(uiMock.showLore).toHaveBeenCalledWith('night_tranquil', expect.any(Function));
             spy.mockRestore();
         });

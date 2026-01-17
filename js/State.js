@@ -143,7 +143,11 @@ export const State = {
     },
 
     updateParanoia(amount) {
-        this.paranoia = Math.max(0, Math.min(100, this.paranoia + amount));
+        // Aumentar dificultad: Si se gana paranoia (amount > 0), se gana un 20% más.
+        // Si se reduce paranoia (amount < 0), se reduce un 10% menos.
+        const modifier = amount > 0 ? 1.2 : 0.9;
+        const finalAmount = Math.floor(amount * modifier);
+        this.paranoia = Math.max(0, Math.min(100, this.paranoia + finalAmount));
 
         // La paranoia alta ya no drena la cordura directamente de forma lineal
         // sino que aumenta la dificultad de mantenerla (se gestiona en GameMechanicsManager)
@@ -155,8 +159,10 @@ export const State = {
     },
 
     updateSanity(amount) {
-        // La cordura es más difícil de recuperar que la paranoia
-        const finalAmount = amount > 0 ? amount * 0.8 : amount;
+        // Aumentar dificultad: Si se pierde cordura (amount < 0), se pierde un 25% más.
+        // Si se gana cordura (amount > 0), se gana solo el 70% (antes 80%).
+        const modifier = amount < 0 ? 1.25 : 0.7;
+        const finalAmount = Math.floor(amount * modifier);
         this.sanity = Math.max(0, Math.min(100, this.sanity + finalAmount));
 
         if (typeof document !== 'undefined') {
@@ -503,6 +509,26 @@ export const State = {
     },
 
     getRandomRumor() {
+        // 1. Lore-specific rumors based on flags
+        if (this.hasFlag('known_mother') && Math.random() > 0.7) {
+             return "Dicen que la Madre duerme bajo el hielo... y que sueña con nosotros.";
+        }
+        if (this.hasFlag('known_heartbeat') && Math.random() > 0.7) {
+             return "Algunos oyen latidos en las tuberías por la noche. Como un corazón gigante.";
+        }
+        if (this.hasFlag('known_deep_well') && Math.random() > 0.7) {
+             return "El Pozo Profundo no tiene fondo. Lo que cae allí, nunca deja de caer.";
+        }
+        if (this.hasFlag('known_kystra') && Math.random() > 0.7) {
+             return "Kystra no desapareció. Se convirtió en parte de la estación.";
+        }
+        if (this.hasFlag('rumour_sector_zero') && Math.random() > 0.7) {
+             return "Hay un Sector 0. Un núcleo original. Dicen que allí el tiempo no pasa.";
+        }
+        if (this.hasFlag('rumour_white_silence') && Math.random() > 0.7) {
+             return "El Silencio Blanco... una frecuencia que anula el ruido de la Colmena. ¿Mito o realidad?";
+        }
+
         const mem = this.dialogueMemory || [];
         if (!mem.length) return '';
         // Build a human-friendly rumor using fragments; prefer entries with npc names

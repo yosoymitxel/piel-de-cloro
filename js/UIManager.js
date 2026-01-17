@@ -11,11 +11,13 @@ import { ToolsRenderer } from './ToolsRenderer.js';
 import { parseDialogueMarkup, escapeHtml } from './markup.js';
 import { StatComponent } from './components/StatComponent.js';
 import { GenLoadComponent, GenBatteryComponent, GenStationComponent } from './components/EnergyComponents.js';
+import { UIGlitchComponent } from './components/UIGlitchComponent.js';
 
 export class UIManager {
     constructor(audio = null, customModules = {}) {
         this.audio = audio;
         this.game = customModules.game || null;
+        this.glitch = new UIGlitchComponent(this); // Initialize new component
         this.screens = {
             start: $('#screen-start'),
             game: $('#screen-game'),
@@ -865,6 +867,11 @@ export class UIManager {
             this.components.genLoad.update(State);
             this.components.genBattery.update(State);
             this.components.genStation.update(State);
+        }
+
+        // --- UI HALLUCINATIONS & PARANOIA EFFECTS ---
+        if (this.glitch) {
+            this.glitch.update(State);
         }
 
         // Global Effects (Vignette & Filters) relative to Sanity/Paranoia

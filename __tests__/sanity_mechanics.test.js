@@ -36,7 +36,7 @@ describe('Sanity Mechanics', () => {
 
     test('updateSanity modifies state within bounds', () => {
         State.updateSanity(-20);
-        expect(State.sanity).toBe(80);
+        expect(State.sanity).toBe(75); // 100 + floor(-20 * 1.25) = 75
         
         State.updateSanity(-100);
         expect(State.sanity).toBe(0);
@@ -56,7 +56,7 @@ describe('Sanity Mechanics', () => {
         const humanNPC = { name: 'Test Human', isInfected: false };
         mechanics.calculatePurgeConsequences(humanNPC);
         
-        expect(State.sanity).toBe(85); // 100 - 15
+        expect(State.sanity).toBe(81); // 100 + floor(-15 * 1.25) = 100 - 19 = 81
         expect(uiMock.showMessage).toHaveBeenCalledWith(expect.stringContaining('CORDURA DISMINUYE'), null, 'warning');
     });
 
@@ -65,7 +65,7 @@ describe('Sanity Mechanics', () => {
         const infectedNPC = { name: 'Test Infected', isInfected: true };
         mechanics.calculatePurgeConsequences(infectedNPC);
         
-        expect(State.sanity).toBe(54); // 50 + (5 * 0.8) = 54
+        expect(State.sanity).toBe(53); // 50 + floor(5 * 0.7) = 53
         expect(uiMock.showMessage).toHaveBeenCalledWith(expect.stringContaining('ESTABILIZA'), null, 'normal');
     });
 });

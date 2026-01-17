@@ -159,6 +159,11 @@ export class NPC {
     }
 
     pickTrait() {
+        // Trait catastrófico para anomalías o late game
+        const catastrophic = { id: 'catastrophic_anomaly', name: 'Anomalía Catastrófica', description: 'Drena cordura y recursos masivamente. Peligro extremo.' };
+
+        if (this.isLore) return catastrophic;
+
         const traits = [
             { id: 'scavenger', name: 'Recolector', description: 'Puede encontrar suministros extra (1-5) durante la noche.' },
             { id: 'optimist', name: 'Optimista', description: 'Reduce la paranoia colectiva en un 10% cada noche.' },
@@ -167,7 +172,15 @@ export class NPC {
             { id: 'tough', name: 'Resistente', description: 'Más difícil de eliminar en eventos nocturnos.' },
             { id: 'none', name: 'Ninguno', description: 'No tiene rasgos especiales.' }
         ];
-        // 70% chance of having a trait
+
+        // Probabilidad de anomalía aumenta con los ciclos (días)
+        // A partir del día 5, empieza a haber riesgo.
+        const cycle = (typeof State !== 'undefined') ? State.cycle : 1;
+        const anomalyChance = Math.max(0, (cycle - 5) * 0.05); // Día 5: 0%, Día 10: 25%, Día 15: 50%
+        
+        if (Math.random() < anomalyChance) return catastrophic;
+
+        // 70% chance of having a trait (or none)
         if (Math.random() > 0.7) return traits.find(t => t.id === 'none');
         return traits[Math.floor(Math.random() * (traits.length - 1))];
     }

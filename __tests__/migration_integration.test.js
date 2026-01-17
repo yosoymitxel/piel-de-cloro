@@ -277,7 +277,8 @@ describe('Migration Integration Testing Suite', () => {
     test('Integration: Paranoia and UI Updates', () => {
         // Simular diálogo que incremente paranoia
         State.updateParanoia(50);
-        expect(State.paranoia).toBe(50);
+        // 50 * 1.2 = 60
+        expect(State.paranoia).toBe(60);
         
         // Verificar que el UIManager se llamó para actualizar la UI (indirectamente vía updateStats o similar)
         game.ui.updateStats();

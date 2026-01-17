@@ -71,7 +71,10 @@ describe('Night Resolution System', () => {
         expect(State.admittedNPCs[0].name).toBe('Killer');
         expect(State.purgedNPCs.length).toBe(1);
         expect(State.purgedNPCs[0].name).toBe('Victim');
-        expect(State.paranoia).toBe(80);
+        // Initial Paranoia 50. Increase 30.
+        // updateParanoia(30) -> 30 * 1.2 = 36
+        // 50 + 36 = 86
+        expect(State.paranoia).toBe(86);
     });
 
     test('Clean shelter reduces paranoia', () => {
@@ -83,7 +86,10 @@ describe('Night Resolution System', () => {
         simulateSleep(State, gameMock);
         
         expect(State.admittedNPCs.length).toBe(2);
-        expect(State.paranoia).toBe(40);
+        // Initial Paranoia 50. Decrease 10.
+        // updateParanoia(-10) -> -10 * 0.9 = -9
+        // 50 - 9 = 41
+        expect(State.paranoia).toBe(41);
         expect(gameMock.ui.showLore).toHaveBeenCalledWith('night_tranquil', expect.any(Function));
     });
 });

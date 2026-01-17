@@ -11,7 +11,8 @@ describe('Migration Unit Testing Suite', () => {
 
         test('updateParanoia should stay within 0-100 bounds', () => {
             State.updateParanoia(50);
-            expect(State.paranoia).toBe(50);
+            // 0 + (50 * 1.2) = 60
+            expect(State.paranoia).toBe(60);
             
             State.updateParanoia(60);
             expect(State.paranoia).toBe(100);

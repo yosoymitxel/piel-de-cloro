@@ -127,7 +127,9 @@ describe('NPC Traits and Supplies Mechanics', () => {
             
             gmm.processNightResourcesAndTraits();
             
-            expect(State.paranoia).toBe(40);
+            // Flat reduction 10. updateParanoia(-10) -> -10 * 0.9 = -9
+            // 50 - 9 = 41
+            expect(State.paranoia).toBe(41);
         });
 
         test('Paranoid trait increases paranoia', () => {
@@ -138,7 +140,9 @@ describe('NPC Traits and Supplies Mechanics', () => {
             
             gmm.processNightResourcesAndTraits();
             
-            expect(State.paranoia).toBe(25);
+            // Flat increase 5. updateParanoia(5) -> 5 * 1.2 = 6
+            // 20 + 6 = 26
+            expect(State.paranoia).toBe(26);
         });
 
         test('Running out of supplies decreases sanity', () => {
@@ -151,8 +155,10 @@ describe('NPC Traits and Supplies Mechanics', () => {
             gmm.processNightResourcesAndTraits();
             
             // 1 - 1 = 0 supplies.
+            // Sanity drain -15. updateSanity(-15) -> -15 * 1.25 = -18.75 -> Math.floor(-18.75) = -19
+            // 50 - 19 = 31
             expect(State.supplies).toBe(0);
-            expect(State.sanity).toBe(35); // 50 - 15
+            expect(State.sanity).toBe(31);
         });
 
         test('Starvation death chance when supplies are 0', () => {

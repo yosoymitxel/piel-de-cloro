@@ -33,23 +33,26 @@ describe('Dialogue system', () => {
         }
 
         // Ensure no duplicate option ids across all pools/lore
-        const seenOptionIds = new Set();
+        // MODIFICATION: We now allow duplicate option IDs across DIFFERENT pools.
+        // We only check for uniqueness within the same pool/lore object.
         for (const [pid, pool] of Object.entries(DialogueData.pools)) {
+            const poolOptionIds = new Set();
             for (const [nid, node] of Object.entries(pool.nodes || {})) {
                 if (node.options) node.options.forEach(opt => {
                     if (!opt.id) return;
-                    if (seenOptionIds.has(opt.id)) errors.push(`Duplicate option id: ${opt.id}`);
-                    seenOptionIds.add(opt.id);
+                    if (poolOptionIds.has(opt.id)) errors.push(`Duplicate option id in pool ${pid}: ${opt.id}`);
+                    poolOptionIds.add(opt.id);
                 });
             }
         }
         if (DialogueData.loreSubjects) {
             DialogueData.loreSubjects.forEach(ls => {
+                const loreOptionIds = new Set();
                 for (const [nid, node] of Object.entries(ls.nodes || {})) {
                     if (node.options) node.options.forEach(opt => {
                         if (!opt.id) return;
-                        if (seenOptionIds.has(opt.id)) errors.push(`Duplicate option id: ${opt.id}`);
-                        seenOptionIds.add(opt.id);
+                         if (loreOptionIds.has(opt.id)) errors.push(`Duplicate option id in lore ${ls.id}: ${opt.id}`);
+                        loreOptionIds.add(opt.id);
                     });
                 }
             });

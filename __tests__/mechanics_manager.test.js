@@ -166,7 +166,9 @@ describe('GameMechanicsManager', () => {
 
             gmm.processNightResourcesAndTraits();
 
-            expect(State.paranoia).toBe(40);
+            // Flat 10. updateParanoia(-10) -> -10 * 0.9 = -9
+            // 50 - 9 = 41
+            expect(State.paranoia).toBe(41);
         });
 
         test('starvation leads to death if supplies reach 0', () => {

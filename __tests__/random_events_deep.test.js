@@ -48,8 +48,8 @@ describe('RandomEventManager', () => {
 
         rem.executeEvent(event);
 
-        expect(State.paranoia).toBe(12);
-        expect(State.sanity).toBe(92);
+        expect(State.paranoia).toBe(14); // 0 + (12 * 1.2) = 14
+        expect(State.sanity).toBe(90); // 100 + (-8 * 1.25) = 90
     });
 
     test('generator_boost increases generator power if generator exists', () => {
@@ -68,7 +68,7 @@ describe('RandomEventManager', () => {
 
         rem.executeEvent(event);
 
-        expect(State.sanity).toBe(66); // 50 + (20 * 0.8)
-        expect(State.paranoia).toBe(35); // 50 - 15
+        expect(State.sanity).toBe(64); // 50 + (20 * 0.7) = 64
+        expect(State.paranoia).toBe(36); // 50 + floor(-15 * 0.9) = 50 - 14 = 36
     });
 });

@@ -10,6 +10,7 @@ import { gen_pools_8 } from './dialogue_pools/generic/gen_pools_8.js';
 import { gen_pools_9 } from './dialogue_pools/generic/gen_pools_9.js';
 import { gen_pools_10 } from './dialogue_pools/generic/gen_pools_10.js';
 import { gen_pools_11 } from './dialogue_pools/generic/gen_pools_11.js';
+import { gen_pools_12 } from './dialogue_pools/generic/gen_pools_12.js';
 import { lore_kael } from './dialogue_pools/lore/lore_kael.js';
 import { lore_hive } from './dialogue_pools/lore/lore_hive.js';
 import { lore_archivist } from './dialogue_pools/lore/lore_archivist.js';
@@ -41,7 +42,8 @@ export const DialogueData = {
         ...gen_pools_8,
         ...gen_pools_9,
         ...gen_pools_10,
-        ...gen_pools_11
+        ...gen_pools_11,
+        ...gen_pools_12
     },
     // Lore subjects (consolidated from modular files)
     loreSubjects: [

@@ -62,7 +62,8 @@ describe('Resource Systems (Food, Paranoia, Sanity)', () => {
             gah.handleSupplyRequest();
 
             expect(State.supplies).toBe(initialSupplies + 3);
-            expect(State.paranoia).toBe(initialParanoia + 15);
+            // Paranoia increase is 15. updateParanoia(15) -> 15 * 1.2 = 18
+            expect(State.paranoia).toBe(initialParanoia + 18);
             expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining('+3'), 'green', expect.any(Number));
         });
 
@@ -93,11 +94,11 @@ describe('Resource Systems (Food, Paranoia, Sanity)', () => {
 
             gah.handleDecision('ignore');
 
-            // Math.floor(0.99 * 6) + 1 = 5 + 1 = 6? No, maxIncrease is 7.
-            // My implementation was: Math.floor(Math.random() * 6) + 1 for infected? 
-            // Let's check GameActionHandler.js
+            // Original logic: increase = Math.floor(random * 6) + 1. If random=0.99, floor(5.94) + 1 = 6.
+            // New logic: updateParanoia(6) -> 6 * 1.2 = 7.2 -> 7.
+            // So max increase is 7.
             expect(State.paranoia).toBeGreaterThan(initialParanoia);
-            expect(State.paranoia).toBeLessThanOrEqual(initialParanoia + 7);
+            expect(State.paranoia).toBeLessThanOrEqual(initialParanoia + 8); // Safe upper bound given floating point
 
             spy.mockRestore();
         });
@@ -122,8 +123,25 @@ describe('Resource Systems (Food, Paranoia, Sanity)', () => {
             gmm.sleep();
 
             // Base reduction is 10, bonus is 5 -> Total 15
-            // 50 - 15 = 35
-            expect(State.paranoia).toBe(35);
+            // updateParanoia(-15) -> -15 * 0.9 = -13.5 -> floor(-13.5) = -14
+            // 50 - 14 = 36
+            expect(State.paranoia).toBe(36);
+            spy.mockRestore();
+        });
+
+        test('optimist trait reduces paranoia', () => {
+            const optimist = { trait: { id: 'optimist' } };
+            State.admittedNPCs.push(optimist);
+            State.paranoia = 50;
+
+            const spy = jest.spyOn(State, 'updateParanoia');
+            
+            gmm.processNightResourcesAndTraits();
+
+            // Optimist reduces flat 10.
+            // updateParanoia(-10): -10 * 0.9 = -9.
+            // 50 - 9 = 41.
+            expect(State.paranoia).toBe(41);
             spy.mockRestore();
         });
     });

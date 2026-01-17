@@ -14,9 +14,13 @@ export class ScreenManager {
         }
 
         // Efecto de apagado/encendido de tubo CRT - Solo si cambia la pantalla
-        const monitor = $('.crt-monitor');
+        // User Request: Apply TV effect only to main-area so nav remains visible
+        const animationTarget = $('#main-area');
+        const monitor = animationTarget;
         const isDifferentScreen = this.lastScreen !== screenName;
+        const currentScreenId = this.lastScreen;
 
+        // Determine if we need to perform logic update
         const changeLogic = () => {
             Object.values(this.screens).forEach(s => s.addClass('hidden'));
             if (this.screens[screenName]) {
@@ -24,7 +28,11 @@ export class ScreenManager {
             }
 
             if (isDifferentScreen) {
-                monitor.addClass('tube-power-on');
+                animationTarget.addClass('tube-power-on');
+                // Remove class after animation completes to avoid interference
+                setTimeout(() => {
+                    animationTarget.removeClass('tube-power-on');
+                }, 550);
             }
 
             // Asegurarse de ocultar overlays de fin de turno al cambiar de pantalla

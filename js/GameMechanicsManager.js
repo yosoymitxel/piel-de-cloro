@@ -75,6 +75,33 @@ export class GameMechanicsManager {
             }
             return summary;
         });
+
+        // 4. Hook de Anomalías Catastróficas (Lore / Late Game)
+        this.registerNightHook((state) => {
+            let summary = "";
+            const anomalies = state.admittedNPCs.filter(n => n.trait && n.trait.id === 'catastrophic_anomaly');
+            
+            if (anomalies.length > 0) {
+                // Efecto masivo
+                const sanityDrain = anomalies.length * 15;
+                const fuelDrain = anomalies.length * 5;
+                const suppliesDrain = anomalies.length * 5;
+                
+                state.updateSanity(-sanityDrain);
+                state.fuel = Math.max(0, state.fuel - fuelDrain);
+                state.supplies = Math.max(0, state.supplies - suppliesDrain);
+                
+                summary += `ALERTA DE CONTENCIÓN: ${anomalies.length} anomalía(s) activa(s). Drenaje crítico de recursos y cordura (-${sanityDrain}%). `;
+                state.addLogEntry('danger', `ANOMALÍA EN REFUGIO: Presencia hostil detectada. Drenaje masivo.`, { icon: 'fa-skull' });
+                
+                // Riesgo de brecha de seguridad automática
+                if (Math.random() < 0.5) {
+                    state.securityLevel = Math.max(0, state.securityLevel - 20);
+                    summary += "Brecha en seguridad interna. ";
+                }
+            }
+            return summary;
+        });
     }
 
     startNightPhase() {
