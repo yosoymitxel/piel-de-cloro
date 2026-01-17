@@ -9,22 +9,6 @@ export const State = {
         dayLength: 5, // Subjects per day
         difficulty: 'normal',
         dayAfterTestsDefault: 3,
-        // Seguridad / intrusiones
-        securityItemsMin: 1,
-        securityItemsMax: 5,
-        securityIntrusionProbability: 0.25,
-        // Entradas aleatorias al iniciar la run
-        initialEntrantProbability: 0.2,
-        initialEntrantMaxFraction: 0.5,
-        // Intrusiones diurnas
-        dayIntrusionIntervalMin: 1,
-        dayIntrusionIntervalMax: 3,
-        dayIntrusionProbability: 0.8,
-        dayIntrusionProbability: 0.8,
-        dayIntrusionInfectedChance: 0.65,
-        dayDeactivationProbability: 0.9,
-        // Jugador infectado
-        playerInfectedProbability: 0.15,
         // Configuración Inicial (Dev/Difficulty)
         initialSupplies: 15,
         initialParanoia: 0,
@@ -67,6 +51,29 @@ export const State = {
         lore: 0.25,
         sfx: 0.6,
         muted: { ambient: false, lore: false, sfx: false }
+    },
+    pinnedRooms: ['generator', 'shelter'], // Hasta 3 salas rápidas
+    shelter: {
+        id: 'alpha-01',
+        name: 'REFUGIO ALPHA-01',
+        maxCapacity: 10,
+        rooms: ['game', 'room', 'shelter', 'generator', 'supplies', 'morgue', 'database', 'meditation'],
+        security: {
+            minItems: 1,
+            maxItems: 5,
+            types: ['alarma', 'puerta', 'ventana', 'tuberias']
+        },
+        config: {
+            securityIntrusionProbability: 0.25,
+            initialEntrantProbability: 0.2,
+            initialEntrantMaxFraction: 0.5,
+            dayIntrusionIntervalMin: 1,
+            dayIntrusionIntervalMax: 3,
+            dayIntrusionProbability: 0.8,
+            dayIntrusionInfectedChance: 0.65,
+            dayDeactivationProbability: 0.9,
+            playerInfectedProbability: 0.15
+        }
     },
 
     savePersistentData() {
@@ -177,17 +184,35 @@ export const State = {
         victims: 0,
         message: ''
     },
-
     generator: {
         isOn: true,
-        mode: 'normal',
-        power: 100,
+        mode: 'normal',           // Compatibility: 'save', 'normal', 'overload'
+        power: 100,               // Compatibility: 0-100
+        capacity: 100,           // Capacidad total nominal
+        load: 0,                // Carga actual (calculada dinámicamente)
+        baseConsumption: 5,     // Consumo mínimo pasivo
+        stability: 100,         // Salud del núcleo (0-100)
+        overloadTimer: 0,       // Turnos consecutivos en sobrecarga
+        systems: {
+            security: { load: 15, active: true, label: 'Seguridad' },
+            lighting: { load: 10, active: true, label: 'Iluminación' },
+            lifeSupport: { load: 20, active: true, label: 'Soporte Vital' },
+            shelterLab: { load: 25, active: false, label: 'Laboratorio' }
+        },
+        // Flags de control y legacy compatibility
         blackoutUntil: 0,
-        overclockCooldown: false,
-        overloadRiskTurns: 0,
-        maxModeCapacityReached: 2, // Por defecto Normal (2) al iniciar
-        emergencyEnergyGranted: false, // Flag para evitar explotación de energía gratis
-        restartLock: false // Bloqueo tras reinicio
+        restartLock: false,
+        bloodTestId: null,
+        bloodTestCountdown: 0,
+        emergencyEnergyGranted: false,
+        maxModeCapacityReached: 2, // Start with Normal
+        assignedGuardId: null,      // NPC assigned as guard
+        guardShiftLogs: []          // Information provided by the guard
+    },
+    sectorAssignments: {
+        generator: [],
+        security: [],
+        supplies: []
     },
     paused: false,
     debug: true, // Cambiar a false para producción
@@ -220,7 +245,30 @@ export const State = {
         this.paused = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
-        this.generator = { isOn: true, mode: 'normal', power: 100, blackoutUntil: 0, overclockCooldown: false, emergencyEnergyGranted: false, maxModeCapacityReached: 2, restartLock: false };
+        this.generator = {
+            isOn: true,
+            mode: 'normal',
+            power: 100,
+            capacity: 100,
+            load: 0,
+            baseConsumption: 5,
+            stability: 100,
+            overloadTimer: 0,
+            systems: {
+                security: { load: 15, active: true, label: 'Seguridad' },
+                lighting: { load: 10, active: true, label: 'Iluminación' },
+                lifeSupport: { load: 20, active: true, label: 'Soporte Vital' },
+                shelterLab: { load: 25, active: false, label: 'Laboratorio' }
+            },
+            blackoutUntil: 0,
+            restartLock: false,
+            bloodTestId: null,
+            bloodTestCountdown: 0,
+            emergencyEnergyGranted: false,
+            maxModeCapacityReached: 2,
+            assignedGuardId: null,
+            guardShiftLogs: []
+        };
         this.playerInfected = Math.random() < this.config.playerInfectedProbability;
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight = { occurred: false, victims: 0, message: '' };
@@ -228,9 +276,9 @@ export const State = {
         // Reset dialogue trackers and flags
         this.dialoguePoolsUsed = [];
         this.dialoguePoolsLastUsed = {};
-        this.dialogueFlags = {};
-        this.dialogueMemory = [];
         this.gameLog = [];
+        this.dialogueMemory = [];
+        this.sectorAssignments = { generator: [], security: [], supplies: [] };
         this.addLogEntry('system', 'Sistema RUTA-01 inicializado. Ciclo 1.');
 
         // NO RESETEAR: unlockedEndings ni audioSettings ya que son persistentes
@@ -295,9 +343,10 @@ export const State = {
     },
 
     generateSecurityItems() {
-        const types = ['alarma', 'puerta', 'ventana', 'tuberias'];
-        const min = this.config.securityItemsMin;
-        const max = this.config.securityItemsMax;
+        const sec = this.shelter.security;
+        const types = sec.types || ['alarma', 'puerta', 'ventana', 'tuberias'];
+        const min = sec.minItems || 1;
+        const max = sec.maxItems || 5;
         const count = Math.max(min, Math.min(max, Math.floor(min + Math.random() * (max - min + 1))));
         const items = [];
         let alarmCount = 0;

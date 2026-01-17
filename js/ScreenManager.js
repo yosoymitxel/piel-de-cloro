@@ -16,13 +16,13 @@ export class ScreenManager {
         // Efecto de apagado/encendido de tubo CRT - Solo si cambia la pantalla
         const monitor = $('.crt-monitor');
         const isDifferentScreen = this.lastScreen !== screenName;
-        
+
         const changeLogic = () => {
             Object.values(this.screens).forEach(s => s.addClass('hidden'));
             if (this.screens[screenName]) {
                 this.screens[screenName].removeClass('hidden');
             }
-            
+
             if (isDifferentScreen) {
                 monitor.addClass('tube-power-on');
             }
@@ -37,8 +37,8 @@ export class ScreenManager {
             // Logic 1: Settings button only on start screen
             this.elements.settingsBtn.toggleClass('hidden', screenName !== 'start');
 
-            // Logic 2: Sidebar only on Game, Shelter, Morgue, Room, Generator, Database, Log
-            const showSidebar = ['game', 'shelter', 'morgue', 'room', 'generator', 'database', 'log'].includes(screenName);
+            // Logic 2: Sidebar only on Game, Shelter, Morgue, Room, Generator, Database, Log, Map, Meditation, Supplies
+            const showSidebar = ['game', 'shelter', 'morgue', 'room', 'generator', 'database', 'log', 'map', 'meditation', 'supplies-hub'].includes(screenName);
             this.elements.sidebar.toggleClass('hidden', !showSidebar);
 
             // Toggle finalize button visibility in Shelter
@@ -47,9 +47,9 @@ export class ScreenManager {
                 const isTransition = state.isDayOver() && !state.isNight;
                 const isNightManagement = state.isNight;
                 const shouldShow = isTransition || isNightManagement;
-                
+
                 this.elements.finalizeNoPurgeBtn.toggleClass('hidden', !shouldShow);
-                
+
                 // Ajustar texto según el contexto
                 if (isNightManagement) {
                     this.elements.finalizeNoPurgeBtn.text('VOLVER AL PROTOCOLO NOCTURNO');
@@ -71,9 +71,9 @@ export class ScreenManager {
 
             if (screenName === 'morgue' && state) {
                 this.ui.renderMorgueGrid(
-                    state.purgedNPCs || [], 
-                    state.ignoredNPCs || [], 
-                    state.departedNPCs || [], 
+                    state.purgedNPCs || [],
+                    state.ignoredNPCs || [],
+                    state.departedNPCs || [],
                     (npc) => this.ui.modalManager.openModal(npc, false, null, state)
                 );
             }
@@ -86,7 +86,7 @@ export class ScreenManager {
                 const count = state.admittedNPCs.length;
                 const max = state.config.maxShelterCapacity;
                 const isFull = count >= max;
-                
+
                 const btnEscape = $('#btn-night-escape');
                 if (isFull) {
                     btnEscape.removeClass('opacity-30 grayscale pointer-events-none');
@@ -94,7 +94,7 @@ export class ScreenManager {
                     btnEscape.addClass('opacity-30 grayscale pointer-events-none');
                 }
             }
-            
+
             this.lastScreen = screenName;
         };
 
@@ -117,7 +117,10 @@ export class ScreenManager {
             room: '#nav-room',
             generator: '#nav-generator',
             database: '#nav-database',
-            log: '#btn-open-log'
+            map: '#nav-map',
+            log: '#btn-open-log',
+            meditation: '#map-node-meditacion', // Highlight in map node or sidebar pin
+            'supplies-hub': '#map-node-suministros'
         };
         const activeNav = navMap[screenName];
         if (activeNav) $(activeNav).addClass('active');

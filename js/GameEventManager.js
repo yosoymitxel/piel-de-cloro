@@ -149,6 +149,111 @@ export class GameEventManager {
         this.switchScreen(CONSTANTS.SCREENS.LOG, { renderFn });
     }
 
+    navigateToMap(options = {}) {
+        const renderFn = () => {
+            // --- ACTUALIZACIÓN DE INFORMACIÓN DETALLADA ---
+
+            // 1. Refugio
+            $('#map-status-shelter-count').text(`${State.admittedNPCs.length}/${State.config.maxShelterCapacity}`);
+            const shelterLevel = State.admittedNPCs.length >= State.config.maxShelterCapacity ? 4 : (State.admittedNPCs.length > State.config.maxShelterCapacity * 0.8 ? 2 : 1);
+            this.ui.setMapNodeStatus('refugio', shelterLevel);
+
+            // 2. Seguridad
+            const guardId = State.sectorAssignments?.security?.[0];
+            const guard = State.admittedNPCs.find(n => n.id === guardId);
+            $('#map-status-security-guard').text(guard ? guard.name.toUpperCase() : 'VACANTE');
+            $('#map-status-security-alerts').text(State.infectedSeenCount || 0);
+            this.ui.setMapNodeStatus('sala', guard ? 1 : 2);
+
+            // 3. Suministros
+            $('#map-status-supplies-count').text(State.supplies);
+            const suppliesLevel = State.supplies < 5 ? 4 : (State.supplies < 10 ? 2 : 1);
+            this.ui.setMapNodeStatus('suministros', suppliesLevel);
+
+            // 4. Generador
+            const genLoad = State.generator.isOn ? Math.round((State.generator.load / State.generator.capacity) * 100) : 0;
+            $('#map-status-gen-load').text(`${genLoad}%`);
+            const genMode = State.generator.mode === 'overload' ? 'SOBRECARGA' : (State.generator.mode === 'save' ? 'AHORRO' : 'NORMAL');
+            $('#map-status-gen-mode').text(genMode).toggleClass('text-orange-500', State.generator.mode === 'overload');
+
+            const genLevel = !State.generator.isOn ? 4 : (genLoad > 90 ? 4 : (genLoad > 70 ? 2 : 1));
+            this.ui.setMapNodeStatus('generador', genLevel);
+
+            // 5. Morgue
+            $('#map-status-morgue-count').text(State.purgedNPCs.length + State.departedNPCs.length);
+
+            // 6. Otros (Puesto, Archivos, Meditación)
+            this.ui.setMapNodeStatus('puesto', 1);
+            this.ui.setMapNodeStatus('database', 1);
+            this.ui.setMapNodeStatus('meditacion', 1);
+
+            // Renderizar pines actuales
+            this.ui.renderPinnedRooms(State);
+        };
+        return this.switchScreen(CONSTANTS.SCREENS.MAP, { ...options, renderFn });
+    }
+
+    navigateToMeditation() {
+        this.switchScreen(CONSTANTS.SCREENS.MEDITATION);
+    }
+
+    navigateToSuppliesHub() {
+        const renderFn = () => {
+            $('#supplies-hub-count').text(`${State.supplies} UNITS`);
+            const assignedId = State.sectorAssignments?.supplies?.[0];
+            const npc = State.admittedNPCs.find(n => n.id === assignedId);
+            $('#supplies-hub-assigned').text(npc ? npc.name.toUpperCase() : 'VACANTE');
+        };
+        this.switchScreen(CONSTANTS.SCREENS.SUPPLIES_HUB, { renderFn });
+    }
+
+    togglePinRoom(roomId) {
+        const idx = State.pinnedRooms.indexOf(roomId);
+        if (idx > -1) {
+            // Unpin
+            State.pinnedRooms.splice(idx, 1);
+            this.ui.showFeedback(`SALA DESANCLADA: ${roomId.toUpperCase()}`, "normal", 2000);
+        } else {
+            // Pin
+            if (State.pinnedRooms.length >= 3) {
+                this.ui.showFeedback("MÁXIMO 3 SALAS ANCLADAS", "red", 3000);
+                return;
+            }
+            State.pinnedRooms.push(roomId);
+            this.ui.showFeedback(`SALA ANCLADA: ${roomId.toUpperCase()}`, "green", 2000);
+        }
+
+        // Refresh UI
+        this.ui.renderPinnedRooms(State);
+    }
+
+    navigateToRoomByKey(key) {
+        const config = CONSTANTS.ROOM_CONFIG[key];
+        if (!config) return;
+
+        if (config.method && typeof this[config.method] === 'function') {
+            this[config.method]();
+        } else if (config.screen) {
+            this.ui.showScreen(config.screen);
+        }
+    }
+
+    handleSuppliesClick() {
+        const suppliesNPCId = State.sectorAssignments?.supplies?.[0];
+        const npc = State.admittedNPCs.find(n => n.id === suppliesNPCId);
+
+        if (!npc) {
+            this.ui.showConfirm("SECTOR DE SUMINISTROS: NO HAY PERSONAL ASIGNADO PARA EXPEDICIONES.<br>¿ASIGNAR EN EL REFUGIO?", () => {
+                this.navigateToShelter();
+            }, null, 'normal');
+            return;
+        }
+
+        this.ui.showConfirm(`¿DESPLEGAR A ${npc.name.toUpperCase()} PARA UNA EXPEDICIÓN DE SUMINISTROS?<br><span class="text-xs text-alert">RIESGO DE PÉRDIDA DEL SUJETO: MEDIO-ALTO</span>`, () => {
+            this.game.mechanics.startScavengingExpedition(npc);
+        }, null, 'warning');
+    }
+
     bindAll() {
         $('#tool-thermo, #tool-flash, #tool-pulse, #tool-pupils, #btn-admit, #btn-ignore').addClass('btn-interactive');
 
@@ -258,28 +363,60 @@ export class GameEventManager {
 
         // Navigation & Tooltips
         $('#nav-guard').on('click', () => this.navigateToGuard());
-        $('#nav-room').on('click', () => this.navigateToRoom());
-
-        // Tooltip dinámico para refugio
-        $('#nav-shelter')
-            .on('click', () => {
-                // Only play if not disabled (logic inside navigateToShelter handles checks but UI click should feedback)
-                this.audio.playSFXByKey('ui_button_click', { volume: 0.5, overlap: true });
-                this.navigateToShelter();
-            })
-            .on('mouseenter', () => {
-                const count = State.admittedNPCs.length;
-                const max = State.config.maxShelterCapacity;
-                $('#nav-shelter').attr('title', `REFUGIO: ${count}/${max} sujetos`);
-            });
-
-        $('#nav-morgue').on('click', () => {
+        $('#nav-map').on('click', () => {
             this.audio.playSFXByKey('ui_button_click', { volume: 0.5, overlap: true });
-            this.navigateToMorgue();
+            this.navigateToMap();
         });
-        $('#nav-generator').on('click', () => {
+
+        // Map Nodes Click
+        $(document).on('click', '.map-node-btn', (e) => {
+            const room = $(e.currentTarget).data('room');
             this.audio.playSFXByKey('ui_button_click', { volume: 0.5, overlap: true });
-            this.navigateToGenerator();
+
+            switch (room) {
+                case 'game': this.navigateToGuard(); break;
+                case 'room': this.navigateToRoom(); break;
+                case 'shelter': this.navigateToShelter(); break;
+                case 'generator': this.navigateToGenerator(); break;
+                case 'supplies': this.navigateToSuppliesHub(); break;
+                case 'meditation': this.navigateToMeditation(); break;
+                case 'morgue': this.navigateToMorgue(); break;
+                case 'database': this.ui.showScreen(CONSTANTS.SCREENS.DATABASE); break;
+            }
+        });
+
+        // Pines del Mapa
+        $('.map-node-pin-btn').on('click', (e) => {
+            e.stopPropagation(); // Evitar navegar a la sala al pulsar el pin
+            const roomId = $(e.currentTarget).data('room');
+            this.togglePinRoom(roomId);
+        });
+
+        // Actividades de Meditación
+        $('#btn-med-breath').on('click', () => {
+            if (State.paranoia > 0) {
+                State.updateParanoia(-5);
+                this.ui.showFeedback("RESPIRACIÓN COMPLETADA: PARANOIA -5", "green", 3000);
+                this.ui.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC, State.supplies);
+                if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.2 });
+            } else {
+                this.ui.showFeedback("MENTE EN CALMA", "normal", 2000);
+            }
+        });
+
+        $('#btn-med-music').on('click', () => {
+            if (State.sanity < 100) {
+                State.updateSanity(5);
+                this.ui.showFeedback("FRECUENCIAS_Z: CORDURA +5", "green", 3000);
+                this.ui.updateStats(State.paranoia, State.sanity, State.cycle, State.dayTime, State.config.dayLength, State.currentNPC, State.supplies);
+                if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.2 });
+            } else {
+                this.ui.showFeedback("CORDURA AL MÁXIMO", "normal", 2000);
+            }
+        });
+
+        $('#btn-start-expedition-hub').on('click', () => {
+            this.handleSuppliesClick();
         });
         $('#hud-energy-container').on('click', () => this.navigateToGenerator());
         $('#btn-bitacora, #btn-open-log').on('click', () => this.navigateToLog());

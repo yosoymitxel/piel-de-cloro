@@ -410,6 +410,30 @@ export class ModalManager {
                     makeSlot('temperature', 'TEMP', 'fa-temperature-half', 'animateToolThermometer'),
                     makeSlot('pulse', 'PULSO', 'fa-heart-pulse', 'animateToolPulse')
                 );
+
+                // --- NUEVO: ANALIZADOR DE HEMOGLOBINA ---
+                const bloodBtn = $('<button>', {
+                    class: `horror-tool-btn horror-tool-btn--blood col-span-4 mt-2 ${State.generator.bloodTestCountdown > 0 ? 'processing' : ''}`,
+                    html: `<i class="fa-solid fa-droplet mr-2"></i><span>ANALIZADOR DE HEMOGLOBINA (TEST DEFINITIVO)</span>`
+                });
+
+                const bloodValidation = this.ui.game.actions.validateBloodTest();
+                if (!bloodValidation.allowed) {
+                    bloodBtn.addClass('opacity-50 grayscale cursor-not-allowed').prop('disabled', true);
+                    bloodBtn.attr('title', bloodValidation.reason);
+                }
+
+                if (State.generator.bloodTestCountdown > 0) {
+                    bloodBtn.html(`<i class="fa-solid fa-spinner fa-spin mr-2"></i><span>PROCESANDO... (${State.generator.bloodTestCountdown} TUR)</span>`);
+                    bloodBtn.prop('disabled', true);
+                }
+
+                bloodBtn.on('click', () => {
+                    this.ui.game.actions.startBloodTest(npc);
+                    this.renderModalStats(npc, allowPurge, state); // Refresh UI
+                });
+
+                testsGrid.append(bloodBtn);
             }
         }
     }

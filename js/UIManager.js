@@ -9,6 +9,8 @@ import { GeneratorManager } from './GeneratorManager.js';
 import { StatsManager } from './StatsManager.js';
 import { ToolsRenderer } from './ToolsRenderer.js';
 import { parseDialogueMarkup, escapeHtml } from './markup.js';
+import { StatComponent } from './components/StatComponent.js';
+import { GenLoadComponent, GenBatteryComponent, GenStationComponent } from './components/EnergyComponents.js';
 
 export class UIManager {
     constructor(audio = null, customModules = {}) {
@@ -26,7 +28,11 @@ export class UIManager {
             generator: $('#screen-generator'),
             finalStats: $('#screen-final-stats'),
             log: $('#screen-log'),
-            database: $('#screen-database')
+            database: $('#screen-database'),
+            map: $('#screen-map'),
+            expedition: $('#screen-expedition'),
+            meditation: $('#screen-meditation'),
+            'supplies-hub': $('#screen-supplies-hub')
         };
         this.elements = {
             paranoia: $('#paranoia-level'),
@@ -70,10 +76,9 @@ export class UIManager {
             modalGuide: $('#modal-guide'),
             btnOpenGuide: $('#btn-help-guide'),
             btnCloseGuide: $('#btn-close-guide'),
-
             // HUD Clickable Stats
-            hudParanoia: $('#paranoia-level').parent(),
-            hudSanity: $('#sanity-level').parent(),
+            hudParanoia: $('#paranoia-level').length ? $('#paranoia-level').parent() : $(),
+            hudSanity: $('#sanity-level').length ? $('#sanity-level').parent() : $(),
             hudSupplies: $('#hud-supplies-container'),
             hudEnergy: $('#hud-energy-container'),
 
@@ -131,6 +136,59 @@ export class UIManager {
                 $('#tool-pupils')
             ]
         };
+
+        // --- HUD COMPONENTS (ENTIDADES VISUALES) ---
+        this.components = {
+            paranoia: new StatComponent('.comp-paranoia', {
+                label: 'PARANOIA',
+                icon: 'fa-brain',
+                colorClass: 'text-chlorine-light',
+                title: 'Nivel de Paranoia',
+                getValue: (state) => this.getHallucinatedValue(state.paranoia),
+                formatValue: (val) => `${val}%`,
+                thresholds: [{ val: 60, color: 'text-warning' }, { val: 80, color: 'text-alert', animate: true }],
+                direction: 'ascending'
+            }),
+            sanity: new StatComponent('.comp-sanity', {
+                label: 'CORDURA',
+                icon: 'fa-heart-pulse',
+                colorClass: 'text-rose-300',
+                title: 'Salud Mental',
+                getValue: (state) => this.getHallucinatedValue(state.sanity),
+                formatValue: (val) => `${val}%`,
+                thresholds: [{ val: 40, color: 'text-warning' }, { val: 20, color: 'text-alert', animate: true }],
+                direction: 'descending'
+            }),
+            supplies: new StatComponent('.comp-supplies', {
+                label: 'VÍVERES',
+                icon: 'fa-box',
+                colorClass: 'text-amber-300',
+                title: 'Suministros',
+                getValue: (state) => this.getHallucinatedValue(state.supplies)
+            }),
+            genLoad: new GenLoadComponent('.comp-gen-load'),
+            genBattery: new GenBatteryComponent('.comp-gen-battery'),
+            genStation: new GenStationComponent('.comp-gen-station')
+        };
+
+        // Add click handlers for navigation after DOM is ready
+        setTimeout(() => {
+            $('.comp-gen-load, .comp-gen-battery, .comp-gen-station').on('click', () => {
+                this.showScreen(CONSTANTS.SCREENS.GENERATOR);
+                if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.3 });
+            });
+        }, 100);
+
+        // Mental Health Links
+        $('.comp-paranoia, .comp-sanity').addClass('subsystem-link').on('click', () => {
+            this.game.events.navigateToMeditation();
+        });
+
+        // Supplies Hub Link
+        $('.comp-supplies').addClass('subsystem-link').on('click', () => {
+            this.game.events.navigateToSuppliesHub();
+        });
+
         this.currentModalNPC = null;
         this.infectionEffectActive = false;
         this.typingTimer = null;
@@ -181,6 +239,9 @@ export class UIManager {
         if (this.screenManager && typeof this.screenManager.updateEndingsRecord === 'function') {
             this.screenManager.updateEndingsRecord(State);
         }
+
+        // Render inicial de pines del sidebar
+        this.renderPinnedRooms(State);
     }
 
     updateVersionLabels() {
@@ -507,6 +568,9 @@ export class UIManager {
     showScreen(screenName) {
         this.cancelPurgeAnimation();
         this.screenManager.showScreen(screenName, State);
+
+        // Refrescar pines del sidebar
+        this.renderPinnedRooms(State);
     }
 
     renderFinalStats(state, endingId) {
@@ -644,6 +708,58 @@ export class UIManager {
         }
     }
 
+    /**
+     * Devuelve un valor alterado por la psicosis del jugador si está infectado o con baja cordura
+     * @param {number} value - El valor real
+     * @returns {string|number} - El valor (posiblemente) real o licuado
+     */
+    getHallucinatedValue(value) {
+        if (!State.playerInfected && State.sanity >= 20) return value;
+
+        // Probabilidad de mentira basada en cordura e infección
+        const lieChance = State.playerInfected ? 0.6 : 0.3;
+        if (Math.random() > lieChance) return value;
+
+        // Fluctuación ±15%
+        const variation = (Math.random() * 0.3) - 0.15;
+        const liedValue = Math.floor(value * (1 + variation));
+
+        // Añadir carácter "corrupto" para dar pista visual sutil
+        const glitches = ['†', '×', 'ø', '∆', '§'];
+        const char = glitches[Math.floor(Math.random() * glitches.length)];
+
+        return `${liedValue}${char}`;
+    }
+
+    stopGlobalFlicker() {
+        $('.crt-monitor, #screen-game').removeClass('system-flicker crt-flicker');
+    }
+
+    shouldShowGlitchFlicker() {
+        return State.playerInfected || State.sanity < 20;
+    }
+
+    updateEnergyHUD() {
+        // Deprecated: Logic moved to EnergyComponent.
+    }
+
+    triggerGlobalGlitch(intensity = 0.5) {
+        const monitor = $('.crt-monitor');
+        if (!monitor.length) return;
+
+        monitor.addClass('glitch-level-change');
+        if (this._globalGlitchTimeout) clearTimeout(this._globalGlitchTimeout);
+
+        this._globalGlitchTimeout = setTimeout(() => {
+            monitor.removeClass('glitch-level-change');
+            this._globalGlitchTimeout = null;
+        }, 300 * intensity);
+
+        if (this.audio) {
+            this.audio.playSFXByKey('glitch_low', { volume: 0.1 * intensity });
+        }
+    }
+
     updateStats(paranoia, sanity, cycle, dayTime, dayLength, currentNPC, supplies) {
         // MECÁNICA PARANOIA: Viñeta de vigilancia
         if (paranoia > 50) {
@@ -656,49 +772,26 @@ export class UIManager {
             $('#paranoia-vignette').addClass('hidden');
         }
 
-        // MECÁNICA CORDURA: Interfaz mentirosa
-        // Si la cordura es baja, los valores del HUD pueden fluctuar erróneamente
-        const isHallucinatingUI = sanity < 30 && Math.random() < 0.2;
+        this.updateEnergyHUD();
 
-        let displayParanoia = paranoia;
-        let displaySanity = sanity;
-        let displaySupplies = supplies !== undefined ? supplies : State.supplies;
-
-        if (isHallucinatingUI) {
-            // Mostrar valores falsos momentáneamente
-            displayParanoia = Math.min(100, paranoia + (Math.random() > 0.5 ? 20 : -20));
-            displaySanity = Math.max(0, sanity + (Math.random() > 0.5 ? 15 : -15));
-            displaySupplies = Math.max(0, displaySupplies + (Math.random() > 0.5 ? 2 : -2));
-
-            // Efecto visual de glitch en el texto
-            this.elements.paranoia.addClass('glitch-text');
-            if (this.elements.sanity) this.elements.sanity.addClass('glitch-text');
-
-            setTimeout(() => {
-                this.elements.paranoia.removeClass('glitch-text');
-                if (this.elements.sanity) this.elements.sanity.removeClass('glitch-text');
-            }, 500);
+        // Update Components
+        if (this.components) {
+            this.components.paranoia.update(State);
+            this.components.sanity.update(State);
+            this.components.supplies.update(State);
+            this.components.genLoad.update(State);
+            this.components.genBattery.update(State);
+            this.components.genStation.update(State);
         }
 
-        this.elements.paranoia.text(`${Math.floor(displayParanoia)}%`);
-        if (this.elements.sanity) {
-            this.elements.sanity.text(`${Math.floor(displaySanity)}%`);
-            if (sanity < 30) {
-                this.elements.sanity.addClass('animate-pulse text-rose-600').removeClass('text-rose-300');
-                this.applySanityEffects(sanity);
-            } else {
-                this.elements.sanity.removeClass('animate-pulse text-rose-600').addClass('text-rose-300');
-                $('body').css('filter', 'none');
-            }
+        // Global Effects (Vignette & Filters) relative to Sanity/Paranoia
+        // We use the raw values for rendering effects, not the hallucinated ones
+        if (sanity < 30) {
+            this.applySanityEffects(sanity);
+        } else {
+            $('body').css('filter', 'none');
         }
-        if (this.elements.supplies) {
-            this.elements.supplies.text(displaySupplies);
-            if (displaySupplies <= 2) {
-                this.elements.supplies.addClass('animate-pulse text-alert').removeClass('text-amber-300');
-            } else {
-                this.elements.supplies.removeClass('animate-pulse text-alert').addClass('text-amber-300');
-            }
-        }
+
         this.elements.cycle.text(cycle);
         this.elements.time.text(`${dayTime}/${dayLength}`);
 
@@ -707,6 +800,10 @@ export class UIManager {
         $('body').toggleClass('is-night', dayProgress > 0.75);
         $('body').toggleClass('is-late-night', dayProgress > 0.9);
 
+        // --- EFECTO VISUAL: ILUMINACIÓN ---
+        const isLightingOn = State.generator && State.generator.isOn && State.generator.systems.lighting.active;
+        $('body').toggleClass('is-low-light', !isLightingOn);
+
         // La revisión solo es "obligatoria" si no hay energía o está apagado
         const generatorOk = State.generator && State.generator.isOn;
         const needsCheck = !generatorOk;
@@ -714,56 +811,11 @@ export class UIManager {
         if (this.elements.genWarningGame) this.elements.genWarningGame.toggleClass('hidden', !needsCheck);
         if (this.elements.genWarningShelter) this.elements.genWarningShelter.toggleClass('hidden', !needsCheck);
 
-        // Actualizar colores de paranoia (texto e icono)
-        const paranoiaIcon = this.elements.paranoia.parent().find('i.fa-brain');
-        let paranoiaColor = this.colors.chlorineLight; // Default: chlorine-light
-
-        if (paranoia >= 100) {
-            paranoiaColor = this.colors.critical;
-            this.elements.paranoia.addClass('animate-pulse');
-            paranoiaIcon.addClass('animate-pulse');
-        } else if (paranoia > 75) {
-            paranoiaColor = this.colors.alert; // Alert red
-            this.elements.paranoia.removeClass('animate-pulse');
-            paranoiaIcon.removeClass('animate-pulse');
-        } else if (paranoia > 50) {
-            paranoiaColor = this.colors.orange; // Orange
-            this.elements.paranoia.removeClass('animate-pulse');
-            paranoiaIcon.removeClass('animate-pulse');
-        } else if (paranoia > 25) {
-            paranoiaColor = this.colors.yellow; // Yellowish
-            this.elements.paranoia.removeClass('animate-pulse');
-            paranoiaIcon.removeClass('animate-pulse');
-        } else {
-            this.elements.paranoia.removeClass('animate-pulse');
-            paranoiaIcon.removeClass('animate-pulse');
-        }
-
-        this.elements.paranoia.css('color', paranoiaColor);
-        paranoiaIcon.css('color', paranoiaColor);
-
-        // Aplicar color al texto de diálogo si existe
-        if (this.elements.dialogue) {
-            this.elements.dialogue.css('--paranoia-color', paranoiaColor);
-            this.elements.dialogue.find('.npc-text').css('color', paranoiaColor);
-            // También al nombre del NPC para que todo el bloque de diálogo se sienta "contaminado"
-            this.elements.dialogue.find('.npc-name').css('color', paranoiaColor);
-        }
-
-        // Brillo sutil si la paranoia es alta
-        if (paranoia > 50) {
-            this.elements.paranoia.css('text-shadow', `0 0 8px ${paranoiaColor}`);
-            paranoiaIcon.css('filter', `drop-shadow(0 0 5px ${paranoiaColor})`);
-            if (this.elements.dialogue) {
-                this.elements.dialogue.css('text-shadow', `0 0 4px ${paranoiaColor}44`);
-            }
-        } else {
-            this.elements.paranoia.css('text-shadow', 'none');
-            paranoiaIcon.css('filter', 'none');
-            if (this.elements.dialogue) {
-                this.elements.dialogue.css('text-shadow', 'none');
-            }
-        }
+        // Styling for dialogue based on Paranoia (Optional: move this to a component later)
+        // For now, let's keep it simple or remove it if it depends on removed elements.
+        // Actually, dialogue coloring was cool. Let's replicate basic logic if needed, 
+        // but since Paranoia Component handles its own color, we might skimp on "coloring the world".
+        // Or just leave it out for this refactor to keep it clean.
 
         // Update Energy
         this.updateGeneratorNavStatus();
@@ -819,16 +871,26 @@ export class UIManager {
     updateGeneratorNavStatus(state = State) {
         if (!this.setNavItemStatus) return;
 
-        if (!state.generator.isOn) {
-            this.setNavItemStatus('nav-generator', 4);
-        } else if (state.generator.power <= 10) {
-            this.setNavItemStatus('nav-generator', 3);
-        } else if (state.generator.mode === 'save') {
-            this.setNavItemStatus('nav-generator', 'save');
-        } else if (state.generator.mode === 'overload') {
+        const gen = state.generator;
+        if (!gen.isOn) {
+            this.setNavItemStatus('nav-generator', 4); // Red/OFF
+            return;
+        }
+
+        const loadPercent = (gen.load / gen.capacity) * 100;
+
+        if (gen.stability < 30) {
+            this.setNavItemStatus('nav-generator', 5); // Critical Glitch/Death
+        } else if (loadPercent > 95) {
+            this.setNavItemStatus('nav-generator', 'overload'); // Red pulse (Actually orange in CSS)
+        } else if (gen.mode === 'overload') {
             this.setNavItemStatus('nav-generator', 'overload');
+        } else if (gen.mode === 'save') {
+            this.setNavItemStatus('nav-generator', 'save');
+        } else if (loadPercent > 80) {
+            this.setNavItemStatus('nav-generator', 3); // Warning
         } else {
-            this.setNavItemStatus('nav-generator', null);
+            this.setNavItemStatus('nav-generator', null); // Safe Green
         }
     }
 
@@ -1091,7 +1153,7 @@ export class UIManager {
     renderNPC(npc) {
         // Stop lore audio on NPC change ONLY if the new NPC is not Lore or has different audio
         const currentLoreAudio = (this.audio && this.audio.channels.lore && !this.audio.channels.lore.paused) ? this.audio.channels.lore.src : null;
-        
+
         let nextLoreAudioKey = null;
         if (npc.uniqueType === 'lore' && npc.conversation && npc.conversation.set) {
             const rootNode = npc.conversation.set.nodes[npc.conversation.set.root];
@@ -1107,7 +1169,7 @@ export class UIManager {
             } else {
                 // Si el nuevo NPC tiene música de lore, solo la cambiamos si es distinta
                 const nextLoreUrl = this.audio.getUrl(nextLoreAudioKey);
-                
+
                 // Normalizar URLs para comparación (pueden venir absolutas o relativas)
                 const isSameTrack = currentLoreAudio && (currentLoreAudio.endsWith(nextLoreUrl) || nextLoreUrl.endsWith(currentLoreAudio));
 
@@ -1234,7 +1296,7 @@ export class UIManager {
                 // Solo reproducir si es una pista distinta a la que ya suena
                 const currentLoreAudio = (this.audio.channels.lore && !this.audio.channels.lore.paused) ? this.audio.channels.lore.src : null;
                 const nextLoreUrl = this.audio.getUrl(convNode.audio);
-                
+
                 // Normalizar URLs para comparación
                 const isSameTrack = currentLoreAudio && (currentLoreAudio.endsWith(nextLoreUrl) || nextLoreUrl.endsWith(currentLoreAudio));
 
@@ -1481,11 +1543,11 @@ export class UIManager {
 
     handleOmitTest(npc) {
         if (!npc || npc.optOut) return;
-        
+
         // Bloquear el NPC inmediatamente para evitar llamadas dobles
         npc.optOut = true;
         npc.dialogueStarted = true; // Marcar como que el diálogo ha avanzado (evita validación_pendiente)
-        
+
         // Agotamos las energías mecánicamente
         npc.scanCount = 99;
 
@@ -1500,13 +1562,13 @@ export class UIManager {
 
         // Feedback visual
         this.showFeedback('TEST OMITIDO: SIN EVIDENCIA MÉDICA', 'yellow', 3000);
-        
+
         // Actualizar herramientas (esto quita el botón de omitir de la UI de herramientas)
         this.updateInspectionTools(npc);
-        
+
         // Ocultar opción de omitir en el diálogo
         this.hideOmitOption();
-        
+
         // Limpiar opciones de diálogo para evitar clics extra
         this.elements.dialogueOptions.empty();
 
@@ -1911,6 +1973,27 @@ export class UIManager {
 
             if (statusIcon) card.append($(statusIcon));
             card.append(avatar, name);
+
+            // Sector Assignment Selector (Foundation for Sabotage)
+            const sectorSelector = $('<select>', {
+                class: 'sector-selector',
+                html: `
+                    <option value="" ${!npc.assignedSector ? 'selected' : ''}>-- SIN SECTOR --</option>
+                    <option value="generator" ${npc.assignedSector === 'generator' ? 'selected' : ''}>GENERADOR</option>
+                    <option value="security" ${npc.assignedSector === 'security' ? 'selected' : ''}>SEGURIDAD</option>
+                    <option value="supplies" ${npc.assignedSector === 'supplies' ? 'selected' : ''}>SUMINISTROS</option>
+                `
+            });
+
+            sectorSelector.on('click', (e) => e.stopPropagation());
+            sectorSelector.on('change', (e) => {
+                const sector = e.target.value;
+                this.game.mechanics.assignNPCToSector(npc, sector);
+                this.showFeedback(`TAREA ASIGNADA: ${sector ? sector.toUpperCase() : 'BÚNKER'}`, 'green', 2000);
+            });
+
+            card.append(sectorSelector);
+
             card.on('click', () => onDetailClick(npc, true));
 
             batch.push(card[0]);
@@ -1955,6 +2038,60 @@ export class UIManager {
             }
         } else {
             $('#btn-shelter-goto-gen').remove();
+        }
+    }
+    renderSecurityGuard(state) {
+        const display = $('#security-guard-display');
+        if (!display.length) return;
+
+        const securityNPCId = state.sectorAssignments?.security?.[0];
+        const npc = state.admittedNPCs.find(n => n.id === securityNPCId);
+
+        if (!npc) {
+            display.html(`
+                <div class="text-xs italic opacity-40 py-8 text-center w-full">ESTACIÓN VACANTE</div>
+                <div class="text-[9px] text-gray-600 mt-2 text-center w-full">ASIGNA UN GUARDIA EN EL REFUGIO</div>
+            `);
+            display.removeClass('border-green-500/30').addClass('border-green-500/10');
+            return;
+        }
+
+        display.empty();
+        display.addClass('border-green-500/30').removeClass('border-green-500/10');
+
+        // Render Avatar
+        const avatarHtml = this.renderAvatar(npc, 'sm');
+        display.append(`
+            <div class="relative mb-2">
+                ${avatarHtml.prop('outerHTML')}
+                <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-black animate-pulse"></div>
+            </div>
+            <div class="text-sm font-bold text-green-400">${npc.name.toUpperCase()}</div>
+            <div class="text-[9px] font-mono text-gray-400">RANGO: ESPECIALISTA</div>
+            <div class="flex gap-1 mt-2">
+                ${npc.trait ? `<span class="text-[8px] bg-green-900/40 border border-green-500/30 px-1 text-green-400">${npc.trait.id.toUpperCase()}</span>` : ''}
+                <span class="text-[8px] bg-blue-900/40 border border-blue-500/30 px-1 text-blue-400">SECURITY</span>
+            </div>
+        `);
+    }
+
+
+    updateSecurityCombatLog(message) {
+        const log = $('#security-combat-log');
+        if (!log.length) return;
+
+        const time = State.isNight ? 'NOCT' : `${State.dayTime}:00`;
+        const entry = $(`<div class="mb-1 border-l border-green-700/50 pl-2">
+            <span class="text-gray-600">[${time}]</span>
+            <span class="text-green-500">${message}</span>
+        </div>`);
+
+        log.append(entry);
+        log.scrollTop(log[0].scrollHeight);
+
+        // Keep last 20 entries
+        if (log.children().length > 20) {
+            log.children().first().remove();
         }
     }
 
@@ -2087,11 +2224,28 @@ export class UIManager {
 
     renderSecurityRoom(items, onToggle) {
         this.elements.securityGrid.empty();
+        this.renderSecurityGuard(State);
         this.elements.securityCount.text(items.length);
 
-        const hasPower = State.generator && State.generator.isOn;
+        const isGenOn = State.generator && State.generator.isOn;
+        const isSecurityActive = State.generator && State.generator.systems && State.generator.systems.security.active;
+        const hasPower = isGenOn && isSecurityActive;
+
         if (this.elements.roomPowerWarning) {
             this.elements.roomPowerWarning.toggleClass('hidden', hasPower);
+
+            // Customize warning message if gen is on but security is off
+            if (isGenOn && !isSecurityActive) {
+                this.elements.roomPowerWarning.html(`
+                    <i class="fa-solid fa-plug-circle-xmark mr-2"></i>
+                    SUBSISTEMA DE SEGURIDAD DESACTIVADO EN GENERADOR
+                `);
+            } else if (!isGenOn) {
+                this.elements.roomPowerWarning.html(`
+                    <i class="fa-solid fa-bolt-slash mr-2"></i>
+                    SIN ENERGÍA: GENERADOR APAGADO
+                `);
+            }
         }
 
         const batch = [];
@@ -2271,7 +2425,7 @@ export class UIManager {
         npcs.forEach((npc, index) => {
             const isValidated = npc.dayAfter && npc.dayAfter.validated;
             let cardClasses = 'bg-black/60 border border-chlorine/20 p-2 flex flex-col items-center gap-2 cursor-pointer hover:border-warning/50 transition-all group relative';
-            
+
             if (npc.uniqueType) {
                 cardClasses += ` npc-card-unique unique-${npc.uniqueType}`;
             }
@@ -2475,5 +2629,103 @@ export class UIManager {
 
     animateToolPulse(bpm, container = null, isInfected = null) {
         this.toolsRenderer.animateToolPulse(bpm, container, isInfected);
+    }
+
+    // --- SISTEMA DE MAPA Y PINES ---
+
+    setMapNodeStatus(nodeId, level) {
+        const node = $(`#map-node-${nodeId}`);
+        if (!node.length) return;
+
+        // Limpiar clases de estado previas
+        node.removeClass('status-active status-alert status-critical');
+
+        if (level === 1) {
+            node.addClass('status-active');
+        } else if (level === 2) {
+            node.addClass('status-alert');
+        } else if (level === 4) {
+            node.addClass('status-critical');
+        }
+    }
+
+    renderPinnedRooms(state) {
+        const container = $('#sidebar-pinned-rooms');
+        if (!container.length) return;
+
+        container.empty();
+
+        // Renderizar hasta 3 salas pineadas
+        state.pinnedRooms.forEach(roomId => {
+            const roomConfig = this.getRoomConfig(roomId);
+            if (!roomConfig) return;
+
+            const statusClass = this.getRoomStatusClass(roomId);
+
+            const btn = $(`
+                <button class="pinned-nav-btn btn-interactive ${statusClass}" data-room="${roomId}" title="Ir a ${roomConfig.name}">
+                    <div class="nav-status-light"></div>
+                    <i class="fa-solid ${roomConfig.icon}"></i>
+                    <span class="pinned-label">${roomConfig.name}</span>
+                </button>
+            `);
+
+            btn.on('click', () => {
+                this.game.events.navigateToRoomByKey(roomId);
+            });
+
+            container.append(btn);
+        });
+
+        // Actualizar estados de los pines en el mapa si está visible
+        $('.map-node-pin-btn').removeClass('active');
+        state.pinnedRooms.forEach(roomId => {
+            $(`.map-node-pin-btn[data-room="${roomId}"]`).addClass('active');
+        });
+    }
+
+    getRoomConfig(roomId) {
+        const configs = {
+            game: { name: 'Puesto', icon: 'fa-shield-halved' },
+            room: { name: 'Vigilancia', icon: 'fa-bell' },
+            meditation: { name: 'Meditación', icon: 'fa-spa' },
+            shelter: { name: 'Refugio', icon: 'fa-house' },
+            supplies: { name: 'Suministros', icon: 'fa-box' },
+            generator: { name: 'Generador', icon: 'fa-bolt' },
+            morgue: { name: 'Perímetro', icon: 'fa-clipboard-list' },
+            database: { name: 'Archivos', icon: 'fa-database' }
+        };
+        return configs[roomId];
+    }
+
+    getRoomStatusClass(roomId) {
+        if (!State) return '';
+
+        switch (roomId) {
+            case 'generator':
+                const genLoad = State.generator.isOn ? Math.round((State.generator.load / State.generator.capacity) * 100) : 0;
+                if (!State.generator.isOn || genLoad > 90) return 'status-critical';
+                if (genLoad > 70) return 'status-alert';
+                return 'status-active';
+
+            case 'shelter':
+                const pop = State.admittedNPCs.length;
+                const cap = State.config.maxShelterCapacity;
+                if (pop >= cap) return 'status-critical';
+                if (pop > cap * 0.8) return 'status-alert';
+                return 'status-active';
+
+            case 'supplies':
+                if (State.supplies < 5) return 'status-critical';
+                if (State.supplies < 10) return 'status-alert';
+                return 'status-active';
+
+            case 'room':
+                const guardId = State.sectorAssignments?.security?.[0];
+                return guardId ? 'status-active' : 'status-alert';
+
+            default:
+                return 'status-active';
+        }
     }
 }

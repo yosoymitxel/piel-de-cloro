@@ -2,26 +2,37 @@ let UIManager, parseDialogueMarkup, State;
 
 beforeAll(async () => {
     // Minimal '$' stub to emulate jQuery-like API used by UIManager.updateDialogueBox
-    global.$ = function (sel, attrs) {
-        // Create a fake element for selectors like '#npc-dialogue' or '#dialogue-options'
-        if (typeof sel === 'string' && sel.startsWith('#')) {
-            const id = sel.slice(1);
-            // Ensure a registry so multiple calls to the same selector return same object
+    global.$ = function (sel) {
+        // Simple mock for jQuery attributes
+        if (arguments.length > 1 && typeof arguments[1] === 'object' && sel.startsWith('<')) {
+            const attrs = arguments[1];
+            const obj = {
+                _html: attrs.html || '',
+                _click: null,
+                html(h) { if (h === undefined) return this._html; this._html = h; return this; },
+                on(evt, h) { if (evt === 'click') this._click = h; return this; },
+                addClass() { return this; },
+                removeClass() { return this; }
+            };
+            return obj;
+        }
+
+        const createFakeElement = (sel) => {
+            const key = sel.replace(/[#.]/g, '');
             global.__fakeDOM = global.__fakeDOM || {};
-            if (!global.__fakeDOM[id]) {
-                global.__fakeDOM[id] = {
+            if (!global.__fakeDOM[key]) {
+                global.__fakeDOM[key] = {
                     _html: '',
                     _children: [],
                     _inner: '',
+                    _text: '',
                     html(h) {
                         if (h === undefined) {
-                            // If there's an inner .npc-text set, inject it into the stored HTML
                             if (this._html && this._html.includes('<span class="npc-text"></span>')) {
                                 return (this._html && this._inner) ? this._html.replace('<span class="npc-text"></span>', `<span class="npc-text">${this._inner}</span>`) : this._html;
                             }
                             return this._html;
                         }
-                        // If we are setting html after a find into .npc-text, set _inner instead of replacing whole html
                         if (this._lastFind && this._lastFind.includes('.npc-text')) {
                             this._inner = h;
                             this._lastFind = null;
@@ -30,55 +41,65 @@ beforeAll(async () => {
                         this._html = h;
                         return this;
                     },
-                    find(sel) {
-                        // Special-case the .npc-text child to expose a child-like API so repeated html() calls affect inner content
-                        if (sel && sel.includes('.npc-text')) {
+                    find(f) {
+                        if (f && f.includes('.npc-text')) {
                             const parent = this;
                             return {
-                                html(h) {
-                                    if (h === undefined) return parent._inner;
-                                    parent._inner = h;
-                                    return this;
-                                },
-                                // Support text() for plain text typing path
-                                text(t) {
-                                    if (t === undefined) return parent._innerText || '';
-                                    parent._innerText = t;
-                                    parent._inner = t;
-                                    return this;
-                                }
+                                html(h) { if (h === undefined) return parent._inner; parent._inner = h; return this; },
+                                text(t) { if (t === undefined) return parent._innerText || ''; parent._innerText = t; parent._inner = t; return this; }
                             };
                         }
-                        // Remember last selector so html(h) knows where to inject for legacy behavior
-                        this._lastFind = sel;
+                        this._lastFind = f;
                         return this;
                     },
                     empty() { this._html = ''; this._children = []; this._inner = ''; return this; },
                     append(node) { this._children.push(node); return this; },
                     on() { return this; },
                     parent() { return this; },
-                    addClass() { return this; }, removeClass() { return this; }, toggleClass() { return this; }, css() { return this; }, text(t) { if (t === undefined) return this._text; this._text = t; return this; }, length: 1
+                    addClass() { return this; },
+                    removeClass() { return this; },
+                    toggleClass() { return this; },
+                    css() { return this; },
+                    prop() { return this; },
+                    eq() { return this; },
+                    text(t) { if (t === undefined) return this._text; this._text = t; return this; },
+                    length: 1
                 };
             }
-            return global.__fakeDOM[id];
+            return global.__fakeDOM[key];
+        };
+
+        if (typeof sel === 'string' && (sel.startsWith('#') || sel.startsWith('.'))) {
+            return createFakeElement(sel);
         }
 
-        // Create a fake button element when called with '<button>'
         if (typeof sel === 'string' && sel.startsWith('<')) {
-            const obj = {
-                _click: null,
-                on(evt, handler) { if (evt === 'click') this._click = handler; return this; },
-                html(h) { this._html = h; return this; }
+            return {
+                on(e, h) { if (e === 'click') this._click = h; return this; },
+                html(h) { this._html = h; return this; },
+                _html: '',
+                addClass() { return this; },
+                removeClass() { return this; }
             };
-            // Apply attrs
-            if (attrs) {
-                if (attrs.html) obj._html = attrs.html;
-            }
-            return obj;
         }
 
-        // Fallback simple object
-        return { html: () => '', find: () => ({ html: () => '' }), empty: () => { }, append: () => { }, on: () => { }, addClass: () => { }, removeClass: () => { }, toggleClass: () => { }, css: () => { }, text: () => '', length: 0 };
+        // Expanded fallback to support chaining
+        const fallback = {
+            html: () => '',
+            find: () => fallback,
+            empty: () => fallback,
+            append: () => fallback,
+            on: () => fallback,
+            addClass: () => fallback,
+            removeClass: () => fallback,
+            toggleClass: () => fallback,
+            css: () => fallback,
+            prop: () => fallback,
+            eq: () => fallback,
+            text: () => '',
+            length: 0
+        };
+        return fallback;
     };
 
     ({ UIManager } = await import('../js/UIManager.js'));
