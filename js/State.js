@@ -2,8 +2,10 @@ export const State = {
     paranoia: 0,
     sanity: 100,
     supplies: 15, // Suministros iniciales
+    fuel: 10,     // Combustible inicial
     cycle: 1,
     dayTime: 1, // Current subject count in the day
+    fuelRoomCheckedThisTurn: false,
     config: {
         maxShelterCapacity: 10,
         dayLength: 5, // Subjects per day
@@ -57,7 +59,7 @@ export const State = {
         id: 'alpha-01',
         name: 'REFUGIO ALPHA-01',
         maxCapacity: 10,
-        rooms: ['game', 'room', 'shelter', 'generator', 'supplies', 'morgue', 'database', 'meditation'],
+        rooms: ['game', 'room', 'shelter', 'generator', 'supplies', 'fuel', 'morgue', 'database', 'meditation'],
         security: {
             minItems: 1,
             maxItems: 5,

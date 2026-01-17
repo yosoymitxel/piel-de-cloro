@@ -53,6 +53,7 @@ export const CONSTANTS = {
         shelter: { method: 'navigateToShelter', label: 'REFUGIO' },
         generator: { method: 'navigateToGenerator', label: 'GENERADOR' },
         supplies: { method: 'navigateToSuppliesHub', label: 'SUMINISTROS' },
+        fuel: { method: 'navigateToFuelRoom', label: 'DEPÓSITO DE COMBUSTIBLE' },
         morgue: { method: 'navigateToMorgue', label: 'MORGUE' },
         database: { screen: 'database', label: 'ARCHIVOS' },
         meditation: { method: 'navigateToMeditation', label: 'SALA_DE_SUEÑO_Z' }
@@ -75,6 +76,12 @@ export const CONSTANTS = {
             icon: 'fa-box-open',
             sabotageMsg: 'SABOTAJE: Desaparición de {amount} suministros por {npc}.',
             feedback: '¡SUMINISTROS ROBADOS!'
+        },
+        fuel: {
+            name: 'COMBUSTIBLE',
+            icon: 'fa-gas-pump',
+            sabotageMsg: 'SABOTAJE: Fuga de combustible provocada por {npc}.',
+            feedback: '¡FUGA DE COMBUSTIBLE!'
         }
     }
 };

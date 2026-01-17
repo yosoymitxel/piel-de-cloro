@@ -134,8 +134,11 @@ export class Conversation {
         // Lógica para añadir una tercera opción de "finalizar diálogo" 
         // cuando hay acciones disponibles (no solo si son 2)
         if (options.length > 0 && options.every(o => o.onclick)) {
-            // No añadimos la opción extra para reducir el número de botones según petición del usuario
-            // El usuario ahora tiene el botón de omitir diálogo en la interfaz de herramientas
+            options.push({
+                id: 'exit_conversation',
+                label: 'Terminar diálogo',
+                next: null
+            });
         }
 
         return { id: node.id, text, options, audio: node.audio || null, meta: node.meta || {} };

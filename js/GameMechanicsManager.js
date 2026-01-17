@@ -21,13 +21,21 @@ export class GameMechanicsManager {
         // 1. Hook de Recarga del Generador
         this.registerNightHook((state) => {
             let summary = "";
+            // 1. Hook de Recarga del Generador (Consume Combustible)
             if (state.generator.power < 100) {
-                let rechargeAmount = 25;
-                if (state.generator.assignedGuardId) {
-                    const guard = state.admittedNPCs.find(n => n.id === state.generator.assignedGuardId);
-                    if (guard && !guard.isInfected) rechargeAmount += 10;
+                const fuelNeeded = 2;
+                if (state.fuel >= fuelNeeded) {
+                    state.fuel -= fuelNeeded;
+                    state.generator.power = Math.min(100, state.generator.power + 25);
+                    summary += "Recarga nocturna completada (-2 combustible). ";
+                } else if (state.fuel > 0) {
+                    state.fuel = 0;
+                    state.generator.power = Math.min(100, state.generator.power + 10);
+                    summary += "Recarga parcial por falta de combustible. ";
+                } else {
+                    state.generator.power = Math.min(100, state.generator.power + 5);
+                    summary += "Recarga mínima (sin combustible). ";
                 }
-                state.generator.power = Math.min(100, state.generator.power + rechargeAmount);
             }
             return summary;
         });
@@ -217,7 +225,7 @@ export class GameMechanicsManager {
     triggerGeneratorFailure() {
         State.generator.isOn = false;
         State.generator.mode = 'normal'; // Reset mode for next start
-        State.generator.power = 0;
+        State.generator.power = Math.floor(State.generator.power * 0.4); // Keep 40%
         if (State.currentNPC) {
             State.currentNPC.scanCount = 99;
         }
@@ -1081,6 +1089,94 @@ export class GameMechanicsManager {
 
                 State.addLogEntry('system', `PÉRDIDA: La señal de ${npc.name} se perdió permanentemente durante la búsqueda de suministros.`, { icon: 'fa-skull' });
                 this.ui.showFeedback(`${npc.name} NO REGRESÓ DE LA EXPEDICIÓN`, "red", 7000);
+            }
+
+            setTimeout(() => {
+                this.game.events.navigateToMap({ force: true, lockNav: false });
+            }, 2500);
+        }
+    }
+
+    startFuelExpedition(npc) {
+        if (!npc || State.paused) return;
+
+        // Mostrar pantalla de expedición (reutilizamos la misma vista)
+        this.game.events.switchScreen(CONSTANTS.SCREENS.EXPEDITION, {
+            force: true,
+            lockNav: true,
+            sound: 'ui_heavy_click'
+        });
+
+        $('#expedition-npc-name span').text(`${npc.name} (DEPÓSITO EXTERNO)`);
+        $('#screen-expedition h1').text('RECOLECCIÓN DE COMBUSTIBLE');
+
+        // Calcular riesgo y recompensa (MÁS ALTO QUE SUMINISTROS)
+        let risk = 40 + (Math.random() * 20); // Base 40-60% (Mucho más peligroso)
+        let minLoot = 4;
+        let maxLoot = 10;
+
+        if (npc.trait) {
+            if (npc.trait.id === 'scavenger') {
+                risk -= 10;
+                minLoot += 2;
+                maxLoot += 4;
+            }
+            if (npc.trait.id === 'sickly') {
+                risk += 25;
+            }
+        }
+
+        const riskFormatted = Math.min(100, Math.max(0, Math.round(risk)));
+        const lootValue = Math.floor(Math.random() * (maxLoot - minLoot + 1)) + minLoot;
+
+        $('#expedition-risk-value').text(`${riskFormatted}%`).addClass('text-alert');
+        $('#expedition-loot-value').text(lootValue);
+
+        // Animación de carga
+        let progress = 0;
+        const fill = $('#expedition-progress-fill');
+        const text = $('#expedition-progress-text');
+
+        this.audio.playSFXByKey('expedition_ambient', { loop: true, volume: 0.4, id: 'exp_loop' });
+
+        const interval = setInterval(() => {
+            if (State.paused) return;
+
+            progress += Math.random() * 3; // Un poco más lenta
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                this.audio.stopSFX('exp_loop');
+                this.finalizeFuelExpedition(npc, riskFormatted, lootValue);
+            }
+
+            fill.css('width', `${progress}%`);
+            text.text(`${Math.round(progress)}%`);
+
+            if (Math.random() < 0.2) this.audio.playSFXByKey('radio_chatter', { volume: 0.2 });
+        }, 200);
+    }
+
+    finalizeFuelExpedition(npc, risk, loot) {
+        const survived = Math.random() * 100 > risk;
+
+        if (survived) {
+            State.fuel += loot;
+            State.addLogEntry('system', `COMBUSTIBLE: ${npc.name} recuperó ${loot} bidones.`, { icon: 'fa-gas-pump' });
+            this.ui.showFeedback(`EXPEDICIÓN RIESGOSA ÉXITOSA: +${loot} COMBUSTIBLE`, "green", 5000);
+
+            setTimeout(() => {
+                this.game.events.navigateToMap({ force: true, lockNav: false });
+            }, 1500);
+        } else {
+            const idx = State.admittedNPCs.indexOf(npc);
+            if (idx > -1) {
+                State.admittedNPCs.splice(idx, 1);
+                npc.death = { reason: 'muerto extrayendo combustible (letalidad alta)', cycle: State.cycle, revealed: true };
+                State.purgedNPCs.push(npc);
+
+                State.addLogEntry('system', `BAJA CRÍTICA: La señal de ${npc.name} desapareció en el depósito de combustible.`, { icon: 'fa-radiation' });
+                this.ui.showFeedback(`${npc.name} PERECIÓ EN EL DEPÓSITO`, "red", 7000);
             }
 
             setTimeout(() => {

@@ -312,6 +312,23 @@
                                         </div>
                                     </button>
 
+                                    <button class="map-node-btn subsystem-link" data-room="fuel" id="map-node-fuel">
+                                        <div class="map-status-light"></div>
+                                        <div class="map-node-header">
+                                            <span class="map-node-title"><i
+                                                    class="fa-solid fa-gas-pump mr-2"></i>COMBUSTIBLE</span>
+                                            <div class="map-node-pin-btn" data-room="fuel" title="Pineado rápido"><i
+                                                    class="fa-solid fa-thumbtack"></i></div>
+                                        </div>
+                                        <div class="map-node-indicators">
+                                            <div class="map-info-line"><span>RESERVA:</span> <span
+                                                    id="map-status-fuel-count" class="map-info-value">0 units</span>
+                                            </div>
+                                            <div class="map-info-line"><span>RIESGO:</span> <span
+                                                    class="map-info-value text-alert">CRÍTICO</span></div>
+                                        </div>
+                                    </button>
+
                                     <button class="map-node-btn subsystem-link" data-room="generator"
                                         id="map-node-generador">
                                         <div class="map-status-light"></div>
@@ -425,6 +442,55 @@
                         </div>
                     </section>
 
+                    <!-- SCREEN: DEPÓSITO DE COMBUSTIBLE -->
+                    <section id="screen-fuel-room" class="h-full flex flex-col hidden crt-flicker overflow-y-auto">
+                        <header class="flex justify-between items-center border-b border-chlorine/30 p-6 bg-black/40">
+                            <div>
+                                <h1 class="text-3xl text-glow tracking-tighter uppercase font-black text-rose-400">
+                                    DEPÓSITO_B4_H3</h1>
+                                <p class="font-mono text-[10px] opacity-60 tracking-widest text-rose-200">EXTRACCIÓN DE
+                                    RECURSOS VOLÁTILES // ALTA LETALIDAD</p>
+                            </div>
+                            <div class="flex gap-4 items-center">
+                                <div class="comp-fuel"></div>
+                                <div class="industrial-tag flex flex-col items-end">
+                                    <span class="text-[9px] opacity-40 uppercase">Reserva</span>
+                                    <span id="fuel-hub-count" class="text-xs font-bold text-rose-500">0 UNITS</span>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="flex-grow flex flex-col items-center justify-center p-12">
+                            <div
+                                class="industrial-panel p-12 border border-rose-500/20 bg-black/60 flex flex-col items-center gap-8 relative overflow-hidden">
+                                <div class="absolute inset-0 bg-rose-500/5 animate-pulse pointer-events-none"></div>
+                                <div class="grid grid-cols-3 gap-6 opacity-30">
+                                    <i class="fa-solid fa-gas-pump text-4xl"></i><i
+                                        class="fa-solid fa-radiation text-4xl"></i><i
+                                        class="fa-solid fa-gas-pump text-4xl"></i>
+                                </div>
+                                <h2 class="text-2xl font-bold text-rose-500 uppercase tracking-[0.3em]">PROTOCOLO DE
+                                    EXTRACCIÓN</h2>
+                                <p class="text-center text-sm opacity-60 max-w-[450px]">
+                                    ADVERTENCIA: Las expediciones al depósito externo conllevan un riesgo biológico y
+                                    mecánico superior al 45%. El personal enviado tiene bajas probabilidades de retorno.
+                                </p>
+
+                                <button id="btn-start-fuel-expedition"
+                                    class="horror-btn border-rose-500/60 hover:bg-rose-500/20 px-16 py-6 font-black text-rose-400 tracking-widest transition-all">
+                                    ORDENAR EXTRACCIÓN
+                                </button>
+
+                                <div
+                                    class="mt-4 pt-4 border-t border-white/10 w-full flex justify-between items-center">
+                                    <span class="text-[9px] uppercase opacity-40">Unidad de Sacrificio:</span>
+                                    <span id="fuel-hub-assigned"
+                                        class="text-sm font-bold text-rose-200 uppercase tracking-widest">---</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
                     <!-- SCREEN: ALMACÉN DE SUMINISTROS -->
                     <section id="screen-supplies-hub" class="h-full flex flex-col hidden crt-flicker overflow-y-auto">
                         <header class="flex justify-between items-center border-b border-chlorine/30 p-6 bg-black/40">
@@ -484,6 +550,7 @@
                                 <div class="comp-paranoia"></div>
                                 <div class="comp-sanity"></div>
                                 <div class="comp-supplies"></div>
+                                <div class="comp-fuel"></div>
                                 <div class="comp-gen-load"></div>
                                 <div class="comp-gen-battery"></div>
                                 <div class="comp-gen-station"></div>

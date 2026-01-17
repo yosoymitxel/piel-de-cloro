@@ -154,15 +154,21 @@ export class GameEventManager {
             // --- ACTUALIZACIÓN DE INFORMACIÓN DETALLADA ---
 
             // 1. Refugio
+            const admittedPercent = (State.admittedNPCs.length / State.config.maxShelterCapacity) * 100;
             $('#map-status-shelter-count').text(`${State.admittedNPCs.length}/${State.config.maxShelterCapacity}`);
             const shelterLevel = State.admittedNPCs.length >= State.config.maxShelterCapacity ? 4 : (State.admittedNPCs.length > State.config.maxShelterCapacity * 0.8 ? 2 : 1);
             this.ui.setMapNodeStatus('refugio', shelterLevel);
+
+            const shelterNode = $('#map-node-refugio');
+            shelterNode.find('.map-info-value:last').text(admittedPercent >= 100 ? 'CRÍTICO' : 'ESTABLE')
+                .toggleClass('text-alert', admittedPercent >= 100);
 
             // 2. Seguridad
             const guardId = State.sectorAssignments?.security?.[0];
             const guard = State.admittedNPCs.find(n => n.id === guardId);
             $('#map-status-security-guard').text(guard ? guard.name.toUpperCase() : 'VACANTE');
-            $('#map-status-security-alerts').text(State.infectedSeenCount || 0);
+            $('#map-status-security-alerts').text(State.infectedSeenCount || 0)
+                .toggleClass('text-alert', (State.infectedSeenCount || 0) > 0);
             this.ui.setMapNodeStatus('sala', guard ? 1 : 2);
 
             // 3. Suministros
@@ -170,19 +176,34 @@ export class GameEventManager {
             const suppliesLevel = State.supplies < 5 ? 4 : (State.supplies < 10 ? 2 : 1);
             this.ui.setMapNodeStatus('suministros', suppliesLevel);
 
-            // 4. Generador
+            const suppliesNode = $('#map-node-suministros');
+            suppliesNode.find('.map-info-value:last').text(State.supplies < 5 ? 'RESERVAS BAJAS' : 'RESERVAS OK')
+                .toggleClass('text-alert', State.supplies < 5)
+                .toggleClass('text-orange-400', State.supplies >= 5 && State.supplies < 10);
+
+            // 4. Combustible
+            $('#map-status-fuel-count').text(`${State.fuel} UNITS`);
+            const fuelLevel = State.fuel < 3 ? 4 : (State.fuel < 6 ? 2 : 1);
+            this.ui.setMapNodeStatus('fuel', fuelLevel);
+
+            const fuelNode = $('#map-node-fuel');
+            fuelNode.find('.map-info-value:last').text(State.fuel < 3 ? 'CRÍTICO' : 'SEGURO')
+                .toggleClass('text-alert', State.fuel < 3);
+
+            // 5. Generador
             const genLoad = State.generator.isOn ? Math.round((State.generator.load / State.generator.capacity) * 100) : 0;
             $('#map-status-gen-load').text(`${genLoad}%`);
             const genMode = State.generator.mode === 'overload' ? 'SOBRECARGA' : (State.generator.mode === 'save' ? 'AHORRO' : 'NORMAL');
-            $('#map-status-gen-mode').text(genMode).toggleClass('text-orange-500', State.generator.mode === 'overload');
 
-            const genLevel = !State.generator.isOn ? 4 : (genLoad > 90 ? 4 : (genLoad > 70 ? 2 : 1));
-            this.ui.setMapNodeStatus('generador', genLevel);
+            const genNode = $('#map-node-generador');
+            genNode.find('.map-info-value:last').text(genMode)
+                .removeClass('text-blue-400 text-orange-500 text-green-500')
+                .addClass(State.generator.mode === 'overload' ? 'text-orange-500' : (State.generator.mode === 'save' ? 'text-blue-400' : 'text-green-500'));
 
-            // 5. Morgue
-            $('#map-status-morgue-count').text(State.purgedNPCs.length + State.departedNPCs.length);
+            const genStatusLevel = !State.generator.isOn ? 4 : (genLoad > 90 ? 4 : (genLoad > 70 ? 2 : 1));
+            this.ui.setMapNodeStatus('generador', genStatusLevel);
 
-            // 6. Otros (Puesto, Archivos, Meditación)
+            // 6. Otros
             this.ui.setMapNodeStatus('puesto', 1);
             this.ui.setMapNodeStatus('database', 1);
             this.ui.setMapNodeStatus('meditacion', 1);
@@ -195,6 +216,16 @@ export class GameEventManager {
 
     navigateToMeditation() {
         this.switchScreen(CONSTANTS.SCREENS.MEDITATION);
+    }
+
+    navigateToFuelRoom() {
+        const renderFn = () => {
+            $('#fuel-hub-count').text(`${State.fuel} UNITS`);
+            const assignedId = State.sectorAssignments?.fuel?.[0]; // Reutilizamos sistema si hay guardias
+            const npc = State.admittedNPCs.find(n => n.id === assignedId);
+            $('#fuel-hub-assigned').text(npc ? npc.name.toUpperCase() : 'VACANTE');
+        };
+        this.switchScreen(CONSTANTS.SCREENS.FUEL_ROOM, { renderFn });
     }
 
     navigateToSuppliesHub() {
@@ -252,6 +283,22 @@ export class GameEventManager {
         this.ui.showConfirm(`¿DESPLEGAR A ${npc.name.toUpperCase()} PARA UNA EXPEDICIÓN DE SUMINISTROS?<br><span class="text-xs text-alert">RIESGO DE PÉRDIDA DEL SUJETO: MEDIO-ALTO</span>`, () => {
             this.game.mechanics.startScavengingExpedition(npc);
         }, null, 'warning');
+    }
+
+    handleFuelClick() {
+        const fuelNPCId = State.sectorAssignments?.fuel?.[0];
+        const npc = State.admittedNPCs.find(n => n.id === fuelNPCId);
+
+        if (!npc) {
+            this.ui.showConfirm("DEPÓSITO DE COMBUSTIBLE: NO HAY PERSONAL ASIGNADO PARA EXTRACCIÓN.<br>¿ASIGNAR EN EL REFUGIO?", () => {
+                this.navigateToShelter();
+            }, null, 'normal');
+            return;
+        }
+
+        this.ui.showConfirm(`¿ORDENAR A ${npc.name.toUpperCase()} LA EXTRACCIÓN DE COMBUSTIBLE?<br><br><span class="text-xs text-alert font-bold animate-pulse">ADVERTENCIA: LETALIDAD EXTREMA - RIESGO DE PÉRDIDA CRÍTICO</span>`, () => {
+            this.game.mechanics.startFuelExpedition(npc);
+        }, null, 'danger');
     }
 
     bindAll() {
@@ -417,6 +464,9 @@ export class GameEventManager {
 
         $('#btn-start-expedition-hub').on('click', () => {
             this.handleSuppliesClick();
+        });
+        $('#btn-start-fuel-expedition').on('click', () => {
+            this.handleFuelClick();
         });
         $('#hud-energy-container').on('click', () => this.navigateToGenerator());
         $('#btn-bitacora, #btn-open-log').on('click', () => this.navigateToLog());
