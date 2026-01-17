@@ -1,0 +1,157 @@
+
+> piel-de-cloro@0.0.0 test
+> node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit __tests__/resource_systems.test.js __tests__/advanced_mechanics.test.js
+
+(node:1776475) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL __tests__/resource_systems.test.js
+  ● Resource Systems (Food, Paranoia, Sanity) › Food (Supplies) System › Night consumption: base 1 per person
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/resource_systems.test.js:78:17)
+
+  ● Resource Systems (Food, Paranoia, Sanity) › Paranoia System › optimist trait reduces paranoia
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/resource_systems.test.js:139:17)
+
+FAIL __tests__/advanced_mechanics.test.js
+  ● Test suite failed to run
+
+    RangeError: Maximum call stack size exceeded
+
+      158 |             State.securityItems = [{ type: 'puerta', secured: true }];
+      159 |             let count = 0;
+    > 160 |             let spyRandom = jest.spyOn(Math, 'random').mockImplementation(() => {
+          |                                                                           ^
+      161 |                 count++;
+      162 |                 if (count === 1) return 0.1; // trigger
+      163 |                 return 0.0; // target
+
+      at Math.<anonymous> (__tests__/advanced_mechanics.test.js:160:75)
+      at Math.apply (jest.setup.js:8:67)
+      at randomIntInRange (node_modules/source-map/lib/quick-sort.js:43:33)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:75:22)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+
+Test Suites: 2 failed, 2 total
+Tests:       2 failed, 6 passed, 8 total
+Snapshots:   0 total
+Time:        0.605 s, estimated 1 s
+Ran all test suites matching /__tests__\/resource_systems.test.js|__tests__\/advanced_mechanics.test.js/i.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

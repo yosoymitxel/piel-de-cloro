@@ -9,6 +9,7 @@ global.$ = jest.fn((selector) => {
             html: jest.fn().mockReturnThis(),
             append: jest.fn().mockReturnThis(),
             on: jest.fn().mockReturnThis(),
+            off: jest.fn().mockReturnThis(),
             addClass: jest.fn().mockReturnThis(),
             removeClass: jest.fn().mockReturnThis(),
             find: jest.fn().mockReturnThis(),
@@ -30,6 +31,7 @@ global.$ = jest.fn((selector) => {
         html: jest.fn().mockReturnThis(),
         append: jest.fn().mockReturnThis(),
         on: jest.fn().mockReturnThis(),
+        off: jest.fn().mockReturnThis(),
         addClass: jest.fn().mockReturnThis(),
         removeClass: jest.fn().mockReturnThis(),
         find: jest.fn().mockReturnThis(),
@@ -61,12 +63,12 @@ describe('Endings UI', () => {
     test('showEndingsModal displays correct count and numeration', () => {
         // Mock unlocked endings
         State.unlockedEndings = ['final_clean', 'final_corrupted'];
-        
+
         // Mock elements
         const listMock = { empty: jest.fn(), append: jest.fn() };
         const titleMock = { html: jest.fn() };
         const modalMock = { find: jest.fn().mockReturnValue(titleMock), removeClass: jest.fn().mockReturnThis(), addClass: jest.fn().mockReturnThis() };
-        
+
         ui.elements.modalEndings = modalMock;
         ui.elements.endingsList = listMock;
 
@@ -83,24 +85,24 @@ describe('Endings UI', () => {
         const calls = listMock.append.mock.calls;
         // The argument to append is a jQuery object created from a string
         // Since we mocked $, we can check the string passed to $ in UIManager.js
-        
+
         // The first call should have "1. "
         // The second call should have "2. "
         // In our mock, $ is called with the HTML string.
         const firstCardHtml = global.$.mock.calls.find(call => typeof call[0] === 'string' && call[0].includes('1. '))[0];
         const secondCardHtml = global.$.mock.calls.find(call => typeof call[0] === 'string' && call[0].includes('2. '))[0];
-        
+
         expect(firstCardHtml).toContain('1. ');
         expect(secondCardHtml).toContain('2. ');
     });
 
     test('showEndingsModal handles zero unlocked endings', () => {
         State.unlockedEndings = [];
-        
+
         const listMock = { empty: jest.fn(), append: jest.fn() };
         const titleMock = { html: jest.fn() };
         const modalMock = { find: jest.fn().mockReturnValue(titleMock), removeClass: jest.fn().mockReturnThis(), addClass: jest.fn().mockReturnThis() };
-        
+
         ui.elements.modalEndings = modalMock;
         ui.elements.endingsList = listMock;
 

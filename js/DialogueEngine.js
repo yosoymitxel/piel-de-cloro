@@ -12,9 +12,12 @@ export function selectDialogueSet({ personality = null, infected = false, isLore
             const found = DialogueData.loreSubjects.find(s => s.id === loreId);
             if (found) return found;
         }
-        // Otherwise pick first unused lore subject
-        const avail = DialogueData.loreSubjects.filter(s => !State.isDialogueUsed(s.id));
-        return avail.length ? avail[Math.floor(Math.random() * avail.length)] : DialogueData.loreSubjects[0];
+        // Otherwise pick first unused lore subject (filtered by appearanceDay)
+        const avail = DialogueData.loreSubjects.filter(s =>
+            !State.isDialogueUsed(s.id) &&
+            (!s.appearanceDay || State.cycle >= s.appearanceDay)
+        );
+        return avail.length ? avail[Math.floor(Math.random() * avail.length)] : null;
     }
 
     // Generic pools: pick by personality tag (if any)
@@ -87,7 +90,7 @@ export class Conversation {
                 const r = (typeof State.getRandomRumor === 'function') ? State.getRandomRumor() : '';
                 // Log rumor if not logged for this node
                 if (nodeId && !this.loggedNodes.has(nodeId + '_rumor')) {
-                    State.addLogEntry('note', `Rumor escuchado: "${r}"`);
+                    State.addLogEntry('rumor', r);
                     this.loggedNodes.add(nodeId + '_rumor');
                 }
                 return r;

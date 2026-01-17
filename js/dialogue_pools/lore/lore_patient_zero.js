@@ -4,6 +4,9 @@ export const lore_patient_zero = {
     id: 'lore_patient_zero',
     unique: true,
     tags: ['lore', 'mysterious', 'patient_zero'],
+    clue: "Yo fui el primero. La Madre no busca matarnos, busca refinarnos. El pulso lento es la señal de que la carne se está rindiendo.",
+    mechanicHint: "AVISO: Un pulso por debajo de 40 PPM es un indicador crítico de asimilación avanzada.",
+    appearanceDay: 4, // Fase 1.2 Roadmap: NPC más importante aparece tarde
     root: 'lpz_n1',
     nodes: {
         'lpz_n1': {

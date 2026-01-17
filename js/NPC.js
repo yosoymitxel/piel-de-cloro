@@ -23,9 +23,15 @@ export class NPC {
         this.isLore = opts.isLore || false;
         this.loreId = opts.loreId || null;
 
-        // Assign a dialogue set using DialogueEngine
         const set = selectDialogueSet({ personality: this.personality, infected: this.isInfected, isLore: this.isLore, loreId: this.loreId });
         this.conversation = new Conversation(this, set);
+
+        // Propagate metadata from the chosen dialogue set (Generic or Lore) to the NPC
+        if (set) {
+            if (set.clue) this.clue = set.clue;
+            if (set.mechanicHint) this.mechanicHint = set.mechanicHint;
+            if (set.tags) this.tags = set.tags; // Useful for later queries
+        }
         this.dialogueTree = this.conversation.getRawTreeForCompatibility();
 
         // Apply lore-specific overrides if this is a lore NPC
@@ -38,6 +44,11 @@ export class NPC {
         this.uniqueType = this.isLore ? 'lore' : null; // 'lore', 'vip', 'special', etc.
         this.uniqueBadge = this.isLore ? { label: 'ANOMALÍA', color: 'alert', icon: 'fa-skull-crossbones' } : null;
 
+        // Lore Clue System (Phase 3.2 Additions)
+        this.clue = set ? set.clue : null;
+        this.mechanicHint = set ? set.mechanicHint : null;
+        this.loreClueRevealed = false;
+
         // Track scans
         this.scanCount = 0;
         this.maxScans = 2;
@@ -46,6 +57,17 @@ export class NPC {
         this.history = []; // Initialize history array
         this.revealedStats = []; // Tracks which stats (temperature, pulse, etc) have been scanned
         this.dayAfter = null; // Will be initialized if admitted
+        this.assignedSector = null; // Current job assignment (e.g., 'generator', 'security')
+
+        // Psychological metrics (Phase 5)
+        this.stress = Math.floor(Math.random() * 20); // Initial stress (0-20)
+        this.loyalty = 30 + Math.floor(Math.random() * 40); // Initial loyalty (30-70)
+        this.psychSnapshot = null; // Last analysis report
+    }
+
+    updatePsych(stressDelta, loyaltyDelta) {
+        this.stress = Math.max(0, Math.min(100, this.stress + stressDelta));
+        this.loyalty = Math.max(0, Math.min(100, this.loyalty + loyaltyDelta));
     }
 
     generateName(gender) {
@@ -177,7 +199,7 @@ export class NPC {
         // A partir del día 5, empieza a haber riesgo.
         const cycle = (typeof State !== 'undefined') ? State.cycle : 1;
         const anomalyChance = Math.max(0, (cycle - 5) * 0.05); // Día 5: 0%, Día 10: 25%, Día 15: 50%
-        
+
         if (Math.random() < anomalyChance) return catastrophic;
 
         // 70% chance of having a trait (or none)

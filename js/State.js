@@ -1,4 +1,5 @@
 import { CONSTANTS } from './Constants.js';
+import { Shelter, Room } from './ShelterModel.js';
 
 export const State = {
     paranoia: 0,
@@ -8,6 +9,11 @@ export const State = {
     cycle: 1,
     dayTime: 1, // Current subject count in the day
     fuelRoomCheckedThisTurn: false,
+    shelters: {},
+    currentShelterId: null,
+    get currentShelter() {
+        return (this.shelters && this.currentShelterId) ? this.shelters[this.currentShelterId] : null;
+    },
     config: {
         maxShelterCapacity: 10,
         dayLength: 5, // Subjects per day
@@ -224,10 +230,12 @@ export const State = {
         generator: { slots: 1, occupants: [] },
         security: { slots: 1, occupants: [] },
         supplies: { slots: 1, occupants: [] },
-        fuel: { slots: 1, occupants: [] }
+        fuel: { slots: 1, occupants: [] },
+        infirmary: { slots: 1, occupants: [] },
+        kitchen: { slots: 1, occupants: [] }
     },
     // Deprecated: sectorAssignments (se eliminará tras migración)
-    
+
     paused: false,
     debug: true, // Cambiar a false para producción
     gameLog: [], // Historial cronológico
@@ -292,22 +300,27 @@ export const State = {
         this.dialoguePoolsLastUsed = {};
         this.gameLog = [];
         this.dialogueMemory = [];
-        
+
+        // Initialize Shelters (Phase 4.1)
+        const initialShelter = Shelter.createPlaceholder('3x3');
+        this.shelters = { [initialShelter.id]: initialShelter };
+        this.currentShelterId = initialShelter.id;
+
         // Reset Assignments (Dynamic based on CONSTANTS.SECTOR_CONFIG)
         this.assignments = {};
         this.roomLogs = {};
-        
+
         if (CONSTANTS.SECTOR_CONFIG) {
             Object.keys(CONSTANTS.SECTOR_CONFIG).forEach(sectorId => {
                 const config = CONSTANTS.SECTOR_CONFIG[sectorId];
-                this.assignments[sectorId] = { 
-                    slots: config.slots || 1, 
-                    occupants: [] 
+                this.assignments[sectorId] = {
+                    slots: config.slots || 1,
+                    occupants: []
                 };
                 this.roomLogs[sectorId] = [];
             });
         } else {
-             // Fallback if config missing
+            // Fallback if config missing
             this.assignments = {
                 generator: { slots: 1, occupants: [] },
                 security: { slots: 1, occupants: [] },
@@ -316,6 +329,15 @@ export const State = {
             };
             this.roomLogs = { generator: [], security: [], supplies: [], fuel: [] };
         }
+
+        // Sync initial shelter rooms with assignments (Phase 4.1 bridge)
+        Object.values(this.shelters[this.currentShelterId].grid).forEach(room => {
+            const sectorKey = room.type.toLowerCase();
+            if (this.assignments[sectorKey]) {
+                // Ensure room knows about occupants if any (initially empty)
+                room.occupants = this.assignments[sectorKey].occupants;
+            }
+        });
 
         // Legacy support during migration (proxies to new system if needed, or just kept empty)
         this.sectorAssignments = {};
@@ -342,18 +364,18 @@ export const State = {
     addSectorLog(sector, message, npcName = 'SISTEMA') {
         if (!this.roomLogs) this.roomLogs = {};
         if (!this.roomLogs[sector]) this.roomLogs[sector] = [];
-        
+
         const time = this.isNight ? 'NOCT' : `${this.dayTime}:00`;
-        
+
         this.roomLogs[sector].push({
             timestamp: time,
             npcName: npcName,
             message: message,
             type: npcName === 'SISTEMA' ? 'system' : 'normal'
         });
-        
+
         if (this.roomLogs[sector].length > 20) this.roomLogs[sector].shift();
-        
+
         if (typeof document !== 'undefined') {
             document.dispatchEvent(new CustomEvent('sector-log-added', { detail: { sector } }));
         }
@@ -373,7 +395,7 @@ export const State = {
         if (index > -1) {
             this.admittedNPCs.splice(index, 1);
         }
-        
+
         // Remove from assignments (logging included)
         this._unassignFromAll(npc);
 
@@ -511,22 +533,22 @@ export const State = {
     getRandomRumor() {
         // 1. Lore-specific rumors based on flags
         if (this.hasFlag('known_mother') && Math.random() > 0.7) {
-             return "Dicen que la Madre duerme bajo el hielo... y que sueña con nosotros.";
+            return "Dicen que la Madre duerme bajo el hielo... y que sueña con nosotros.";
         }
         if (this.hasFlag('known_heartbeat') && Math.random() > 0.7) {
-             return "Algunos oyen latidos en las tuberías por la noche. Como un corazón gigante.";
+            return "Algunos oyen latidos en las tuberías por la noche. Como un corazón gigante.";
         }
         if (this.hasFlag('known_deep_well') && Math.random() > 0.7) {
-             return "El Pozo Profundo no tiene fondo. Lo que cae allí, nunca deja de caer.";
+            return "El Pozo Profundo no tiene fondo. Lo que cae allí, nunca deja de caer.";
         }
         if (this.hasFlag('known_kystra') && Math.random() > 0.7) {
-             return "Kystra no desapareció. Se convirtió en parte de la estación.";
+            return "Kystra no desapareció. Se convirtió en parte de la estación.";
         }
         if (this.hasFlag('rumour_sector_zero') && Math.random() > 0.7) {
-             return "Hay un Sector 0. Un núcleo original. Dicen que allí el tiempo no pasa.";
+            return "Hay un Sector 0. Un núcleo original. Dicen que allí el tiempo no pasa.";
         }
         if (this.hasFlag('rumour_white_silence') && Math.random() > 0.7) {
-             return "El Silencio Blanco... una frecuencia que anula el ruido de la Colmena. ¿Mito o realidad?";
+            return "El Silencio Blanco... una frecuencia que anula el ruido de la Colmena. ¿Mito o realidad?";
         }
 
         const mem = this.dialogueMemory || [];
@@ -587,8 +609,8 @@ export const State = {
     update(deltaTime) {
         // Logic for time-based updates (timers, cooldowns)
         if (this.generator.blackoutUntil > 0) {
-             // Logic related to blackout timer is currently handled by timestamp checks
-             // but could be moved here for cleaner state management
+            // Logic related to blackout timer is currently handled by timestamp checks
+            // but could be moved here for cleaner state management
         }
     },
 

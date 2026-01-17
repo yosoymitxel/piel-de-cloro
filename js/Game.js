@@ -114,7 +114,7 @@ class Game {
         this.ui.showScreen('game');
         this.ui.elements.modalTutorial.removeClass('hidden').addClass('flex');
         this.audio.playAmbientByKey('ambient_main_loop', { loop: true, volume: 0.28, fadeIn: 800 });
-        
+
         this.loopManager.start();
     }
 
@@ -137,14 +137,14 @@ class Game {
         State.endingTriggered = false;
         State.nightPurgePerformed = false;
         State.generatorCheckedThisTurn = false;
-        State.generator = { 
-            isOn: true, 
-            mode: 'normal', 
-            power: 100, 
-            blackoutUntil: 0, 
-            overclockCooldown: false, 
-            emergencyEnergyGranted: false, 
-            maxModeCapacityReached: 2, 
+        State.generator = {
+            isOn: true,
+            mode: 'normal',
+            power: 100,
+            blackoutUntil: 0,
+            overclockCooldown: false,
+            emergencyEnergyGranted: false,
+            maxModeCapacityReached: 2,
             restartLock: false,
             load: 0,
             baseConsumption: 5,
@@ -159,7 +159,7 @@ class Game {
             assignedGuardId: null,
             guardShiftLogs: [] // Legacy, but kept for safety until full migration
         };
-        
+
         // Calculate initial load immediately to ensure UI is correct
         this.mechanics.calculateTotalLoad();
 
@@ -262,9 +262,13 @@ class Game {
         }
 
         // Probabilidad de NPC de Lore (12%)
+        // Fase 1.2 Roadmap: Filtrar por appearanceDay (NPCs lore aparecen después de cierto día)
         let isLore = false;
         if (Math.random() < 0.12) {
-            const unusedLore = DialogueData.loreSubjects.filter(s => !State.isDialogueUsed(s.id));
+            const unusedLore = DialogueData.loreSubjects.filter(s =>
+                !State.isDialogueUsed(s.id) &&
+                (!s.appearanceDay || State.cycle >= s.appearanceDay)
+            );
             if (unusedLore.length > 0) {
                 isLore = true;
             }
@@ -312,9 +316,9 @@ class Game {
     update(deltaTime) {
         // Core game update loop
         if (State.paused) return;
-        
+
         State.update(deltaTime);
-        
+
         // Future: Update managers that need time-based logic
         // this.mechanics.update(deltaTime);
         // this.orchestrator.update(deltaTime);

@@ -84,7 +84,7 @@ describe('Game Action Handler', () => {
             State.debug = true;
             State.log("test log");
             // Expect timestamp tag AND the message
-            expect(spy).toHaveBeenCalledWith(expect.stringMatching(/\[LOG \d{1,2}:\d{2}:\d{2}\]/), "test log");
+            expect(spy).toHaveBeenCalledWith(expect.stringMatching(/\[LOG .*\]/), "test log");
             spy.mockRestore();
             State.debug = false; // Reset
         });

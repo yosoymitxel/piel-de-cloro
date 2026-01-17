@@ -512,6 +512,7 @@
 }
 
 @keyframes map-pulse-crit {
+
     0%,
     100% {
         opacity: 1;
@@ -609,11 +610,156 @@
     font-family: 'JetBrains Mono', monospace;
 }
 
-#map-node-generador.subsystem-link::after,
-#map-node-suministros.subsystem-link::after,
 #map-node-meditacion.subsystem-link::after {
-    bottom: 6px;
-    right: 6px;
+    display: none;
+}
+
+/* --- BLUEPRINT GRID (Phase 4.3) --- */
+#blueprint-wrapper {
+    background: #000;
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 100%;
+    min-height: 100%;
+}
+
+.blueprint-grid {
+    display: grid;
+    gap: 15px;
+    padding: 30px;
+    border: 1px solid rgba(0, 255, 65, 0.4);
+    background: rgba(0, 5, 0, 0.9);
+    position: relative;
+    box-shadow: 0 0 40px rgba(0, 255, 65, 0.05);
+}
+
+/* Scanline effect for the grid itself */
+.blueprint-grid::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 50%, rgba(0, 255, 65, 0.02) 50%);
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.blueprint-cell {
+    /* Phase 5.x: Clean 2D Blueprint Style */
+    background: rgba(10, 25, 35, 0.85);
+    border: 1px solid rgba(80, 180, 220, 0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    /* Remove glow and fancy effects */
+}
+
+/* Tech Corners - Hidden for clean 2D look */
+.tech-corners {
+    display: none;
+}
+
+/* Scanline Animation - Disabled */
+.cell-scanline {
+    display: none;
+}
+
+/* Remove grid pattern overlay */
+.blueprint-cell::after {
+    display: none;
+}
+
+.blueprint-cell:hover {
+    background: rgba(30, 60, 80, 0.9);
+    border-color: rgba(100, 200, 255, 0.6);
+}
+
+.blueprint-cell .blueprint-icon {
+    font-size: 1.8rem;
+    color: rgba(100, 200, 255, 0.9);
+    margin-bottom: 8px;
+    /* Remove glow effects */
+}
+
+.blueprint-cell:hover .blueprint-icon {
+    color: rgba(150, 220, 255, 1);
+}
+
+.blueprint-label {
+    font-family: var(--font-term);
+    font-size: 0.7rem;
+    color: rgba(180, 220, 255, 0.9);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.blueprint-coords {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    font-size: 8px;
+    color: rgba(100, 150, 200, 0.4);
+    font-family: var(--font-term);
+}
+
+.blueprint-cell.is-off {
+    border-color: rgba(255, 51, 51, 0.3);
+    background: rgba(255, 51, 51, 0.02);
+}
+
+.blueprint-cell.is-off .blueprint-icon,
+.blueprint-cell.is-off .blueprint-label {
+    color: #ff3333;
+    filter: drop-shadow(0 0 5px rgba(255, 51, 51, 0.3));
+    opacity: 0.4;
+}
+
+.blueprint-cell.not-discovered {
+    background: #0a0a0a;
+    border-color: #1a1a1a;
+    cursor: default;
+}
+
+.blueprint-cell.not-discovered::before {
+    content: "NO_SIGNAL";
+    font-family: var(--font-term);
+    font-size: 10px;
+    color: #222;
+    letter-spacing: 4px;
+}
+
+.blueprint-cell.not-discovered * {
+    visibility: hidden;
+}
+
+/* Animated Corner borders for selected room */
+.blueprint-cell.is-selected::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border: 2px solid var(--color-terminal-green);
+    animation: blueprint-select-pulse 1.5s infinite;
+}
+
+@keyframes blueprint-select-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.05);
+    }
 }
 
 /* Meditation Effects */
@@ -624,13 +770,21 @@
     justify-content: center;
     transition: all 0.5s ease;
     box-shadow: inset 0 0 20px rgba(147, 197, 253, 0.05);
-    margin: 0 auto; /* Ensure centering */
+    margin: 0 auto;
+    /* Ensure centering */
     animation: meditation-breathe 4s infinite ease-in-out;
 }
 
 @keyframes meditation-breathe {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.2); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
 }
 
 .meditation-visualizer:hover {
@@ -683,11 +837,58 @@
 
 /* --- NEW ADDITIONS --- */
 @keyframes pulse-grow {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.3); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.3);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .pulse-grow {
     animation: pulse-grow 0.5s ease-out;
+}
+
+/* Phase 5.2 Database Analysis Styles */
+.npc-analysis-card {
+    border-left-width: 4px !important;
+    border-left-color: rgba(30, 58, 138, 0.5) !important;
+}
+
+.npc-analysis-card:hover {
+    border-left-color: var(--cyan-400) !important;
+    box-shadow: inset 0 0 20px rgba(34, 211, 238, 0.05);
+}
+
+#db-analysis-detail {
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.9)),
+        repeating-linear-gradient(transparent, transparent 2px, rgba(34, 211, 238, 0.03) 3px);
+}
+
+/* Global Transition Effects (Phase 5.3) */
+#transition-overlay.opacity-100 {
+    animation: glitch-flash 0.15s steps(2);
+}
+
+@keyframes glitch-flash {
+    0% {
+        opacity: 0.8;
+        transform: translate(1px, -1px);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translate(-1px, 1px);
+    }
+
+    100% {
+        opacity: 0.9;
+        transform: translate(0);
+    }
 }

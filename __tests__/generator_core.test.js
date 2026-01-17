@@ -23,6 +23,9 @@ describe('Generator Core Overhaul Tests', () => {
             }
         };
         mechanics = new GameMechanicsManager(mockGame);
+        // Clear shelter to test base/system load math cleanly
+        State.shelters = {};
+        State.currentShelterId = null;
     });
 
     test('calculateTotalLoad sums base consumption and active systems', () => {
@@ -40,8 +43,8 @@ describe('Generator Core Overhaul Tests', () => {
 
         const total = mechanics.calculateTotalLoad();
 
-        // 10 (base) + 10 (mode) + 15 (sec) + 10 (light) = 45
-        expect(total).toBe(45);
+        // 10 (base) + 5 (mode) + 15 (sec) + 10 (light) = 40
+        expect(total).toBe(40);
     });
 
     test('calculateTotalLoad includes blood test spikes', () => {
@@ -57,8 +60,8 @@ describe('Generator Core Overhaul Tests', () => {
 
         const total = mechanics.calculateTotalLoad();
 
-        // 10 (base) + 10 (mode) + 45 (spike) = 65
-        expect(total).toBe(65);
+        // 10 (base) + 5 (mode) + 45 (spike) = 60
+        expect(total).toBe(60);
     });
 
     test('calculateTotalLoad handles high paranoia stress', () => {
@@ -73,8 +76,8 @@ describe('Generator Core Overhaul Tests', () => {
 
         const total = mechanics.calculateTotalLoad();
 
-        // 10 (base) + 10 (mode) + 5 (paranoia) = 25
-        expect(total).toBe(25);
+        // 10 (base) + 5 (mode) + 5 (paranoia) = 20
+        expect(total).toBe(20);
     });
 
     test('updateGenerator decreases stability on overload', () => {

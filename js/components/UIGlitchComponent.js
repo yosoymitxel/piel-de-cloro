@@ -3,7 +3,7 @@ import { BaseComponent } from './BaseComponent.js';
 export class UIGlitchComponent extends BaseComponent {
     constructor(uiManager) {
         // Pass a dummy selector or 'body' since this component affects multiple elements
-        super('body'); 
+        super('body');
         this.uiManager = uiManager;
         // Elements will be accessed lazily or checked before use
         this.elements = {};
@@ -24,6 +24,22 @@ export class UIGlitchComponent extends BaseComponent {
         if (paranoia > 60 || sanity < 40) {
             const intensity = Math.max((paranoia - 60) / 40, (40 - sanity) / 40);
             this.triggerHallucinations(intensity);
+        }
+
+        // Global Class Effects
+        if (sanity < 30) {
+            $('body').addClass('sanity-shaken');
+        } else {
+            $('body').removeClass('sanity-shaken');
+        }
+
+        if (paranoia > 80) {
+            $('body').addClass('paranoia-vision');
+            // Trigger randomness for the glitch effect on the vision
+            if (Math.random() > 0.5) $('body').addClass('vision-active');
+            else $('body').removeClass('vision-active');
+        } else {
+            $('body').removeClass('paranoia-vision vision-active');
         }
     }
 

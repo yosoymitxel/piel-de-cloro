@@ -7,7 +7,7 @@ describe('NPC Traits and Supplies Mechanics', () => {
 
     beforeEach(() => {
         State.reset();
-        
+
         uiMock = {
             showFeedback: jest.fn(),
             showMessage: jest.fn(),
@@ -21,17 +21,17 @@ describe('NPC Traits and Supplies Mechanics', () => {
             updateSecurityNavStatus: jest.fn(),
             renderSecurityRoom: jest.fn()
         };
-        
+
         audioMock = {
             playSFXByKey: jest.fn(),
             playAmbientByKey: jest.fn(),
             levels: { ambient: 0.3 }
         };
-        
+
         endingsMock = {
             triggerEnding: jest.fn()
         };
-        
+
         gameMock = {
             ui: uiMock,
             audio: audioMock,
@@ -75,11 +75,14 @@ describe('NPC Traits and Supplies Mechanics', () => {
             npc1.trait = { id: 'none' };
             const npc2 = new NPC();
             npc2.trait = { id: 'none' };
-            
+
             State.admittedNPCs = [npc1, npc2];
-            
-            gmm.processNightResourcesAndTraits();
-            
+
+            // processNightEvents or similar logic
+            // gmm.processNightEvents(); <--- This requires more setup (State.generator.active, etc).
+            // Let's rely on the method gmm.processNightEvents() which now handles resources too.
+            gmm.processNightEvents();
+
             // 10 - 2 = 8
             expect(State.supplies).toBe(8);
         });
@@ -88,11 +91,11 @@ describe('NPC Traits and Supplies Mechanics', () => {
             State.supplies = 10;
             const npc = new NPC();
             npc.trait = { id: 'sickly' };
-            
+
             State.admittedNPCs = [npc];
-            
-            gmm.processNightResourcesAndTraits();
-            
+
+            gmm.processNightEvents();
+
             // 10 - 2 = 8
             expect(State.supplies).toBe(8);
         });
@@ -111,8 +114,8 @@ describe('NPC Traits and Supplies Mechanics', () => {
                 return 0.9;
             });
 
-            gmm.processNightResourcesAndTraits();
-            
+            gmm.processNightEvents();
+
             // 10 - 1 (consumption) + 3 (found) = 12
             expect(State.supplies).toBe(12);
 
@@ -124,9 +127,9 @@ describe('NPC Traits and Supplies Mechanics', () => {
             const npc = new NPC();
             npc.trait = { id: 'optimist' };
             State.admittedNPCs = [npc];
-            
-            gmm.processNightResourcesAndTraits();
-            
+
+            gmm.processNightEvents();
+
             // Flat reduction 10. updateParanoia(-10) -> -10 * 0.9 = -9
             // 50 - 9 = 41
             expect(State.paranoia).toBe(41);
@@ -137,9 +140,9 @@ describe('NPC Traits and Supplies Mechanics', () => {
             const npc = new NPC();
             npc.trait = { id: 'paranoid' };
             State.admittedNPCs = [npc];
-            
-            gmm.processNightResourcesAndTraits();
-            
+
+            gmm.processNightEvents();
+
             // Flat increase 5. updateParanoia(5) -> 5 * 1.2 = 6
             // 20 + 6 = 26
             expect(State.paranoia).toBe(26);
@@ -151,9 +154,9 @@ describe('NPC Traits and Supplies Mechanics', () => {
             const npc = new NPC();
             npc.trait = { id: 'none' };
             State.admittedNPCs = [npc];
-            
-            gmm.processNightResourcesAndTraits();
-            
+
+            gmm.processNightEvents();
+
             // 1 - 1 = 0 supplies.
             // Sanity drain -15. updateSanity(-15) -> -15 * 1.25 = -18.75 -> Math.floor(-18.75) = -19
             // 50 - 19 = 31
@@ -170,9 +173,9 @@ describe('NPC Traits and Supplies Mechanics', () => {
             npc.name = "Victim";
             npc.trait = { id: 'none' };
             State.admittedNPCs = [npc];
-            
-            const summary = gmm.processNightResourcesAndTraits();
-            
+
+            const summary = gmm.processNightEvents();
+
             expect(State.admittedNPCs.length).toBe(0);
             expect(State.purgedNPCs.length).toBe(1);
             expect(State.purgedNPCs[0].death.reason).toBe('inanición');
@@ -186,7 +189,7 @@ describe('NPC Traits and Supplies Mechanics', () => {
         test('Tough trait prevents being the first victim of infected', () => {
             const infected = new NPC(1.0);
             infected.isInfected = true;
-            
+
             const toughCivilian = new NPC(0.0);
             toughCivilian.trait = { id: 'tough' };
             toughCivilian.isInfected = false;
@@ -198,9 +201,9 @@ describe('NPC Traits and Supplies Mechanics', () => {
             normalCivilian.name = "Normal Guy";
 
             State.admittedNPCs = [infected, toughCivilian, normalCivilian];
-            
+
             gmm.sleep();
-            
+
             // Normal guy should be dead, tough guy should be alive
             expect(State.admittedNPCs).toContain(toughCivilian);
             expect(State.purgedNPCs[0].name).toBe("Normal Guy");

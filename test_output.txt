@@ -1,0 +1,1376 @@
+
+> piel-de-cloro@0.0.0 test
+> node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit
+
+(node:1774985) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL __tests__/game_mechanics.test.js
+  ● Game Mechanics Manager › Night Phase › sleep with infected in shelter kills a civilian
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/game_mechanics.test.js:120:17)
+
+  ● Game Mechanics Manager › Night Phase › sleep with no refugees has high chance of player death
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/game_mechanics.test.js:130:17)
+
+  ● Game Mechanics Manager › Night Phase › tranquil night decreases paranoia
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/game_mechanics.test.js:146:17)
+
+FAIL __tests__/starvation_mechanics.test.js
+  ● Starvation Mechanics (Phase 3.3) › Should trigger cannibalism when supplies are 0 and roll < 0.2
+
+    TypeError: mechanics.handleStarvation is not a function
+
+      29 |         jest.spyOn(Math, 'random').mockReturnValue(0.05); // Cannibalism roll
+      30 |
+    > 31 |         const result = mechanics.handleStarvation(State.admittedNPCs);
+         |                                  ^
+      32 |
+      33 |         expect(result).toContain('sacrificado');
+      34 |         expect(State.admittedNPCs.length).toBe(2);
+
+      at Object.handleStarvation (__tests__/starvation_mechanics.test.js:31:34)
+
+  ● Starvation Mechanics (Phase 3.3) › Should trigger desertion when supplies are 0 and 0.2 <= roll < 0.5
+
+    TypeError: mechanics.handleStarvation is not a function
+
+      47 |         jest.spyOn(Math, 'random').mockReturnValue(0.3); // Desertion roll
+      48 |
+    > 49 |         const result = mechanics.handleStarvation(State.admittedNPCs);
+         |                                  ^
+      50 |
+      51 |         expect(result).toContain('huido');
+      52 |         expect(State.admittedNPCs.length).toBeLessThan(2);
+
+      at Object.handleStarvation (__tests__/starvation_mechanics.test.js:49:34)
+
+  ● Starvation Mechanics (Phase 3.3) › Should trigger riots when supplies are 0 and roll >= 0.5
+
+    TypeError: mechanics.handleStarvation is not a function
+
+      62 |         jest.spyOn(Math, 'random').mockReturnValue(0.7); // Riots roll
+      63 |
+    > 64 |         const result = mechanics.handleStarvation(State.admittedNPCs);
+         |                                  ^
+      65 |
+      66 |         expect(result).toContain('pelea');
+      67 |         expect(State.generator.stability).toBeLessThan(100);
+
+      at Object.handleStarvation (__tests__/starvation_mechanics.test.js:64:34)
+
+FAIL __tests__/npc_traits_and_supplies.test.js
+  ● NPC Traits and Supplies Mechanics › Night Phase Resource Processing › Base consumption: 1 supply per NPC
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/npc_traits_and_supplies.test.js:84:17)
+
+  ● NPC Traits and Supplies Mechanics › Night Phase Resource Processing › Sickly trait consumes 2 supplies
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/npc_traits_and_supplies.test.js:97:17)
+
+  ● NPC Traits and Supplies Mechanics › Night Phase Resource Processing › Scavenger trait can find supplies
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/npc_traits_and_supplies.test.js:117:17)
+
+  ● NPC Traits and Supplies Mechanics › Night Phase Resource Processing › Optimist trait reduces paranoia
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/npc_traits_and_supplies.test.js:131:17)
+
+  ● NPC Traits and Supplies Mechanics › Night Phase Resource Processing › Paranoid trait increases paranoia
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/npc_traits_and_supplies.test.js:144:17)
+
+  ● NPC Traits and Supplies Mechanics › Night Phase Resource Processing › Running out of supplies decreases sanity
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/npc_traits_and_supplies.test.js:158:17)
+
+  ● NPC Traits and Supplies Mechanics › Night Phase Resource Processing › Starvation death chance when supplies are 0
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/npc_traits_and_supplies.test.js:177:33)
+
+FAIL __tests__/ui_advanced_features.test.js
+  ● Advanced UI & Navigation Features › navigateToMap should support force option via GameEventManager
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: {}
+
+      85 |         // Normal navigation should fail
+      86 |         let result = gem.navigateToMap();
+    > 87 |         expect(result).toBe(false);
+         |                        ^
+      88 |
+      89 |         // Forced navigation should succeed
+      90 |         result = gem.navigateToMap({ force: true });
+
+      at Object.toBe (__tests__/ui_advanced_features.test.js:87:24)
+
+FAIL __tests__/resource_systems.test.js
+  ● Resource Systems (Food, Paranoia, Sanity) › Food (Supplies) System › Night consumption: base 1 per person
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/resource_systems.test.js:78:17)
+
+  ● Resource Systems (Food, Paranoia, Sanity) › Paranoia System › optimist trait reduces paranoia
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/resource_systems.test.js:139:17)
+
+FAIL __tests__/migration_integration.test.js
+  ● Console
+
+    console.log
+      [Orchestrator] Event added: inspect-flashlight-1768690840724 (Priority: 2). Queue size: 1
+
+      at EventOrchestrator.log (js/EventOrchestrator.js:36:17)
+
+    console.log
+      [Orchestrator] Processing: inspect-flashlight-1768690840724
+
+      at EventOrchestrator.log [as process] (js/EventOrchestrator.js:48:17)
+
+    console.log
+      [LOG 8:00:40 p. m.] [GameActionHandler] --- INICIO INSPECCIÓN ORQUESTADA: flashlight ---
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [LOG 8:00:40 p. m.] [GameActionHandler] Resultado Validación: {
+        allowed: true,
+        reason: 'OK',
+        code: 'READY',
+        cost: 1,
+        statKey: 'skinTexture'
+      }
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [LOG 8:00:40 p. m.] [GameActionHandler] Ejecutando inspección de flashlight...
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [LOG 8:00:40 p. m.] [GameActionHandler] Ejecutando inspección con 'flashlight'. Valor: normal, Alucinación: false
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [Orchestrator] Event added: inspect-thermometer-1768690840758 (Priority: 2). Queue size: 1
+
+      at EventOrchestrator.log (js/EventOrchestrator.js:36:17)
+
+    console.log
+      [Orchestrator] Processing: inspect-thermometer-1768690840758
+
+      at EventOrchestrator.log [as process] (js/EventOrchestrator.js:48:17)
+
+    console.log
+      [LOG 8:00:40 p. m.] [GameActionHandler] --- INICIO INSPECCIÓN ORQUESTADA: thermometer ---
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [LOG 8:00:40 p. m.] [GameActionHandler] Resultado Validación: {
+        allowed: true,
+        reason: 'OK',
+        code: 'READY',
+        cost: 1,
+        statKey: 'temperature'
+      }
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [LOG 8:00:40 p. m.] [GameActionHandler] Ejecutando inspección de thermometer...
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [LOG 8:00:40 p. m.] [GameActionHandler] Ejecutando inspección con 'thermometer'. Valor: 37.0, Alucinación: false
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [Orchestrator] Event added: inspect-pulse-1768690840764 (Priority: 2). Queue size: 1
+
+      at EventOrchestrator.log (js/EventOrchestrator.js:36:17)
+
+  ● Migration Integration Testing Suite › Integration: Full cycle (Subject -> Inspect -> Admit -> Night -> Next Day)
+
+    expect(mockFunction).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      249 |         expect(State.isNight).toBe(true);
+      250 |         expect(State.dayClosed).toBe(true);
+    > 251 |         expect(game.ui.renderNightScreen).toHaveBeenCalled();
+          |                                           ^
+      252 |
+      253 |         // 7. Start Next Day
+      254 |         game.mechanics.startNextDay();
+
+      at Object.toHaveBeenCalled (__tests__/migration_integration.test.js:251:43)
+
+FAIL __tests__/energy_and_guards.test.js
+  ● Energy, Battery & Guard System › Should calculate total load including systems and base consumption
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 30
+    Received: 62
+
+      72 |         // Base 5 + Mode 10 + Sys1 10 + Sys3 5 = 30
+      73 |         const load = mechanics.calculateTotalLoad();
+    > 74 |         expect(load).toBe(30);
+         |                      ^
+      75 |     });
+      76 |
+      77 |     test('Should drain battery based on load when updating generator', () => {
+
+      at Object.toBe (__tests__/energy_and_guards.test.js:74:22)
+
+  ● Energy, Battery & Guard System › Should reduce base consumption when guard is assigned
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 10
+    Received: 47
+
+      120 |         const load = mechanics.calculateTotalLoad();
+      121 |         // Base 10 + Mode 5 - Guard 5 = 10
+    > 122 |         expect(load).toBe(10);
+          |                      ^
+      123 |     });
+      124 |
+      125 |     test('Emergency charge should consume supplies and add battery', () => {
+
+      at Object.toBe (__tests__/energy_and_guards.test.js:122:22)
+
+PASS __tests__/professions_impact.test.js
+FAIL __tests__/mechanics_manager.test.js
+  ● GameMechanicsManager › Night Resolution Deep Logic › starvation leads to death if supplies reach 0
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      181 |             gmm.processNightResourcesAndTraits();
+      182 |
+    > 183 |             expect(State.admittedNPCs.length).toBe(0);
+          |                                               ^
+      184 |             expect(State.purgedNPCs.length).toBe(1);
+      185 |             expect(State.purgedNPCs[0].death.reason).toBe('inanición');
+      186 |         });
+
+      at Object.toBe (__tests__/mechanics_manager.test.js:183:47)
+
+FAIL __tests__/generator_core.test.js
+  ● Generator Core Overhaul Tests › calculateTotalLoad sums base consumption and active systems
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 40
+    Received: 77
+
+      42 |
+      43 |         // 10 (base) + 5 (mode) + 15 (sec) + 10 (light) = 40
+    > 44 |         expect(total).toBe(40);
+         |                       ^
+      45 |     });
+      46 |
+      47 |     test('calculateTotalLoad includes blood test spikes', () => {
+
+      at Object.toBe (__tests__/generator_core.test.js:44:23)
+
+  ● Generator Core Overhaul Tests › calculateTotalLoad includes blood test spikes
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 65
+    Received: 97
+
+      59 |
+      60 |         // 10 (base) + 10 (mode) + 45 (spike) = 65
+    > 61 |         expect(total).toBe(65);
+         |                       ^
+      62 |     });
+      63 |
+      64 |     test('calculateTotalLoad handles high paranoia stress', () => {
+
+      at Object.toBe (__tests__/generator_core.test.js:61:23)
+
+  ● Generator Core Overhaul Tests › calculateTotalLoad handles high paranoia stress
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 25
+    Received: 57
+
+      75 |
+      76 |         // 10 (base) + 10 (mode) + 5 (paranoia) = 25
+    > 77 |         expect(total).toBe(25);
+         |                       ^
+      78 |     });
+      79 |
+      80 |     test('updateGenerator decreases stability on overload', () => {
+
+      at Object.toBe (__tests__/generator_core.test.js:77:23)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "[Orchestrator] Processing: inspect-pulse-1768690840764".
+
+      46 |         this.currentEvent = this.queue.shift();
+      47 |
+    > 48 |         console.log(`[Orchestrator] Processing: ${this.currentEvent.id}`);
+         |                 ^
+      49 |
+      50 |         try {
+      51 |             // Gestión de Audio automática según tipo
+
+      at console.log (node_modules/@jest/console/build/BufferedConsole.js:156:10)
+      at EventOrchestrator.log [as process] (js/EventOrchestrator.js:48:17)
+      at Timeout.process [as _onTimeout] (js/EventOrchestrator.js:72:35)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "[LOG 8:00:41 p. m.] [GameActionHandler] --- INICIO INSPECCIÓN ORQUESTADA: pulse ---".
+
+      517 |         if (this.debug) {
+      518 |             const time = new Date().toLocaleTimeString();
+    > 519 |             console.log(`[LOG ${time}]`, ...args);
+          |                     ^
+      520 |         }
+      521 |     },
+      522 |     warn(...args) {
+
+      at console.log (node_modules/@jest/console/build/BufferedConsole.js:156:10)
+      at Object.log (js/State.js:519:21)
+      at log (js/GameActionHandler.js:130:23)
+      at Object.execute (js/GameActionHandler.js:129:28)
+      at EventOrchestrator.execute (js/EventOrchestrator.js:58:37)
+      at Timeout.process [as _onTimeout] (js/EventOrchestrator.js:72:35)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "[LOG 8:00:41 p. m.] [GameActionHandler] Resultado Validación: { allowed: false, reason: 'NO HAY SUJETO ACTIVO', code: 'NO_NPC' }".
+
+      517 |         if (this.debug) {
+      518 |             const time = new Date().toLocaleTimeString();
+    > 519 |             console.log(`[LOG ${time}]`, ...args);
+          |                     ^
+      520 |         }
+      521 |     },
+      522 |     warn(...args) {
+
+      at console.log (node_modules/@jest/console/build/BufferedConsole.js:156:10)
+      at Object.log (js/State.js:519:21)
+      at log (js/GameActionHandler.js:133:23)
+      at Object.execute (js/GameActionHandler.js:129:28)
+      at EventOrchestrator.execute (js/EventOrchestrator.js:58:37)
+      at Timeout.process [as _onTimeout] (js/EventOrchestrator.js:72:35)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "[WARN 8:00:41 p. m.] [GameActionHandler] Inspección cancelada: NO HAY SUJETO ACTIVO (NO_NPC)".
+
+      524 |         // For this user request: "sistema de errores a nivel console.error, log y warning"
+      525 |         const time = new Date().toLocaleTimeString();
+    > 526 |         console.warn(`[WARN ${time}]`, ...args);
+          |                 ^
+      527 |     },
+      528 |     error(...args) {
+      529 |         const time = new Date().toLocaleTimeString();
+
+      at console.warn (node_modules/@jest/console/build/BufferedConsole.js:191:10)
+      at Object.warn (js/State.js:526:17)
+      at warn (js/GameActionHandler.js:137:27)
+      at Object.execute (js/GameActionHandler.js:129:28)
+      at EventOrchestrator.execute (js/EventOrchestrator.js:58:37)
+      at Timeout.process [as _onTimeout] (js/EventOrchestrator.js:72:35)
+
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "[ERR 8:00:41 p. m.] [GameActionHandler] Intento de inspección sin NPC activo.".
+
+      528 |     error(...args) {
+      529 |         const time = new Date().toLocaleTimeString();
+    > 530 |         console.error(`[ERR ${time}]`, ...args);
+          |                 ^
+      531 |     },
+      532 |
+      533 |     getRandomRumor() {
+
+      at console.error (node_modules/@jest/console/build/BufferedConsole.js:127:10)
+      at Object.error (js/State.js:530:17)
+      at error (js/GameActionHandler.js:163:35)
+      at Object.execute (js/GameActionHandler.js:129:28)
+      at EventOrchestrator.execute (js/EventOrchestrator.js:58:37)
+      at Timeout.process [as _onTimeout] (js/EventOrchestrator.js:72:35)
+
+PASS __tests__/ui_markup.test.js
+  ● Console
+
+    console.log
+      DEBUG after tick inner: <span class="npc-epithet"> Pupilas de Sal
+
+      at Timeout.log [as _onTimeout] (__tests__/ui_markup.test.js:303:17)
+
+PASS __tests__/npc_generation.test.js
+PASS __tests__/hierarchical_log.test.js
+PASS __tests__/npc_pacing.test.js
+  ● Console
+
+    console.log
+      Event triggered: equipment_fixed
+
+      at RandomEventManager.log [as executeEvent] (js/RandomEventManager.js:167:17)
+
+    console.log
+      Event triggered: generator_boost
+
+      at RandomEventManager.log [as executeEvent] (js/RandomEventManager.js:167:17)
+
+    console.log
+      Event triggered: shadow_movement
+
+      at RandomEventManager.log [as executeEvent] (js/RandomEventManager.js:167:17)
+
+    console.log
+      Event triggered: generator_boost
+
+      at RandomEventManager.log [as executeEvent] (js/RandomEventManager.js:167:17)
+
+    console.log
+      Event triggered: clean_arrival
+
+      at RandomEventManager.log [as executeEvent] (js/RandomEventManager.js:167:17)
+
+    console.log
+      Event triggered: restful_moment
+
+      at RandomEventManager.log [as executeEvent] (js/RandomEventManager.js:167:17)
+
+    console.log
+      Event triggered: cloro_leak
+
+      at RandomEventManager.log [as executeEvent] (js/RandomEventManager.js:167:17)
+
+PASS __tests__/phase5_psych.test.js
+PASS __tests__/action_handler.test.js
+  ● Console
+
+    console.warn
+      [WARN 8:00:42 p. m.] [GameActionHandler] Inspección cancelada: GENERADOR APAGADO (POWER_OFF)
+
+      524 |         // For this user request: "sistema de errores a nivel console.error, log y warning"
+      525 |         const time = new Date().toLocaleTimeString();
+    > 526 |         console.warn(`[WARN ${time}]`, ...args);
+          |                 ^
+      527 |     },
+      528 |     error(...args) {
+      529 |         const time = new Date().toLocaleTimeString();
+
+      at Object.warn (js/State.js:526:17)
+      at warn (js/GameActionHandler.js:137:27)
+      at Object.execute (js/GameActionHandler.js:129:28)
+      at Object.execute (__tests__/action_handler.test.js:47:46)
+      at Object.apply [as add] (jest.setup.js:8:67)
+      at GameActionHandler.add [as inspect] (js/GameActionHandler.js:125:32)
+      at Object.inspect (__tests__/action_handler.test.js:96:17)
+
+    console.warn
+      [WARN 8:00:42 p. m.] [GameActionHandler] Inspección cancelada: ENERGÍA INSUFICIENTE PARA ESTE TURNO (NO_ENERGY)
+
+      524 |         // For this user request: "sistema de errores a nivel console.error, log y warning"
+      525 |         const time = new Date().toLocaleTimeString();
+    > 526 |         console.warn(`[WARN ${time}]`, ...args);
+          |                 ^
+      527 |     },
+      528 |     error(...args) {
+      529 |         const time = new Date().toLocaleTimeString();
+
+      at Object.warn (js/State.js:526:17)
+      at warn (js/GameActionHandler.js:137:27)
+      at Object.execute (js/GameActionHandler.js:129:28)
+      at Object.execute (__tests__/action_handler.test.js:47:46)
+      at Object.apply [as add] (jest.setup.js:8:67)
+      at GameActionHandler.add [as inspect] (js/GameActionHandler.js:125:32)
+      at Object.inspect (__tests__/action_handler.test.js:107:17)
+
+    console.warn
+      [WARN 8:00:42 p. m.] [GameActionHandler] Inspección cancelada: TEST YA REALIZADO (ALREADY_DONE)
+
+      524 |         // For this user request: "sistema de errores a nivel console.error, log y warning"
+      525 |         const time = new Date().toLocaleTimeString();
+    > 526 |         console.warn(`[WARN ${time}]`, ...args);
+          |                 ^
+      527 |     },
+      528 |     error(...args) {
+      529 |         const time = new Date().toLocaleTimeString();
+
+      at Object.warn (js/State.js:526:17)
+      at warn (js/GameActionHandler.js:137:27)
+      at Object.execute (js/GameActionHandler.js:129:28)
+      at Object.execute (__tests__/action_handler.test.js:47:46)
+      at Object.apply [as add] (jest.setup.js:8:67)
+      at GameActionHandler.add [as inspect] (js/GameActionHandler.js:125:32)
+      at Object.inspect (__tests__/action_handler.test.js:132:17)
+
+PASS __tests__/avatar_system.test.js
+PASS __tests__/advanced_dialogue.test.js
+PASS __tests__/npc_logic.test.js
+PASS __tests__/lore_danger_system_deep.test.js
+PASS __tests__/refuel_system.test.js
+PASS __tests__/centralized_ui_logic.test.js
+PASS __tests__/migration_unit.test.js
+PASS __tests__/blood_analyzer.test.js
+PASS __tests__/generator_failure.test.js
+PASS __tests__/stats_system.test.js
+PASS __tests__/nav_status.test.js
+PASS __tests__/lore_gamification.test.js
+  ● Console
+
+    console.log
+      [LOG 8:00:43 p. m.] [GameActionHandler] --- INICIO INSPECCIÓN ORQUESTADA: thermometer ---
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [LOG 8:00:43 p. m.] [GameActionHandler] Resultado Validación: {
+        allowed: true,
+        reason: 'OK',
+        code: 'READY',
+        cost: 1,
+        statKey: 'temperature'
+      }
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [LOG 8:00:43 p. m.] [GameActionHandler] Ejecutando inspección de thermometer...
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [LOG 8:00:43 p. m.] [GameActionHandler] Ejecutando inspección con 'thermometer'. Valor: 33.6, Alucinación: false
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [LOG 8:00:45 p. m.] [GameActionHandler] --- INICIO INSPECCIÓN ORQUESTADA: flashlight ---
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [LOG 8:00:45 p. m.] [GameActionHandler] Resultado Validación: {
+        allowed: true,
+        reason: 'OK',
+        code: 'READY',
+        cost: 1,
+        statKey: 'skinTexture'
+      }
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [LOG 8:00:45 p. m.] [GameActionHandler] Ejecutando inspección de flashlight...
+
+      at Object.log (js/State.js:519:21)
+
+    console.log
+      [LOG 8:00:45 p. m.] [GameActionHandler] Ejecutando inspección con 'flashlight'. Valor: normal, Alucinación: false
+
+      at Object.log (js/State.js:519:21)
+
+PASS __tests__/endings_ui.test.js
+PASS __tests__/audio_system.test.js
+PASS __tests__/generic_dialogue_items.test.js
+PASS __tests__/dialogue_uniqueness.test.js
+PASS __tests__/ui_glitch_reactive.test.js
+PASS __tests__/player_psychosis.test.js
+PASS __tests__/fuel_system_and_refinements.test.js
+PASS __tests__/sanity_mechanics.test.js
+PASS __tests__/endings_verification.test.js
+PASS __tests__/core_mechanics.test.js
+PASS __tests__/random_events_deep.test.js
+  ● Console
+
+    console.log
+      Event triggered: moment_of_peace
+
+      at RandomEventManager.log [as executeEvent] (js/RandomEventManager.js:167:17)
+
+    console.log
+      Event triggered: cloro_leak
+
+      at RandomEventManager.log [as executeEvent] (js/RandomEventManager.js:167:17)
+
+    console.log
+      Event triggered: generator_boost
+
+      at RandomEventManager.log [as executeEvent] (js/RandomEventManager.js:167:17)
+
+    console.log
+      Event triggered: moment_of_peace
+
+      at RandomEventManager.log [as executeEvent] (js/RandomEventManager.js:167:17)
+
+PASS __tests__/random_events.test.js
+  ● Console
+
+    console.log
+      Event triggered: moment_of_peace
+
+      at RandomEventManager.log [as executeEvent] (js/RandomEventManager.js:167:17)
+
+    console.log
+      Event triggered: supplies_found
+
+      at RandomEventManager.log [as executeEvent] (js/RandomEventManager.js:167:17)
+
+PASS __tests__/phase4_foundation.test.js
+PASS __tests__/npc_sabotage.test.js
+PASS __tests__/night_resolution.test.js
+  ● Console
+
+    console.log
+      MOCK EXECUTING CALLBACK FOR night_civil_death
+
+      at Object.log (__tests__/night_resolution.test.js:17:29)
+
+    console.log
+      MOCK EXECUTING CALLBACK FOR night_tranquil
+
+      at Object.log (__tests__/night_resolution.test.js:17:29)
+
+PASS __tests__/migration_mocks.test.js
+PASS __tests__/lore_system.test.js
+PASS __tests__/shelter_energy_restriction.test.js
+PASS __tests__/conversation.test.js
+PASS __tests__/security_and_generator.test.js
+PASS __tests__/markup.test.js
+PASS __tests__/generator_flow.test.js
+PASS __tests__/ui_glitch.test.js
+FAIL __tests__/advanced_mechanics.test.js
+  ● Test suite failed to run
+
+    RangeError: Maximum call stack size exceeded
+
+      at randomIntInRange (node_modules/source-map/lib/quick-sort.js:42:26)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:75:22)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+
+Summary of all failing tests
+FAIL __tests__/game_mechanics.test.js
+  ● Game Mechanics Manager › Night Phase › sleep with infected in shelter kills a civilian
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/game_mechanics.test.js:120:17)
+
+  ● Game Mechanics Manager › Night Phase › sleep with no refugees has high chance of player death
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/game_mechanics.test.js:130:17)
+
+  ● Game Mechanics Manager › Night Phase › tranquil night decreases paranoia
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/game_mechanics.test.js:146:17)
+
+FAIL __tests__/starvation_mechanics.test.js
+  ● Starvation Mechanics (Phase 3.3) › Should trigger cannibalism when supplies are 0 and roll < 0.2
+
+    TypeError: mechanics.handleStarvation is not a function
+
+      29 |         jest.spyOn(Math, 'random').mockReturnValue(0.05); // Cannibalism roll
+      30 |
+    > 31 |         const result = mechanics.handleStarvation(State.admittedNPCs);
+         |                                  ^
+      32 |
+      33 |         expect(result).toContain('sacrificado');
+      34 |         expect(State.admittedNPCs.length).toBe(2);
+
+      at Object.handleStarvation (__tests__/starvation_mechanics.test.js:31:34)
+
+  ● Starvation Mechanics (Phase 3.3) › Should trigger desertion when supplies are 0 and 0.2 <= roll < 0.5
+
+    TypeError: mechanics.handleStarvation is not a function
+
+      47 |         jest.spyOn(Math, 'random').mockReturnValue(0.3); // Desertion roll
+      48 |
+    > 49 |         const result = mechanics.handleStarvation(State.admittedNPCs);
+         |                                  ^
+      50 |
+      51 |         expect(result).toContain('huido');
+      52 |         expect(State.admittedNPCs.length).toBeLessThan(2);
+
+      at Object.handleStarvation (__tests__/starvation_mechanics.test.js:49:34)
+
+  ● Starvation Mechanics (Phase 3.3) › Should trigger riots when supplies are 0 and roll >= 0.5
+
+    TypeError: mechanics.handleStarvation is not a function
+
+      62 |         jest.spyOn(Math, 'random').mockReturnValue(0.7); // Riots roll
+      63 |
+    > 64 |         const result = mechanics.handleStarvation(State.admittedNPCs);
+         |                                  ^
+      65 |
+      66 |         expect(result).toContain('pelea');
+      67 |         expect(State.generator.stability).toBeLessThan(100);
+
+      at Object.handleStarvation (__tests__/starvation_mechanics.test.js:64:34)
+
+FAIL __tests__/npc_traits_and_supplies.test.js
+  ● NPC Traits and Supplies Mechanics › Night Phase Resource Processing › Base consumption: 1 supply per NPC
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/npc_traits_and_supplies.test.js:84:17)
+
+  ● NPC Traits and Supplies Mechanics › Night Phase Resource Processing › Sickly trait consumes 2 supplies
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/npc_traits_and_supplies.test.js:97:17)
+
+  ● NPC Traits and Supplies Mechanics › Night Phase Resource Processing › Scavenger trait can find supplies
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/npc_traits_and_supplies.test.js:117:17)
+
+  ● NPC Traits and Supplies Mechanics › Night Phase Resource Processing › Optimist trait reduces paranoia
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/npc_traits_and_supplies.test.js:131:17)
+
+  ● NPC Traits and Supplies Mechanics › Night Phase Resource Processing › Paranoid trait increases paranoia
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/npc_traits_and_supplies.test.js:144:17)
+
+  ● NPC Traits and Supplies Mechanics › Night Phase Resource Processing › Running out of supplies decreases sanity
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/npc_traits_and_supplies.test.js:158:17)
+
+  ● NPC Traits and Supplies Mechanics › Night Phase Resource Processing › Starvation death chance when supplies are 0
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/npc_traits_and_supplies.test.js:177:33)
+
+FAIL __tests__/ui_advanced_features.test.js
+  ● Advanced UI & Navigation Features › navigateToMap should support force option via GameEventManager
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: {}
+
+      85 |         // Normal navigation should fail
+      86 |         let result = gem.navigateToMap();
+    > 87 |         expect(result).toBe(false);
+         |                        ^
+      88 |
+      89 |         // Forced navigation should succeed
+      90 |         result = gem.navigateToMap({ force: true });
+
+      at Object.toBe (__tests__/ui_advanced_features.test.js:87:24)
+
+FAIL __tests__/resource_systems.test.js
+  ● Resource Systems (Food, Paranoia, Sanity) › Food (Supplies) System › Night consumption: base 1 per person
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/resource_systems.test.js:78:17)
+
+  ● Resource Systems (Food, Paranoia, Sanity) › Paranoia System › optimist trait reduces paranoia
+
+    TypeError: admitted is not iterable
+
+      909 |         const departed = [];
+      910 |         const rioters = [];
+    > 911 |         const admittedCopy = [...admitted];
+          |                                  ^
+      912 |
+      913 |         admittedCopy.forEach(npc => {
+      914 |             // 1. Psychological Delta (Phase 5.1)
+
+      at GameMechanicsManager.admitted [as processNightEvents] (js/GameMechanicsManager.js:911:34)
+      at Object.processNightEvents (__tests__/resource_systems.test.js:139:17)
+
+FAIL __tests__/migration_integration.test.js
+  ● Migration Integration Testing Suite › Integration: Full cycle (Subject -> Inspect -> Admit -> Night -> Next Day)
+
+    expect(mockFunction).toHaveBeenCalled()
+
+    Expected number of calls: >= 1
+    Received number of calls:    0
+
+      249 |         expect(State.isNight).toBe(true);
+      250 |         expect(State.dayClosed).toBe(true);
+    > 251 |         expect(game.ui.renderNightScreen).toHaveBeenCalled();
+          |                                           ^
+      252 |
+      253 |         // 7. Start Next Day
+      254 |         game.mechanics.startNextDay();
+
+      at Object.toHaveBeenCalled (__tests__/migration_integration.test.js:251:43)
+
+FAIL __tests__/energy_and_guards.test.js
+  ● Energy, Battery & Guard System › Should calculate total load including systems and base consumption
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 30
+    Received: 62
+
+      72 |         // Base 5 + Mode 10 + Sys1 10 + Sys3 5 = 30
+      73 |         const load = mechanics.calculateTotalLoad();
+    > 74 |         expect(load).toBe(30);
+         |                      ^
+      75 |     });
+      76 |
+      77 |     test('Should drain battery based on load when updating generator', () => {
+
+      at Object.toBe (__tests__/energy_and_guards.test.js:74:22)
+
+  ● Energy, Battery & Guard System › Should reduce base consumption when guard is assigned
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 10
+    Received: 47
+
+      120 |         const load = mechanics.calculateTotalLoad();
+      121 |         // Base 10 + Mode 5 - Guard 5 = 10
+    > 122 |         expect(load).toBe(10);
+          |                      ^
+      123 |     });
+      124 |
+      125 |     test('Emergency charge should consume supplies and add battery', () => {
+
+      at Object.toBe (__tests__/energy_and_guards.test.js:122:22)
+
+FAIL __tests__/mechanics_manager.test.js
+  ● GameMechanicsManager › Night Resolution Deep Logic › starvation leads to death if supplies reach 0
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 1
+
+      181 |             gmm.processNightResourcesAndTraits();
+      182 |
+    > 183 |             expect(State.admittedNPCs.length).toBe(0);
+          |                                               ^
+      184 |             expect(State.purgedNPCs.length).toBe(1);
+      185 |             expect(State.purgedNPCs[0].death.reason).toBe('inanición');
+      186 |         });
+
+      at Object.toBe (__tests__/mechanics_manager.test.js:183:47)
+
+FAIL __tests__/generator_core.test.js
+  ● Generator Core Overhaul Tests › calculateTotalLoad sums base consumption and active systems
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 40
+    Received: 77
+
+      42 |
+      43 |         // 10 (base) + 5 (mode) + 15 (sec) + 10 (light) = 40
+    > 44 |         expect(total).toBe(40);
+         |                       ^
+      45 |     });
+      46 |
+      47 |     test('calculateTotalLoad includes blood test spikes', () => {
+
+      at Object.toBe (__tests__/generator_core.test.js:44:23)
+
+  ● Generator Core Overhaul Tests › calculateTotalLoad includes blood test spikes
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 65
+    Received: 97
+
+      59 |
+      60 |         // 10 (base) + 10 (mode) + 45 (spike) = 65
+    > 61 |         expect(total).toBe(65);
+         |                       ^
+      62 |     });
+      63 |
+      64 |     test('calculateTotalLoad handles high paranoia stress', () => {
+
+      at Object.toBe (__tests__/generator_core.test.js:61:23)
+
+  ● Generator Core Overhaul Tests › calculateTotalLoad handles high paranoia stress
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 25
+    Received: 57
+
+      75 |
+      76 |         // 10 (base) + 10 (mode) + 5 (paranoia) = 25
+    > 77 |         expect(total).toBe(25);
+         |                       ^
+      78 |     });
+      79 |
+      80 |     test('updateGenerator decreases stability on overload', () => {
+
+      at Object.toBe (__tests__/generator_core.test.js:77:23)
+
+FAIL __tests__/advanced_mechanics.test.js
+  ● Test suite failed to run
+
+    RangeError: Maximum call stack size exceeded
+
+      at randomIntInRange (node_modules/source-map/lib/quick-sort.js:42:26)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:75:22)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+      at doQuickSort (node_modules/source-map/lib/quick-sort.js:100:5)
+
+
+Test Suites: 10 failed, 42 passed, 52 total
+Tests:       23 failed, 222 passed, 245 total
+Snapshots:   0 total
+Time:        5.847 s, estimated 7 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

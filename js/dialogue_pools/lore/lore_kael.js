@@ -4,6 +4,9 @@ export const lore_kael = {
     id: 'lore_kael',
     unique: true,
     tags: ['stoic', 'lore', 'body_horror'],
+    clue: "La Anomalía actual es sensible a la luz UV intensa. El sensor de temperatura puede fallar bajo interferencia.",
+    mechanicHint: "BONUS: Revela que la anomalía es de tipo 'Fotófoba'.",
+    appearanceDay: 3, // Fase 1.2 Roadmap: NPCs lore aparecen después de día 3
     root: 'lk_n1',
     nodes: {
         'lk_n1': {

@@ -615,16 +615,16 @@
 
 /* Overload Effects */
 .overload-vibration {
-    animation: overload-shake 0.1s steps(2) infinite;
+    animation: overload-shake 0.25s ease-in-out infinite;
 }
 
 @keyframes overload-shake {
     0% {
-        transform: translate(1px, 1px);
+        transform: translate(0.3px, 0.2px);
     }
 
     50% {
-        transform: translate(-1px, -1px);
+        transform: translate(-0.3px, -0.2px);
     }
 
     100% {
@@ -731,20 +731,16 @@
 
 /* Needle Vibration Improved */
 .needle-vibration {
-    animation: needle-shake 0.08s steps(3) infinite;
+    animation: needle-shake 0.2s ease-in-out infinite;
 }
 
 @keyframes needle-shake {
     0% {
-        transform: rotate(var(--deg)) translateX(1px);
+        transform: rotate(var(--deg)) translateX(0.3px);
     }
 
-    33% {
-        transform: rotate(var(--deg)) translateX(-1px);
-    }
-
-    66% {
-        transform: rotate(var(--deg)) translateY(1px);
+    50% {
+        transform: rotate(var(--deg)) translateX(-0.3px);
     }
 
     100% {

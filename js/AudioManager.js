@@ -4,7 +4,9 @@ export class AudioManager {
         this.channels = {
             ambient: this.createChannel({ loop: true, volume: 0.3 }),
             lore: this.createChannel({ loop: true, volume: 0.25 }),
-            sfx: this.createChannel({ loop: false, volume: 0.6 })
+            sfx: this.createChannel({ loop: false, volume: 0.6 }),
+            generator: this.createChannel({ loop: true, volume: 0.15 }),
+            heartbeat: this.createChannel({ loop: true, volume: 0.4 })
         };
         this.sfxPool = []; // Pool for overlapping SFX
         this.activeSFX = {}; // Track sounds by ID (e.g. loops)
@@ -16,9 +18,10 @@ export class AudioManager {
         this.desiredPlay = { ambient: false, lore: false, sfx: false };
         this.ctx = null;
         this.manifest = {};
+        this.manifest = {};
         this.preloadedAssets = {}; // Cache for preloaded audio blobs or objects
-        this.levels = { ambient: 0.3, lore: 0.25, sfx: 0.6 };
-        this.mutedChannels = { ambient: false, lore: false, sfx: false };
+        this.levels = { ambient: 0.3, lore: 0.25, sfx: 0.6, generator: 0.15, heartbeat: 0.4 };
+        this.mutedChannels = { ambient: false, lore: false, sfx: false, generator: false, heartbeat: false };
         this.sfxLockUntil = 0;
         this.sfxPriority = 0;
         this.attachDiagnostics();
@@ -231,8 +234,99 @@ export class AudioManager {
         // Refresh all channels to respect master volume and mute states
         this.setChannelLevel('ambient', this.levels.ambient);
         this.setChannelLevel('lore', this.levels.lore);
+        this.setChannelLevel('lore', this.levels.lore);
         this.setChannelLevel('sfx', this.levels.sfx);
+        this.setChannelLevel('generator', this.levels.generator);
+        this.setChannelLevel('heartbeat', this.levels.heartbeat);
     }
+
+    // --- Generator Audio Logic ---
+    updateGeneratorAudio(mode, batteryLevel, isOn) {
+        const ch = this.channels.generator;
+        if (!ch) return;
+
+        if (!isOn || batteryLevel <= 0) {
+            if (!ch.paused) {
+                this.fade(ch, 0, 500, 'generator', () => ch.pause());
+            }
+            return;
+        }
+
+        // Ensure playing
+        if (ch.paused && this.unlocked) {
+            ch.src = this.getUrl('generator_hum'); // Ensure this key exists or map it
+            ch.loop = true;
+            ch.play().catch(() => { });
+            this.fade(ch, this.levels.generator * this.master, 1000, 'generator');
+        }
+
+        // Pitch / Rate Logic
+        let rate = 1.0;
+        let volatility = 0; // chance to flutter
+
+        if (mode === 'overload') {
+            rate = 1.3;
+            // Higher pitch implies stress
+        } else if (mode === 'save') {
+            rate = 0.7;
+        }
+
+        // Low battery flutter
+        if (batteryLevel < 10) {
+            // Randomly dip pitch or volume to simulate sputtering
+            if (Math.random() < 0.1) {
+                rate *= 0.8;
+                this._safeSetVolume(ch, (this.levels.generator * this.master) * 0.5);
+            } else {
+                this._safeSetVolume(ch, this.levels.generator * this.master);
+            }
+        } else {
+            this._safeSetVolume(ch, this.levels.generator * this.master);
+        }
+
+        // Apply rate securely
+        if (Number.isFinite(rate)) {
+            ch.playbackRate = rate;
+            // Webkit requires preserving pitch separately usually, but standard HTML5 Audio handles playbackRate = pitch change.
+            // If we wanted pitch shifting without speed change we'd need Web Audio API nodes, 
+            // but here "doppler/revving" effect (speed change) is desirable for a generator.
+        }
+    }
+
+    // --- Heartbeat Logic ---
+    playHeartbeat(intensity) { // Intensity 0.0 to 1.0
+        const ch = this.channels.heartbeat;
+        if (!ch) return;
+
+        if (intensity < 0.7) {
+            if (!ch.paused) {
+                this.fade(ch, 0, 1000, 'heartbeat', () => ch.pause());
+            }
+            return;
+        }
+
+        // > 70% Paranoia
+        if (ch.paused && this.unlocked) {
+            ch.src = this.getUrl('heartbeat_fast');
+            ch.loop = true;
+            ch.play().catch(() => { });
+        }
+
+        // Volume scales with intensity above 0.7
+        // 0.7 -> 0.1 vol
+        // 1.0 -> 1.0 vol (max channel level)
+        const norm = (intensity - 0.7) / 0.3; // 0 to 1
+        const target = this.levels.heartbeat * Math.min(1, Math.max(0.1, norm)) * this.master;
+
+        this._safeSetVolume(ch, target);
+
+        // Optional: Beat faster? audio.playbackRate could work here too.
+        // 70% -> 1x, 100% -> 1.5x
+        if (ch.playbackRate) {
+            ch.playbackRate = 1.0 + (norm * 0.5);
+        }
+    }
+
     playAmbient(src, { loop = true, volume = 0.3, fadeIn = 0 } = {}) {
         if (this.desiredPlay.lore) this.stopLore(Math.max(200, fadeIn));
         this.desiredPlay.ambient = true;
@@ -410,7 +504,9 @@ export class AudioManager {
             vhs: 'vhs_flicker',
             intrusion: 'intrusion_detected',
             alarm_on: 'alarm_activate',
-            alarm_off: 'alarm_deactivate'
+            alarm_off: 'alarm_deactivate',
+            refuel: 'refuel_glug',
+            power_down: 'power_down'
         };
         const key = map[name] || name;
         return this.playSFXByKey(key, opts);

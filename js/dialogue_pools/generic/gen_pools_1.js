@@ -275,5 +275,177 @@ export const gen_pools_1 = {
                 options: []
             }
         }
+    },
+    "gen_gift": {
+        id: 'gen_gift',
+        tags: ['friendly', 'generic'],
+        unique: false,
+        clue: "He oído que el generador consume menos si lo sobrecargas brevemente antes de apagarlo. No sé si es verdad.",
+        mechanicHint: "DATO: Sobrecargar el generador aumenta la eficiencia temporalmente pero daña la integridad.",
+        root: 'gg_n1',
+        nodes: {
+            'gg_n1': {
+                id: 'gg_n1',
+                text: "*Sostiene una caja con fuerza.* \"¡Espera! No estoy enfermo. Vengo a compartir.\"",
+                options: [
+                    { id: 'gg_o1', label: '¿Qué traes?', next: 'gg_n2' },
+                    { id: 'gg_o2', label: 'Muestrame las manos', next: 'gg_n_hands' }
+                ]
+            },
+            'gg_n2': {
+                id: 'gg_n2',
+                text: "*Abre la caja. Hay latas oxidadas pero selladas.* \"Encontré un viejo búnker. Me sobra esto. A cambio solo pido entrar.\"",
+                options: [
+                    { id: 'gg_o2a', label: 'Aceptar donación (+2 Suministros)', next: 'gg_n3', onclick: act.giveSupplies },
+                    { id: 'gg_o2b', label: 'No confiamos en comida externa', next: 'gg_n_reject' }
+                ]
+            },
+            'gg_n3': {
+                id: 'gg_n3',
+                text: "*Sonríe con alivio.* \"Gracias... la cortesía es rara estos días.\"",
+                options: [
+                    { id: 'gg_o3a', label: 'Bienvenido. Pasa al escáner.', next: 'gg_n_end' }
+                ]
+            },
+            'gg_n_hands': {
+                id: 'gg_n_hands',
+                text: "*Muestra las manos limpias, salvo por mugre normal.* \"Limpio. Lo prometo.\"",
+                options: [
+                    { id: 'gg_o_h1', label: 'Volver a preguntar por la caja', next: 'gg_n2' }
+                ]
+            },
+            'gg_n_reject': {
+                id: 'gg_n_reject',
+                text: "*Cierra la caja desilusionado.* \"Entiendo. La paranoia nos mantiene vivos... supongo.\"",
+                options: [
+                    { id: 'gg_o_r1', label: 'Examinar médicamente', next: 'gg_n_end' }
+                ]
+            },
+            'gg_n_end': {
+                id: 'gg_n_end',
+                text: "*Sujeto cooperativo. Proceda con los tests estándar.*",
+                options: []
+            }
+        }
+    },
+    // --- LORE-ALIGNED POOLS (Historia_Completa.md) ---
+    "gen_cloro_memories": {
+        id: 'gen_cloro_memories',
+        tags: ['nervous', 'generic', 'lore'],
+        unique: false,
+        clue: "El cloro no solo limpia el cuerpo... borra los recuerdos. Hay gente que olvidó a sus familias después de las duchas.",
+        mechanicHint: "DATO: La alta exposición al cloro reduce la paranoia pero puede tener efectos secundarios.",
+        root: 'gcm_n1',
+        nodes: {
+            'gcm_n1': {
+                id: 'gcm_n1',
+                text: "*Se frota los ojos rojos.* \"Las duchas de descontaminación... ¿cuántas veces al día las activan? Ya no recuerdo el nombre de mi madre.\"",
+                options: [
+                    { id: 'gcm_o1', label: '¿Desde cuándo tienes problemas de memoria?', next: 'gcm_n2a' },
+                    { id: 'gcm_o2', label: 'Es el estrés', next: 'gcm_n2b' }
+                ]
+            },
+            'gcm_n2a': {
+                id: 'gcm_n2a',
+                text: "*Mira al vacío.* \"Desde que empezaron a aumentar la concentración. El aire tiene gusto a piscina. ¿Tú no lo notas?\"",
+                options: [
+                    { id: 'gcm_o2a', label: 'Revisar exposición química', next: null, onclick: act.testThermo, resultText: "*Exhala.* \"El cloro nos mantiene puros... pero ¿a qué costo?\"" },
+                    { id: 'gcm_o2b', label: 'Interesante', next: 'gcm_n_end' }
+                ]
+            },
+            'gcm_n2b': {
+                id: 'gcm_n2b',
+                text: "*Niega con la cabeza.* \"No es estrés. Es el protocolo de pureza. Dicen que es necesario, pero... ¿por qué siento que me estoy vaciando?\"",
+                options: [
+                    { id: 'gcm_o2c', label: 'Eso es paranoia', next: 'gcm_n_end' },
+                    { id: 'gcm_o2d', label: 'Habla más sobre el protocolo', next: 'gcm_n_end' }
+                ]
+            },
+            'gcm_n_end': {
+                id: 'gcm_n_end',
+                text: "*El sujeto parece desorientado pero cooperativo. Proceda con verificación estándar.*",
+                options: []
+            }
+        }
+    },
+    "gen_tinta_visions": {
+        id: 'gen_tinta_visions',
+        tags: ['paranoid', 'body_horror', 'generic', 'lore'],
+        unique: false,
+        clue: "Hay algo en el agua oscura que viene de abajo. No es contaminación normal... tiene voluntad.",
+        mechanicHint: "ALERTA: La Tinta es un contaminante inteligente. Evita el contacto directo.",
+        root: 'gtv_n1',
+        nodes: {
+            'gtv_n1': {
+                id: 'gtv_n1',
+                text: "*Sus venas del cuello parecen más oscuras de lo normal.* \"He empezado a recordar cosas que no me pasaron a mí. Vidas de otros. Muertes de otros.\"",
+                options: [
+                    { id: 'gtv_o1', label: 'Examinar cuello', next: 'gtv_n2a' },
+                    { id: 'gtv_o2', label: '¿Qué tipo de recuerdos?', next: 'gtv_n2b' }
+                ]
+            },
+            'gtv_n2a': {
+                id: 'gtv_n2a',
+                text: "*Las venas pulsan con un ritmo lento, antinatural.* \"Desde que bebí de aquel charco negro... todo cambió. Pero me siento... conectado. Como si ya no estuviera solo.\"",
+                options: [
+                    { id: 'gtv_o2a', label: '¡Estás infectado!', next: null, onclick: act.ignore, resultText: "*Sonríe sereno.* \"¿Infectado? No... estoy evolucionando.\"", cssClass: 'horror-btn-dismiss' },
+                    { id: 'gtv_o2b', label: 'Hacer test UV en venas', next: null, onclick: act.testUV, resultText: "*La luz revela patrones ramificados bajo la piel.* \"¿Lo ves ahora? La Madre habla a través de todos nosotros.\"" }
+                ]
+            },
+            'gtv_n2b': {
+                id: 'gtv_n2b',
+                text: "*Cierra los ojos.* \"Siento cómo murió el anterior ocupante de este sector. Y el anterior. Y el anterior. Todos los dolores, todos los placeres... en un solo río oscuro.\"",
+                options: [
+                    { id: 'gtv_o2c', label: 'Deliras. Vete.', next: null, onclick: act.ignore, resultText: "*Abre los ojos, ahora con pupilas dilatadas.* \"Ella te recordará cuando llegue tu momento.\"", cssClass: 'horror-btn-dismiss' },
+                    { id: 'gtv_o2d', label: 'Verificar pupilas', next: null, onclick: act.testPupils, resultText: "*Las pupilas no reaccionan a la luz.* \"Todo se ve más claro en la oscuridad.\"" }
+                ]
+            }
+        }
+    },
+    "gen_station_alive": {
+        id: 'gen_station_alive',
+        tags: ['obsessive', 'generic', 'lore'],
+        unique: false,
+        clue: "Los antiguos ingenieros decían que Kael 'El Nervio' se fusionó con el sistema central. Si escuchas los conductos, puedes oír sollozos.",
+        mechanicHint: "NOTA: Las tuberías del sector de Pulmones muestran signos de actividad biológica.",
+        root: 'gsa_n1',
+        nodes: {
+            'gsa_n1': {
+                id: 'gsa_n1',
+                text: "*Pega la oreja a la pared.* \"Shhh. ¿Lo oyes? Las tuberías... lloran. Dicen que hay alguien atrapado ahí dentro desde el principio.\"",
+                options: [
+                    { id: 'gsa_o1', label: 'Son solo ruidos de agua', next: 'gsa_n2a' },
+                    { id: 'gsa_o2', label: '¿Quién está atrapado?', next: 'gsa_n2b' }
+                ]
+            },
+            'gsa_n2a': {
+                id: 'gsa_n2a',
+                text: "*Te mira con lástima.* \"El agua no tiene ritmo cardíaco. Esto sí. Escucha.\" *Golpea la tubería y el sonido cambia, como carne contra metal.*",
+                options: [
+                    { id: 'gsa_o2a', label: 'Inquietante', next: 'gsa_n_end' },
+                    { id: 'gsa_o2b', label: 'Aléjate de la pared', next: 'gsa_n_end' }
+                ]
+            },
+            'gsa_n2b': {
+                id: 'gsa_n2b',
+                text: "*Baja la voz.* \"Kael. El primer Administrador. Dicen que intentó desconectar el generador principal y... la estación no lo dejó. Ahora él ES la estación.\"",
+                options: [
+                    { id: 'gsa_o2c', label: 'Eso es un mito', next: 'gsa_n_end' },
+                    { id: 'gsa_o2d', label: 'Continúa...', next: 'gsa_n3' }
+                ]
+            },
+            'gsa_n3': {
+                id: 'gsa_n3',
+                text: "*Señala el techo.* \"Sus intestinos son los cables. Sus pulmones son los conductos de aire. Si lo desconectas... todo muere. Él mantiene vivo este lugar... y este lugar lo mantiene prisionero.\"",
+                options: [
+                    { id: 'gsa_o3a', label: 'Suficiente', next: 'gsa_n_end' }
+                ]
+            },
+            'gsa_n_end': {
+                id: 'gsa_n_end',
+                text: "*El sujeto parece obsesionado pero no hostil. Proceda con verificación estándar.*",
+                options: []
+            }
+        }
     }
 };

@@ -4,6 +4,9 @@ export const lore_archivist = {
     id: 'lore_archivist',
     unique: true,
     tags: ['fanatic', 'lore'],
+    clue: "Los registros indican que la hemoglobina es la única prueba irrevocable. Los escaneos manuales pueden ser engañados por la distorsión mental.",
+    mechanicHint: "DATO: El análisis de sangre ignora las alucinaciones por baja cordura.",
+    appearanceDay: 5, // Fase 1.2 Roadmap: NPC tardío para jugadores avanzados
     root: 'la_n1',
     nodes: {
         'la_n1': {

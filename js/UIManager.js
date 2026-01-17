@@ -1,5 +1,6 @@
 import { State } from './State.js';
 import { CONSTANTS } from './Constants.js';
+import { ROOM_TYPES } from './ShelterModel.js';
 import { LoreData } from './LoreData.js';
 import { LoreManager } from './LoreManager.js';
 import { ModalManager } from './ModalManager.js';
@@ -60,6 +61,9 @@ export class UIManager {
             securityCount: $('#security-count'),
             roomPowerWarning: $('#room-power-warning'),
             logContainer: $('#log-container'),
+            rumorsContainer: $('#rumors-container'),
+            tabLogEvents: $('#tab-log-events'),
+            tabLogRumors: $('#tab-log-rumors'),
             shelterCount: $('#shelter-count'),
             generatorPanel: $('#generator-panel'),
             generatorPowerBar: $('#generator-power-bar'),
@@ -119,6 +123,8 @@ export class UIManager {
             btnOpenDatabase: $('#nav-database'),
             dbNavBtns: $('.db-nav-btn'),
             dbSections: $('.db-section'),
+            dbAnalysisList: $('#db-analysis-list'),
+            dbAnalysisDetail: $('#db-analysis-detail'),
 
             // Confirm Modal
             confirmModal: $('#modal-confirm'),
@@ -137,7 +143,15 @@ export class UIManager {
                 $('#tool-flash'),
                 $('#tool-pulse'),
                 $('#tool-pupils')
-            ]
+            ],
+            // Optimization: Cached specialized elements
+            vhsTarget: $('#screen-game main.vhs-target'),
+            crtMonitor: $('.crt-monitor'),
+            purgeOverlay: $('#purge-screen-overlay'),
+            sanityVignette: $('#sanity-vignette'), // Might be empty initially
+            paranoiaVignette: $('#paranoia-vignette'), // Might be empty initially
+            scanEnergy: $('#scan-energy'),
+            sectorAssignmentModal: $('#modal-sector-assignment')
         };
 
         // --- HUD COMPONENTS (ENTIDADES VISUALES) ---
@@ -234,6 +248,7 @@ export class UIManager {
         this.initGlobalEffects();
         this.initUIScaling();
         this.initConsoleUpdates();
+        this.initLogTabs();
 
         // Populate version labels
         this.updateVersionLabels();
@@ -269,7 +284,7 @@ export class UIManager {
     initGlobalEffects() {
         // Efecto de Glitch al hacer click en cualquier parte de la pantalla (CRT feedback)
         $(document).on('mousedown', () => {
-            const monitor = $('.crt-monitor');
+            const monitor = this.elements.crtMonitor;
             monitor.addClass('glitch-click');
             setTimeout(() => {
                 monitor.removeClass('glitch-click');
@@ -279,13 +294,23 @@ export class UIManager {
         // Simulación de ruido estático ocasional
         setInterval(() => {
             if (Math.random() > 0.95) {
-                const monitor = $('.crt-monitor');
+                const monitor = this.elements.crtMonitor;
                 monitor.addClass('glitch-click');
                 setTimeout(() => {
                     monitor.removeClass('glitch-click');
                 }, 200);
             }
         }, 5000);
+
+        // Pre-create vignettes if they don't exist and cache them
+        if (!this.elements.sanityVignette.length) {
+            $('body').append('<div id="sanity-vignette" class="fixed inset-0 pointer-events-none z-[9999] shadow-[inset_0_0_150px_rgba(153,27,27,0.5)] opacity-0 transition-opacity duration-1000 hidden"></div>');
+            this.elements.sanityVignette = $('#sanity-vignette');
+        }
+        if (!this.elements.paranoiaVignette.length) {
+            $('body').append('<div id="paranoia-vignette" class="fixed inset-0 pointer-events-none z-[9998] shadow-[inset_0_0_120px_rgba(45,90,39,0.4)] opacity-0 transition-opacity duration-700 hidden"></div>');
+            this.elements.paranoiaVignette = $('#paranoia-vignette');
+        }
     }
 
     initConsoleUpdates() {
@@ -481,6 +506,107 @@ export class UIManager {
 
         this.elements.tabDialogue.on('click', () => switchTab('dialogue'));
         this.elements.tabHistory.on('click', () => switchTab('history'));
+
+        // Event Delegation for dialogue options
+        this.elements.dialogueOptions.off('click').on('click', '.horror-btn-dialogue, .horror-tool-btn--dialogue', (e) => {
+            const index = $(e.currentTarget).data('index');
+            if (index !== undefined) {
+                this.handleDialogueOptionClick(index);
+            }
+        });
+    }
+
+    handleDialogueOptionClick(index) {
+        const npc = State.currentNPC;
+        if (!npc || !npc.conversation) return;
+
+        const convNode = npc.conversation.getCurrentNode();
+        if (!convNode || !convNode.options || !convNode.options[index]) return;
+
+        const opt = convNode.options[index];
+
+        // Prevenir clics si ya estamos procesando una decisión
+        if (this.game && this.game.actions && this.game.actions.processingDecision) return;
+
+        // Mark dialogue started and hide omit (tracking interaction)
+        npc.dialogueStarted = true;
+
+        // Riesgo de degradación de seguridad durante el diálogo
+        const game = this.game || window.game;
+        if (game && game.mechanics && typeof game.mechanics.checkSecurityDegradation === 'function') {
+            game.mechanics.checkSecurityDegradation();
+        }
+
+        // Registrar evidencia en bitácora si la opción lo requiere
+        if (opt.log) {
+            State.addLogEntry('evidence', opt.log.text, { icon: opt.log.icon });
+            this.setNavItemStatus('btn-open-log', 2);
+        }
+
+        // Log choice to NPC history - Filtrar acciones (*texto*) para el historial
+        if (!npc.history) npc.history = [];
+        const cleanLabel = opt.label.replace(/\*.*?\*/g, '').trim();
+        npc.history.push({ speaker: 'user', text: `> ${cleanLabel}` });
+
+        // Play optional sfx tied to option (prevent lore tracks from playing as sfx)
+        if (opt.audio && this.audio && !opt.audio.startsWith('lore_')) {
+            this.audio.playSFXByKey(opt.audio, { volume: 0.6 });
+        }
+
+        // Execute custom onclick if defined
+        if (opt.onclick) {
+            try {
+                opt.onclick(this.game || window.game);
+            } catch (e) {
+                console.warn("Dialogue onclick failed:", e);
+            }
+            if (State.currentNPC !== npc) return;
+        }
+
+        const res = npc.conversation.getNextDialogue(index);
+
+        if (res.error) {
+            this.showMessage(res.error, () => { }, 'warning');
+            return;
+        }
+
+        if (res.audio && this.audio && !res.audio.startsWith('lore_')) {
+            this.audio.playSFXByKey(res.audio, { volume: 0.6 });
+        }
+
+        const textEl = this.elements.dialogue.find('.npc-text');
+
+        if (res.end) {
+            this.showFeedback('FIN DE DIÁLOGO', 'green', 2500);
+            this.elements.dialogueOptions.empty();
+
+            if (res.id === 'exit_conversation' || res.id === 'auto_end') {
+                this.handleOmitTest(npc);
+            }
+
+            if (res.message) {
+                const parsedMsg = (typeof parseDialogueMarkup === 'function') ? parseDialogueMarkup(res.message) : res.message;
+                this.typeText(textEl, parsedMsg, 18);
+                const cleanMsg = res.message.replace(/\*.*?\*/g, '').trim();
+                if (cleanMsg) npc.history.push({ speaker: 'npc', text: cleanMsg });
+            }
+            this.updateInspectionTools(npc);
+            return;
+        }
+
+        // Otherwise render the next node
+        this.updateDialogueBox(npc);
+
+        const nextNode = npc.conversation.getCurrentNode();
+        if (nextNode) {
+            const cleanNext = nextNode.text.replace(/\*.*?\*/g, '').trim();
+            if (cleanNext) npc.history.push({ speaker: 'npc', text: cleanNext });
+        }
+
+        // Slight VHS effect if paranoia high
+        if (State.paranoia > 60) {
+            this.applyVHS(0.4, 300);
+        }
     }
 
     renderDialogueHistory(npc) {
@@ -527,6 +653,10 @@ export class UIManager {
             // Content Update
             this.elements.dbSections.addClass('hidden');
             $(`#${target}`).removeClass('hidden');
+
+            if (target === 'db-analysis') {
+                this.renderSubjectAnalysis();
+            }
 
             if (this.audio) this.audio.playSFXByKey('ui_hover', { volume: 0.2 });
         });
@@ -583,8 +713,8 @@ export class UIManager {
         const candidates = state.admittedNPCs.filter(n => !n.death && !n.left && !n.escaped);
         const sectorName = CONSTANTS.SECTOR_CONFIG && CONSTANTS.SECTOR_CONFIG[sector] ? CONSTANTS.SECTOR_CONFIG[sector].name : sector.toUpperCase();
 
-        let overlay = $('#modal-sector-assignment');
-        if (!overlay.length) {
+        // 1. Ensure Modal Exists (Lazy Creation)
+        if (!this.elements.sectorAssignmentModal || !this.elements.sectorAssignmentModal.length) {
             $('body').append(`
                 <div id="modal-sector-assignment" class="modal-overlay-base z-[100] hidden p-4 backdrop-blur-sm flex items-center justify-center">
                     <div class="horror-panel-modal w-full max-w-lg flex flex-col p-0 overflow-hidden bg-black border border-terminal-green">
@@ -597,37 +727,55 @@ export class UIManager {
                     </div>
                 </div>
             `);
-            overlay = $('#modal-sector-assignment');
-            overlay.find('.close-assign').on('click', () => overlay.addClass('hidden').removeClass('flex'));
+            this.elements.sectorAssignmentModal = $('#modal-sector-assignment');
+
+            // 2. Attach Event Listeners ONCE (Event Delegation)
+            this.elements.sectorAssignmentModal.on('click', '.close-assign', () => {
+                this.elements.sectorAssignmentModal.addClass('hidden').removeClass('flex');
+            });
+
+            this.elements.sectorAssignmentModal.on('click', '.btn-assign-candidate', (e) => {
+                const btn = $(e.currentTarget);
+                const id = btn.data('id');
+                // 'null' string or empty for unassign
+                const npc = (id === 'unassign') ? null : State.admittedNPCs.find(n => n.id === id);
+
+                if (this.assignSectorCallback) {
+                    this.assignSectorCallback(npc);
+                }
+                this.elements.sectorAssignmentModal.addClass('hidden').removeClass('flex');
+            });
         }
 
+        // 3. Update State
+        this.assignSectorCallback = onAssign;
         $('#assign-sector-name').text(sectorName);
         const list = $('#assign-candidates-list');
         list.empty();
 
-        const unassignBtn = $(`
-            <button class="w-full p-3 border border-dashed border-gray-600 text-gray-400 hover:border-terminal-green hover:text-terminal-green text-left flex items-center gap-3 transition-all mb-2">
+        // 4. Efficient Rendering (String Concatenation)
+        let htmlContent = '';
+
+        // Botón "Dejar Vacante"
+        htmlContent += `
+            <button class="btn-assign-candidate w-full p-3 border border-dashed border-gray-600 text-gray-400 hover:border-terminal-green hover:text-terminal-green text-left flex items-center gap-3 transition-all mb-2" data-id="unassign">
                 <div class="w-8 h-8 flex items-center justify-center bg-gray-900 rounded"><i class="fa-solid fa-user-slash"></i></div>
                 <div class="flex flex-col">
                     <span class="font-bold text-xs uppercase">DEJAR VACANTE</span>
                     <span class="text-[9px]">Nadie asignado al sector</span>
                 </div>
             </button>
-        `);
-        unassignBtn.on('click', () => {
-             onAssign(null);
-             overlay.addClass('hidden').removeClass('flex');
-        });
-        list.append(unassignBtn);
+        `;
 
         candidates.forEach(npc => {
             const isAssignedHere = npc.assignedSector === sector;
             const isAssignedElsewhere = npc.assignedSector && npc.assignedSector !== sector;
-            
-            const btn = $(`
-                <button class="w-full p-2 border ${isAssignedHere ? 'border-terminal-green bg-terminal-green/20' : 'border-white/10 bg-white/5'} hover:bg-white/10 text-left flex items-center gap-3 transition-all">
+            const avatarHTML = this.renderAvatar(npc, 'sm').prop('outerHTML'); // Keep this helper for now, usually returns jQuery obj
+
+            htmlContent += `
+                <button class="btn-assign-candidate w-full p-2 border ${isAssignedHere ? 'border-terminal-green bg-terminal-green/20' : 'border-white/10 bg-white/5'} hover:bg-white/10 text-left flex items-center gap-3 transition-all" data-id="${npc.id}">
                     <div class="w-10 h-10 bg-black border border-white/10 overflow-hidden relative rounded">
-                         ${this.renderAvatar(npc, 'sm').prop('outerHTML')}
+                         ${avatarHTML}
                     </div>
                     <div class="flex flex-col flex-grow">
                         <span class="font-bold text-sm text-white ${isAssignedHere ? 'text-terminal-green' : ''}">${npc.name}</span>
@@ -637,16 +785,12 @@ export class UIManager {
                     </div>
                     ${isAssignedHere ? '<i class="fa-solid fa-check text-terminal-green"></i>' : ''}
                 </button>
-            `);
-
-            btn.on('click', () => {
-                onAssign(npc);
-                overlay.addClass('hidden').removeClass('flex');
-            });
-            list.append(btn);
+            `;
         });
 
-        overlay.removeClass('hidden').addClass('flex');
+        list.html(htmlContent);
+
+        this.elements.sectorAssignmentModal.removeClass('hidden').addClass('flex');
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
     }
 
@@ -663,7 +807,7 @@ export class UIManager {
     }
 
     applyVHS(intensity = 0.6, duration = 1000) {
-        const target = $('#screen-game').find('main.vhs-target');
+        const target = this.elements.vhsTarget;
         target.css('--vhs-intensity', intensity);
         target.css('--vhs-duration', `${duration}ms`);
         target.addClass('vhs-active');
@@ -684,7 +828,9 @@ export class UIManager {
             type = 'purge'
         } = options;
 
-        const overlay = $('#purge-screen-overlay');
+
+
+        const overlay = this.elements.purgeOverlay;
         const progressBar = overlay.find('.purge-progress-bar');
         const statusText = overlay.find('#purge-status-text');
         const titleEl = overlay.find('.purge-glitch-text');
@@ -754,7 +900,7 @@ export class UIManager {
     }
 
     cancelPurgeAnimation() {
-        const overlay = $('#purge-screen-overlay');
+        const overlay = this.elements.purgeOverlay;
         if (overlay.length) {
             overlay.stop(true, true).addClass('hidden').css('opacity', '0');
         }
@@ -784,12 +930,10 @@ export class UIManager {
         // Efecto de viñeta roja si la cordura es muy baja
         if (sanity < 25) {
             const opacity = (25 - sanity) / 50;
-            if (!$('#sanity-vignette').length) {
-                $('body').append('<div id="sanity-vignette" class="fixed inset-0 pointer-events-none z-[9999] shadow-[inset_0_0_150px_rgba(153,27,27,0.5)] opacity-0 transition-opacity duration-1000"></div>');
-            }
-            $('#sanity-vignette').css('opacity', opacity).removeClass('hidden');
+            // Uses cached vignette initialized in initGlobalEffects
+            this.elements.sanityVignette.css('opacity', opacity).removeClass('hidden');
         } else {
-            $('#sanity-vignette').addClass('hidden');
+            this.elements.sanityVignette.addClass('hidden');
         }
     }
 
@@ -817,11 +961,39 @@ export class UIManager {
     }
 
     stopGlobalFlicker() {
-        $('.crt-monitor, #screen-game').removeClass('system-flicker crt-flicker');
+        this.elements.crtMonitor.removeClass('system-flicker crt-flicker');
+        this.screens.game.removeClass('system-flicker crt-flicker');
     }
 
     shouldShowGlitchFlicker() {
         return State.playerInfected || State.sanity < 20;
+    }
+
+    updateTimePhase(currentHour, totalHours) {
+        if (!totalHours) return;
+
+        const progress = currentHour / totalHours;
+        let phase = 'phase-day';
+
+        if (progress > 0.9) {
+            phase = 'phase-night'; // > 90% (Final boss / last entry)
+        } else if (progress > 0.7) {
+            phase = 'phase-dusk'; // 70% - 90%
+        } else if (progress < 0.2) {
+            phase = 'phase-dawn'; // Start of day
+        }
+
+        // Apply to Body
+        $('body')
+            .removeClass('phase-dawn phase-day phase-dusk phase-night')
+            .addClass(phase);
+
+        // Update Nav status for time awareness (Optional visual cue)
+        const timeNav = $('#nav-time');
+        if (timeNav.length) {
+            if (phase === 'phase-night') timeNav.addClass('text-alert animate-pulse');
+            else timeNav.removeClass('text-alert animate-pulse');
+        }
     }
 
     updateEnergyHUD() {
@@ -829,7 +1001,7 @@ export class UIManager {
     }
 
     triggerGlobalGlitch(intensity = 0.5) {
-        const monitor = $('.crt-monitor');
+        const monitor = this.elements.crtMonitor;
         if (!monitor.length) return;
 
         monitor.addClass('glitch-level-change');
@@ -847,15 +1019,22 @@ export class UIManager {
 
     updateStats(paranoia, sanity, cycle, dayTime, dayLength, currentNPC, supplies) {
         // MECÁNICA PARANOIA: Viñeta de vigilancia
+        // MECÁNICA PARANOIA: Viñeta de vigilancia
         if (paranoia > 50) {
             const pIntensity = (paranoia - 50) / 100;
-            if (!$('#paranoia-vignette').length) {
-                $('body').append('<div id="paranoia-vignette" class="fixed inset-0 pointer-events-none z-[9998] shadow-[inset_0_0_120px_rgba(45,90,39,0.4)] opacity-0 transition-opacity duration-700"></div>');
-            }
-            $('#paranoia-vignette').css('opacity', pIntensity).removeClass('hidden');
+            // Uses cached vignette initialized in initGlobalEffects
+            this.elements.paranoiaVignette.css('opacity', pIntensity).removeClass('hidden');
         } else {
-            $('#paranoia-vignette').addClass('hidden');
+            this.elements.paranoiaVignette.addClass('hidden');
         }
+
+        // Phase 2.2: Heartbeat Audio
+        if (this.audio && this.audio.playHeartbeat) {
+            this.audio.playHeartbeat(paranoia / 100);
+        }
+
+        // New Phase 2.1: Update Atmosphere
+        this.updateTimePhase(dayTime, dayLength);
 
         this.updateEnergyHUD();
 
@@ -909,7 +1088,7 @@ export class UIManager {
 
         // Update Energy
         this.updateGeneratorNavStatus();
-        const energySpan = $('#scan-energy');
+        const energySpan = this.elements.scanEnergy;
         const energyIcon = $('#hud-energy-container i');
 
         if (currentNPC) {
@@ -1509,100 +1688,8 @@ export class UIManager {
                 const btn = $('<button>', {
                     class: `${isTooltip ? 'horror-tool-btn horror-tool-btn--dialogue' : 'horror-btn-dialogue'} ${opt.cssClass || ''} ${autoClass} animate-dialogue-in w-full ${spanClass}`,
                     html: `${tooltipIcon ? `<i class="fa-solid ${tooltipIcon}"></i>` : '&gt; '} ${escapeHtml(opt.label)}`,
-                    style: `animation-delay: ${idx * 0.1}s`
-                });
-
-                btn.on('click', () => {
-                    // Prevenir clics si ya estamos procesando una decisión
-                    if (this.game && this.game.actions && this.game.actions.processingDecision) return;
-
-                    // Mark dialogue started and hide omit (tracking interaction)
-                    npc.dialogueStarted = true;
-
-                    // Riesgo de degradación de seguridad durante el diálogo
-                    const game = this.game || window.game;
-                    if (game && game.mechanics && typeof game.mechanics.checkSecurityDegradation === 'function') {
-                        game.mechanics.checkSecurityDegradation();
-                    }
-
-                    // Registrar evidencia en bitácora si la opción lo requiere
-                    if (opt.log) {
-                        State.addLogEntry('evidence', opt.log.text, { icon: opt.log.icon });
-                        this.setNavItemStatus('btn-open-log', 2);
-                    }
-
-                    // Log choice to NPC history - Filtrar acciones (*texto*) para el historial
-                    if (!npc.history) npc.history = [];
-                    const cleanLabel = opt.label.replace(/\*.*?\*/g, '').trim();
-                    npc.history.push({ speaker: 'user', text: `> ${cleanLabel}` });
-
-                    // Play optional sfx tied to option (prevent lore tracks from playing as sfx)
-                    if (opt.audio && this.audio && !opt.audio.startsWith('lore_')) {
-                        this.audio.playSFXByKey(opt.audio, { volume: 0.6 });
-                    }
-
-                    // Execute custom onclick if defined
-                    if (opt.onclick) {
-                        try {
-                            opt.onclick(this.game || window.game);
-                        } catch (e) {
-                            console.warn("Dialogue onclick failed:", e);
-                        }
-                        if (State.currentNPC !== npc) return;
-                    }
-
-                    const res = npc.conversation.getNextDialogue(idx);
-
-                    if (res.error) {
-                        this.showMessage(res.error, () => { }, 'warning');
-                        return;
-                    }
-
-                    if (res.audio && this.audio && !res.audio.startsWith('lore_')) {
-                        this.audio.playSFXByKey(res.audio, { volume: 0.6 });
-                    }
-
-                    if (res.end) {
-                        this.showFeedback('FIN DE DIÁLOGO', 'green', 2500);
-                        this.elements.dialogueOptions.empty();
-
-                        // La música de lore persiste mientras el NPC esté presente, 
-                        // ya no la paramos al terminar el diálogo como se solicitó.
-                        // if (this.audio) this.audio.stopLore({ fadeOut: 1000 });
-
-                        // Si es la opción de salida dinámica o fin automático, tratarla como omisión de test
-                        if (res.id === 'exit_conversation' || res.id === 'auto_end') {
-                            this.handleOmitTest(npc);
-                        }
-
-                        if (res.message) {
-                            const parsedMsg = (typeof parseDialogueMarkup === 'function') ? parseDialogueMarkup(res.message) : res.message;
-                            this.typeText(textEl, parsedMsg, 18);
-                            // Filtrar acciones (*texto*) para el historial
-                            const cleanMsg = res.message.replace(/\*.*?\*/g, '').trim();
-                            if (cleanMsg) npc.history.push({ speaker: 'npc', text: cleanMsg });
-                        }
-                        // update inspection tools after final choice
-                        this.updateInspectionTools(npc);
-                        return;
-                    }
-
-                    // Otherwise render the next node
-                    this.updateDialogueBox(npc);
-
-                    const nextNode = npc.conversation.getCurrentNode();
-                    if (nextNode) {
-                        // Filtrar acciones (*texto*) para el historial
-                        const cleanNext = nextNode.text.replace(/\*.*?\*/g, '').trim();
-                        if (cleanNext) npc.history.push({ speaker: 'npc', text: cleanNext });
-                    }
-
-                    // Slight VHS effect if paranoia high
-                    if (State.paranoia > 70) this.applyVHS(0.6, 600);
-
-                    npc.dialogueStarted = true;
-                    // Ensure inspection tools reflect interaction
-                    this.updateInspectionTools(npc);
+                    style: `animation-delay: ${idx * 0.1}s`,
+                    'data-index': idx // Add data-index for delegated event handling
                 });
 
                 this.elements.dialogueOptions.append(btn);
@@ -2061,6 +2148,16 @@ export class UIManager {
                 card.append(badge);
             }
 
+            // Profession Bonus Indicator
+            const jobData = CONSTANTS.JOB_EFFECTS[npc.occupation];
+            const isBonusActive = jobData && npc.assignedSector === jobData.assignment;
+
+            if (isBonusActive) {
+                const bonusIcon = $('<i class="fa-solid fa-star text-yellow-400 text-[10px] absolute top-1 left-1 animate-pulse" title="Bono de Profesión Activo"></i>');
+                card.append(bonusIcon);
+                card.addClass('profession-bonus-active');
+            }
+
             if (statusIcon) card.append($(statusIcon));
             card.append(avatar, name);
 
@@ -2073,13 +2170,15 @@ export class UIManager {
                     <option value="security" ${npc.assignedSector === 'security' ? 'selected' : ''}>SEGURIDAD</option>
                     <option value="supplies" ${npc.assignedSector === 'supplies' ? 'selected' : ''}>SUMINISTROS</option>
                     <option value="fuel" ${npc.assignedSector === 'fuel' ? 'selected' : ''}>COMBUSTIBLE</option>
+                    <option value="infirmary" ${npc.assignedSector === 'infirmary' ? 'selected' : ''}>ENFERMERÍA</option>
+                    <option value="kitchen" ${npc.assignedSector === 'kitchen' ? 'selected' : ''}>COCINA</option>
                 `
             });
 
             sectorSelector.on('click', (e) => e.stopPropagation());
             sectorSelector.on('change', (e) => {
                 const sector = e.target.value;
-                
+
                 if (sector) {
                     if (this.game.assignments) {
                         this.game.assignments.assign(npc.id, sector);
@@ -2155,11 +2254,11 @@ export class UIManager {
         }
     }
     // --- SECTOR ASSIGNMENT SYSTEM ---
-    
+
     showAssignmentDashboard(state) {
         // Simple modal to choose sector
         $('#assignment-dashboard-modal').remove();
-        
+
         const sectors = [
             { id: 'security', label: 'SEGURIDAD', icon: 'fa-shield-halved', color: 'text-terminal-green', border: 'border-terminal-green' },
             { id: 'generator', label: 'GENERADOR', icon: 'fa-bolt', color: 'text-terminal-green', border: 'border-terminal-green' },
@@ -2172,13 +2271,13 @@ export class UIManager {
             // Get current assigned
             let assignedName = 'VACANTE';
             let assignedId = null;
-            
+
             if (sec.id === 'generator') {
                 assignedId = state.generator.assignedGuardId;
             } else {
                 assignedId = state.sectorAssignments[sec.id]?.[0];
             }
-            
+
             if (assignedId) {
                 const npc = state.admittedNPCs.find(n => n.id === assignedId);
                 if (npc) assignedName = npc.name;
@@ -2222,11 +2321,11 @@ export class UIManager {
         $('body').append(modalHtml);
 
         const closeModal = () => {
-             $('#assignment-dashboard-modal').fadeOut(150, function () { $(this).remove(); });
+            $('#assignment-dashboard-modal').fadeOut(150, function () { $(this).remove(); });
         };
 
         $('#dashboard-modal-close').on('click', closeModal);
-        $('#assignment-dashboard-modal').on('click', function(e) { if(e.target === this) closeModal(); });
+        $('#assignment-dashboard-modal').on('click', function (e) { if (e.target === this) closeModal(); });
 
         $('.sector-select-btn').on('click', (e) => {
             const sector = $(e.currentTarget).data('sector');
@@ -2239,7 +2338,7 @@ export class UIManager {
                 } else if (game && game.mechanics) {
                     game.mechanics.assignNPCToSector(npc, sector);
                 }
-                
+
                 // Re-open dashboard to show update? Or just close.
                 // User might want to assign multiple, but feedback is important.
                 // Let's just show feedback and stay closed.
@@ -2268,7 +2367,7 @@ export class UIManager {
         candidates.forEach(npc => {
             const avatarEl = this.renderAvatar(npc, 'md');
             const avatarHtml = avatarEl && avatarEl.prop ? avatarEl.prop('outerHTML') : '<div class="text-xs text-gray-500">?</div>';
-            
+
             // Determine if assigned
             let isCurrent = false;
             if (sector === 'generator') {
@@ -2312,11 +2411,11 @@ export class UIManager {
         $('body').append(modalHtml);
 
         const closeModal = () => {
-             $('#sector-assignment-modal').fadeOut(150, function () { $(this).remove(); });
+            $('#sector-assignment-modal').fadeOut(150, function () { $(this).remove(); });
         };
 
         $('#sector-modal-close').on('click', closeModal);
-        $('#sector-assignment-modal').on('click', function(e) { if(e.target === this) closeModal(); });
+        $('#sector-assignment-modal').on('click', function (e) { if (e.target === this) closeModal(); });
 
         $('.guard-candidate-item').on('click', function (e) {
             e.preventDefault();
@@ -2333,7 +2432,7 @@ export class UIManager {
                         game.mechanics.assignNPCToSector(selectedNPC, sector);
                     }
                 }
-                
+
                 if (self.audio) self.audio.playSFXByKey('ui_success', { volume: 0.5 });
                 self.showFeedback(`✓ ASIGNADO A ${sector.toUpperCase()}: ${selectedNPC.name}`, "green", 2000);
             }
@@ -2356,15 +2455,15 @@ export class UIManager {
         } else {
             guardId = state.sectorAssignments && state.sectorAssignments[sector] ? state.sectorAssignments[sector][0] : null;
         }
-        
+
         const guard = guardId ? state.admittedNPCs.find(n => n.id === guardId) : null;
         const title = titleOverride || (guard ? 'OPERADOR ACTIVO' : 'PUESTO VACANTE');
-        
+
         // Colors based on sector
         let colorClass = 'text-terminal-green';
         let borderClass = 'border-terminal-green';
         let bgClass = 'bg-terminal-green';
-        
+
         if (sector === 'fuel') { colorClass = 'text-rose-400'; borderClass = 'border-rose-400'; bgClass = 'bg-rose-400'; }
         if (sector === 'supplies') { colorClass = 'text-amber-400'; borderClass = 'border-amber-400'; bgClass = 'bg-amber-400'; }
 
@@ -2456,6 +2555,62 @@ export class UIManager {
         if (log.children().length > 20) {
             log.children().first().remove();
         }
+    }
+
+    showLoreClue(npc) {
+        if (!npc || !npc.clue) return;
+
+        const modalId = 'lore-clue-modal';
+        $(`#${modalId}`).remove();
+
+        const modalHtml = `
+            <div id="${modalId}" class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-sm animate__animated animate__fadeIn">
+                <div class="relative w-full max-w-lg p-1 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-400/30 rounded-lg shadow-[0_0_50px_rgba(34,211,238,0.2)]">
+                    <div class="bg-[#050505] p-8 border border-white/10 rounded overflow-hidden">
+                        <!-- Background Glyph -->
+                        <div class="absolute -right-8 -bottom-8 opacity-5">
+                            <i class="fa-solid fa-microchip text-[200px] text-cyan-400"></i>
+                        </div>
+
+                        <div class="flex items-center gap-4 mb-6 relative">
+                            <div class="w-16 h-16 bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center rounded">
+                                <i class="fa-solid fa-dna text-3xl text-cyan-400 animate-pulse"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-cyan-400 font-bold tracking-widest uppercase text-xl">Patrón Desencriptado</h3>
+                                <p class="text-[10px] text-white/40 font-mono tracking-tighter">ORIGEN: ${npc.name.toUpperCase()} // SECTOR: CLORE_CORE</p>
+                            </div>
+                        </div>
+
+                        <div class="p-4 border-l-2 border-cyan-400 bg-cyan-400/5 mb-6">
+                            <p class="text-terminal-green text-lg leading-relaxed italic font-serif">
+                                "${npc.clue}"
+                            </p>
+                        </div>
+
+                        <div class="bg-purple-500/10 border border-purple-400/30 p-4 rounded mb-8">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i class="fa-solid fa-lightbulb text-purple-400 text-xs"></i>
+                                <span class="text-[10px] text-purple-400 font-bold uppercase tracking-widest">Análisis Táctico</span>
+                            </div>
+                            <p class="text-purple-200 text-sm font-mono leading-tight">
+                                ${npc.mechanicHint}
+                            </p>
+                        </div>
+
+                        <button id="close-lore-clue" class="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/20 hover:border-cyan-400/50 text-white font-bold tracking-widest uppercase transition-all rounded font-mono">
+                            COMPRENDIDO
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        $('body').append(modalHtml);
+
+        $(`#close-lore-clue`).on('click', () => {
+            $(`#${modalId}`).fadeOut(200, function () { $(this).remove(); });
+        });
     }
 
     renderMorgueGrid(purged, escaped, night, onDetailClick) {
@@ -2664,9 +2819,9 @@ export class UIManager {
                     }
                     if (onToggle) onToggle(idx, it);
                     this.renderSecurityRoom(items, onToggle);
-                    
+
                     // Resolver tras una breve pausa para evitar spam sónico
-                    setTimeout(resolve, 400); 
+                    setTimeout(resolve, 400);
                 });
 
                 // Orquestar la acción para evitar conflictos con tests u otros eventos
@@ -2734,7 +2889,7 @@ export class UIManager {
     renderRoomLog(sector, container) {
         if (!container || !container.length) return;
         container.empty();
-        
+
         const logs = State.roomLogs && State.roomLogs[sector] ? State.roomLogs[sector] : [];
         if (logs.length === 0) {
             container.html('<div class="text-[10px] text-gray-600 font-mono italic p-2 text-center">SIN REGISTROS DE ACTIVIDAD</div>');
@@ -2758,42 +2913,97 @@ export class UIManager {
 
     renderLog(state) {
         const container = this.elements.logContainer;
+        const rumorsContainer = this.elements.rumorsContainer;
         container.empty();
+        rumorsContainer.empty();
 
         // Al abrir la bitácora, quitamos la animación de notificación
         this.setNavItemStatus('btn-open-log', null);
 
         if (!state.gameLog || state.gameLog.length === 0) {
             container.append($('<div>', { class: 'text-gray-500 italic text-center p-4', text: 'Sin registros disponibles.' }));
+            rumorsContainer.append($('<div>', { class: 'text-gray-500 italic text-center p-4', text: 'Sin rumores registrados.' }));
             return;
         }
 
-        state.gameLog.forEach(entry => {
-            const typeClass = `log-${entry.type}`; // log-lore, log-system, log-note
-            let icon = 'fa-pen';
-            if (entry.meta && entry.meta.icon) {
-                icon = entry.meta.icon;
-            } else {
-                icon = entry.type === 'lore' ? 'fa-book-open' :
-                    entry.type === 'system' ? 'fa-terminal' : 'fa-pen';
-            }
+        const events = state.gameLog.filter(e => e.type !== 'rumor');
+        const rumors = state.gameLog.filter(e => e.type === 'rumor');
 
-            const isNew = entry.isNew ? 'log-entry-new' : '';
-            if (entry.isNew) delete entry.isNew;
+        // Render Events
+        if (events.length === 0) {
+            container.append($('<div>', { class: 'text-gray-500 italic text-center p-4', text: 'No hay eventos registrados.' }));
+        } else {
+            events.forEach(entry => {
+                container.append(this._createLogEntryHtml(entry));
+            });
+        }
 
-            const html = `
-                <div class="log-entry ${typeClass} ${isNew} animate__animated animate__fadeInUp animate__faster">
-                    <div class="log-meta flex justify-between">
-                        <span><i class="fa-solid ${icon} mr-1"></i> CICLO ${entry.cycle} // HORA ${entry.dayTime}</span>
-                    </div>
-                    <div class="log-content">${entry.text}</div>
-                </div>
-            `;
-            container.append(html);
-        });
+        // Render Rumors
+        if (rumors.length === 0) {
+            rumorsContainer.append($('<div>', { class: 'text-gray-500 italic text-center p-4', text: 'No se han escuchado rumores aún.' }));
+        } else {
+            rumors.forEach(entry => {
+                rumorsContainer.append(this._createLogEntryHtml(entry));
+            });
+        }
 
         // Auto-scroll al final
         container.scrollTop(container[0].scrollHeight);
+        rumorsContainer.scrollTop(rumorsContainer[0].scrollHeight);
+    }
+
+    _createLogEntryHtml(entry) {
+        const typeClass = `log-${entry.type}`; // log-danger, log-warning, log-info, log-lore, log-rumor
+        let icon = 'fa-pen';
+
+        if (entry.meta && entry.meta.icon) {
+            icon = entry.meta.icon;
+        } else {
+            const iconMap = {
+                'danger': 'fa-skull',
+                'critical': 'fa-skull',
+                'warning': 'fa-triangle-exclamation',
+                'alert': 'fa-triangle-exclamation',
+                'info': 'fa-info-circle',
+                'system': 'fa-terminal',
+                'lore': 'fa-book-open',
+                'note': 'fa-sticky-note',
+                'rumor': 'fa-comment-dots'
+            };
+            icon = iconMap[entry.type] || 'fa-pen';
+        }
+
+        const isNew = entry.isNew ? 'log-entry-new' : '';
+        if (entry.isNew) delete entry.isNew;
+
+        return `
+            <div class="log-entry ${typeClass} ${isNew} animate__animated animate__fadeInUp animate__faster">
+                <div class="log-meta flex justify-between">
+                    <span><i class="fa-solid ${icon} mr-1"></i> CICLO ${entry.cycle} // HORA ${entry.dayTime}</span>
+                </div>
+                <div class="log-content">${entry.text}</div>
+            </div>
+        `;
+    }
+
+    initLogTabs() {
+        const { tabLogEvents, tabLogRumors, logContainer, rumorsContainer } = this.elements;
+
+        tabLogEvents.on('click', () => {
+            tabLogEvents.addClass('active').css('border-bottom-color', 'var(--color-chlorine)');
+            tabLogRumors.removeClass('active').css('border-bottom-color', 'transparent');
+            logContainer.removeClass('hidden');
+            rumorsContainer.addClass('hidden');
+            if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.2 });
+        });
+
+        tabLogRumors.on('click', () => {
+            tabLogRumors.addClass('active').css('border-bottom-color', 'var(--color-chlorine)');
+            tabLogEvents.removeClass('active').css('border-bottom-color', 'transparent');
+            rumorsContainer.removeClass('hidden');
+            logContainer.addClass('hidden');
+            if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.2 });
+        });
     }
 
     renderGeneratorRoom() {
@@ -2968,21 +3178,21 @@ export class UIManager {
         }
 
         btn.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5 status-level-save status-level-overload');
-        
+
         // Map abstract statuses to sidebar classes
         const map = {
             'status-critical': 'status-level-5',
-            'status-alert': 'status-level-3', 
-            'status-active': 'status-level-2', 
+            'status-alert': 'status-level-3',
+            'status-active': 'status-level-2',
             'status-level-save': 'status-level-save',
             'status-level-overload': 'status-level-overload'
         };
-        
+
         let finalClass = map[level];
-        
+
         if (!finalClass && level) {
-             // Fallback for direct numbers (1-5) or other strings
-             finalClass = `status-level-${level}`;
+            // Fallback for direct numbers (1-5) or other strings
+            finalClass = `status-level-${level}`;
         }
 
         if (finalClass) {
@@ -3150,7 +3360,19 @@ export class UIManager {
             morgue: { name: 'Perímetro', icon: 'fa-clipboard-list' },
             database: { name: 'Archivos', icon: 'fa-database' }
         };
-        return configs[roomId];
+
+        // If not in hardcoded configs, check the new room types (Phase 4.1 fallback)
+        if (configs[roomId]) return configs[roomId];
+
+        const type = roomId.toUpperCase();
+        if (ROOM_TYPES[type]) {
+            return {
+                name: ROOM_TYPES[type].name,
+                icon: ROOM_TYPES[type].icon
+            };
+        }
+
+        return null;
     }
 
     getRoomStatusClass(roomId) {
@@ -3161,7 +3383,298 @@ export class UIManager {
             return CONSTANTS.ROOM_STATUS_CONFIG[roomId].check(State);
         }
 
-        // Fallback or default
+        // Centralized status logic
         return 'status-active';
+    }
+
+    // --- BLUEPRINT SYSTEM (Phase 4.3) ---
+
+    /**
+     * Renders the tactical 2D grid based on the shelter model.
+     * @param {Shelter} shelter 
+     */
+    renderBlueprint(shelter) {
+        const gridContainer = $('#blueprint-grid');
+        if (!gridContainer.length || !shelter) return;
+
+        gridContainer.empty();
+
+        const rooms = shelter.getAllRooms();
+        if (rooms.length === 0) return;
+
+        // Use flexbox-like layout for variable-sized rooms
+        gridContainer.css({
+            'display': 'flex',
+            'flex-wrap': 'wrap',
+            'gap': '4px',
+            'justify-content': 'center',
+            'align-content': 'flex-start',
+            'padding': '10px'
+        });
+
+        // Render rooms sorted by coordinates for consistent layout
+        const sortedRooms = [...rooms].sort((a, b) => {
+            if (a.coords.y !== b.coords.y) return a.coords.y - b.coords.y;
+            return a.coords.x - b.coords.x;
+        });
+
+        sortedRooms.forEach(room => {
+            gridContainer.append(this._createBlueprintCellHtml(room));
+        });
+
+        // Attach tactical interaction
+        gridContainer.off('click', '.blueprint-cell').on('click', '.blueprint-cell', (e) => {
+            const cell = $(e.currentTarget);
+            const roomType = cell.data('room');
+
+            if (cell.hasClass('not-discovered')) {
+                if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.2 });
+                this.showFeedback("ERROR: SECTOR NO EXPLORADO", "red");
+                return;
+            }
+
+            if (roomType && this.game && this.game.events) {
+                if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.2 });
+                this.handleRoomNavigation(roomType);
+            }
+        });
+    }
+
+    _createBlueprintCellHtml(room) {
+        const isDiscovered = room.isDiscovered;
+        const statusClass = isDiscovered ? 'is-discovered' : 'not-discovered';
+
+        // Use ROOM_NAMES dictionary for unified naming
+        const typeKey = room.type.toLowerCase();
+        const roomConfig = CONSTANTS.ROOM_NAMES[typeKey] || {
+            displayName: room.name,
+            icon: room.icon || 'fa-question',
+            size: { w: 1, h: 1 }
+        };
+
+        // Get room size for grid span
+        const sizeW = roomConfig.size?.w || 1;
+        const sizeH = roomConfig.size?.h || 1;
+        const cellWidth = sizeW * 100; // Base 100px per unit
+        const cellHeight = sizeH * 80; // Base 80px per unit
+
+        // Map status logic
+        const statusMap = {
+            'game': 'generator',
+            'security': 'security',
+            'storage': 'supplies',
+            'fuel': 'fuel',
+            'lab': 'generator'
+        };
+        const statusLevel = this.getRoomStatusClass(statusMap[typeKey] || typeKey);
+        const isOff = (statusLevel === 'status-critical') ? 'is-off' : '';
+
+        return `
+            <div class="blueprint-cell ${statusClass} ${isOff}" 
+                 data-room="${roomConfig.id || typeKey}" 
+                 data-x="${room.coords.x}" 
+                 data-y="${room.coords.y}"
+                 style="width: ${cellWidth}px; height: ${cellHeight}px; grid-column: span ${sizeW}; grid-row: span ${sizeH};">
+                
+                <div class="cell-content relative z-10 flex flex-col items-center justify-center h-full">
+                    <i class="fa-solid ${roomConfig.icon} blueprint-icon mb-2"></i>
+                    <span class="blueprint-label">${roomConfig.displayName}</span>
+                </div>
+
+                <div class="blueprint-status-indicator ${statusLevel} absolute bottom-2 right-2 w-2 h-2 rounded-full"></div>
+            </div>
+        `;
+    }
+
+    handleRoomNavigation(roomType) {
+        const typeToNav = {
+            'storage': 'supplies',
+            'medical': 'shelter',
+            'game': 'game',
+            'security': 'game', // Security room is the main hub for now
+            'lab': 'database'  // Temporary mapping
+        };
+        const navKey = typeToNav[roomType] || roomType;
+
+        if (this.game.events && this.game.events.navigateToRoomByKey) {
+            this.game.events.navigateToRoomByKey(navKey);
+        }
+    }
+
+    renderSubjectAnalysis() {
+        const container = this.elements.dbAnalysisList;
+        const detail = this.elements.dbAnalysisDetail;
+        if (!container || !container.length) return;
+
+        container.empty();
+        detail.addClass('hidden').empty();
+
+        const residents = State.admittedNPCs || [];
+
+        if (residents.length === 0) {
+            container.append($('<div>', {
+                class: 'text-blue-900/50 italic text-center py-10 uppercase font-mono text-sm',
+                html: '<i class="fa-solid fa-users-slash block text-3xl mb-2 opacity-20"></i>No hay residentes registrados en el refugio.'
+            }));
+            return;
+        }
+
+        residents.forEach(npc => {
+            const card = $(`
+                <div class="npc-analysis-card p-4 border border-blue-900/20 bg-blue-950/5 hover:bg-cyan-500/5 hover:border-cyan-500/40 cursor-pointer transition-all flex justify-between items-center group mb-2" data-id="${npc.id}">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full border border-blue-900/30 flex items-center justify-center bg-black/40">
+                            <i class="fa-solid fa-user text-blue-800 group-hover:text-cyan-400 transition-colors"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-blue-400 group-hover:text-cyan-200">${npc.name}</div>
+                            <div class="text-[10px] text-blue-900 uppercase font-mono tracking-tighter">${npc.occupation}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-right">
+                            <div class="text-[9px] text-blue-900 uppercase font-mono mb-1">Estrés</div>
+                            <div class="h-1 w-16 bg-blue-900/20 rounded-full overflow-hidden">
+                                <div class="h-full bg-cyan-600/60" style="width: ${npc.stress || 0}%"></div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-blue-900 group-hover:text-cyan-500 transition-transform translate-x-0 group-hover:translate-x-1"></i>
+                    </div>
+                </div>
+            `);
+
+            card.on('click', () => {
+                this.renderNPCDetail(npc);
+            });
+
+            container.append(card);
+        });
+    }
+
+    renderNPCDetail(npc) {
+        const detail = this.elements.dbAnalysisDetail;
+        if (!npc || !detail || !detail.length) return;
+
+        detail.removeClass('hidden').empty();
+
+        // Estilos y lógica de informe
+        let profileMsg = "";
+        let profileIcon = "fa-brain";
+        let profileColor = "text-cyan-400";
+
+        if (npc.stress > 80) {
+            profileMsg = "PELIGRO: Sujeto bajo presión extrema. Se recomienda aislamiento inmediato o monitorización constante. Riesgo de deserción > 90%.";
+            profileIcon = "fa-triangle-exclamation";
+            profileColor = "text-alert";
+        } else if (npc.stress > 50) {
+            profileMsg = "ADVERTENCIA: Signos de ansiedad moderada. El sujeto muestra desconfianza hacia la autoridad. Riesgo de disturbios civil detectado.";
+            profileIcon = "fa-circle-exclamation";
+            profileColor = "text-orange-500";
+        } else {
+            profileMsg = "NORMALIDAD: El sujeto mantiene una estabilidad aceptable bajo los protocolos térmicos. Cooperación esperada.";
+            profileIcon = "fa-check-circle";
+            profileColor = "text-green-500";
+        }
+
+        let traitImpact = '';
+        if (npc.trait && npc.trait.id !== 'none') {
+            traitImpact = `
+                <div class="p-3 bg-cyan-400/5 border border-cyan-400/20 rounded">
+                    <span class="text-cyan-400 font-bold block text-[10px] uppercase mb-1 tracking-widest">${npc.trait.name}</span>
+                    <p class="text-[11px] text-gray-400 leading-tight font-mono">${npc.trait.description}</p>
+                </div>
+            `;
+        }
+
+        const html = `
+            <div class="space-y-6">
+                <header class="flex justify-between items-start border-b border-cyan-900/30 pb-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 border-2 border-cyan-500/30 rounded flex items-center justify-center bg-black/60 shadow-[0_0_20px_rgba(34,211,238,0.1)] relative">
+                            <i class="fa-solid fa-address-card text-3xl text-cyan-400"></i>
+                            <div class="absolute -top-2 -right-2 bg-cyan-500 text-[8px] px-1 font-bold text-black">A-01</div>
+                        </div>
+                        <div>
+                            <h4 class="text-2xl font-bold text-cyan-200 leading-tight tracking-tighter">${npc.name.toUpperCase()}</h4>
+                            <p class="text-xs text-cyan-900 font-mono">FILE_ID: ${npc.id.slice(-8).toUpperCase()}</p>
+                        </div>
+                    </div>
+                    <button id="btn-close-analysis" class="w-8 h-8 flex items-center justify-center bg-cyan-500/10 hover:bg-cyan-500/30 border border-cyan-500/30 rounded transition-colors text-cyan-400">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </header>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-end">
+                            <span class="text-[10px] text-cyan-900 uppercase font-mono">Índice de Estrés</span>
+                            <span class="text-xs text-cyan-400 font-mono font-bold">${npc.stress}%</span>
+                        </div>
+                        <div class="h-1.5 bg-blue-950 rounded-full border border-cyan-900/20 overflow-hidden">
+                            <div class="h-full bg-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.5)]" style="width: ${npc.stress}%"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-end">
+                            <span class="text-[10px] text-blue-900 uppercase font-mono">Lealtad</span>
+                            <span class="text-xs text-blue-400 font-mono font-bold">${npc.loyalty}%</span>
+                        </div>
+                        <div class="h-1.5 bg-blue-950 rounded-full border border-blue-900/20 overflow-hidden">
+                            <div class="h-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)]" style="width: ${npc.loyalty}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="p-4 border-l-4 border-cyan-500 bg-cyan-500/5 relative overflow-hidden">
+                         <div class="absolute top-0 right-0 p-2 opacity-5">
+                            <i class="fa-solid ${profileIcon} text-6xl"></i>
+                         </div>
+                         <h5 class="${profileColor} text-[10px] font-bold uppercase mb-2 flex items-center gap-2">
+                            <i class="fa-solid ${profileIcon}"></i> Informe de Comportamiento
+                         </h5>
+                         <p class="text-sm text-gray-300 italic leading-relaxed font-mono">"${profileMsg}"</p>
+                    </div>
+
+                    ${traitImpact}
+                </div>
+
+                <div class="pt-4 border-t border-cyan-900/20 flex justify-between items-center text-[10px] font-mono">
+                    <div class="text-blue-900"><i class="fa-solid fa-clock mr-1"></i>ÚLTIMO REGISTRO: CICLO ${State.cycle}</div>
+                    <div class="flex gap-2">
+                        <span class="px-2 py-0.5 bg-blue-950 text-blue-400 border border-blue-900/40 uppercase">${npc.occupation}</span>
+                        ${npc.isLore ? '<span class="px-2 py-0.5 bg-red-950 text-alert border border-alert/30 uppercase font-bold">ALPHA-LOG</span>' : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        detail.html(html);
+
+        $('#btn-close-analysis').on('click', () => {
+            detail.addClass('hidden');
+        });
+
+        if (this.audio) this.audio.playSFXByKey('ui_hover', { volume: 0.2 });
+    }
+
+    async triggerTransitionEffect() {
+        const overlay = $('#transition-overlay');
+        if (!overlay.length) return;
+
+        overlay.removeClass('pointer-events-none').addClass('opacity-100');
+
+        // Simular glitch rápido
+        for (let i = 0; i < 3; i++) {
+            const line = $('<div>', {
+                class: 'absolute w-full h-[1px] bg-cyan-400/40 z-[10000]',
+                css: { top: Math.random() * 100 + '%' }
+            });
+            overlay.append(line);
+            setTimeout(() => line.remove(), 60);
+        }
+
+        await new Promise(r => setTimeout(r, 100));
+        overlay.addClass('pointer-events-none').removeClass('opacity-100');
     }
 }

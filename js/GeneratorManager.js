@@ -54,7 +54,7 @@ export class GeneratorManager {
         let modeColor = State.colors.terminalGreen; // Default/Normal
         if (state.generator.mode === 'save') modeColor = State.colors.save;
         else if (state.generator.mode === 'overload') modeColor = State.colors.overload;
-        
+
         // If battery is critical (<20), override with Alert color for safety warning
         // if (batLevel < 20) modeColor = State.colors.alert; // REMOVED: Battery shouldn't override Mode color
 
@@ -62,7 +62,7 @@ export class GeneratorManager {
         $('#header-gen-status').text(state.generator.isOn ? 'ONLINE' : 'OFFLINE')
             .removeClass('text-alert text-terminal-green text-save text-overload') // Clear potential classes
             .css('color', state.generator.isOn ? modeColor : State.colors.alert);
-            
+
         // Battery Text Color Logic (Decoupled)
         let batTextColor = State.colors.terminalGreen;
         if (batLevel < 20) batTextColor = State.colors.alert;
@@ -98,18 +98,18 @@ export class GeneratorManager {
             'width': '100%',
             'transition': 'height 0.5s ease-out'
         });
-        
+
         // Remove old classes and add new ones
         batteryFill.removeClass('bg-terminal-green bg-amber-500 bg-yellow-500 bg-red-600 bg-alert bg-blue-500 low charging')
-                   .addClass(batteryColorClass);
-                   
+            .addClass(batteryColorClass);
+
         // Reset background-color inline style to allow class to work, or set it explicitly if needed
-        batteryFill.css('background-color', ''); 
+        batteryFill.css('background-color', '');
 
         batteryText.text(`${batLevel}%`)
-                   .removeClass('text-terminal-green text-amber-500 text-yellow-500 text-red-500 text-blue-500 text-alert animate-pulse')
-                   .addClass(batteryTextColorClass);
-        
+            .removeClass('text-terminal-green text-amber-500 text-yellow-500 text-red-500 text-blue-500 text-alert animate-pulse')
+            .addClass(batteryTextColorClass);
+
         // Container Glow
         batteryContainer.css({
             'border-color': batteryColorHex,
@@ -121,7 +121,7 @@ export class GeneratorManager {
         }
 
         if (batLevel < 20) {
-             batteryText.addClass('animate-pulse');
+            batteryText.addClass('animate-pulse');
         }
 
         // Color mapping based on load for the Label (requested sync)
@@ -403,6 +403,13 @@ export class GeneratorManager {
         $('#btn-gen-emergency-charge').off('click').on('click', () => {
             if (this.game && this.game.mechanics && this.game.mechanics.manualEmergencyCharge) {
                 this.game.mechanics.manualEmergencyCharge();
+            }
+        });
+
+        // Fase 1.1 Roadmap: Botón de Recarga con Combustible
+        $('#btn-gen-refuel').off('click').on('click', () => {
+            if (this.game && this.game.mechanics && this.game.mechanics.refuelGenerator) {
+                this.game.mechanics.refuelGenerator();
             }
         });
     }

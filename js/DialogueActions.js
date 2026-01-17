@@ -2,6 +2,8 @@
  * Centralized dialogue actions for the game.
  * These actions are triggered by dialogue options.
  */
+import { State } from './State.js';
+
 export const DialogueActions = {
     ignore: (game) => {
         const g = game || window.game;
@@ -37,6 +39,26 @@ export const DialogueActions = {
         const g = game || window.game;
         if (g && g.actions) g.actions.inspect('flashlight');
         else window.game?.inspect('flashlight');
+    },
+    giveSupplies: (game) => {
+        const g = game || window.game;
+        // Assuming updateSupplies exists in State
+        const amount = 2; // Fixed amount for now, could be dynamic
+        // We need to access State directly, assuming it's available globally or we import it.
+        // Actually DialogueActions usually don't import State directly to avoid cycles?
+        // Let's rely on Game to expose a method or access State via global if needed.
+        if (typeof State !== 'undefined' && State.updateSupplies) {
+            State.updateSupplies(amount);
+            State.addLogEntry('success', `Obtenido: ${amount} suministros`, { icon: 'fa-box-open' });
+        }
+    },
+    giveFuel: (game) => {
+        // Similar for fuel
+        const amount = 1;
+        if (typeof State !== 'undefined' && State.updateFuel) {
+            State.updateFuel(amount);
+            State.addLogEntry('success', `Obtenido: ${amount} combustible`, { icon: 'fa-gas-pump' });
+        }
     }
 };
 

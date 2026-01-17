@@ -282,6 +282,24 @@ export class GameActionHandler {
                 // Bloquear el botón específico y actualizar estado de energías
                 this.ui.updateInspectionTools(npc);
 
+                // Phase 3.2: Lore Clue Reveal
+                if (npc.isLore && !npc.loreClueRevealed && npc.scanCount >= CONSTANTS.LORE_CLUE_THRESHOLD) {
+                    npc.loreClueRevealed = true;
+                    // Provide visual and log feedback
+                    const msg = `CRÍTICO: Patrón secundario detectado. ${npc.name} revela información vital.`;
+                    State.addLogEntry('info', msg, { icon: 'fa-microchip' });
+
+                    setTimeout(() => {
+                        this.ui.showFeedback("¡INFORMACIÓN REVELADA!", "cyan", 3000);
+                        if (this.ui.showLoreClue) {
+                            this.ui.showLoreClue(npc);
+                        } else {
+                            this.ui.showMessage(`PISTA DE LORE: ${npc.clue}\n\n${npc.mechanicHint}`, null, 'info');
+                        }
+                        this.audio.playSFXByKey('lore_collect_item', { volume: 0.8 });
+                    }, 500);
+                }
+
                 setTimeout(() => {
                     this.game.isAnimating = false;
                     this.ui.hideFeedback();

@@ -3,16 +3,37 @@ let UIManager, parseDialogueMarkup, State;
 beforeAll(async () => {
     // Minimal '$' stub to emulate jQuery-like API used by UIManager.updateDialogueBox
     global.$ = function (sel) {
+        if (typeof sel === 'object' && sel !== null) {
+            // If it already has jQuery-like methods (fake element), return it
+            if (typeof sel.on === 'function') return sel;
+            // Otherwise wrap it (e.g. document, window)
+            return {
+                on: jest.fn().mockReturnThis(),
+                off: jest.fn().mockReturnThis(),
+                ready: jest.fn(cb => cb()),
+                trigger: jest.fn(),
+                0: sel,
+                length: 1
+            };
+        }
         // Simple mock for jQuery attributes
-        if (arguments.length > 1 && typeof arguments[1] === 'object' && sel.startsWith('<')) {
+        if (arguments.length > 1 && typeof arguments[1] === 'object' && typeof sel === 'string' && sel.trim().startsWith('<')) {
             const attrs = arguments[1];
             const obj = {
                 _html: attrs.html || '',
                 _click: null,
                 html(h) { if (h === undefined) return this._html; this._html = h; return this; },
                 on(evt, h) { if (evt === 'click') this._click = h; return this; },
+                off() { return this; },
                 addClass() { return this; },
                 removeClass() { return this; },
+                addClass() { return this; },
+                removeClass() { return this; },
+                data(k) {
+                    if (k === 'index' && attrs['data-index'] !== undefined) return attrs['data-index'];
+                    return 0;
+                },
+                attr(k) { return attrs[k] || ''; },
                 is() { return true; } // Added mock
             };
             return obj;
@@ -56,7 +77,14 @@ beforeAll(async () => {
                     },
                     empty() { this._html = ''; this._children = []; this._inner = ''; return this; },
                     append(node) { this._children.push(node); return this; },
-                    on() { return this; },
+                    append(node) { this._children.push(node); return this; },
+                    on(evt, arg2, arg3) {
+                        // Support delegation: on('click', selector, handler) or on('click', handler)
+                        const handler = typeof arg2 === 'function' ? arg2 : arg3;
+                        if (evt === 'click' && typeof handler === 'function') this._click = handler;
+                        return this;
+                    },
+                    off() { return this; },
                     parent() { return this; },
                     addClass() { return this; },
                     removeClass() { return this; },
@@ -64,7 +92,10 @@ beforeAll(async () => {
                     css() { return this; },
                     prop() { return this; },
                     eq() { return this; },
+                    eq() { return this; },
                     text(t) { if (t === undefined) return this._text; this._text = t; return this; },
+                    data() { return 0; },
+                    attr() { return ''; },
                     length: 1
                 };
             }
@@ -75,13 +106,15 @@ beforeAll(async () => {
             return createFakeElement(sel);
         }
 
-        if (typeof sel === 'string' && sel.startsWith('<')) {
+        if (typeof sel === 'string' && sel.trim().startsWith('<')) {
             return {
                 on(e, h) { if (e === 'click') this._click = h; return this; },
                 html(h) { this._html = h; return this; },
                 _html: '',
                 addClass() { return this; },
-                removeClass() { return this; }
+                removeClass() { return this; },
+                data() { return 0; }, // Default return index 0
+                attr() { return ''; }
             };
         }
 
@@ -99,6 +132,9 @@ beforeAll(async () => {
             prop: () => fallback,
             eq: () => fallback,
             text: () => '',
+            off: () => fallback,
+            data: () => 0,
+            attr: () => '',
             length: 0
         };
         return fallback;
@@ -135,7 +171,8 @@ beforeEach(() => {
         time: $('#stat-time'),
         dialogue: $('#npc-dialogue'),
         genWarningGame: $('#gen-warning-game'),
-        genWarningShelter: $('#gen-warning-shelter')
+        genWarningShelter: $('#gen-warning-shelter'),
+        crtMonitor: $('#crt-monitor')
     };
     global.__uiInstance = ui;
 
@@ -180,6 +217,7 @@ test('UIManager renders dialogue markup and plays node audio (no real DOM)', asy
             getNextDialogue: jest.fn().mockReturnValue({ end: true, audio: 'result_audio', message: 'Fin' })
         }
     };
+    State.currentNPC = npc; // Required for handleDialogueOptionClick to work
 
     await ui.updateDialogueBox(npc);
 
@@ -204,8 +242,14 @@ test('UIManager renders dialogue markup and plays node audio (no real DOM)', asy
         expect(opts.length).toBeGreaterThan(0);
         // Simulate click on first appended button
         const btn = opts[0];
-        // Option audio should play when click handler is invoked
-        if (btn && typeof btn._click === 'function') btn._click();
+        // Simulate click via delegation on parent
+        const parent = $('#dialogue-options');
+        if (typeof parent._click === 'function') {
+            // Mock event with currentTarget pointing to button
+            const $btn = global.$(btn);
+            parent._click({ currentTarget: btn });
+        }
+        // if (btn && typeof btn._click === 'function') btn._click();
         expect(audioStub.playSFXByKey).toHaveBeenCalledWith('opt_audio', expect.any(Object));
         expect(audioStub.playSFXByKey).toHaveBeenCalledWith('result_audio', expect.any(Object));
 
@@ -234,6 +278,7 @@ test('Actions show instantly, speeches type, rumors fade; name vs epithet displa
             getNextDialogue: jest.fn()
         }
     };
+    State.currentNPC = npc;
 
     ui.updateDialogueBox(npc);
 

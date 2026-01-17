@@ -12,19 +12,20 @@ describe('Dialogue Uniqueness and Repetition', () => {
     });
 
     test('Should prioritize unused pools until all matching candidates are exhausted', () => {
+        State.cycle = 100; // Unlock all lore
         // We'll use a personality that has multiple pools
         const personality = 'nervous';
-        let candidates = Object.values(DialogueData.pools).filter(p => 
+        let candidates = Object.values(DialogueData.pools).filter(p =>
             (p.tags || []).includes(personality)
         );
-        
+
         // My new logic: if personality matches exist, only those are candidates
         if (candidates.length === 0) {
-            candidates = Object.values(DialogueData.pools).filter(p => 
+            candidates = Object.values(DialogueData.pools).filter(p =>
                 (p.tags || []).includes('generic')
             );
         }
-        
+
         const totalCandidates = candidates.length;
         expect(totalCandidates).toBeGreaterThan(1);
 
@@ -33,11 +34,11 @@ describe('Dialogue Uniqueness and Repetition', () => {
         // Pick as many as there are candidates
         for (let i = 0; i < totalCandidates; i++) {
             const pick = selectDialogueSet({ personality });
-            
+
             // Simulating Conversation constructor logic which marks it as used
             State.dialoguesCount++;
             State.markDialogueUsed(pick.id);
-            
+
             expect(pickedIds.has(pick.id)).toBe(false);
             pickedIds.add(pick.id);
         }
@@ -56,7 +57,7 @@ describe('Dialogue Uniqueness and Repetition', () => {
             p5: { id: 'p5', tags: ['test'], root: 'r', nodes: { r: { id: 'r', text: 'T5', options: [] } } },
             p6: { id: 'p6', tags: ['test'], root: 'r', nodes: { r: { id: 'r', text: 'T6', options: [] } } }
         };
-        
+
         DialogueData.pools = mockPools;
         const personality = 'test';
         const freshWindow = 5;
@@ -69,7 +70,7 @@ describe('Dialogue Uniqueness and Repetition', () => {
             State.dialoguesCount++;
             State.markDialogueUsed(pick.id);
         }
-        
+
         // All 6 should be unique
         expect(new Set(sequence).size).toBe(6);
 
@@ -79,7 +80,7 @@ describe('Dialogue Uniqueness and Repetition', () => {
         // Wait, wasDialogueUsedRecently logic: (State.dialoguesCount - last) < window
         // If count=6, and p1 was used at count 1: 6 - 1 = 5. 5 < 5 is false. So p1 is available.
         // If count=6, and p2 was used at count 2: 6 - 2 = 4. 4 < 5 is true. So p2 is fresh (avoid).
-        
+
         const nextPick = selectDialogueSet({ personality, freshWindow });
         // Only p1 should be available if window is 5 and we have 6 pools
         expect(nextPick.id).toBe(sequence[0]);
@@ -87,7 +88,7 @@ describe('Dialogue Uniqueness and Repetition', () => {
         // 3. Advance one more
         State.dialoguesCount++;
         State.markDialogueUsed(nextPick.id); // nextPick is sequence[0] (p1), used at count 7
-        
+
         // Now count is 7.
         // p2 was used at 2: 7 - 2 = 5. 5 < 5 is false. p2 is available.
         // p3 was used at 3: 7 - 3 = 4. 4 < 5 is true. p3 is fresh.
@@ -98,6 +99,7 @@ describe('Dialogue Uniqueness and Repetition', () => {
     });
 
     test('Lore subjects should also prioritize unused ones', () => {
+        State.cycle = 100; // Unlock all lore
         const totalLore = DialogueData.loreSubjects.length;
         const pickedLoreIds = new Set();
 
@@ -105,7 +107,7 @@ describe('Dialogue Uniqueness and Repetition', () => {
             const pick = selectDialogueSet({ isLore: true });
             State.dialoguesCount++;
             State.markDialogueUsed(pick.id);
-            
+
             expect(pickedLoreIds.has(pick.id)).toBe(false);
             pickedLoreIds.add(pick.id);
         }

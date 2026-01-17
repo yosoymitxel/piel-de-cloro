@@ -5,7 +5,7 @@ export class AssignmentManager {
     constructor(game) {
         this.game = game;
         this.ui = game.ui;
-        
+
         // Ensure state integrity on init
         if (!State.assignments) {
             State.reset(); // Or initialize just assignments
@@ -53,12 +53,18 @@ export class AssignmentManager {
         sector.occupants.push(npcId);
         npc.assignedSector = sectorId;
 
+        // Sync with New Room Model (Phase 4.1 bridge)
+        if (State.currentShelter) {
+            const room = State.currentShelter.getRoomByType(sectorId);
+            if (room) room.addOccupant(npcId);
+        }
+
         // Sync legacy properties for backward compatibility (temporarily)
         if (sectorId === 'generator') State.generator.assignedGuardId = npcId;
-        
+
         // Log & UI
         this.addLog(sectorId, npc, this.getRandomLog('start', sectorId, npc));
-        
+
         if (this.ui) {
             this.ui.showFeedback(`${npc.name} ASIGNADO A ${sectorId.toUpperCase()}`, "green", 3000);
             this.updateUI(sectorId);
@@ -79,11 +85,17 @@ export class AssignmentManager {
         const idx = sector.occupants.indexOf(npcId);
         if (idx > -1) {
             sector.occupants.splice(idx, 1);
-            
+
             const npc = State.admittedNPCs.find(n => n.id === npcId);
             if (npc) {
                 npc.assignedSector = null;
                 this.addLog(sectorId, npc, this.getRandomLog('end', sectorId, npc));
+            }
+
+            // Sync with New Room Model (Phase 4.1 bridge)
+            if (State.currentShelter) {
+                const room = State.currentShelter.getRoomByType(sectorId);
+                if (room) room.removeOccupant(npcId);
             }
 
             // Sync legacy
@@ -165,7 +177,7 @@ export class AssignmentManager {
 
     addLog(sector, npc, message) {
         State.addSectorLog(sector, message, npc.name);
-        
+
         // Trigger specific UI log update if method exists
         if (this.ui && this.ui.renderRoomLog) {
             this.ui.renderRoomLog(sector, $(`#${sector}-room-log`));
@@ -187,10 +199,10 @@ export class AssignmentManager {
 
     updateUI(sectorId) {
         if (!this.game || !this.game.events) return;
-        
+
         // Refresh specific panels based on active screen or generic listeners
         // We can check if specific UIManager methods exist for updating sectors
-        
+
         if (this.ui.renderSectorPanel) {
             // Try to find the container for this sector
             const map = {
@@ -204,7 +216,7 @@ export class AssignmentManager {
                 this.ui.renderSectorPanel(selector, sectorId, State);
             }
         }
-        
+
         // Also refresh Shelter grid if visible, as availability changes
         if ($('#screen-shelter').is(':visible')) {
             this.game.events.navigateToShelter();

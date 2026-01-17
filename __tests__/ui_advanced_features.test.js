@@ -26,6 +26,7 @@ describe('Advanced UI & Navigation Features', () => {
                     toggleClass: jest.fn(function () { return this; }),
                     css: jest.fn(function () { return this; }),
                     on: jest.fn(function () { return this; }),
+                    off: jest.fn(function () { return this; }),
                     find: jest.fn(function () { return this; }),
                     parent: jest.fn(function () { return this; }),
                     attr: jest.fn(function () { return ''; }),
@@ -37,9 +38,9 @@ describe('Advanced UI & Navigation Features', () => {
                     fadeIn: jest.fn(function (d, cb) { if (cb) cb(); return this; }),
                     prop: jest.fn(function () { return this; }),
                     eq: jest.fn(function () { return this; }),
-                    is: jest.fn(function (sel) { 
+                    is: jest.fn(function (sel) {
                         if (sel === ':visible' && this._selector === '#screen-start') return false;
-                        return true; 
+                        return true;
                     })
                 };
             }

@@ -4,6 +4,9 @@ export const lore_hive = {
     id: 'lore_hive',
     unique: true,
     tags: ['creepy', 'lore'],
+    clue: "La infección se propaga por vibraciones. El silencio en el generador reduce la tasa de mutación.",
+    mechanicHint: "TIP: Mantener el generador en 'Save Mode' reduce la progresión de la anomalía.",
+    appearanceDay: 3, // Fase 1.2 Roadmap: NPCs lore aparecen después de día 3
     root: 'lh_n1',
     nodes: {
         'lh_n1': {

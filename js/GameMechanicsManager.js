@@ -45,10 +45,16 @@ export class GameMechanicsManager {
             let summary = "";
             const sys = state.generator.systems;
             if (sys && sys.lifeSupport && !sys.lifeSupport.active) {
+                const bonuses = this.calculateJobBonuses(); // Get bonuses
+                const deathReduction = bonuses.deathChanceMap; // Default 1.0, lower is better (0.7 means 30% reduction)
+
                 const admitted = state.admittedNPCs;
                 for (let i = admitted.length - 1; i >= 0; i--) {
                     const npc = admitted[i];
-                    if (npc.trait && npc.trait.id === 'sickly' && Math.random() < 0.5) {
+                    // Base chance 0.5 * reduction factor
+                    const deathProbability = 0.5 * deathReduction;
+
+                    if (npc.trait && npc.trait.id === 'sickly' && Math.random() < deathProbability) {
                         admitted.splice(i, 1);
                         npc.death = { reason: 'fallo_soporte_vital', cycle: state.cycle, revealed: false };
                         state.purgedNPCs.push(npc);
@@ -60,10 +66,14 @@ export class GameMechanicsManager {
             return summary;
         });
 
-        // 3. Hook de Inestabilidad por Paranoia
+        // 3. Hook de Inestabilidad por Paranoia (y Robos)
         this.registerNightHook((state) => {
             let summary = "";
-            if (state.paranoia > 70 && Math.random() < 0.4) {
+            const bonuses = this.calculateJobBonuses();
+            // Security bonus reduces probability of failure/intrusion
+            const securityFactor = bonuses.securityMap; // Default 1.0
+
+            if (state.paranoia > 70 && Math.random() < (0.4 * securityFactor)) {
                 const items = state.securityItems;
                 const target = items[Math.floor(Math.random() * items.length)];
                 if (target) {
@@ -80,20 +90,22 @@ export class GameMechanicsManager {
         this.registerNightHook((state) => {
             let summary = "";
             const anomalies = state.admittedNPCs.filter(n => n.trait && n.trait.id === 'catastrophic_anomaly');
-            
+
             if (anomalies.length > 0) {
                 // Efecto masivo
+                // Cook bonus helps mitigate supply drain? Maybe just efficiency elsewhere.
+                // Keeping anomalies hard for now.
                 const sanityDrain = anomalies.length * 15;
                 const fuelDrain = anomalies.length * 5;
                 const suppliesDrain = anomalies.length * 5;
-                
+
                 state.updateSanity(-sanityDrain);
                 state.fuel = Math.max(0, state.fuel - fuelDrain);
                 state.supplies = Math.max(0, state.supplies - suppliesDrain);
-                
+
                 summary += `ALERTA DE CONTENCIÓN: ${anomalies.length} anomalía(s) activa(s). Drenaje crítico de recursos y cordura (-${sanityDrain}%). `;
                 state.addLogEntry('danger', `ANOMALÍA EN REFUGIO: Presencia hostil detectada. Drenaje masivo.`, { icon: 'fa-skull' });
-                
+
                 // Riesgo de brecha de seguridad automática
                 if (Math.random() < 0.5) {
                     state.securityLevel = Math.max(0, state.securityLevel - 20);
@@ -142,7 +154,7 @@ export class GameMechanicsManager {
         let total = State.generator.baseConsumption || 0;
 
         // Mode Consumption Modifier (Make modes consume battery faster)
-        const modeConsumption = { 'save': 0, 'normal': 10, 'overload': 30 };
+        const modeConsumption = { 'save': 0, 'normal': 5, 'overload': 15 };
         total += modeConsumption[State.generator.mode] || 0;
 
         // Efecto del Guardia: Reduce consumo base si está asignado y saludable
@@ -150,10 +162,21 @@ export class GameMechanicsManager {
             total -= 5; // Optimización de mantenimiento
         }
 
-        // Sumar consumo de sub-sistemas activos
+        // Sumar consumo de sub-sistemas activos (Globales)
         if (State.generator.systems) {
             Object.values(State.generator.systems).forEach(system => {
                 if (system.active) total += (system.load || 0);
+            });
+        }
+
+        // Sumar consumo de habitaciones individuales (Phase 4.4)
+        if (State.currentShelter) {
+            State.currentShelter.getAllRooms().forEach(room => {
+                // Evitamos duplicar con sistemas globales si coinciden en nombre
+                const globalSystemKeys = ['security', 'lighting', 'lifesupport', 'shelterlab'];
+                if (globalSystemKeys.includes(room.type.toLowerCase())) return;
+
+                if (room.powerActive) total += (room.load || 0);
             });
         }
 
@@ -169,9 +192,43 @@ export class GameMechanicsManager {
         return State.generator.load;
     }
 
+    calculateJobBonuses() {
+        const bonuses = {
+            consumptionMap: 1.0, // Multiplier (1.0 = normal, 0.85 = 15% off)
+            deathChanceMap: 1.0,
+            rationMap: 1.0,
+            securityMap: 1.0
+        };
+
+        State.admittedNPCs.forEach(npc => {
+            if (npc.assignedSector && CONSTANTS.JOB_EFFECTS[npc.occupation]) {
+                const effectData = CONSTANTS.JOB_EFFECTS[npc.occupation];
+                // Check if assigned to the correct place for their job
+                if (npc.assignedSector === effectData.assignment) {
+                    if (effectData.effect === 'consumption_reduction') {
+                        bonuses.consumptionMap -= effectData.value;
+                    } else if (effectData.effect === 'death_reduction') {
+                        bonuses.deathChanceMap -= effectData.value;
+                    } else if (effectData.effect === 'ration_bonus') {
+                        bonuses.rationMap += effectData.value;
+                    } else if (effectData.effect === 'theft_reduction') {
+                        bonuses.securityMap -= effectData.value; // Lower is better for theft chance
+                    }
+                }
+            }
+        });
+
+        // Clamp values to sane limits
+        bonuses.consumptionMap = Math.max(0.5, bonuses.consumptionMap); // Max 50% reduction
+        bonuses.deathChanceMap = Math.max(0.1, bonuses.deathChanceMap);
+        bonuses.securityMap = Math.max(0.1, bonuses.securityMap);
+
+        return bonuses;
+    }
+
     updateGenerator() {
         if (State.paused) return;
-        
+
         // Ensure strictly within bounds
         State.generator.power = Math.min(100, Math.max(0, State.generator.power));
 
@@ -186,14 +243,33 @@ export class GameMechanicsManager {
         // --- Lógica de Batería (Reserva) ---
         // Se descarga gradualmente según la carga total
         // La descarga es: (carga / 100) puntos de batería por turno
-        const batteryDrain = totalLoad / 20;
+        // Se descarga gradualmente según la carga total
+        // La descarga es: (carga / 100) puntos de batería por turno
+        // APPLY JOB BONUS
+        const bonuses = this.calculateJobBonuses();
+        const baseDrain = totalLoad / 20;
+        const batteryDrain = baseDrain * bonuses.consumptionMap;
+
+
+
         State.generator.power = Math.max(0, State.generator.power - batteryDrain);
 
         if (State.generator.power <= 0) {
-            this.audio.playSFXByKey('generator_stop', { volume: 0.6 });
+            // this.audio.playSFXByKey('generator_stop', { volume: 0.6 });
+            this.audio.playEvent('power_down');
             this.triggerGeneratorFailure();
             this.ui.showFeedback("¡BATERÍA AGOTADA!", "red", 5000);
             return;
+        }
+
+        // Fase 1.1 Roadmap: Forzar modo SAVE si batería < 15% y estamos en overload
+        if (State.generator.power < 15 && State.generator.mode === 'overload') {
+            State.generator.mode = 'save';
+            State.generator.maxModeCapacityReached = 1;
+            State.addLogEntry('system', 'ALERTA: Batería crítica. Protocolo forzado a AHORRO.');
+            this.ui.showFeedback("¡BATERÍA CRÍTICA! MODO AHORRO FORZADO", "red", 4000);
+            this.audio.playSFXByKey('glitch_low', { volume: 0.5 });
+            this.ui.updateGeneratorNavStatus();
         }
 
         // Lógica de Estabilidad
@@ -255,6 +331,15 @@ export class GameMechanicsManager {
                 if (Math.random() < 0.1) this.ui.showFeedback("AIRE VICIADO: CORDURA DISMINUYENDO", "red", 3000);
             }
         }
+
+        // Update generator audio (pitch/stutter)
+        if (this.game.audio && this.game.audio.updateGeneratorAudio) {
+            this.game.audio.updateGeneratorAudio(
+                State.generator.mode,
+                State.generator.power,
+                State.generator.isOn
+            );
+        }
     }
 
     triggerGeneratorFailure() {
@@ -290,6 +375,19 @@ export class GameMechanicsManager {
         // Validación de Protocolo (No se puede aumentar carga si ya se empezó a actuar)
         if (actionTaken && newCap > currentMax) {
             this.ui.showFeedback("PROTOCOLO BLOQUEADO: ACCIÓN EN CURSO", "red", 3000);
+            return false;
+        }
+
+        // Fase 1.1 Roadmap: Bloquear Overload si batería < 15%
+        if (newMode === 'overload' && State.generator.power < 15) {
+            this.ui.showFeedback("BATERÍA INSUFICIENTE PARA SOBRECARGA (< 15%)", "red", 4000);
+            this.audio.playSFXByKey('ui_error', { volume: 0.5 });
+            // Forzar cambio a modo save si estaba intentando overload
+            if (State.generator.mode !== 'save') {
+                State.generator.mode = 'save';
+                State.addLogEntry('system', 'Protocolo forzado a AHORRO por batería crítica.');
+                this.ui.showFeedback("MODO AHORRO ACTIVADO AUTOMÁTICAMENTE", "yellow", 3000);
+            }
             return false;
         }
 
@@ -373,15 +471,15 @@ export class GameMechanicsManager {
             if (this.game && this.game.assignments) {
                 this.game.assignments.unassign('generator');
             } else {
-                 State.generator.assignedGuardId = null;
-                 this.ui.showFeedback("GENERADOR SIN GUARDIA", "yellow");
+                State.generator.assignedGuardId = null;
+                this.ui.showFeedback("GENERADOR SIN GUARDIA", "yellow");
             }
             return;
         }
 
         if (this.game && this.game.assignments) {
             // Fix: pass ID string, not object
-            this.game.assignments.assign(npcId, 'generator'); 
+            this.game.assignments.assign(npcId, 'generator');
         } else {
             // Fallback
             const npc = State.admittedNPCs.find(n => n.id === npcId);
@@ -447,6 +545,64 @@ export class GameMechanicsManager {
         this.ui.updateEnergyHUD();
         this.game.updateHUD();
         if (State.currentScreen === 'generator') this.ui.renderGeneratorRoom();
+    }
+
+    /**
+     * Recargar batería del generador usando bidones de combustible
+     * Fase 1.1 Roadmap: Unificación Energética
+     * @returns {boolean} true si la recarga fue exitosa
+     */
+    refuelGenerator() {
+        // Validar: No recargar en modo Overload (riesgo de explosión)
+        if (State.generator.mode === 'overload') {
+            this.ui.showFeedback("¡PELIGRO! NO RECARGAR EN MODO SOBRECARGA", "red", 4000);
+            this.audio.playSFXByKey('ui_error', { volume: 0.6 });
+            return false;
+        }
+
+        // Validar: Necesita combustible disponible
+        if (State.fuel <= 0) {
+            this.ui.showFeedback("SIN COMBUSTIBLE DISPONIBLE", "red", 3000);
+            this.audio.playSFXByKey('ui_error', { volume: 0.5 });
+            return false;
+        }
+
+        // Validar: Batería ya al máximo
+        if (State.generator.power >= 100) {
+            this.ui.showFeedback("BATERÍA AL MÁXIMO", "yellow", 3000);
+            return false;
+        }
+
+        // Consumir 1 bidón de fuel
+        State.fuel = Math.max(0, State.fuel - 1);
+
+        // Añadir +30% de batería (configurable)
+        const rechargeAmount = 30;
+        State.generator.power = Math.min(100, State.generator.power + rechargeAmount);
+
+        // Feedback visual y sonoro
+        this.audio.playSFXByKey('ui_button_click', { volume: 0.8 });
+        this.ui.showFeedback(`RECARGA COMPLETADA (+${rechargeAmount}% BATERÍA)`, "green", 4000);
+
+        // Log del evento
+        State.addLogEntry('system', `Recarga de generador: -1 bidón, +${rechargeAmount}% batería.`, { icon: 'fa-gas-pump' });
+
+        // Update generator audio (pitch/stutter)
+        if (this.game.audio && this.game.audio.updateGeneratorAudio) {
+            this.game.audio.updateGeneratorAudio(
+                State.generator.mode,
+                State.generator.power,
+                State.generator.isOn
+            );
+        }
+
+        // Actualizar UI
+        this.ui.updateEnergyHUD();
+        this.game.updateHUD();
+        if (State.currentScreen === 'generator') this.ui.renderGeneratorRoom();
+        if (State.currentScreen === 'fuel') this.ui.renderFuelRoom(State);
+
+        return true;
     }
 
     checkSecurityDegradation() {
@@ -681,25 +837,22 @@ export class GameMechanicsManager {
         });
 
         // Aplicar suministros
-        State.updateSupplies(scavenged - totalConsumption);
+        // Phase 3.1: Cook Bonus (Efficiency)
+        const bonuses = this.calculateJobBonuses();
+        const finalConsumption = Math.ceil(totalConsumption / bonuses.rationMap);
+
+        State.updateSupplies(scavenged - finalConsumption);
+
+        if (bonuses.rationMap > 1.0) {
+            State.addLogEntry('info', `EFICIENCIA: El Cocinero optimizó las raciones (-${totalConsumption - finalConsumption} suministros).`, { icon: 'fa-utensils' });
+        }
 
         if (scavenged > 0) {
             summary += `Los recolectores encontraron ${scavenged} suministros. `;
         }
 
-        if (State.supplies <= 0) {
-            State.updateSanity(-15);
-            summary += "La falta de suministros está causando desesperación. ";
-            // Probabilidad de muerte por inanición si no hay suministros
-            if (Math.random() < 0.1) {
-                const victimIndex = Math.floor(Math.random() * admitted.length);
-                const victim = admitted[victimIndex];
-                admitted.splice(victimIndex, 1);
-                victim.death = { reason: 'inanición', cycle: State.cycle, revealed: false };
-                State.purgedNPCs.push(victim);
-                summary += `${victim.name} ha muerto por falta de recursos. `;
-            }
-        }
+        // processNightEvents maneja tanto el hambre como el estrés/lealtad normal (Phase 5.1)
+        summary += this.processNightEvents(admitted);
 
         // Aplicar modificadores de rasgos
         if (sanityMod !== 0) {
@@ -742,8 +895,116 @@ export class GameMechanicsManager {
         return summary;
     }
 
+    processNightEvents(admitted = State.admittedNPCs) {
+        let starvation = State.supplies <= 0;
+        let summary = "";
+
+        if (starvation) {
+            State.updateSanity(-10);
+            State.updateParanoia(5);
+            summary += "La falta de suministros está causando desesperación. ";
+            State.addLogEntry('warning', `CRÍTICO: El refugio se ha quedado sin raciones.`, { icon: 'fa-frown' });
+        }
+
+        const departed = [];
+        const rioters = [];
+        const admittedCopy = [...admitted];
+
+        admittedCopy.forEach(npc => {
+            // 1. Psychological Delta (Phase 5.1)
+            let stressDelta = 1 + Math.floor(Math.random() * 4); // Base stress 1-5
+            let loyaltyDelta = 0;
+
+            if (starvation) {
+                stressDelta += 20;
+                loyaltyDelta -= 10;
+            } else {
+                loyaltyDelta += 2; // La estabilidad ayuda a la lealtad
+            }
+
+            // Power/Room Check (Phase 4.1 Integration)
+            if (State.currentShelter && npc.assignedSector) {
+                const room = State.currentShelter.getRoomByType(npc.assignedSector);
+                if (room && !room.powerActive) {
+                    stressDelta += 5;
+                    loyaltyDelta -= 2;
+                }
+                if (room && room.integrity < 50) {
+                    stressDelta += 3;
+                }
+            }
+
+            // Traits modifiers
+            if (npc.trait) {
+                if (npc.trait.id === 'optimist') { stressDelta -= 8; loyaltyDelta += 5; }
+                if (npc.trait.id === 'paranoid') { stressDelta += 6; loyaltyDelta -= 5; }
+                if (npc.trait.id === 'sickly' && starvation) { stressDelta += 15; }
+            }
+
+            npc.updatePsych(stressDelta, loyaltyDelta);
+
+            // 2. Decision Logic (Behavioral AI)
+            const roll = Math.random() * 100;
+
+            // Deserción (Stress alto)
+            if (npc.stress > 75 && roll < (npc.stress - 50)) {
+                departed.push(npc);
+            }
+            // Amotinamiento/Sabotaje (Lealtad baja)
+            else if (npc.loyalty < 30 && roll < (40 - npc.loyalty)) {
+                rioters.push(npc);
+            }
+        });
+
+        // Resolver deserciones
+        departed.forEach(npc => {
+            const idx = admitted.indexOf(npc);
+            if (idx > -1) {
+                admitted.splice(idx, 1);
+                npc.exitDate = State.cycle;
+                State.departedNPCs.push(npc);
+                summary += `${npc.name} ha abandonado el refugio por miedo. `;
+                State.addLogEntry('warning', `DESERCIÓN: ${npc.name} ha huido de la instalación.`, { icon: 'fa-person-running' });
+            }
+        });
+
+        // Resolver amotinamientos
+        if (rioters.length > 0) {
+            const damage = rioters.length * 5;
+            State.updateParanoia(rioters.length * 3);
+            if (State.generator && State.generator.stability > 0) {
+                State.generator.stability = Math.max(0, State.generator.stability - damage);
+                summary += `Disturbios detectados: El generador sufrió daños estructurales. `;
+            } else {
+                summary += "Conflictos internos reportados en los dormitorios. ";
+            }
+            State.addLogEntry('danger', `AMOTINAMIENTO: Conflictos violentos en curso (${rioters.length} sujetos).`, { icon: 'fa-burst' });
+        }
+
+        // Caso Extremo: Canibalismo (Mantener el elemento de horror)
+        if (starvation && admitted.length >= 3 && Math.random() < 0.12) {
+            const victimIndex = Math.floor(Math.random() * admitted.length);
+            const victim = admitted[victimIndex];
+            admitted.splice(victimIndex, 1);
+
+            victim.death = { reason: 'canibalismo', cycle: State.cycle, revealed: true };
+            State.purgedNPCs.push(victim);
+            State.updateSupplies(5);
+            State.updateSanity(-25);
+            summary += `INCIDENTE CRÍTICO: La desesperación absoluta ha resultado en canibalismo. ${victim.name} ha sido sacrificado. `;
+            State.addLogEntry('critical', `TRAGEDIA: Canibalismo detectado en el Sector B.`, { icon: 'fa-skull' });
+            if (this.ui.applyVHS) this.ui.applyVHS(1.0, 5000);
+        }
+
+        return summary;
+    }
+
     startNextDay() {
         State.startNextDay();
+
+        // Fase 1.2 Roadmap: Randomizar cantidad de sujetos diarios (3-6)
+        State.config.dayLength = Math.floor(Math.random() * 4) + 3; // 3-6 sujetos
+        State.addLogEntry('system', `Nuevo ciclo: ${State.config.dayLength} sujetos esperados.`, { icon: 'fa-users' });
 
         // Trigger random daily event
         if (this.game.randomEvents) {
@@ -778,6 +1039,17 @@ export class GameMechanicsManager {
             this.game.assignments.updateShifts();
         }
 
+        // Phase 2.2: Update Generator Audio (Pitch & Stutter)
+        if (this.game.audio && this.game.audio.updateGeneratorAudio) {
+            this.game.audio.updateGeneratorAudio(
+                State.generator.mode,
+                State.generator.power,
+                State.generator.isOn
+            );
+        }
+
+        // Si se apagó por batería 0 en este frame (detectado por isOn false y log reciente)
+        // ... (This logic is usually handled inside toggleGenerator or where power hits 0)
         // 1. Procesar Blood Analyzer
         if (State.generator.bloodTestCountdown > 0) {
             State.generator.bloodTestCountdown--;
@@ -821,14 +1093,14 @@ export class GameMechanicsManager {
 
     processSectorSabotages() {
         let sabotageHappened = false;
-        
+
         // Use new Assignments system if available
         if (State.assignments) {
             Object.keys(State.assignments).forEach(sector => {
                 const data = State.assignments[sector];
                 // Skip if data is malformed (should contain occupants)
                 if (!data || !data.occupants) return;
-                
+
                 const assignedIds = data.occupants;
                 assignedIds.forEach(id => {
                     const npc = State.admittedNPCs.find(n => n.id === id);
@@ -851,7 +1123,7 @@ export class GameMechanicsManager {
                 });
             });
         }
-        
+
         return sabotageHappened;
     }
 
@@ -884,6 +1156,21 @@ export class GameMechanicsManager {
 
         if (handlers[sector]) {
             handlers[sector]();
+
+            // Sync with Room Model (Phase 4.1 Integrity)
+            if (State.currentShelter) {
+                const room = State.currentShelter.getRoomByType(sector);
+                if (room) {
+                    room.integrity = Math.max(0, room.integrity - 20);
+                    if (room.integrity <= 0) {
+                        this.ui.showFeedback(`SECTOR ${room.name.toUpperCase()} CRÍTICAMENTE DAÑADO`, "red");
+                        State.addLogEntry('critical', `SALA ${room.name.toUpperCase()} INOPERATIVA POR SABOTAJE.`);
+                    } else if (room.integrity < 50) {
+                        State.addLogEntry('warning', `INTEGRIDAD DE ${room.name.toUpperCase()} AL ${room.integrity}%`);
+                    }
+                }
+            }
+
             this.ui.showFeedback(config.feedback || "¡SABOTAJE DETECTADO!", "red", 4000);
         }
 

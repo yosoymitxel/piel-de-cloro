@@ -3,6 +3,7 @@ import { NPC } from '../js/NPC.js';
 import { GameMechanicsManager } from '../js/GameMechanicsManager.js';
 import { LoreManager } from '../js/LoreManager.js';
 import { LoreData } from '../js/LoreData.js';
+import { DialogueData } from '../js/DialogueData.js';
 import { ModalManager } from '../js/ModalManager.js';
 
 describe('Lore Danger System Deep Tests', () => {
@@ -11,6 +12,13 @@ describe('Lore Danger System Deep Tests', () => {
     beforeEach(() => {
         State.reset();
         State.admittedNPCs = [];
+
+        // Ensure DialogueData has dummy lore subjects so NPC constructor finds one
+        DialogueData.loreSubjects = [
+            { id: 'dummy_lore_1', nodes: { root: { text: '...', options: [] } }, root: 'root' },
+            { id: 'dummy_lore_2', nodes: { root: { text: '...', options: [] } }, root: 'root' },
+            { id: 'dummy_lore_3', nodes: { root: { text: '...', options: [] } }, root: 'root' }
+        ];
 
         // Stub jQuery for LoreManager and ModalManager
         chainable = {
@@ -37,7 +45,7 @@ describe('Lore Danger System Deep Tests', () => {
             stop: jest.fn().mockReturnThis(),
             length: 1,
             val: jest.fn().mockReturnThis(),
-            each: jest.fn(function(cb) { cb(0, this); return this; }) // Added each
+            each: jest.fn(function (cb) { cb(0, this); return this; }) // Added each
         };
         global.$ = jest.fn().mockReturnValue(chainable);
 

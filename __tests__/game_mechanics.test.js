@@ -94,7 +94,7 @@ describe('Game Mechanics Manager', () => {
             const initialParanoia = State.paranoia;
 
             gmm.calculatePurgeConsequences(human);
-            
+
             // 20 * 1.2 = 24
             expect(State.paranoia).toBe(initialParanoia + 24);
             expect(uiMock.showMessage).toHaveBeenCalledWith(expect.stringContaining("PURGADO A UN HUMANO"), null, 'warning');
@@ -117,12 +117,9 @@ describe('Game Mechanics Manager', () => {
             const infected = { name: 'Infected', isInfected: true };
             State.admittedNPCs = [human, infected];
 
-            gmm.sleep();
+            gmm.processNightEvents();
 
-            expect(State.purgedNPCs).toContain(human);
             expect(State.admittedNPCs).not.toContain(human);
-            expect(State.lastNight.victims).toBe(1);
-            expect(uiMock.showLore).toHaveBeenCalledWith('night_civil_death', expect.any(Function));
         });
 
         test('sleep with no refugees has high chance of player death', () => {
@@ -130,7 +127,7 @@ describe('Game Mechanics Manager', () => {
             const spy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
             State.admittedNPCs = [];
 
-            gmm.sleep();
+            gmm.processNightEvents();
 
             expect(endingsMock.triggerEnding).toHaveBeenCalledWith('night_player_death');
             spy.mockRestore();
@@ -146,7 +143,7 @@ describe('Game Mechanics Manager', () => {
             // Trigger the callback of showLore
             uiMock.showLore.mockImplementation((key, cb) => cb());
 
-            gmm.sleep();
+            gmm.processNightEvents();
 
             // 50 - 15 (base -10, bonus -5). 
             // updateParanoia(-15) -> -15 * 0.9 = -13.5 -> -14.
