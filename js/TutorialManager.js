@@ -6,22 +6,136 @@ export class TutorialManager {
         this.queue = [];
         this.maxItems = 3;
         this.container = null;
-        this.lastState = {
-            securityAssigned: false,
-            generatorOn: true,
-            supplies: 100
-        };
         this.pollingInterval = null;
+        
+        // Estado interno para tracking de cambios
+        this.activeRules = new Set();
+        
+        // DEFINICIÓN CENTRALIZADA DE REGLAS
+        // condition: Función que evalúa el estado actual
+        // message: Texto a mostrar
+        // type: 'warning' | 'danger' | 'success' | 'info'
+        // navTarget: ID del botón de navegación a resaltar (opcional)
+        // navLevel: Nivel de alerta del nav (2=Active, 3=Alert, 5=Critical)
+        // logType: Tipo de log a generar (opcional, si se quiere persistencia)
+        // resolveMsg: Función o string para mensaje de éxito al resolver
+        this.rules = [
+            // --- SEGURIDAD ---
+            {
+                id: 'sec_vacant',
+                condition: (state) => {
+                    if (state.isNight) return false; 
+                    const hasSecurity = (state.assignments?.security?.occupants?.length > 0) || (state.sectorAssignments?.security?.length > 0);
+                    return !hasSecurity;
+                },
+                message: "ALERTA: Puesto de seguridad VACANTE.",
+                type: "danger",
+                navTarget: "nav-room",
+                navLevel: 3,
+                logType: "warning",
+                resolveMsg: (state) => {
+                    // Intentar obtener el nombre del asignado
+                    let name = "Personal";
+                    if (state.sectorAssignments?.security?.length > 0) {
+                         // Buscar el NPC en admittedNPCs por ID si es necesario, o si ya es objeto
+                         const id = state.sectorAssignments.security[0];
+                         const npc = state.admittedNPCs.find(n => n.id === id);
+                         if (npc) name = npc.name;
+                    } else if (state.assignments?.security?.occupants?.length > 0) {
+                        const npc = state.assignments.security.occupants[0];
+                        if (npc) name = npc.name;
+                    }
+                    return `Puesto de seguridad cubierto por: ${name}`;
+                }
+            },
+            // --- GENERADOR ---
+            {
+                id: 'gen_off',
+                condition: (state) => state.generator && !state.generator.isOn,
+                message: "CRÍTICO: GENERADOR APAGADO. Reinicio manual requerido.",
+                type: "danger",
+                navTarget: "nav-generator",
+                navLevel: 5,
+                logType: "critical",
+                resolveMsg: "Generador REINICIADO y operativo."
+            },
+            {
+                id: 'gen_low_battery',
+                condition: (state) => state.generator && state.generator.isOn && state.generator.power < 20,
+                message: "ENERGÍA BAJA: Batería < 20%. Apaga sistemas o recarga.",
+                type: "warning",
+                navTarget: "nav-generator",
+                navLevel: 3,
+                resolveMsg: "Niveles de batería ESTABILIZADOS."
+            },
+            // --- SUMINISTROS ---
+            {
+                id: 'supplies_critical',
+                condition: (state) => (state.supplies || 0) <= 3,
+                message: "SUMINISTROS AGOTADOS: Hambruna inminente. Prioriza recolección.",
+                type: "danger",
+                navTarget: "map-node-suministros", 
+                navLevel: 5,
+                logType: "warning",
+                resolveMsg: "Reservas de suministros AUMENTADAS."
+            },
+            // --- COMBUSTIBLE ---
+            {
+                id: 'fuel_low',
+                condition: (state) => (state.fuel || 0) < 2,
+                message: "COMBUSTIBLE ESCASO: Reservas críticas. Inicia expedición.",
+                type: "warning",
+                navTarget: "map-node-fuel",
+                navLevel: 3,
+                resolveMsg: "Reservas de combustible AUMENTADAS."
+            },
+            // --- PARANOIA (MEDITACIÓN) ---
+            {
+                id: 'paranoia_high',
+                condition: (state) => (state.paranoia || 0) > 50,
+                message: "PARANOIA ELEVADA: El operador es inestable. Se recomienda MEDITAR.",
+                type: "warning",
+                navTarget: "map-node-meditacion",
+                navLevel: 3, 
+                logType: "guide",
+                resolveMsg: "Niveles de paranoia REDUCIDOS."
+            },
+            {
+                id: 'paranoia_critical',
+                condition: (state) => (state.paranoia || 0) > 80,
+                message: "PSICOSIS INMINENTE: Alucinaciones activas. MEDITACIÓN OBLIGATORIA.",
+                type: "danger",
+                navTarget: "map-node-meditacion",
+                navLevel: 5, 
+                logType: "danger",
+                resolveMsg: "Crisis de psicosis CONTROLADA."
+            },
+            // --- CORDURA ---
+            {
+                id: 'sanity_low',
+                condition: (state) => (state.sanity || 100) < 30,
+                message: "CORDURA CRÍTICA: Riesgo de suicidio o colapso.",
+                type: "danger",
+                navTarget: "map-node-meditacion",
+                navLevel: 5,
+                resolveMsg: "Estabilidad mental RECUPERADA."
+            }
+        ];
     }
 
     init() {
-        console.log('[TutorialManager] Initializing with Polling System...');
+        console.log('[TutorialManager] Initializing with Centralized Rules System...');
         // Find the container we injected (or will inject)
         this.container = $('#tutorial-monitor-content');
         
         // Polling para garantizar actualizaciones en tiempo real (backup de eventos)
         if (this.pollingInterval) clearInterval(this.pollingInterval);
-        this.pollingInterval = setInterval(() => this.pollGameState(), 2000);
+        
+        // Evitar polling en entorno de test para prevenir open handles
+        const isTestEnv = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
+        if (!isTestEnv) {
+            this.pollingInterval = setInterval(() => this.pollGameState(), 2000);
+        }
 
         // Mensaje inicial
         this.addMessage("SISTEMA DE GUÍA: ACTIVO", "success");
@@ -42,43 +156,55 @@ export class TutorialManager {
     pollGameState() {
         if (!State) return;
 
-        // 1. Check Security Assignment
-        let hasSecurity = false;
-        if (State.assignments && State.assignments.security) {
-            hasSecurity = State.assignments.security.occupants.length > 0;
-        } else if (State.sectorAssignments && State.sectorAssignments.security) {
-            hasSecurity = State.sectorAssignments.security.length > 0;
-        }
+        this.rules.forEach(rule => {
+            const isActive = rule.condition(State);
+            const wasActive = this.activeRules.has(rule.id);
 
-        // Detect change from Assigned -> Unassigned (Death/Removal)
-        if (this.lastState.securityAssigned && !hasSecurity) {
-            this.addMessage("ALERTA: Puesto de seguridad VACANTE.", "danger", "sec_vacant");
-        } else if (!this.lastState.securityAssigned && hasSecurity) {
-            this.removeMessageByKey("sec_vacant");
-            this.addMessage("SEGURIDAD: Operativo asignado.", "success", "sec_assigned");
-        }
-        // Update state
-        this.lastState.securityAssigned = hasSecurity;
+            if (isActive && !wasActive) {
+                // ACTIVACIÓN DE REGLA
+                this.activeRules.add(rule.id);
+                
+                // 1. Mostrar Mensaje en Monitor
+                this.addMessage(rule.message, rule.type, rule.id);
+                
+                // 2. Actualizar Nav Status (Feedback Visual Centralizado)
+                if (rule.navTarget && this.ui.setNavItemStatus) {
+                    this.ui.setNavItemStatus(rule.navTarget, rule.navLevel);
+                }
 
-        // 2. Check Generator Status
-        const genOn = State.generator ? State.generator.isOn : true;
-        if (this.lastState.generatorOn && !genOn) {
-            this.addMessage("CRÍTICO: GENERADOR APAGADO. Reinicio manual requerido.", "danger", "gen_off");
-        } else if (!this.lastState.generatorOn && genOn) {
-            this.removeMessageByKey("gen_off");
-            this.addMessage("SISTEMA: Generador RESTAURADO.", "success", "gen_on");
-        }
-        this.lastState.generatorOn = genOn;
+                // 3. Escribir en Log/Bitácora (Persistencia Centralizada)
+                // Solo si tiene logType definido, para no spamear
+                if (rule.logType) {
+                    // Evitamos bucles infinitos si el log trigger es el mismo que escuchamos
+                    // Usamos un flag o chequeamos el tipo
+                    State.addLogEntry(rule.logType, `GUÍA: ${rule.message}`, { icon: 'fa-triangle-exclamation' });
+                }
 
-        // 3. Check Supplies Critical Drop
-        const currentSupplies = State.supplies || 0;
-        if (currentSupplies <= 3 && this.lastState.supplies > 3) {
-            this.addMessage("SUMINISTROS AGOTADOS: Hambruna inminente.", "danger", "supplies_low");
-        } else if (currentSupplies > 3 && this.lastState.supplies <= 3) {
-            this.removeMessageByKey("supplies_low");
-            this.addMessage("SUMINISTROS: Nivel aceptable.", "success", "supplies_ok");
-        }
-        this.lastState.supplies = currentSupplies;
+            } else if (!isActive && wasActive) {
+                // DESACTIVACIÓN DE REGLA (Recuperación)
+                this.activeRules.delete(rule.id);
+                this.removeMessageByKey(rule.id);
+                
+                // Mostrar mensaje de resolución (verde)
+                if (rule.resolveMsg) {
+                    let resolveText = "";
+                    if (typeof rule.resolveMsg === 'function') {
+                        resolveText = rule.resolveMsg(State);
+                    } else {
+                        resolveText = rule.resolveMsg;
+                    }
+                    
+                    if (resolveText) {
+                        this.addMessage(resolveText, "success");
+                    }
+                }
+
+                // Limpiar Nav Status
+                if (rule.navTarget && this.ui.setNavItemStatus) {
+                    this.ui.setNavItemStatus(rule.navTarget, null); // Reset
+                }
+            }
+        });
     }
 
     // Keep event listeners for immediate feedback, but polling acts as safety net
@@ -86,21 +212,8 @@ export class TutorialManager {
         // detail: { sector, npc, reason }
         console.log(`[TutorialManager] Assignment Update: ${detail.sector} -> ${detail.npc ? detail.npc.name : 'NULL'} (${detail.reason || 'manual'})`);
         
-        if (detail.sector === 'security') {
-            if (detail.npc) {
-                this.removeMessageByKey("sec_vacant");
-                this.addMessage(`SEGURIDAD ACTUALIZADA: ${detail.npc.name}`, "success", "sec_assigned");
-                this.lastState.securityAssigned = true; // Sync polling state
-            } else {
-                // Si se desasigna (muerte o manual)
-                if (detail.reason === 'death') {
-                    this.addMessage("ALERTA: Puesto de seguridad VACANTE por baja.", "danger", "sec_vacant");
-                } else {
-                    this.addMessage("AVISO: Puesto de seguridad sin asignar.", "warning", "sec_vacant");
-                }
-                this.lastState.securityAssigned = false; // Sync polling state
-            }
-        }
+        // Force immediate poll to update rules/messages
+        this.pollGameState();
     }
 
     removeMessage(text) {
@@ -183,26 +296,10 @@ export class TutorialManager {
 
     getColorForType(type) {
         switch (type) {
-            case 'danger': return 'text-alert';
+            case 'danger': return 'text-red-500';
             case 'warning': return 'text-orange-400';
             case 'success': return 'text-green-400';
             default: return 'text-gray-400';
         }
-    }
-
-    // Logic hooks
-    checkParanoia(value) {
-        if (value >= 80) this.addMessage("PARANOIA CRÍTICA: Alucinaciones probables.", "danger");
-        else if (value >= 60) this.addMessage("Nivel de Paranoia elevado. Revisa tus decisiones.", "warning");
-    }
-
-    checkSanity(value) {
-        if (value <= 20) this.addMessage("CORDURA BAJA: Riesgo de colapso inminente.", "danger");
-        else if (value <= 40) this.addMessage("ADVERTENCIA: Tu cordura está descendiendo.", "warning");
-        else if (value < 50) this.addMessage("Tu mente se debilita. Busca la sala de Meditación.", "warning");
-    }
-
-    checkSupplies(value) {
-        if (value <= 3) this.addMessage("SUMINISTROS AGOTADOS: Hambruna inminente.", "danger");
     }
 }

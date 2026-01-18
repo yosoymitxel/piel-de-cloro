@@ -223,7 +223,7 @@ export class ModalManager {
         }
 
         this.updateModalStatus(npc, allowPurge, state);
-        this.renderModalStats(npc, allowPurge, state);
+        this.renderModalStats(npc, allowPurge, state, onPurgeConfirm);
         this.renderModalLog(npc);
 
         if (allowPurge) {
@@ -285,7 +285,7 @@ export class ModalManager {
         }
     }
 
-    renderModalStats(npc, allowPurge, state) {
+    renderModalStats(npc, allowPurge, state, onPurgeConfirm) {
         if (!this.modalAnimating) this.modalAnimating = false;
         if (!npc.dayAfter) {
             npc.dayAfter = { dermis: false, pupils: false, temperature: false, pulse: false, usedNightTests: 0, validated: false };
@@ -350,13 +350,27 @@ export class ModalManager {
                 const makeSlot = (key, label, icon, animMethod) => {
                     const knownByDay = npc.revealedStats && npc.revealedStats.includes(key);
 
+                    // Create button with specific style for tests
                     const btn = $('<button>', {
-                        class: `horror-tool-btn horror-tool-btn--modal animate-button-in ${knownByDay ? 'done' : ''}`,
+                        class: `horror-btn--modal modal-test-btn animate-button-in`,
                         html: `<i class="fa-solid ${icon}"></i><span>${label}</span>`
                     });
 
-                    if (knownByDay || this.modalAnimating) {
+                    // Tailwind classes stored in variables for clarity and maintainability
+                    const disabledClasses = 'border-2 p-2 bg-gray-800 border-gray-600 text-gray-500 cursor-not-allowed opacity-70';
+                    const activeClasses = 'border-2 p-2 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10 hover:border-cyan-400 bg-transparent';
+
+                    if (knownByDay) {
+                        btn.removeClass(activeClasses).addClass(disabledClasses);
                         btn.prop('disabled', true);
+                    } else {
+                        btn.removeClass(disabledClasses).addClass(activeClasses);
+                        btn.prop('disabled', false);
+                    }
+
+                    if (this.modalAnimating) {
+                        btn.prop('disabled', true);
+                        if (!knownByDay) btn.css('opacity', '0.5');
                     }
 
                     btn.on('click', () => {
@@ -365,7 +379,7 @@ export class ModalManager {
                         if (state.dayAfter.testsAvailable <= 0) return;
 
                         this.modalAnimating = true;
-                        this.renderModalStats(npc, allowPurge, state); // Re-render to disable buttons
+                        this.renderModalStats(npc, allowPurge, state, onPurgeConfirm); // Re-render to disable buttons
 
                         state.dayAfter.testsAvailable--;
                         this.elements.dayafterTestsLeft.text(state.dayAfter.testsAvailable);
@@ -414,12 +428,12 @@ export class ModalManager {
                             npc.dayAfter.usedNightTests++;
 
                             // Re-render stats
-                            const complete = npc.dayAfter.dermis && npc.dayAfter.pupils && npc.dayAfter.temperature && npc.dayAfter.pulse;
+                            const complete = npc.dayAfter.skinTexture && npc.dayAfter.pupils && npc.dayAfter.temperature && npc.dayAfter.pulse;
                             npc.dayAfter.validated = complete;
                             this.ui.updateDayAfterSummary(state.admittedNPCs);
 
                             this.modalAnimating = false;
-                            this.renderModalStats(npc, allowPurge, state);
+                            this.renderModalStats(npc, allowPurge, state, onPurgeConfirm);
                             this.clearModalError();
                         }, duration);
                     });
@@ -433,63 +447,67 @@ export class ModalManager {
                     makeSlot('pulse', 'PULSO', 'fa-heart-pulse', 'animateToolPulse')
                 );
 
-                // --- SECCIÓN DE ASIGNACIÓN (Reemplaza Test de Sangre) ---
-                const assignContainer = $('<div>', { class: 'col-span-4 mt-4 border-t border-gray-800 pt-2' });
-                assignContainer.append('<div class="text-[10px] text-gray-500 mb-2 font-mono uppercase tracking-widest text-center">- ASIGNACIÓN DE PROTOCOLO -</div>');
-                
-                // Usar CONSTANTS para generar los botones de sector
-                const btnGroup = $('<div>', { class: 'grid grid-cols-2 gap-2' });
-                
-                Object.keys(CONSTANTS.SECTOR_CONFIG).forEach(key => {
-                    const config = CONSTANTS.SECTOR_CONFIG[key];
-                    const isAssigned = npc.assignedSector === key;
-                    
-                    // UX Improvement: Color-coded buttons based on sector
-                    let colorClass = 'border-gray-700 text-gray-400 hover:text-white hover:border-gray-500';
-                    let activeClass = 'bg-terminal-green/20 text-terminal-green border-terminal-green cursor-default';
-                    
-                    if (key === 'security') {
-                        colorClass = 'border-red-900/50 text-red-400 hover:bg-red-900/20 hover:border-red-500';
-                        activeClass = 'bg-red-900/40 text-red-400 border-red-500 cursor-default';
-                    } else if (key === 'generator') {
-                        colorClass = 'border-yellow-600/50 text-yellow-400 hover:bg-yellow-600/20 hover:border-yellow-400';
-                        activeClass = 'bg-yellow-600/40 text-yellow-400 border-yellow-400 cursor-default';
-                    } else if (key === 'supplies') {
-                        colorClass = 'border-blue-600/50 text-blue-400 hover:bg-blue-600/20 hover:border-blue-400';
-                        activeClass = 'bg-blue-600/40 text-blue-400 border-blue-400 cursor-default';
-                    } else if (key === 'lab') {
-                         colorClass = 'border-cyan-600/50 text-cyan-400 hover:bg-cyan-600/20 hover:border-cyan-400';
-                         activeClass = 'bg-cyan-600/40 text-cyan-400 border-cyan-400 cursor-default';
-                    }
+                // --- SECCIÓN DE ASIGNACIÓN (SELECT LIST) ---
+                // Remove existing container to prevent duplicates
+                if (testsGrid.parent && typeof testsGrid.parent === 'function') {
+                    testsGrid.parent().find('.assignment-container-modal').remove();
+                }
 
-                    const btn = $('<button>', {
-                        class: `horror-btn text-[10px] py-1 flex items-center justify-center gap-2 uppercase tracking-wider transition-colors ${isAssigned ? activeClass : colorClass}`,
-                        html: `<i class="fa-solid ${config.icon}"></i> ${config.name}`,
-                        disabled: isAssigned
-                    });
-                    
-                    if (!isAssigned) {
-                        btn.on('click', () => {
-                             const game = this.ui.game || window.game;
-                             if (game && game.assignments) {
-                                 game.assignments.assign(npc.id, key);
-                                 if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.5 });
-                                 this.openModal(npc, allowPurge, onPurgeConfirm, state); // Refresh
-                             } else {
-                                 console.error("Game assignments module not found");
-                                 // Fallback for legacy
-                                 if (game && game.mechanics && game.mechanics.assignNPCToSector) {
-                                     game.mechanics.assignNPCToSector(npc, key);
-                                     this.openModal(npc, allowPurge, onPurgeConfirm, state);
-                                 }
-                             }
-                        });
-                    }
-                    btnGroup.append(btn);
-                });
+                const assignContainer = $('<div>', { class: 'assignment-container-modal col-span-4 mt-6 border-t border-gray-800 pt-4' });
                 
-                assignContainer.append(btnGroup);
-                testsGrid.append(assignContainer);
+                assignContainer.append(`
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-id-card-clip text-gray-500"></i>
+                        <span class="text-[10px] text-gray-500 font-mono uppercase tracking-widest">ASIGNACIÓN DE SECTOR</span>
+                    </div>
+                `);
+
+                const sectorSelector = $('<select>', { class: 'sector-selector w-full bg-black border border-gray-700 p-3 font-mono text-xs font-bold text-gray-400 focus:border-terminal-green outline-none uppercase' });
+                
+                const options = [
+                    { value: "", label: "-- SIN SECTOR --" }
+                ];
+
+                // Dynamically load sectors from CONSTANTS
+                Object.keys(CONSTANTS.SECTOR_CONFIG).forEach(key => {
+                    const sector = CONSTANTS.SECTOR_CONFIG[key];
+                    options.push({ value: key, label: sector.name });
+                });
+
+                options.forEach(opt => {
+                    const isSelected = npc.assignedSector === opt.value || (!npc.assignedSector && opt.value === "");
+                    sectorSelector.append(`<option value="${opt.value}" ${isSelected ? 'selected' : ''}>${opt.label}</option>`);
+                });
+
+                sectorSelector.on('change', (e) => {
+                    const sector = e.target.value;
+                    const game = this.ui.game || window.game;
+                    
+                    if (sector) {
+                        if (game && game.assignments) {
+                            game.assignments.assign(npc.id, sector);
+                        } else if (game && game.mechanics) {
+                            game.mechanics.assignNPCToSector(npc, sector);
+                        }
+                        this.ui.showFeedback(`ASIGNADO A ${sector.toUpperCase()}`, "green");
+                    } else {
+                        // Unassign
+                        if (game && game.assignments) {
+                            game.assignments.unassign(npc.id);
+                        } else if (game && game.mechanics) {
+                            game.mechanics.unassignNPC(npc);
+                        }
+                        this.ui.showFeedback("ASIGNACIÓN REVOCADA", "warning");
+                    }
+                    
+                    // Refresh modal state to update statuses
+                    this.openModal(npc, allowPurge, onPurgeConfirm, state);
+                });
+
+                assignContainer.append(sectorSelector);
+                if (testsGrid.parent && typeof testsGrid.parent === 'function') {
+                    testsGrid.parent().append(assignContainer); 
+                }
             }
         }
     }

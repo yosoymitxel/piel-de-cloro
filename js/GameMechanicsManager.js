@@ -233,46 +233,7 @@ export class GameMechanicsManager {
         return bonuses;
     }
 
-    performLabAnalysis(npcId) {
-        // Use global State if this.game.state is unavailable
-        const state = (this.game && this.game.state) ? this.game.state : State;
-        
-        if (!state || !state.admittedNPCs) {
-            console.error("GameMechanicsManager: State or admittedNPCs not found");
-            return { success: false, message: 'Error interno: Estado no encontrado.' };
-        }
 
-        const npc = state.admittedNPCs.find(n => n.id === npcId);
-        
-        if (!npc) return { success: false, message: 'Sujeto no encontrado.' };
-        if (!state.generator.isOn) return { success: false, message: 'Energía insuficiente. Generador requerido.' };
-        if (state.generator.power < 15) return { success: false, message: 'Nivel de batería crítico. Análisis abortado.' };
-
-        // Coste energético
-        state.generator.power -= 15;
-        
-        // Resultado
-        npc.labAnalysisComplete = true;
-        
-        // Determinar resultado real vs falso (si el lab tuviera fallos, pero por ahora es definitivo)
-        const isInfected = npc.isInfected;
-        
-        // Log del evento
-        state.addLogEntry('info', `ANÁLISIS LAB: Sujeto ${npc.name} procesado. Resultado: ${isInfected ? 'POSITIVO (INFECTADO)' : 'NEGATIVO (LIMPIO)'}.`, { icon: 'fa-microscope' });
-        
-        // Si es infectado, revelar rasgo oculto si existe
-        if (isInfected) {
-            // Buscar si tiene un rasgo oculto de infección y revelarlo
-            // Por ahora asumimos que la infección es el estado principal
-        }
-
-        return {
-            success: true,
-            npc: npc,
-            isInfected: isInfected,
-            message: isInfected ? 'DETECTADO PATÓGENO ACTIVO' : 'NO SE DETECTAN ANOMALÍAS BIOLÓGICAS'
-        };
-    }
 
     // Eliminated duplicate calculateJobBonuses here (it was previously defined above performLabAnalysis)
     // The correct implementation is now the only one, placed before performLabAnalysis
@@ -603,17 +564,18 @@ export class GameMechanicsManager {
      * @returns {boolean} true si la recarga fue exitosa
      */
     refuelGenerator() {
+        // console.log("refuelGenerator called. Mode:", State.generator.mode, "Power:", State.generator.power, "Fuel:", State.fuel);
         // Validar: No recargar en modo Overload (riesgo de explosión)
         if (State.generator.mode === 'overload') {
             this.ui.showFeedback("¡PELIGRO! NO RECARGAR EN MODO SOBRECARGA", "red", 4000);
-            this.audio.playSFXByKey('ui_error', { volume: 0.6 });
+            if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.6 });
             return false;
         }
 
         // Validar: Necesita combustible disponible
         if (State.fuel <= 0) {
             this.ui.showFeedback("SIN COMBUSTIBLE DISPONIBLE", "red", 3000);
-            this.audio.playSFXByKey('ui_error', { volume: 0.5 });
+            if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
             return false;
         }
 
@@ -626,12 +588,17 @@ export class GameMechanicsManager {
         // Consumir 1 bidón de fuel
         State.fuel = Math.max(0, State.fuel - 1);
 
-        // Añadir +30% de batería (configurable)
-        const rechargeAmount = 30;
-        State.generator.power = Math.min(100, State.generator.power + rechargeAmount);
+        // Añadir +25% de batería (Estándar Fase 1.1)
+        const rechargeAmount = 25;
+        
+        if (typeof State.updateGeneratorPower === 'function') {
+            State.updateGeneratorPower(rechargeAmount);
+        } else {
+            State.generator.power = Math.min(100, State.generator.power + rechargeAmount);
+        }
 
         // Feedback visual y sonoro
-        this.audio.playSFXByKey('ui_button_click', { volume: 0.8 });
+        if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.8 });
         this.ui.showFeedback(`RECARGA COMPLETADA (+${rechargeAmount}% BATERÍA)`, "green", 4000);
 
         // Log del evento
@@ -1621,7 +1588,10 @@ export class GameMechanicsManager {
             }
 
             setTimeout(() => {
-                this.game.events.navigateToMap({ force: true, lockNav: false });
+                if (this.game.ui && this.game.ui.setNavLocked) {
+                    this.game.ui.setNavLocked(false);
+                }
+                this.game.events.navigateToMorgue();
             }, 2500);
         }
     }
@@ -1695,7 +1665,12 @@ export class GameMechanicsManager {
             this.ui.showFeedback(`EXPEDICIÓN RIESGOSA ÉXITOSA: +${loot} COMBUSTIBLE`, "green", 5000);
 
             setTimeout(() => {
-                this.game.events.navigateToMap({ force: true, lockNav: false });
+                // Ensure navigation is unlocked before redirecting
+                if (this.game.ui && this.game.ui.setNavLocked) {
+                    this.game.ui.setNavLocked(false);
+                }
+                
+                this.game.events.switchScreen('map', { force: true, lockNav: false });
             }, 1500);
         } else {
             const idx = State.admittedNPCs.indexOf(npc);
@@ -1710,7 +1685,10 @@ export class GameMechanicsManager {
             }
 
             setTimeout(() => {
-                this.game.events.navigateToMap({ force: true, lockNav: false });
+                if (this.game.ui && this.game.ui.setNavLocked) {
+                    this.game.ui.setNavLocked(false);
+                }
+                this.game.events.navigateToMorgue();
             }, 2500);
         }
     }
@@ -1842,20 +1820,33 @@ export class GameMechanicsManager {
         }
 
         State.fuel--;
-        State.updateGeneratorPower(25); // +25% per canister
+        
+        // Fix: Use direct property assignment or ensure updateGeneratorPower exists
+        if (typeof State.updateGeneratorPower === 'function') {
+            State.updateGeneratorPower(25);
+        } else {
+            State.generator.power = Math.min(100, State.generator.power + 25);
+        }
+        
         State.addLogEntry('system', "GENERADOR: Recarga manual realizada (+25%).", { icon: 'fa-gas-pump' });
         this.ui.showFeedback("RECARGA EXITOSA", "green", 3000);
         if (this.audio) this.audio.playSFXByKey('generator_start', { volume: 0.5 });
 
         // UPDATE UI IMMEDIATELY
         this.game.updateHUD(); // Updates global HUD (fuel count)
-        if (this.ui.renderGeneratorRoom && $('#screen-generator').is(':visible')) {
-            this.ui.renderGeneratorRoom(State); // Updates Generator Room UI (Battery)
+        
+        // Force refresh of generator room if we are in it OR if we want to update the battery visual
+        // The user reported issues with real-time update, so we force the render call.
+        if (this.ui.renderGeneratorRoom) {
+             this.ui.renderGeneratorRoom(State); 
         }
+        
         if ($('#screen-fuel-room').is(':visible') && this.game.events && this.game.events.navigateToFuelRoom) {
              // Refresh fuel room if we are there
              $('#fuel-hub-count').text(`${State.fuel} UNITS`);
         }
+
+        return true;
     }
 
     handlePurgeFromModal() {
@@ -1897,5 +1888,29 @@ export class GameMechanicsManager {
             this.ui.showMessage('MORGUE VACIADA.', null, 'normal');
             if (this.ui.setNavItemStatus) this.ui.setNavItemStatus('nav-morgue', null);
         }, null, 'warning');
+    }
+
+    unassignNPC(npc) {
+        if (this.game.assignments) {
+            // Find current sector and unassign
+            const sector = this.game.assignments.getAssignmentForNPC(npc.id);
+            if (sector) {
+                this.game.assignments.unassign(npc.id, sector);
+            }
+        } else {
+            // Fallback (legacy)
+            if (npc.assignedSector) {
+                if (State.sectorAssignments[npc.assignedSector]) {
+                    const idx = State.sectorAssignments[npc.assignedSector].indexOf(npc.id);
+                    if (idx > -1) State.sectorAssignments[npc.assignedSector].splice(idx, 1);
+                }
+                
+                if (npc.assignedSector === 'generator' && State.generator.assignedGuardId === npc.id) {
+                    State.generator.assignedGuardId = null;
+                }
+                
+                npc.assignedSector = null;
+            }
+        }
     }
 }

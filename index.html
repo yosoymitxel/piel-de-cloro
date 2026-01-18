@@ -302,23 +302,32 @@
                                         class="fa-solid fa-radiation text-4xl"></i><i
                                         class="fa-solid fa-gas-pump text-4xl"></i>
                                 </div>
-                                <h2 class="text-2xl font-bold text-rose-500 uppercase tracking-[0.3em]">PROTOCOLO DE
-                                    EXTRACCIÓN</h2>
+                                <h2 class="text-2xl font-bold text-rose-500 uppercase tracking-[0.3em]">CONTROL DE EXTRACCIÓN</h2>
                                 <p class="text-center text-sm opacity-60 max-w-[450px]">
-                                    ADVERTENCIA: Las expediciones al depósito externo conllevan un riesgo biológico y
-                                    mecánico superior al 45%. El personal enviado tiene bajas probabilidades de retorno.
+                                    Desplegar personal asignado para recuperar combustible del depósito externo.
                                 </p>
 
                                 <button id="btn-start-fuel-expedition"
                                     class="horror-btn border-rose-500/60 hover:bg-rose-500/20 px-16 py-6 font-black text-rose-400 tracking-widest transition-all">
-                                    ORDENAR EXTRACCIÓN
+                                    INICIAR EXTRACCIÓN
                                 </button>
 
-                                <div
-                                    class="mt-4 pt-4 border-t border-white/10 w-full flex justify-between items-center">
-                                    <span class="text-[9px] uppercase opacity-40">Unidad de Sacrificio:</span>
-                                    <span id="fuel-hub-assigned"
-                                        class="text-sm font-bold text-rose-200 uppercase tracking-widest">---</span>
+                                <div id="fuel-guard-panel" class="w-full mt-4">
+                                    <!-- Dynamic Guard Panel injected here -->
+                                    <div class="guard-card empty w-full flex items-center justify-between p-3 border border-dashed border-rose-500/30 bg-rose-500/5 group">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 flex items-center justify-center bg-black/60 rounded border border-rose-500/20">
+                                                <i class="fa-solid fa-user-slash text-rose-500/50"></i>
+                                            </div>
+                                            <div class="flex flex-col">
+                                                <span class="text-xs font-bold text-rose-500/70">PUESTO VACANTE</span>
+                                                <span class="text-[9px] opacity-50">CLICK PARA ASIGNAR</span>
+                                            </div>
+                                        </div>
+                                        <button class="text-xs border border-rose-500/30 px-3 py-1 text-rose-400 hover:bg-rose-500/20 uppercase">
+                                            + Asignar
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -336,39 +345,49 @@
                             <div class="flex gap-4 items-center">
                                 <div class="comp-supplies"></div>
                                 <div class="industrial-tag flex flex-col items-end">
-                                    <span class="text-[9px] opacity-40 uppercase">Inventario</span>
-                                    <span id="supplies-hub-count" class="text-xs font-bold text-amber-400">0
-                                        UNITS</span>
+                                    <span class="text-[9px] opacity-40 uppercase">Stock</span>
+                                    <span id="supplies-hub-count" class="text-xs font-bold text-amber-400">0 UNITS</span>
                                 </div>
                             </div>
                         </header>
 
                         <div class="flex-grow flex flex-col items-center justify-center p-12">
                             <div
-                                class="industrial-panel p-12 border border-amber-500/20 bg-black/60 flex flex-col items-center gap-8">
-                                <div class="grid grid-cols-4 gap-4 opacity-20">
-                                    <i class="fa-solid fa-box text-3xl"></i><i class="fa-solid fa-box text-3xl"></i><i
-                                        class="fa-solid fa-box text-3xl"></i><i class="fa-solid fa-box text-3xl"></i>
+                                class="industrial-panel p-12 border border-amber-500/20 bg-black/60 flex flex-col items-center gap-8 relative overflow-hidden">
+                                <div class="absolute inset-0 bg-amber-500/5 animate-pulse pointer-events-none"></div>
+                                <div class="grid grid-cols-4 gap-6 opacity-30 text-amber-600">
+                                    <i class="fa-solid fa-box text-4xl"></i><i class="fa-solid fa-box text-4xl"></i><i
+                                        class="fa-solid fa-box text-4xl"></i><i class="fa-solid fa-box text-4xl"></i>
                                 </div>
-                                <h2 class="text-xl font-bold text-amber-500 uppercase tracking-widest">CONTROL DE
+                                <h2 class="text-2xl font-bold text-amber-500 uppercase tracking-[0.3em]">CONTROL DE
                                     RECOLECCIÓN</h2>
-                                <p class="text-center text-sm opacity-60 max-w-[400px]">Desplegar personal asignado para
-                                    recuperar víveres en el exterior.</p>
+                                <p class="text-center text-sm opacity-60 max-w-[450px] text-amber-100">
+                                    Desplegar personal asignado para recuperar víveres en el exterior.
+                                </p>
 
                                 <button id="btn-start-expedition-hub"
-                                    class="horror-btn border-amber-500/40 hover:bg-amber-500/10 px-12 py-4 font-bold">
+                                    class="horror-btn border-amber-500/60 hover:bg-amber-500/20 px-16 py-6 font-black text-amber-400 tracking-widest transition-all">
                                     INICIAR EXPEDICIÓN
                                 </button>
 
-                                <div id="supplies-guard-panel" class="w-full mt-4"></div>
-                                <!--
-                                <div
-                                    class="mt-4 pt-4 border-t border-white/10 w-full flex justify-between items-center">
-                                    <span class="text-[9px] uppercase opacity-40">Encargado actual:</span>
-                                    <span id="supplies-hub-assigned"
-                                        class="text-sm font-bold text-amber-200 uppercase">---</span>
+                                <div id="supplies-guard-panel" class="w-full mt-4">
+                                    <!-- Dynamic Guard Panel injected here -->
+                                    <div class="guard-card empty w-full flex items-center justify-between p-3 border border-dashed border-amber-500/30 bg-amber-500/5 group">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 flex items-center justify-center bg-black/60 rounded border border-amber-500/20">
+                                                <i class="fa-solid fa-user-slash text-amber-500/50"></i>
+                                            </div>
+                                            <div class="flex flex-col">
+                                                <span class="text-xs font-bold text-amber-500/70">PUESTO VACANTE</span>
+                                                <span class="text-[9px] opacity-50">CLICK PARA ASIGNAR</span>
+                                            </div>
+                                        </div>
+                                        <button class="text-xs border border-amber-500/30 px-3 py-1 text-amber-400 hover:bg-amber-500/20 uppercase">
+                                            + Asignar
+                                        </button>
+                                    </div>
                                 </div>
-                                -->
+
                             </div>
                         </div>
                     </section>
@@ -1446,7 +1465,7 @@
 
                                         <div
                                             class="text-[10px] font-mono text-gray-500 uppercase border-b border-white/5 pb-1">
-                                            Vigilancia de Estación</div>
+                                            Seguridad</div>
                                         <div id="generator-guard-panel" class="w-full">
                                             <!-- Inyectado por JS: Guard info & logs -->
                                         </div>
@@ -1493,7 +1512,7 @@
                                         </div>
                                         <div class="mt-4 pt-4 border-t border-white/5  w-100 col-span-2 flex gap-2 items-end">
                                             <button id="btn-gen-emergency-charge"
-                                                class="horror-btn w-1/2 py-3 bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500/20 text-xs">
+                                                class="border-2 w-1/2 py-3 bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500/20 text-xs">
                                                 <i class="fa-solid fa-gas-pump mr-2"></i>CARGA DE EMERGENCIA
                                                 <div class="text-[8px] opacity-40 font-mono">REQ: 3 SUMINISTROS
                                                     (+15% BAT)</div>
@@ -1501,7 +1520,7 @@
 
                                             <!-- Fase 1.1 Roadmap: Recarga con Combustible -->
                                             <button id="btn-gen-refuel"
-                                                class="horror-btn w-1/2 py-3 bg-cyan-500/10 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 text-xs mt-2">
+                                                class="horror-btnborder-2 w-1/2 py-3 bg-cyan-500/10 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 text-xs mt-2">
                                                 <i class="fa-solid fa-droplet mr-2"></i>RECARGAR BATERÍA
                                                 <div class="text-[8px] opacity-40 font-mono">REQ: 1 BIDÓN FUEL
                                                     (+30% BAT)</div>

@@ -180,7 +180,7 @@ export class UIManager {
                 direction: 'descending'
             }),
             supplies: new StatComponent('.comp-supplies', {
-                label: 'VÍVERES',
+                label: 'SUMINISTROS',
                 icon: 'fa-box',
                 colorClass: 'text-amber-300',
                 title: 'Suministros',
@@ -2072,8 +2072,8 @@ export class UIManager {
         const colorMap = {
             'yellow': 'text-warning',
             'warning': 'text-warning',
-            'red': 'text-alert',
-            'alert': 'text-alert',
+            'red': 'text-red-500',
+            'alert': 'text-red-500',
             'green': 'text-green-400',
             'success': 'text-green-400',
             '#aaffaa': 'text-green-400',
@@ -2181,51 +2181,22 @@ export class UIManager {
             if (statusIcon) card.append($(statusIcon));
             card.append(avatar, name);
 
-            // Sector Assignment Selector (Foundation for Sabotage)
-            const sectorSelector = $('<select>', {
-                class: 'sector-selector',
-                html: `
-                    <option value="" ${!npc.assignedSector ? 'selected' : ''}>-- SIN SECTOR --</option>
-                    <option value="generator" ${npc.assignedSector === 'generator' ? 'selected' : ''}>GENERADOR</option>
-                    <option value="security" ${npc.assignedSector === 'security' ? 'selected' : ''}>SEGURIDAD</option>
-                    <option value="supplies" ${npc.assignedSector === 'supplies' ? 'selected' : ''}>SUMINISTROS</option>
-                    <option value="fuel" ${npc.assignedSector === 'fuel' ? 'selected' : ''}>COMBUSTIBLE</option>
-                    <option value="infirmary" ${npc.assignedSector === 'infirmary' ? 'selected' : ''}>ENFERMERÍA</option>
-                    <option value="kitchen" ${npc.assignedSector === 'kitchen' ? 'selected' : ''}>COCINA</option>
-                `
-            });
+            // Profession and Traits Badges
+            const badgeContainer = $('<div>', { class: 'flex flex-wrap gap-1 mt-2 justify-center' });
 
-            sectorSelector.on('click', (e) => e.stopPropagation());
-            sectorSelector.on('change', (e) => {
-                const sector = e.target.value;
+            // Occupation Badge
+            if (npc.occupation && npc.occupation !== 'none') {
+                 badgeContainer.append(`<span class="px-1 py-0.5 bg-gray-800 border border-gray-600 rounded text-[9px] text-gray-300 uppercase tracking-wider">${npc.occupation}</span>`);
+            }
+            
+            // Traits Badges
+            if (npc.traits && npc.traits.length) {
+                npc.traits.forEach(trait => {
+                    badgeContainer.append(`<span class="px-1 py-0.5 bg-gray-900 border border-gray-700 rounded text-[9px] text-gray-400 uppercase tracking-wider">${trait}</span>`);
+                });
+            }
 
-                if (sector) {
-                    if (this.game.assignments) {
-                        this.game.assignments.assign(npc.id, sector);
-                    } else {
-                        this.game.mechanics.assignNPCToSector(npc, sector);
-                    }
-                    this.showFeedback(`TAREA ASIGNADA: ${sector.toUpperCase()}`, 'green', 2000);
-                } else {
-                    // Unassign logic
-                    if (npc.assignedSector) {
-                        if (this.game.assignments) {
-                            this.game.assignments.unassign(npc.assignedSector);
-                        } else {
-                            // Fallback if no assignments manager (legacy)
-                            // We can't easily unassign via mechanics if it doesn't expose it, 
-                            // but we can try passing null if supported or just manual state update?
-                            // For now assuming assignments manager exists as per request.
-                        }
-                        this.showFeedback(`TAREA REMOVIDA`, 'yellow', 2000);
-                    }
-                }
-
-                // Refresh grid to show updates (e.g. if someone else was kicked out)
-                this.renderShelterGrid(npcs, max, onPurgeClick, onDetailClick);
-            });
-
-            card.append(sectorSelector);
+            card.append(badgeContainer);
 
             card.on('click', () => onDetailClick(npc, true));
 
@@ -3040,12 +3011,28 @@ export class UIManager {
         const sLevel = state.sanity || 100;
         
         // Update visual indicators in the room header
-        $('#screen-meditation .comp-paranoia').text(`PARANOIA: ${Math.round(pLevel)}%`);
-        $('#screen-meditation .comp-sanity').text(`CORDURA: ${Math.round(sLevel)}%`);
+        const paranoiaEl = $('#screen-meditation .comp-paranoia');
+        const sanityEl = $('#screen-meditation .comp-sanity');
+
+        paranoiaEl.text(`PARANOIA: ${Math.round(pLevel)}%`);
+        sanityEl.text(`CORDURA: ${Math.round(sLevel)}%`);
+
+        // Add visual feedback (color/pulse)
+        if (pLevel > 80) paranoiaEl.addClass('text-alert animate-pulse').removeClass('text-chlorine-light');
+        else if (pLevel > 50) paranoiaEl.addClass('text-yellow-400').removeClass('text-chlorine-light text-alert animate-pulse');
+        else paranoiaEl.addClass('text-chlorine-light').removeClass('text-alert text-yellow-400 animate-pulse');
+
+        if (sLevel < 20) sanityEl.addClass('text-alert animate-pulse').removeClass('text-rose-300');
+        else if (sLevel < 40) sanityEl.addClass('text-yellow-400').removeClass('text-rose-300 text-alert animate-pulse');
+        else sanityEl.addClass('text-rose-300').removeClass('text-alert text-yellow-400 animate-pulse');
 
         // If we want real-time updates of the HUD as well, we ensure it's called
         // This method is called by GameEventManager on navigation, but also on button clicks if we wire it up
         this.updateHUD(); 
+        
+        // Ensure global HUD stats are also updated visually if visible
+        if (this.components && this.components.paranoia) this.components.paranoia.update(state);
+        if (this.components && this.components.sanity) this.components.sanity.update(state);
     }
 
     renderGeneratorRoom() {
@@ -3092,8 +3079,14 @@ export class UIManager {
             let optionsHtml = '<option value="">-- SELECCIONAR SUJETO --</option>';
             admitted.forEach(npc => {
                 const isTested = npc.labAnalysisComplete;
-                optionsHtml += `<option value="${npc.id}" ${isTested ? 'disabled' : ''}>
-                    ${npc.name} ${isTested ? '[ANALIZADO]' : ''}
+                const isPending = npc.labAnalysisPending;
+                
+                let label = npc.name;
+                if (isTested) label += ' [COMPLETADO]';
+                if (isPending) label += ' [EN PROCESO]';
+
+                optionsHtml += `<option value="${npc.id}" ${isTested || isPending ? 'disabled' : ''}>
+                    ${label}
                 </option>`;
             });
 
@@ -3118,8 +3111,8 @@ export class UIManager {
                     </div>
 
                     <div class="text-[9px] text-gray-500 font-mono mt-1 border-t border-white/5 pt-2 flex justify-between">
-                        <span>COSTE: 15% ENERGÍA</span>
-                        <span>FIABILIDAD: 100%</span>
+                        <span>COSTE: 40% ENERGÍA</span>
+                        <span>TIEMPO: 24 HORAS</span>
                     </div>
                 </div>
             `;
@@ -3141,23 +3134,38 @@ export class UIManager {
                         
                         // Update result display
                         const resultContainer = $('#lab-analysis-result');
-                        const resultColor = result.isInfected ? 'text-alert' : 'text-green-400';
-                        const icon = result.isInfected ? 'fa-biohazard' : 'fa-check-circle';
                         
-                        resultContainer.html(`
-                            <div class="flex flex-col items-center animate__animated animate__fadeIn">
-                                <i class="fa-solid ${icon} ${resultColor} text-2xl mb-1"></i>
-                                <span class="${resultColor} font-bold text-sm tracking-widest text-center">${result.message}</span>
-                                <span class="text-[9px] text-gray-500 font-mono mt-1">ANÁLISIS COMPLETADO // REGISTRO ACTUALIZADO</span>
-                            </div>
-                        `);
+                        // Si es pending, mostramos estado de carga
+                        if (result.isPending) {
+                            resultContainer.html(`
+                                <div class="flex flex-col items-center animate__animated animate__fadeIn">
+                                    <i class="fa-solid fa-hourglass-half text-yellow-400 text-2xl mb-1 animate-spin-slow"></i>
+                                    <span class="text-yellow-400 font-bold text-sm tracking-widest text-center">${result.message}</span>
+                                    <span class="text-[9px] text-gray-500 font-mono mt-1">CULTIVO EN PROCESO // RESULTADOS AL DÍA SIGUIENTE</span>
+                                </div>
+                            `);
+                            // Disable current
+                            $(`#lab-subject-select option[value="${npc.id}"]`).prop('disabled', true).text(`${npc.name} [EN PROCESO]`);
+                        } else {
+                            // Fallback para instantáneo (si fuera el caso) o completado
+                            const resultColor = result.isInfected ? 'text-alert' : 'text-green-400';
+                            const icon = result.isInfected ? 'fa-biohazard' : 'fa-check-circle';
+                            
+                            resultContainer.html(`
+                                <div class="flex flex-col items-center animate__animated animate__fadeIn">
+                                    <i class="fa-solid ${icon} ${resultColor} text-2xl mb-1"></i>
+                                    <span class="${resultColor} font-bold text-sm tracking-widest text-center">${result.message}</span>
+                                    <span class="text-[9px] text-gray-500 font-mono mt-1">ANÁLISIS COMPLETADO // REGISTRO ACTUALIZADO</span>
+                                </div>
+                            `);
+                             $(`#lab-subject-select option[value="${npc.id}"]`).prop('disabled', true).text(`${npc.name} [ANALIZADO]`);
+                        }
 
-                        // Refresh dropdown (disable current)
-                        $(`#lab-subject-select option[value="${npc.id}"]`).prop('disabled', true).text(`${npc.name} [ANALIZADO]`);
                         $(`#lab-subject-select`).val(''); // Reset selection
                         
                         // Force sidebar update to reflect energy change
-                        this.updateSidebarStats(state);
+                        if (this.updateGeneratorNavStatus) this.updateGeneratorNavStatus();
+                        this.updateEnergyHUD(); // Ensure global HUD updates
                         
                     } else {
                         if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
@@ -3310,9 +3318,9 @@ export class UIManager {
         el.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5');
         if (level) {
             el.addClass(`status-level-${level}`);
-            el.attr('data-status', level);
+            if (typeof el.attr === 'function') el.attr('data-status', level);
         } else {
-            el.removeAttr('data-status');
+            if (typeof el.removeAttr === 'function') el.removeAttr('data-status');
         }
     }
 
@@ -3323,7 +3331,9 @@ export class UIManager {
         // Clear any global sidebar status to prefer per-item indicators
         if (this.elements.sidebar) {
             this.elements.sidebar.removeClass('status-level-1 status-level-2 status-level-3 status-level-4 status-level-5');
-            this.elements.sidebar.removeAttr('data-status');
+            if (typeof this.elements.sidebar.removeAttr === 'function') {
+                this.elements.sidebar.removeAttr('data-status');
+            }
         }
 
         // Si es el botón de log, manejar la animación específica
@@ -3355,9 +3365,9 @@ export class UIManager {
 
         if (finalClass) {
             btn.addClass(finalClass);
-            btn.attr('data-status', level);
+            if (typeof btn.attr === 'function') btn.attr('data-status', level);
         } else {
-            btn.removeAttr('data-status');
+            if (typeof btn.removeAttr === 'function') btn.removeAttr('data-status');
         }
         // Ensure icons take current color (clear any inline color)
         btn.find('i').css('color', '');
@@ -3510,7 +3520,7 @@ export class UIManager {
     getRoomConfig(roomId) {
         const configs = {
             game: { name: 'Puesto', icon: 'fa-shield-halved' },
-            room: { name: 'Vigilancia', icon: 'fa-bell' },
+            room: { name: 'Seguridad', icon: 'fa-bell' },
             meditation: { name: 'Meditación', icon: 'fa-spa' },
             shelter: { name: 'Refugio', icon: 'fa-house' },
             supplies: { name: 'Suministros', icon: 'fa-box' },

@@ -48,7 +48,7 @@ export class GuardAssignmentSystem {
 
         // Add initial log
         const timestamp = `CICLO ${this.state.cycle}`;
-        this.state.generator.guardShiftLogs.unshift(`${timestamp}: ${npc.name} asignado a vigilancia`);
+        this.state.generator.guardShiftLogs.unshift(`${timestamp}: ${npc.name} asignado a seguridad`);
 
         // Keep only last 5 logs
         if (this.state.generator.guardShiftLogs.length > 5) {

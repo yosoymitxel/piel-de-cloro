@@ -263,6 +263,13 @@ export const State = {
     gameLog: [], // Historial cronológico
     dialogueStarted: false,
 
+    updateGeneratorPower(amount) {
+        if (!this.generator) return;
+        const newPower = (this.generator.power || 0) + amount;
+        this.generator.power = Math.min(100, Math.max(0, newPower));
+    },
+
+    // --- State Methods ---
     reset() {
         this.paranoia = this.config.initialParanoia || 0;
         this.sanity = 100;

@@ -80,12 +80,11 @@ export const CONSTANTS = {
         morgue: { id: 'morgue', displayName: 'MORGUE', icon: 'fa-skull', size: { w: 1, h: 1 } },
         database: { id: 'database', displayName: 'ARCHIVOS', icon: 'fa-database', size: { w: 1, h: 1 } },
         meditation: { id: 'meditation', displayName: 'MEDITACIÓN', icon: 'fa-spa', size: { w: 1, h: 1 } },
-        room: { id: 'room', displayName: 'VIGILANCIA', icon: 'fa-eye', size: { w: 1, h: 1 } }
+        room: { id: 'room', displayName: 'SEGURIDAD', icon: 'fa-eye', size: { w: 1, h: 1 } }
     },
     ROOM_CONFIG: {
         game: { method: 'navigateToGuard', label: 'PUESTO DE GUARDIA' },
-        room: { method: 'navigateToRoom', label: 'VIGILANCIA' },
-        security: { method: 'navigateToRoom', label: 'SEGURIDAD' }, // Unificando Seguridad con Vigilancia (Cámaras)
+        security: { method: 'navigateToRoom', label: 'SEGURIDAD' },
         shelter: { method: 'navigateToShelter', label: 'REFUGIO' },
         generator: { method: 'navigateToGenerator', label: 'GENERADOR' },
         supplies: { method: 'navigateToSuppliesHub', label: 'ALMACÉN' },

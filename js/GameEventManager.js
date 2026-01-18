@@ -294,9 +294,9 @@ export class GameEventManager {
             return;
         }
 
-        this.ui.showConfirm(`¿ORDENAR A ${npc.name.toUpperCase()} LA EXTRACCIÓN DE COMBUSTIBLE?<br><br><span class="text-xs text-alert font-bold animate-pulse">ADVERTENCIA: LETALIDAD EXTREMA - RIESGO DE PÉRDIDA CRÍTICO</span>`, () => {
+        this.ui.showConfirm(`¿DESPLEGAR A ${npc.name.toUpperCase()} PARA EXTRACCIÓN DE COMBUSTIBLE?<br><span class="text-xs text-alert">RIESGO DE PÉRDIDA DEL SUJETO: ALTO</span>`, () => {
             this.game.mechanics.startFuelExpedition(npc);
-        }, null, 'danger');
+        }, null, 'warning');
     }
 
     bindAll() {
@@ -489,6 +489,9 @@ export class GameEventManager {
                 this.ui.showFeedback("MENTE EN CALMA", "blue", 2000);
             }
             if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.3 });
+            
+            // UX: Actualizar UI en tiempo real
+            if (this.ui.renderMeditationRoom) this.ui.renderMeditationRoom(State);
         });
 
         $('#btn-med-music').on('click', () => {
@@ -505,6 +508,9 @@ export class GameEventManager {
                 this.ui.showFeedback("ESTABILIDAD MENTAL MÁXIMA", "blue", 2000);
             }
             if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.3 });
+            
+            // UX: Actualizar UI en tiempo real
+            if (this.ui.renderMeditationRoom) this.ui.renderMeditationRoom(State);
         });
 
         $('#btn-start-expedition-hub').on('click', () => {

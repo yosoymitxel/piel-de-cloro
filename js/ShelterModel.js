@@ -21,14 +21,14 @@ export const ROOM_TYPES = {
     },
     STORAGE: {
         id: 'STORAGE',
-        name: "Depósito de Víveres",
+        name: "Depósito de Suministros",
         powerDraw: 2,
         icon: "fa-box-open",
         category: 'resources'
     },
     MEDICAL: {
         id: 'MEDICAL',
-        name: "Enfermería",
+        name: "Refugio",
         powerDraw: 8,
         icon: "fa-house-medical",
         category: 'survival'
