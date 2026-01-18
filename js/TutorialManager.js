@@ -42,10 +42,11 @@ export class TutorialManager {
                          const npc = state.admittedNPCs.find(n => n.id === id);
                          if (npc) name = npc.name;
                     } else if (state.assignments?.security?.occupants?.length > 0) {
-                        const npc = state.assignments.security.occupants[0];
-                        if (npc) name = npc.name;
-                    }
-                    return `Puesto de seguridad cubierto por: ${name}`;
+                const id = state.assignments.security.occupants[0];
+                const npc = state.admittedNPCs.find(n => n.id === id);
+                if (npc) name = npc.name;
+            }
+            return `Puesto de seguridad cubierto por: ${name}`;
                 }
             },
             // --- GENERADOR ---

@@ -266,6 +266,14 @@ export class UIManager {
 
         // Render inicial de pines del sidebar
         this.renderPinnedRooms(State);
+
+        // Re-bind HUD Links (Safety for dynamic UI updates)
+        // Using delegation on document body for resilience
+        $('body').on('click', '.comp-paranoia, .comp-sanity', () => {
+            if (this.game && this.game.events) {
+                this.game.events.navigateToMeditation();
+            }
+        });
     }
 
     updateVersionLabels() {
@@ -2677,7 +2685,9 @@ export class UIManager {
 
                 let isRevealedInfected = false;
                 if (type === 'purged') {
-                    isRevealedInfected = npc.death && npc.death.revealed && npc.isInfected;
+                    // Solo revelar "Piel de Cloro" al día siguiente de la muerte (ciclo siguiente)
+                    const isNextCycle = npc.death && State.cycle > npc.death.cycle;
+                    isRevealedInfected = isNextCycle && npc.isInfected;
                 } else {
                     const isIgnoredRevealed = npc.exitCycle && npc.exitCycle < State.cycle;
                     const isNightRevealed = npc.left && npc.left.cycle <= State.cycle;
@@ -3066,7 +3076,9 @@ export class UIManager {
 
         // If we want real-time updates of the HUD as well, we ensure it's called
         // This method is called by GameEventManager on navigation, but also on button clicks if we wire it up
-        this.updateHUD(); 
+        if (this.game && typeof this.game.updateHUD === 'function') {
+            this.game.updateHUD();
+        } 
         
         // Ensure global HUD stats are also updated visually if visible
         if (this.components && this.components.paranoia) this.components.paranoia.update(state);
@@ -3875,6 +3887,10 @@ export class UIManager {
                     const activeAlarms = State.securityItems ? State.securityItems.filter(i => i.type === 'alarma' && i.active).length : 0;
                     indicators.push({ label: 'ALARMAS', value: activeAlarms > 0 ? 'ACTIVAS' : 'INACTIVAS', color: activeAlarms > 0 ? 'text-alert' : 'text-gray-500' });
                     indicators.push({ label: 'PERSONAL', value: countAssigned('security'), color: 'text-gray-400' });
+                    break;
+                case 'meditation':
+                    indicators.push({ label: 'ESTADO', value: 'DISPONIBLE', color: 'text-blue-300' });
+                    indicators.push({ label: 'PARANOIA', value: `${Math.round(State.paranoia || 0)}%`, color: 'text-gray-400' });
                     break;
                 case 'morgue':
                     const dead = State.purgedNPCs ? State.purgedNPCs.length : 0;

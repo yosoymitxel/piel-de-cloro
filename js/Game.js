@@ -108,12 +108,50 @@ class Game {
     }
 
     startFirstDay() {
+        this.ensureMeditationRoom();
         this.mechanics.generateInitialEntrants();
         this.nextTurn();
         this.ui.updateRunStats(State);
     }
 
+    ensureMeditationRoom() {
+        if (State.currentShelter && State.currentShelter.grid) {
+            const hasMeditation = Object.values(State.currentShelter.grid).some(r => r.type === 'MEDITATION');
+            if (!hasMeditation) {
+                console.log("[PATCH] Injecting Meditation Room...");
+                let targetKey = '0,4'; // Default
+                let coords = { x: 0, y: 4 };
+
+                // Try to find an EMPTY room to replace
+                const emptyRoom = Object.values(State.currentShelter.grid).find(r => r.type === 'EMPTY');
+                if (emptyRoom) {
+                    targetKey = `${emptyRoom.coords.x},${emptyRoom.coords.y}`;
+                    coords = { ...emptyRoom.coords };
+                    console.log(`[PATCH] Replacing EMPTY room at ${targetKey}`);
+                }
+
+                State.currentShelter.grid[targetKey] = {
+                    id: `room_meditation_patch_${Date.now()}`,
+                    type: 'MEDITATION',
+                    name: 'Núcleo Psíquico',
+                    coords: coords,
+                    isDiscovered: true,
+                    integrity: 100,
+                    powerActive: true,
+                    occupants: []
+                };
+                
+                // Update shelter rooms list if tracked separately
+                if (State.shelter && State.shelter.rooms && !State.shelter.rooms.includes('meditation')) {
+                    State.shelter.rooms.push('meditation');
+                }
+            }
+        }
+    }
+
     restartDay() {
+        this.ensureMeditationRoom();
+
         // Limpiar estado del día actual
         State.dayTime = 1;
         State.admittedNPCs = [];

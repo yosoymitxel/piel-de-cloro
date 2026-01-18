@@ -305,6 +305,11 @@ export class ModalManager {
         statsGrid.empty();
         testsGrid.empty().addClass('hidden');
 
+        // CLEANUP: Eliminar contenedor de asignación previo (si existe) para evitar que persista en modales donde no debe (ej. Morgue)
+        if (testsGrid.parent && typeof testsGrid.parent === 'function') {
+            testsGrid.parent().find('.assignment-container-modal').remove();
+        }
+
         const renderStat = (label, value, key) => {
             const isRevealed = (npc.revealedStats && npc.revealedStats.includes(key)) || (npc.dayAfter && npc.dayAfter[key]);
             const display = isRevealed ? value : '???';

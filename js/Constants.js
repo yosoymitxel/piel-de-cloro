@@ -164,26 +164,36 @@ export const CONSTANTS = {
         },
         security: {
             check: (state) => {
+                const items = state.securityItems || [];
+                const alarm = items.find(i => i.type === 'alarma');
+                const otherItems = items.filter(i => i.type !== 'alarma');
+                
+                const totalSecurityItems = otherItems.length + (alarm ? 1 : 0);
+                let deactivatedCount = 0;
+
+                // Check Alarm
+                if (alarm && !alarm.active) deactivatedCount++;
+
+                // Check Doors/Windows
+                otherItems.forEach(item => {
+                    if (!item.secured) deactivatedCount++;
+                });
+
+                if (deactivatedCount === totalSecurityItems && totalSecurityItems > 0) {
+                    return 'status-critical'; // Red: All items deactivated
+                } else if (deactivatedCount > 0) {
+                    return 'status-alert'; // Yellow: At least one item deactivated
+                }
+
+                // Check General System Power
                 const isGenOn = state.generator && state.generator.isOn;
                 const isSecSystemOn = state.generator && state.generator.systems && state.generator.systems.security.active;
-                let guardId = null;
-                if (state.assignments && state.assignments.security) {
-                    guardId = state.assignments.security.occupants[0];
-                } else {
-                    guardId = state.sectorAssignments?.security?.[0];
-                }
 
-                // Todo apagado (Gen o Sistema Sec)
                 if (!isGenOn || !isSecSystemOn) {
-                    return guardId ? 'status-alert' : 'status-critical';
-                    // Apagado + Asignado -> Amarillo (Alert)
-                    // Apagado + Sin Asignado -> Rojo (Critical)
+                    return 'status-critical'; // Power/System Off -> Critical
                 }
 
-                // Todo encendido
-                return guardId ? 'status-active' : 'status-alert';
-                // Encendido + Asignado -> Verde (Active)
-                // Encendido + Sin Asignado -> Amarillo (Alert)
+                return 'status-active'; // Green: All items active + System On
             }
         },
         room: {
@@ -255,8 +265,8 @@ export const CONSTANTS = {
                 'game': { col: 1, row: 4 },
                 'database': { col: 2, row: 4 },
                 'morgue': { col: 3, row: 4 },
-                'meditation': { col: 5, row: 5 }, // 1x2
-                'empty': { col: 2, row: 5 }
+                'meditation': { col: 2, row: 5 }, // 1x2 (Swapped with Empty)
+                'empty': { col: 5, row: 5 }
             }
         },
         'layout_v3': {
@@ -273,8 +283,8 @@ export const CONSTANTS = {
                 'game': { col: 3, row: 4 },
                 'database': { col: 4, row: 4 },
                 'morgue': { col: 5, row: 4 },
-                'meditation': { col: 1, row: 5 }, // 1x2
-                'empty': { col: 2, row: 5 }
+                'meditation': { col: 2, row: 5 }, // 1x2 (Swapped with Empty)
+                'empty': { col: 1, row: 5 }
             }
         }
     }

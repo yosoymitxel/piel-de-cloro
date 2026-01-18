@@ -160,10 +160,11 @@ export class Shelter {
         const layoutPattern = [
             ['EMPTY', 'STORAGE', 'FUEL'],
             ['SECURITY', 'GENERATOR', 'MEDICAL'],
-            ['DATABASE', 'LAB', 'MORGUE']
+            ['DATABASE', 'LAB', 'MORGUE'],
+            ['MEDITATION', 'EMPTY', 'EMPTY'] // Nueva fila para meditación
         ];
 
-        for (let y = 0; y < height; y++) {
+        for (let y = 0; y < height + 1; y++) { // Aumentar altura para incluir la nueva fila
             for (let x = 0; x < width; x++) {
                 let rType = 'EMPTY';
                 if (layoutPattern[y] && layoutPattern[y][x]) rType = layoutPattern[y][x];
@@ -178,7 +179,7 @@ export class Shelter {
         let width = 3, height = 3;
         if (type === '4x4') { width = 4; height = 4; }
 
-        const mandatory = ['STORAGE', 'MEDICAL', 'SECURITY', 'LAB', 'FUEL', 'MORGUE', 'DATABASE'];
+        const mandatory = ['STORAGE', 'MEDICAL', 'SECURITY', 'LAB', 'FUEL', 'MORGUE', 'DATABASE', 'MEDITATION'];
         const rare = [];
         if (Math.random() < 0.15) rare.push('COMMS');
         if (Math.random() < 0.15) rare.push('GREENHOUSE');
