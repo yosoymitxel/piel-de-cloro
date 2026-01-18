@@ -146,17 +146,26 @@ export class RandomEventManager {
             const title = `EVENTO: ${event.name}`;
             const color = event.type === 'positive' ? 'safe' : 'warning';
 
-            this.ui.showMessage(
-                `<div class="flex flex-col gap-2">
-                    <div class="flex items-center gap-2 font-bold text-lg">
-                        <i class="fa-solid ${icon}"></i>
-                        <span>${title}</span>
-                    </div>
-                    <p class="italic opacity-80">${event.description}</p>
-                </div>`,
-                null,
-                color
-            );
+            // Use showMessage modal explicitly (ensure it's not hidden/broken)
+            if (this.ui.showMessage) {
+                this.ui.showMessage(
+                    `<div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-2 font-bold text-lg justify-center">
+                            <i class="fa-solid ${icon}"></i>
+                            <span>${title}</span>
+                        </div>
+                        <p class="italic opacity-80">${event.description}</p>
+                    </div>`,
+                    null, // callback
+                    color
+                );
+            }
+
+            // Also log to Tutorial/Monitor for persistence
+            if (this.ui.tutorialManager) {
+                const tutType = event.type === 'positive' ? 'success' : 'warning';
+                this.ui.tutorialManager.addMessage(`EVENTO: ${event.name}`, tutType);
+            }
         }
 
         if (this.audio) {

@@ -1,4 +1,5 @@
 import { State } from './State.js';
+import { CONSTANTS } from './Constants.js';
 
 export class ModalManager {
     constructor(uiManager, audioManager) {
@@ -53,7 +54,7 @@ export class ModalManager {
         }[type] || 'fa-circle-info';
 
         content.html(`
-            <div class="flex flex-col items-center gap-4">
+            <div class="flex flex-col justify-center items-center gap-4">
                 <i class="fa-solid ${iconClass} text-3xl mb-2 ${type === 'death' ? 'text-alert' : type === 'warning' ? 'text-warning' : 'text-chlorine-light'}"></i>
                 <span class="text-lg text-center leading-relaxed font-mono uppercase tracking-tight">${text}</span>
             </div>
@@ -127,6 +128,23 @@ export class ModalManager {
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
 
         this.elements.modalName.text(`${npc.name}`);
+
+        // Mostrar Profesión
+        if (this.elements.modalOccupation) {
+            const job = npc.occupation || 'Desconocido';
+            const jobLower = job.toLowerCase();
+            let icon = 'fa-briefcase';
+            
+            if (jobLower.includes('ingenier') || jobLower.includes('mecánic')) icon = 'fa-wrench';
+            else if (jobLower.includes('médic') || jobLower.includes('doctor')) icon = 'fa-user-doctor';
+            else if (jobLower.includes('cocin') || jobLower.includes('chef')) icon = 'fa-utensils';
+            else if (jobLower.includes('soldado') || jobLower.includes('seguridad') || jobLower.includes('militar')) icon = 'fa-shield-halved';
+            else if (jobLower.includes('científ') || jobLower.includes('biólog') || jobLower.includes('químic')) icon = 'fa-flask';
+
+            this.elements.modalOccupation.html(`
+                <i class="fa-solid ${icon} mr-1"></i><span class="value uppercase tracking-wider">${job}</span>
+            `).removeClass('hidden');
+        }
 
         if (this.elements.modalTrait) {
             const trait = npc.trait || { id: 'none', name: 'Ninguno', description: 'Sin rasgos especiales.' };
@@ -415,29 +433,63 @@ export class ModalManager {
                     makeSlot('pulse', 'PULSO', 'fa-heart-pulse', 'animateToolPulse')
                 );
 
-                // --- NUEVO: ANALIZADOR DE HEMOGLOBINA ---
-                const bloodBtn = $('<button>', {
-                    class: `horror-tool-btn horror-tool-btn--blood col-span-4 mt-2 ${State.generator.bloodTestCountdown > 0 ? 'processing' : ''}`,
-                    html: `<i class="fa-solid fa-droplet mr-2"></i><span>ANALIZADOR DE HEMOGLOBINA (TEST DEFINITIVO)</span>`
+                // --- SECCIÓN DE ASIGNACIÓN (Reemplaza Test de Sangre) ---
+                const assignContainer = $('<div>', { class: 'col-span-4 mt-4 border-t border-gray-800 pt-2' });
+                assignContainer.append('<div class="text-[10px] text-gray-500 mb-2 font-mono uppercase tracking-widest text-center">- ASIGNACIÓN DE PROTOCOLO -</div>');
+                
+                // Usar CONSTANTS para generar los botones de sector
+                const btnGroup = $('<div>', { class: 'grid grid-cols-2 gap-2' });
+                
+                Object.keys(CONSTANTS.SECTOR_CONFIG).forEach(key => {
+                    const config = CONSTANTS.SECTOR_CONFIG[key];
+                    const isAssigned = npc.assignedSector === key;
+                    
+                    // UX Improvement: Color-coded buttons based on sector
+                    let colorClass = 'border-gray-700 text-gray-400 hover:text-white hover:border-gray-500';
+                    let activeClass = 'bg-terminal-green/20 text-terminal-green border-terminal-green cursor-default';
+                    
+                    if (key === 'security') {
+                        colorClass = 'border-red-900/50 text-red-400 hover:bg-red-900/20 hover:border-red-500';
+                        activeClass = 'bg-red-900/40 text-red-400 border-red-500 cursor-default';
+                    } else if (key === 'generator') {
+                        colorClass = 'border-yellow-600/50 text-yellow-400 hover:bg-yellow-600/20 hover:border-yellow-400';
+                        activeClass = 'bg-yellow-600/40 text-yellow-400 border-yellow-400 cursor-default';
+                    } else if (key === 'supplies') {
+                        colorClass = 'border-blue-600/50 text-blue-400 hover:bg-blue-600/20 hover:border-blue-400';
+                        activeClass = 'bg-blue-600/40 text-blue-400 border-blue-400 cursor-default';
+                    } else if (key === 'lab') {
+                         colorClass = 'border-cyan-600/50 text-cyan-400 hover:bg-cyan-600/20 hover:border-cyan-400';
+                         activeClass = 'bg-cyan-600/40 text-cyan-400 border-cyan-400 cursor-default';
+                    }
+
+                    const btn = $('<button>', {
+                        class: `horror-btn text-[10px] py-1 flex items-center justify-center gap-2 uppercase tracking-wider transition-colors ${isAssigned ? activeClass : colorClass}`,
+                        html: `<i class="fa-solid ${config.icon}"></i> ${config.name}`,
+                        disabled: isAssigned
+                    });
+                    
+                    if (!isAssigned) {
+                        btn.on('click', () => {
+                             const game = this.ui.game || window.game;
+                             if (game && game.assignments) {
+                                 game.assignments.assign(npc.id, key);
+                                 if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.5 });
+                                 this.openModal(npc, allowPurge, onPurgeConfirm, state); // Refresh
+                             } else {
+                                 console.error("Game assignments module not found");
+                                 // Fallback for legacy
+                                 if (game && game.mechanics && game.mechanics.assignNPCToSector) {
+                                     game.mechanics.assignNPCToSector(npc, key);
+                                     this.openModal(npc, allowPurge, onPurgeConfirm, state);
+                                 }
+                             }
+                        });
+                    }
+                    btnGroup.append(btn);
                 });
-
-                const bloodValidation = this.ui.game.actions.validateBloodTest();
-                if (!bloodValidation.allowed) {
-                    bloodBtn.addClass('opacity-50 grayscale cursor-not-allowed').prop('disabled', true);
-                    bloodBtn.attr('title', bloodValidation.reason);
-                }
-
-                if (State.generator.bloodTestCountdown > 0) {
-                    bloodBtn.html(`<i class="fa-solid fa-spinner fa-spin mr-2"></i><span>PROCESANDO... (${State.generator.bloodTestCountdown} TUR)</span>`);
-                    bloodBtn.prop('disabled', true);
-                }
-
-                bloodBtn.on('click', () => {
-                    this.ui.game.actions.startBloodTest(npc);
-                    this.renderModalStats(npc, allowPurge, state); // Refresh UI
-                });
-
-                testsGrid.append(bloodBtn);
+                
+                assignContainer.append(btnGroup);
+                testsGrid.append(assignContainer);
             }
         }
     }

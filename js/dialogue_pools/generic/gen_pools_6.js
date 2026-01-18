@@ -26,7 +26,8 @@ export const gen_pools_6 = {
                 id: 'ghn_n2b',
                 text: "\"Huelo... vida. Fuera todo está seco. Muerto. Aquí dentro hay jugo.\"",
                 options: [
-                    { id: 'ghn_o2b', label: 'Qué asco', next: 'ghn_n3b' }
+                    { id: 'ghn_o2b', label: 'Qué asco', next: 'ghn_n3b' },
+                    { id: 'ghn_o2r', label: '¿Qué viste fuera?', next: null, resultText: "*Olfatea.* \"Cuerpos secos. Drenados. Cerca de la salida Norte.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Cuerpos drenados hallados en la Salida Norte.') }
                 ]
             },
             'ghn_n3a': {
@@ -72,7 +73,8 @@ export const gen_pools_6 = {
                 id: 'gcl_n2a',
                 text: "\"No puedo calmarme hasta que esté limpio. ¿Tenéis duchas de descontaminación? ¿Ácido?\"",
                 options: [
-                    { id: 'gcl_o2a', label: 'Tenemos agua', next: 'gcl_n3a' }
+                    { id: 'gcl_o2a', label: 'Tenemos agua', next: 'gcl_n3a' },
+                    { id: 'gcl_o2l', label: '¿Tienes jabón?', next: null, resultText: "*Saca una pastilla negra.* \"Lo hago yo. Con ceniza y grasa.\"", onclick: (g) => act.giveLoreItem(g, 'item_soap_bar', 'Pastilla de Jabón Industrial') }
                 ]
             },
             'gcl_n2b': {
@@ -125,7 +127,8 @@ export const gen_pools_6 = {
                 id: 'gfg_n2a',
                 text: "\"Creo que... era Jaren. O tal vez Soren. Se me ha olvidado. La niebla se lleva los nombres.\"",
                 options: [
-                    { id: 'gfg_o2a', label: 'Amnesia', next: 'gfg_n3a' }
+                    { id: 'gfg_o2a', label: 'Amnesia', next: 'gfg_n3a' },
+                    { id: 'gfg_o2r', label: '¿Qué nombres?', next: null, resultText: "*Se toca la frente.* \"Primero olvidas tu nombre. Luego tu cara. Luego... eres de ellos.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: La niebla borra la identidad antes de mutar el cuerpo.') }
                 ]
             },
             'gfg_n2b': {
@@ -178,7 +181,8 @@ export const gen_pools_6 = {
                 id: 'gfv_n2a',
                 text: "\"Será que he caminado rápido. Llevo prisa. Solo necesito agua y un sitio fresco.\"",
                 options: [
-                    { id: 'gfv_o2a', label: 'Parece fiebre', next: 'gfv_n3a' }
+                    { id: 'gfv_o2a', label: 'Parece fiebre', next: 'gfv_n3a' },
+                    { id: 'gfv_o2l', label: '¿Bebiste agua?', next: null, resultText: "*Te enseña su cantimplora.* \"Del charco. Sabía rara.\"", onclick: (g) => act.giveLoreItem(g, 'item_tainted_water', 'Cantimplora con Agua Turbia') }
                 ]
             },
             'gfv_n2b': {
@@ -238,7 +242,8 @@ export const gen_pools_6 = {
                 id: 'geu_n2b',
                 text: "\"¡Mejor que bien! Me siento... evolucionado. Como si me hubiera quitado un peso de encima.\"",
                 options: [
-                    { id: 'geu_o2b', label: '¿Qué peso?', next: 'geu_n3b' }
+                    { id: 'geu_o2b', label: '¿Qué peso?', next: 'geu_n3b' },
+                    { id: 'geu_o2r', label: '¿Evolucionado?', next: null, resultText: "*Ríe.* \"Es el siguiente paso. La carne se hace luz.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Algunos infectados reportan euforia antes de la transformación.') }
                 ]
             },
             'geu_n3a': {

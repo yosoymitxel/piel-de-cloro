@@ -175,7 +175,19 @@ export class GameEventManager {
     }
 
     navigateToMeditation() {
-        this.switchScreen(CONSTANTS.SCREENS.MEDITATION);
+        this.switchScreen(CONSTANTS.SCREENS.MEDITATION, {
+            renderFn: () => {
+                if (this.ui.renderMeditationRoom) this.ui.renderMeditationRoom(State);
+            }
+        });
+    }
+
+    navigateToLab() {
+        this.switchScreen(CONSTANTS.SCREENS.LAB, {
+            renderFn: () => {
+                if (this.ui.renderLab) this.ui.renderLab(State);
+            }
+        });
     }
 
     navigateToFuelRoom() {
@@ -223,13 +235,25 @@ export class GameEventManager {
     }
 
     navigateToRoomByKey(key) {
-        const config = CONSTANTS.ROOM_CONFIG[key];
-        if (!config) return;
+        // Wrapper for external calls (e.g. from UIManager)
+        const navMap = {
+            game: this.navigateToGuard.bind(this),
+            room: this.navigateToRoom.bind(this),
+            security: this.navigateToRoom.bind(this), // Security maps to Room (Surveillance)
+            shelter: this.navigateToShelter.bind(this),
+            generator: this.navigateToGenerator.bind(this),
+            supplies: this.navigateToSuppliesHub.bind(this),
+            'fuel-room': this.navigateToFuelRoom.bind(this),
+            meditation: this.navigateToMeditation.bind(this),
+            morgue: this.navigateToMorgue.bind(this),
+            database: () => this.ui.showScreen(CONSTANTS.SCREENS.DATABASE),
+            lab: this.navigateToLab.bind(this)
+        };
 
-        if (config.method && typeof this[config.method] === 'function') {
-            this[config.method]();
-        } else if (config.screen) {
-            this.ui.showScreen(config.screen);
+        if (navMap[key]) {
+            navMap[key]();
+        } else {
+            console.warn(`[EVENT] No navigation handler for key: ${key}`);
         }
     }
 
@@ -425,16 +449,21 @@ export class GameEventManager {
             const room = $(e.currentTarget).data('room');
             this.audio.playSFXByKey('ui_button_click', { volume: 0.5, overlap: true });
 
-            switch (room) {
-                case 'game': this.navigateToGuard(); break;
-                case 'room': this.navigateToRoom(); break;
-                case 'shelter': this.navigateToShelter(); break;
-                case 'generator': this.navigateToGenerator(); break;
-                case 'supplies': this.navigateToSuppliesHub(); break;
-                case 'fuel-room': this.navigateToFuelRoom(); break;
-                case 'meditation': this.navigateToMeditation(); break;
-                case 'morgue': this.navigateToMorgue(); break;
-                case 'database': this.ui.showScreen(CONSTANTS.SCREENS.DATABASE); break;
+            const navMap = {
+                game: this.navigateToGuard.bind(this),
+                room: this.navigateToRoom.bind(this),
+                shelter: this.navigateToShelter.bind(this),
+                generator: this.navigateToGenerator.bind(this),
+                supplies: this.navigateToSuppliesHub.bind(this),
+                'fuel-room': this.navigateToFuelRoom.bind(this),
+                meditation: this.navigateToMeditation.bind(this),
+                morgue: this.navigateToMorgue.bind(this),
+                database: () => this.ui.showScreen(CONSTANTS.SCREENS.DATABASE),
+                lab: this.navigateToLab.bind(this)
+            };
+
+            if (navMap[room]) {
+                navMap[room]();
             }
         });
 

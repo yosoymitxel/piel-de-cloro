@@ -13,6 +13,7 @@ import { parseDialogueMarkup, escapeHtml } from './markup.js';
 import { StatComponent } from './components/StatComponent.js';
 import { GenLoadComponent, GenBatteryComponent, GenStationComponent } from './components/EnergyComponents.js';
 import { UIGlitchComponent } from './components/UIGlitchComponent.js';
+import { TutorialManager } from './TutorialManager.js';
 
 export class UIManager {
     constructor(audio = null, customModules = {}) {
@@ -36,7 +37,8 @@ export class UIManager {
             expedition: $('#screen-expedition'),
             meditation: $('#screen-meditation'),
             'supplies-hub': $('#screen-supplies-hub'),
-            'fuel-room': $('#screen-fuel-room')
+            'fuel-room': $('#screen-fuel-room'),
+            'lab': $('#screen-lab')
         };
         this.elements = {
             paranoia: $('#paranoia-level'),
@@ -93,6 +95,7 @@ export class UIManager {
             modal: $('#modal-npc'),
             modalName: $('#modal-npc-name'),
             modalTrait: $('#modal-npc-trait'),
+            modalOccupation: $('#modal-npc-occupation'),
             modalStatus: $('#modal-npc-status'),
             modalStats: $('#modal-npc-stats-content'),
             modalLog: $('#modal-npc-log'),
@@ -228,6 +231,7 @@ export class UIManager {
         this.modalManager = customModules.modalManager || new ModalManager(this, audio);
         this.generatorManager = customModules.generatorManager || new GeneratorManager(this, audio, this.game);
         this.statsManager = customModules.statsManager || new StatsManager();
+        this.tutorialManager = new TutorialManager(this); // Initialize TutorialManager
         this.toolsRenderer = new ToolsRenderer({
             npcDisplay: this.elements.npcDisplay,
             gameScreen: this.screens.game
@@ -249,6 +253,8 @@ export class UIManager {
         this.initUIScaling();
         this.initConsoleUpdates();
         this.initLogTabs();
+        
+        if (this.tutorialManager) this.tutorialManager.init();
 
         // Populate version labels
         this.updateVersionLabels();
@@ -285,20 +291,24 @@ export class UIManager {
         // Efecto de Glitch al hacer click en cualquier parte de la pantalla (CRT feedback)
         $(document).on('mousedown', () => {
             const monitor = this.elements.crtMonitor;
-            monitor.addClass('glitch-click');
-            setTimeout(() => {
-                monitor.removeClass('glitch-click');
-            }, 100);
+            if (monitor && monitor.length) {
+                monitor.addClass('glitch-click');
+                setTimeout(() => {
+                    monitor.removeClass('glitch-click');
+                }, 100);
+            }
         });
 
         // Simulación de ruido estático ocasional
         setInterval(() => {
             if (Math.random() > 0.95) {
                 const monitor = this.elements.crtMonitor;
-                monitor.addClass('glitch-click');
-                setTimeout(() => {
-                    monitor.removeClass('glitch-click');
-                }, 200);
+                if (monitor && monitor.length) {
+                    monitor.addClass('glitch-click');
+                    setTimeout(() => {
+                        monitor.removeClass('glitch-click');
+                    }, 200);
+                }
             }
         }, 5000);
 
@@ -981,6 +991,16 @@ export class UIManager {
             phase = 'phase-dusk'; // 70% - 90%
         } else if (progress < 0.2) {
             phase = 'phase-dawn'; // Start of day
+        }
+
+        // Detect Phase Change
+        if (this.currentPhase !== phase) {
+            this.currentPhase = phase;
+            if (typeof document !== 'undefined') {
+                document.dispatchEvent(new CustomEvent('game-phase-changed', { 
+                    detail: { state: State, phase: phase } 
+                }));
+            }
         }
 
         // Apply to Body
@@ -2263,7 +2283,8 @@ export class UIManager {
             { id: 'security', label: 'SEGURIDAD', icon: 'fa-shield-halved', color: 'text-terminal-green', border: 'border-terminal-green' },
             { id: 'generator', label: 'GENERADOR', icon: 'fa-bolt', color: 'text-terminal-green', border: 'border-terminal-green' },
             { id: 'supplies', label: 'SUMINISTROS', icon: 'fa-box', color: 'text-amber-400', border: 'border-amber-400' },
-            { id: 'fuel', label: 'COMBUSTIBLE', icon: 'fa-gas-pump', color: 'text-rose-400', border: 'border-rose-400' }
+            { id: 'fuel', label: 'COMBUSTIBLE', icon: 'fa-gas-pump', color: 'text-rose-400', border: 'border-rose-400' },
+            { id: 'lab', label: 'LABORATORIO', icon: 'fa-flask', color: 'text-cyan-400', border: 'border-cyan-400' }
         ];
 
         let sectorsHtml = '';
@@ -2912,44 +2933,51 @@ export class UIManager {
     }
 
     renderLog(state) {
+        if (!state.logManager) return;
+        
         const container = this.elements.logContainer;
         const rumorsContainer = this.elements.rumorsContainer;
+        
+        if (!container) return;
+
         container.empty();
-        rumorsContainer.empty();
+        if (rumorsContainer) rumorsContainer.empty();
 
         // Al abrir la bitácora, quitamos la animación de notificación
         this.setNavItemStatus('btn-open-log', null);
 
-        if (!state.gameLog || state.gameLog.length === 0) {
+        const logs = state.logManager.getLogs('all');
+        const rumors = state.logManager.getLogs('rumor');
+
+        if (!logs || logs.length === 0) {
             container.append($('<div>', { class: 'text-gray-500 italic text-center p-4', text: 'Sin registros disponibles.' }));
-            rumorsContainer.append($('<div>', { class: 'text-gray-500 italic text-center p-4', text: 'Sin rumores registrados.' }));
-            return;
-        }
-
-        const events = state.gameLog.filter(e => e.type !== 'rumor');
-        const rumors = state.gameLog.filter(e => e.type === 'rumor');
-
-        // Render Events
-        if (events.length === 0) {
-            container.append($('<div>', { class: 'text-gray-500 italic text-center p-4', text: 'No hay eventos registrados.' }));
         } else {
-            events.forEach(entry => {
-                container.append(this._createLogEntryHtml(entry));
-            });
+             // Render Events (excluding rumors if they are separate in getLogs('all') - wait, LogManager.addEntry puts everything in gameLog unless filtered. 
+             // LogManager.getLogs('all') returns state.gameLog which includes everything. 
+             // We want to filter out rumors from the main view if they have their own tab.
+             const events = logs.filter(e => e.type !== 'rumor');
+             
+             if (events.length === 0) {
+                 container.append($('<div>', { class: 'text-gray-500 italic text-center p-4', text: 'No hay eventos registrados.' }));
+             } else {
+                 events.forEach(entry => {
+                    container.append(this._createLogEntryHtml(entry));
+                 });
+             }
         }
 
-        // Render Rumors
-        if (rumors.length === 0) {
-            rumorsContainer.append($('<div>', { class: 'text-gray-500 italic text-center p-4', text: 'No se han escuchado rumores aún.' }));
-        } else {
-            rumors.forEach(entry => {
-                rumorsContainer.append(this._createLogEntryHtml(entry));
-            });
+        if (rumorsContainer) {
+            if (!rumors || rumors.length === 0) {
+                rumorsContainer.append($('<div>', { class: 'text-gray-500 italic text-center p-4', text: 'No se han escuchado rumores aún.' }));
+            } else {
+                rumors.forEach(entry => {
+                    rumorsContainer.append(this._createLogEntryHtml(entry));
+                });
+            }
+            rumorsContainer.scrollTop(0);
         }
 
-        // Auto-scroll al final
-        container.scrollTop(container[0].scrollHeight);
-        rumorsContainer.scrollTop(rumorsContainer[0].scrollHeight);
+        container.scrollTop(0);
     }
 
     _createLogEntryHtml(entry) {
@@ -2973,7 +3001,7 @@ export class UIManager {
             icon = iconMap[entry.type] || 'fa-pen';
         }
 
-        const isNew = entry.isNew ? 'log-entry-new' : '';
+        const isNew = entry.isNew ? 'log-entry-new log-entry-flash' : '';
         if (entry.isNew) delete entry.isNew;
 
         return `
@@ -3006,8 +3034,138 @@ export class UIManager {
         });
     }
 
+    renderMeditationRoom(state) {
+        // Update components based on current state
+        const pLevel = state.paranoia || 0;
+        const sLevel = state.sanity || 100;
+        
+        // Update visual indicators in the room header
+        $('#screen-meditation .comp-paranoia').text(`PARANOIA: ${Math.round(pLevel)}%`);
+        $('#screen-meditation .comp-sanity').text(`CORDURA: ${Math.round(sLevel)}%`);
+
+        // If we want real-time updates of the HUD as well, we ensure it's called
+        // This method is called by GameEventManager on navigation, but also on button clicks if we wire it up
+        this.updateHUD(); 
+    }
+
     renderGeneratorRoom() {
         this.generatorManager.renderGeneratorRoom(State);
+    }
+
+    renderLab(state) {
+        // Render Guard Panel (Worker)
+        this.renderSectorPanel('#lab-guard-panel', 'lab', state, 'INVESTIGADOR JEFE');
+        
+        // Update Status
+        const isGenOn = state.generator && state.generator.isOn;
+        const statusText = $('#lab-status-text');
+        
+        if (statusText.length) {
+            if (isGenOn) {
+                statusText.text('OPERATIVO').removeClass('text-alert').addClass('text-blue-400');
+            } else {
+                statusText.text('SIN ENERGÍA').removeClass('text-blue-400').addClass('text-alert animate-pulse');
+            }
+        }
+
+        // Render Analysis Console (Definitive Test)
+        const consoleContainer = $('#lab-analysis-console');
+        if (consoleContainer.length) {
+            consoleContainer.empty();
+
+            if (!isGenOn) {
+                consoleContainer.html(`
+                    <div class="text-alert font-mono text-center p-4 border border-alert/20 bg-alert/5">
+                        <i class="fa-solid fa-bolt-slash text-2xl mb-2"></i>
+                        <div class="text-sm font-bold">SISTEMA SIN ENERGÍA</div>
+                        <div class="text-[10px] opacity-70">Requiere Generador Activo</div>
+                    </div>
+                `);
+                return;
+            }
+
+            // Dropdown for subject selection
+            const admitted = state.admittedNPCs || [];
+            // Filter out those who are already dead or gone (should be handled by admitted list usually)
+            // Also maybe filter out those already tested?
+            
+            let optionsHtml = '<option value="">-- SELECCIONAR SUJETO --</option>';
+            admitted.forEach(npc => {
+                const isTested = npc.labAnalysisComplete;
+                optionsHtml += `<option value="${npc.id}" ${isTested ? 'disabled' : ''}>
+                    ${npc.name} ${isTested ? '[ANALIZADO]' : ''}
+                </option>`;
+            });
+
+            const html = `
+                <div class="flex flex-col gap-4 w-full">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i class="fa-solid fa-vial-circle-check text-blue-400"></i>
+                        <span class="text-xs font-bold text-blue-200 uppercase tracking-widest">PROTOCOLO DE ANÁLISIS DEFINITIVO</span>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <select id="lab-subject-select" class="flex-1 bg-black border border-blue-500/30 text-blue-200 text-xs p-2 focus:border-blue-400 outline-none font-mono">
+                            ${optionsHtml}
+                        </select>
+                        <button id="btn-lab-analyze" class="horror-btn border-blue-500/50 hover:bg-blue-500/20 text-blue-300 text-xs px-4 py-2 uppercase font-bold tracking-wider disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-microscope mr-1"></i> ANALIZAR
+                        </button>
+                    </div>
+
+                    <div id="lab-analysis-result" class="min-h-[80px] border border-blue-900/30 bg-black/40 p-3 flex items-center justify-center">
+                        <span class="text-[10px] text-blue-500/50 font-mono animate-pulse">ESPERANDO MUESTRA...</span>
+                    </div>
+
+                    <div class="text-[9px] text-gray-500 font-mono mt-1 border-t border-white/5 pt-2 flex justify-between">
+                        <span>COSTE: 15% ENERGÍA</span>
+                        <span>FIABILIDAD: 100%</span>
+                    </div>
+                </div>
+            `;
+
+            consoleContainer.html(html);
+
+            // Bind Events
+            $('#btn-lab-analyze').off('click').on('click', () => {
+                const subjectId = $('#lab-subject-select').val();
+                if (!subjectId) return;
+
+                const npc = admitted.find(n => n.id === subjectId);
+                if (npc) {
+                    // Call mechanics
+                    const result = this.game.mechanics.performLabAnalysis(npc.id);
+                    
+                    if (result.success) {
+                        if (this.audio) this.audio.playSFXByKey('ui_success', { volume: 0.6 });
+                        
+                        // Update result display
+                        const resultContainer = $('#lab-analysis-result');
+                        const resultColor = result.isInfected ? 'text-alert' : 'text-green-400';
+                        const icon = result.isInfected ? 'fa-biohazard' : 'fa-check-circle';
+                        
+                        resultContainer.html(`
+                            <div class="flex flex-col items-center animate__animated animate__fadeIn">
+                                <i class="fa-solid ${icon} ${resultColor} text-2xl mb-1"></i>
+                                <span class="${resultColor} font-bold text-sm tracking-widest text-center">${result.message}</span>
+                                <span class="text-[9px] text-gray-500 font-mono mt-1">ANÁLISIS COMPLETADO // REGISTRO ACTUALIZADO</span>
+                            </div>
+                        `);
+
+                        // Refresh dropdown (disable current)
+                        $(`#lab-subject-select option[value="${npc.id}"]`).prop('disabled', true).text(`${npc.name} [ANALIZADO]`);
+                        $(`#lab-subject-select`).val(''); // Reset selection
+                        
+                        // Force sidebar update to reflect energy change
+                        this.updateSidebarStats(state);
+                        
+                    } else {
+                        if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
+                        this.showFeedback(result.message, 'red');
+                    }
+                }
+            });
+        }
     }
 
     // Modal management delegators
@@ -3357,7 +3515,7 @@ export class UIManager {
             shelter: { name: 'Refugio', icon: 'fa-house' },
             supplies: { name: 'Suministros', icon: 'fa-box' },
             generator: { name: 'Generador', icon: 'fa-bolt' },
-            morgue: { name: 'Perímetro', icon: 'fa-clipboard-list' },
+            morgue: { name: 'Morgue', icon: 'fa-skull' },
             database: { name: 'Archivos', icon: 'fa-database' }
         };
 
@@ -3564,7 +3722,7 @@ export class UIManager {
             'security': 'security',
             'storage': 'supplies',
             'fuel': 'fuel',
-            'lab': 'generator'
+            'lab': 'lab'
         };
         // Logic to determine ID for status/navigation
         const roomId = roomConfig.id || typeKey;
@@ -3602,7 +3760,7 @@ export class UIManager {
                  data-y="${room.coords.y}"
                  style="grid-column: ${gridCol}; grid-row: ${gridRow}; padding: 12px; width: 100%; height: 100%;">
                 
-                <div class="map-node-header flex justify-between items-start w-full relative z-20 sticky top-0 bg-inherit pb-2 border-b border-white/10 mb-2">
+                <div class="map-node-header flex justify-between items-start w-full relative z-20 top-0 bg-inherit pb-2 border-b border-white/10 mb-2">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid ${roomConfig.icon} text-lg opacity-80"></i>
                         <span class="map-node-title text-xs font-bold uppercase tracking-wider">${roomConfig.displayName}</span>
@@ -3656,11 +3814,14 @@ export class UIManager {
                     indicators.push({ label: 'PERSONAL', value: countAssigned('fuel'), color: 'text-gray-400' });
                     break;
                 case 'generator': // Generador
-                case 'lab':
                     const power = (State.generator && State.generator.power !== undefined) ? State.generator.power : 0;
                     const isOn = (State.generator && State.generator.isOn !== undefined) ? State.generator.isOn : false;
                     indicators.push({ label: 'ESTADO', value: isOn ? 'ONLINE' : 'OFFLINE', color: isOn ? 'text-green-400' : 'text-alert' });
                     indicators.push({ label: 'POTENCIA', value: `${Math.round(power)}%`, color: 'text-blue-300' });
+                    break;
+                case 'lab':
+                    indicators.push({ label: 'ESTADO', value: 'OPERATIVO', color: 'text-cyan-400' });
+                    indicators.push({ label: 'PERSONAL', value: countAssigned('lab'), color: 'text-gray-400' });
                     break;
                 case 'security': // Seguridad
                     const activeAlarms = State.securityItems ? State.securityItems.filter(i => i.type === 'alarma' && i.active).length : 0;
@@ -3679,14 +3840,21 @@ export class UIManager {
     }
 
     handleRoomNavigation(roomType) {
+        // Centralized Navigation Mapping
+        // Check CONSTANTS.ROOM_CONFIG for method mapping or use direct key
+        
+        let navKey = roomType;
+
+        // Legacy/Special mappings if not in Constants directly matching nav keys
         const typeToNav = {
             'storage': 'supplies',
             'medical': 'shelter',
-            'game': 'game',
-            'security': 'game', // Security room is the main hub for now
-            'lab': 'database'  // Temporary mapping
+            'fuel': 'fuel-room' // Map 'fuel' (room type) to 'fuel-room' (nav key)
         };
-        const navKey = typeToNav[roomType] || roomType;
+
+        if (typeToNav[roomType]) {
+            navKey = typeToNav[roomType];
+        }
 
         if (this.game.events && this.game.events.navigateToRoomByKey) {
             this.game.events.navigateToRoomByKey(navKey);

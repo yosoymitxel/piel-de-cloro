@@ -59,6 +59,18 @@ export const DialogueActions = {
             State.updateFuel(amount);
             State.addLogEntry('success', `Obtenido: ${amount} combustible`, { icon: 'fa-gas-pump' });
         }
+    },
+    giveLoreItem: (game, itemId, label = "Nota Recuperada") => {
+        if (typeof State !== 'undefined') {
+            State.addLogEntry('lore', `OBJETO: Has obtenido "${label}".`, { icon: 'fa-file-lines' });
+            // Unlock lore entry or ending based on itemId if needed
+            if (itemId) State.setFlag(`has_item_${itemId}`, true);
+        }
+    },
+    unlockRumor: (game, text) => {
+        if (typeof State !== 'undefined') {
+            State.addLogEntry('rumor', text);
+        }
     }
 };
 

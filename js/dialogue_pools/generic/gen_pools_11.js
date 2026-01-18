@@ -26,7 +26,8 @@ export const gen_pools_11 = {
                 id: 'ggo_n2b',
                 text: "*Chasquea la lengua con decepción.* \"Paladares sin refinar. No sabéis apreciar la alta cocina de la nueva era. Os limitáis a las latas.\"",
                 options: [
-                    { id: 'ggo_o2b', label: 'Eres un caníbal', next: 'ggo_n3b' }
+                    { id: 'ggo_o2b', label: 'Eres un caníbal', next: 'ggo_n3b' },
+                    { id: 'ggo_o2r', label: '¿Dónde consigues... carne?', next: null, resultText: "*Señala arriba.* \"Los conductos de ventilación son una despensa excelente.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Cadáveres almacenados en conductos de ventilación.') }
                 ]
             },
             'ggo_n3a': {
@@ -63,7 +64,8 @@ export const gen_pools_11 = {
                 id: 'gor_n2a',
                 text: "\"Liberé mi mente. Con un taladro y sal. El dolor afila la percepción. Ahora veo los colores del sonido y escucho el sabor del miedo.\"",
                 options: [
-                    { id: 'gor_o2a', label: 'Estás completamente loco', next: 'gor_n3b' }
+                    { id: 'gor_o2a', label: 'Estás completamente loco', next: 'gor_n3b' },
+                    { id: 'gor_o2l', label: '¿Con qué taladro?', next: null, resultText: "*Saca una herramienta manual cubierta de costras.* \"Gira despacio. Para saborearlo.\"", onclick: (g) => act.giveLoreItem(g, 'item_bone_drill', 'Taladro Manual con Restos') }
                 ]
             },
             'gor_n2b': {

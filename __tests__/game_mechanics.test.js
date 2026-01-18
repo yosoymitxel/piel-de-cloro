@@ -61,7 +61,8 @@ describe('Game Mechanics Manager', () => {
             expect(State.generator.isOn).toBe(false);
             expect(State.securityItems[0].secured).toBe(false);
             expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("FALLO CRÍTICO"), "red", expect.any(Number));
-            expect(State.gameLog[State.gameLog.length - 1].text).toContain('FALLO CRÍTICO');
+            // LogManager uses unshift, so the newest entry is at index 0
+            expect(State.gameLog[0].text).toContain('FALLO CRÍTICO');
         });
 
         test('toggleGenerator turns it on and sets mode to save', () => {
@@ -174,7 +175,8 @@ describe('Game Mechanics Manager', () => {
 
             expect(State.admittedNPCs.length).toBe(1);
             expect(State.admittedNPCs[0].history[0].text).toContain('Intrusión detectada vía puerta');
-            expect(State.gameLog[State.gameLog.length - 1].text).toContain('ALERTA: Intrusión detectada vía puerta');
+            // LogManager uses unshift, so the newest log is at index 0
+            expect(State.gameLog[0].text).toContain('ALERTA: Intrusión detectada vía puerta');
         });
     });
 

@@ -20,6 +20,7 @@ export const gen_pools_3 = {
                 text: "*Se frota el cuello.* \"A veces. Es como si algo tirara del músculo. Un calambre constante.\"",
                 options: [
                     { id: 'gtw_o2a', label: 'Examinar cuello', next: 'gtw_n3a' },
+                    { id: 'gtw_o2l', label: '¿Encontraste esto?', next: null, resultText: "*Te da un vial pequeño.* \"Se le cayó a un médico... antes de que le diera el espasmo.\"", onclick: (g) => act.giveLoreItem(g, 'item_sedative', 'Vial de Sedante') },
                     { id: 'gtw_o2b', label: 'Proceder', next: 'gtw_n3b' }
                 ]
             },
@@ -78,6 +79,7 @@ export const gen_pools_3 = {
                 id: 'ghu_n2b',
                 text: "*Se encoge de hombros.* \"No lo sé. La oí en los túneles. Se te pega.\"",
                 options: [
+                    { id: 'ghu_o2r', label: '¿Dónde la oíste?', next: null, resultText: "*Cierra los ojos.* \"En los niveles inferiores. Donde las máquinas respiran.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Melodía que induce trance, escuchada en túneles profundos.') },
                     { id: 'ghu_o2b', label: 'Proceder', next: 'ghu_n3b' }
                 ]
             },
@@ -124,7 +126,8 @@ export const gen_pools_3 = {
                 id: 'gsr_n2a',
                 text: "*Se arrodilla.* \"Una llave. O una moneda. Algo brillante. Brillaba en la oscuridad.\"",
                 options: [
-                    { id: 'gsr_o2a', label: 'Levántate', next: 'gsr_n3a' }
+                    { id: 'gsr_o2a', label: 'Levántate', next: 'gsr_n3a' },
+                    { id: 'gsr_o2l', label: '¿Era esto?', next: null, resultText: "*Sus ojos se iluminan.* \"¡Sí! ¡Mi tesoro!\"", onclick: (g) => act.giveLoreItem(g, 'item_shiny_coin', 'Moneda Antigua (Indescifrable)') }
                 ]
             },
             'gsr_n2b': {
@@ -177,7 +180,8 @@ export const gen_pools_3 = {
                 id: 'gmp_n2a',
                 text: "*Son líneas caóticas que imitan tuberías.* \"Aquí es donde estamos. Y aquí... aquí es donde se cortó la luz.\"",
                 options: [
-                    { id: 'gmp_o2a', label: 'Parece confuso', next: 'gmp_n3a' }
+                    { id: 'gmp_o2a', label: 'Parece confuso', next: 'gmp_n3a' },
+                    { id: 'gmp_o2l', label: 'Déjame copiar ese mapa', next: null, resultText: "*Extiende el brazo.* \"Cópialo rápido. La tinta se está borrando.\"", onclick: (g) => act.giveLoreItem(g, 'item_ink_map', 'Boceto de Mapa de Túneles') }
                 ]
             },
             'gmp_n2b': {
@@ -234,7 +238,10 @@ export const gen_pools_3 = {
             'gwt_n2b': {
                 id: 'gwt_n2b',
                 text: "\"Protocolo, protocolo... siempre lo mismo. Mientras tanto nosotros nos pudrimos fuera.\"",
-                options: [{ id: 'gwt_o2b', label: 'Proceder', next: 'gwt_n3b' }]
+                options: [
+                    { id: 'gwt_o2r', label: '¿Qué pasa fuera?', next: null, resultText: "*Escupe al suelo.* \"Cosas que cazan en la oscuridad. Y vosotros aquí calentitos.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Aumento de actividad hostil en perímetros exteriores.') },
+                    { id: 'gwt_o2b', label: 'Proceder', next: 'gwt_n3b' }
+                ]
             },
             'gwt_n3a': {
                 id: 'gwt_n3a',

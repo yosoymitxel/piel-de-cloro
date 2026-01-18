@@ -70,6 +70,13 @@ export class AssignmentManager {
             this.updateUI(sectorId);
         }
 
+        // Notify TutorialManager / Global Listeners
+        if (typeof document !== 'undefined') {
+            document.dispatchEvent(new CustomEvent('assignment-updated', { 
+                detail: { sector: sectorId, npc: npc } 
+            }));
+        }
+
         return true;
     }
 

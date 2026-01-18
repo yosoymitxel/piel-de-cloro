@@ -26,7 +26,8 @@ export const gen_pools_9 = {
                 id: 'gbre_n2b',
                 text: "\"Mis pequeños. Se mueven tanto... a veces rasgan un poco por dentro, pero es amor de madre.\"",
                 options: [
-                    { id: 'gbre_o2b', label: 'Qué asco', next: 'gbre_n3b' }
+                    { id: 'gbre_o2b', label: 'Qué asco', next: 'gbre_n3b' },
+                    { id: 'gbre_o2r', label: '¿Has visto a otros así?', next: null, resultText: "*Sonríe.* \"Hay un nido en la Morgue. Lo sentí latir al pasar.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Posible nido parasitario en la Morgue.') }
                 ]
             },
             'gbre_n3a': {
@@ -70,7 +71,8 @@ export const gen_pools_9 = {
                 id: 'gbu_n2b',
                 text: "\"No te pongas tenso. La carne tensa se pone dura. El estrés arruina el sabor.\"",
                 options: [
-                    { id: 'gbu_o2b', label: '¿Sabor?', next: 'gbu_n3b' }
+                    { id: 'gbu_o2b', label: '¿Sabor?', next: 'gbu_n3b' },
+                    { id: 'gbu_o2l', label: '¿Qué herramienta usas?', next: null, resultText: "*Te muestra una hoja mellada.* \"Vieja escuela. El óxido añade hierro a la dieta.\"", onclick: (g) => act.giveLoreItem(g, 'item_rusted_cleaver', 'Cuchillo de Carnicero Oxidado') }
                 ]
             },
             'gbu_n3a': {

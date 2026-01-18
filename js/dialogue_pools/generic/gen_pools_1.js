@@ -20,6 +20,7 @@ export const gen_pools_1 = {
                 text: "*La piel parece irritada, quizás es sarna o algo peor.* \"A veces siento que se mueve... pero debe ser el frío, ¿verdad?\" *Evita mirar la herida.*",
                 options: [
                     { id: 'gs_o2a', label: 'Inspeccionar más de cerca', next: 'gs_n3a' },
+                    { id: 'gs_o2r', label: '¿Qué sientes bajo la piel?', next: null, resultText: "*Se rasca furiosamente.* \"Gusanos de luz. Dicen que si te los sacas, puedes ver el futuro.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Secta de la "Visión Dérmica" cree en parásitos luminosos.') },
                     { id: 'gs_o2b', label: 'Retroceder asqueado', next: 'gs_n3b' }
                 ]
             },
@@ -98,6 +99,7 @@ export const gen_pools_1 = {
                 text: "*Se frota la cara, extendiendo una mancha grisácea.* \"¿Por qué me miras así? ¿Tengo algo en la cara?\"",
                 options: [
                     { id: 'gl_o3a', label: 'Estás infectado. Largo.', next: null, resultText: "*Se va cubriéndose la cara.* \"Solo necesito colirio...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                    { id: 'gl_o3r', label: 'He oído rumores sobre eso', next: null, resultText: "*Susurra.* \"No son rumores. El humo negro sale de las ventilaciones del Nivel 2.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Humo negro detectado en ventilación del Nivel 2.') },
                     { id: 'gl_o3b', label: 'Analizar secreción con UV', next: null, resultText: "*Se limpia la cara con la manga.* \"Espero que tengas algo para esto.\"", onclick: act.testUV, log: { text: 'Síntoma: Secreción ocular viscosa. Reacciona a la luz UV mostrando patrones sintéticos.', icon: 'fa-eye' } },
                     { id: 'gl_o3e', label: 'Anotado', next: 'gl_n4b' }
                 ]
@@ -144,7 +146,8 @@ export const gen_pools_1 = {
                 id: 'gw_n2b',
                 text: "*Cierra los ojos.* \"Nombres. Repiten nombres. Espero que no digan el mío... ni el tuyo.\"",
                 options: [
-                    { id: 'gw_o2c', label: 'Inquietante...', next: 'gw_n4b' }
+                    { id: 'gw_o2c', label: 'Inquietante...', next: 'gw_n4b' },
+                    { id: 'gw_o2l', label: '¿Qué es eso en tu mano?', next: null, resultText: "*Te da una cinta vieja.* \"La grabé... pero solo se oye estática y gritos.\"", onclick: (g) => act.giveLoreItem(g, 'item_blank_tape', 'Cinta de Audio con Estática') }
                 ]
             },
             'gw_n3a': {
@@ -191,6 +194,7 @@ export const gen_pools_1 = {
                 text: "*La ropa está manchada de moho, pero su piel también tiene un tono verdoso en el cuello.* \"Es difícil lavarse sin agua limpia...\"",
                 options: [
                     { id: 'gm_o2a', label: '¿Eso es piel o moho?', next: 'gm_n3a' },
+                    { id: 'gm_o2l', label: 'Tomar muestra de tejido', next: null, resultText: "*Te deja raspar un poco.* \"Cuidado... brilla en la oscuridad.\"", onclick: (g) => act.giveLoreItem(g, 'item_mold_sample', 'Muestra de Moho Iridiscente') },
                     { id: 'gm_o2b', label: 'Parece contagioso', next: 'gm_n3b' }
                 ]
             },
@@ -256,6 +260,7 @@ export const gen_pools_1 = {
                 text: "*Se toca un diente y este cae en su mano sin esfuerzo.* \"Oh no... otro más. Se me están cayendo solos.\"",
                 options: [
                     { id: 'gt_o3a', label: '¡Qué asco! Vete.', next: null, resultText: "*Se va llorando.* \"Mis dientes... mis bonitos dientes...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                    { id: 'gt_o3l', label: '¿Me das ese diente?', next: null, resultText: "*Te lo entrega.* \"Si te sirve... tengo más en casa.\"", onclick: (g) => act.giveLoreItem(g, 'item_rotten_tooth', 'Diente Necrótico') },
                     { id: 'gt_o3b', label: 'Examinar encías (Necrosis)', next: null, resultText: "*Guarda el diente en el bolsillo.* \"Dime que puedes arreglarme.\"", onclick: act.testUV, log: { text: 'Síntoma: Caída de dientes sin dolor ni sangrado. Las encías rechazan el hueso, indicando necrosis estructural.', icon: 'fa-tooth' } },
                     { id: 'gt_o3e', label: 'Abre la boca', next: 'gt_n4b' }
                 ]
@@ -297,6 +302,7 @@ export const gen_pools_1 = {
                 text: "*Abre la caja. Hay latas oxidadas pero selladas.* \"Encontré un viejo búnker. Me sobra esto. A cambio solo pido entrar.\"",
                 options: [
                     { id: 'gg_o2a', label: 'Aceptar donación (+2 Suministros)', next: 'gg_n3', onclick: act.giveSupplies },
+                    { id: 'gg_o2r', label: '¿De dónde sacaste esto?', next: null, resultText: "*Señala al mapa.* \"Hay un búnker en el Sector 7. La puerta estaba abierta.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Almacén de suministros abierto en Sector 7.') },
                     { id: 'gg_o2b', label: 'No confiamos en comida externa', next: 'gg_n_reject' }
                 ]
             },
@@ -358,6 +364,7 @@ export const gen_pools_1 = {
                 text: "*Niega con la cabeza.* \"No es estrés. Es el protocolo de pureza. Dicen que es necesario, pero... ¿por qué siento que me estoy vaciando?\"",
                 options: [
                     { id: 'gcm_o2c', label: 'Eso es paranoia', next: 'gcm_n_end' },
+                    { id: 'gcm_o2r', label: '¿Qué sabes del protocolo?', next: null, resultText: "*Baja la voz.* \"El cloro borra la memoria a corto plazo. Lo usan para controlar las revueltas.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Uso de cloro como agente amnésico para control de masas.') },
                     { id: 'gcm_o2d', label: 'Habla más sobre el protocolo', next: 'gcm_n_end' }
                 ]
             },
@@ -397,6 +404,7 @@ export const gen_pools_1 = {
                 text: "*Cierra los ojos.* \"Siento cómo murió el anterior ocupante de este sector. Y el anterior. Y el anterior. Todos los dolores, todos los placeres... en un solo río oscuro.\"",
                 options: [
                     { id: 'gtv_o2c', label: 'Deliras. Vete.', next: null, onclick: act.ignore, resultText: "*Abre los ojos, ahora con pupilas dilatadas.* \"Ella te recordará cuando llegue tu momento.\"", cssClass: 'horror-btn-dismiss' },
+                    { id: 'gtv_o2l', label: 'Toma una muestra de sangre', next: null, resultText: "*Extiende el brazo.* \"Tómala. Verás que no es sangre... es tinta viva.\"", onclick: (g) => act.giveLoreItem(g, 'item_ink_vial', 'Vial de Sangre Negra') },
                     { id: 'gtv_o2d', label: 'Verificar pupilas', next: null, onclick: act.testPupils, resultText: "*Las pupilas no reaccionan a la luz.* \"Todo se ve más claro en la oscuridad.\"" }
                 ]
             }
@@ -438,7 +446,8 @@ export const gen_pools_1 = {
                 id: 'gsa_n3',
                 text: "*Señala el techo.* \"Sus intestinos son los cables. Sus pulmones son los conductos de aire. Si lo desconectas... todo muere. Él mantiene vivo este lugar... y este lugar lo mantiene prisionero.\"",
                 options: [
-                    { id: 'gsa_o3a', label: 'Suficiente', next: 'gsa_n_end' }
+                    { id: 'gsa_o3a', label: 'Suficiente', next: 'gsa_n_end' },
+                    { id: 'gsa_o3r', label: '¿Quién era Kael?', next: null, resultText: "*Se santigua.* \"El arquitecto. Se fundió con el núcleo para salvarnos... o para vigilarnos.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Kael el Arquitecto vive dentro del sistema central.') }
                 ]
             },
             'gsa_n_end': {

@@ -20,6 +20,7 @@ export const gen_pools_2 = {
                 text: "*Asiente, poco convencido.* \"Sí... seguro. Pero a veces parece que la oscuridad se queda quieta cuando la luz vuelve.\"",
                 options: [
                     { id: 'gsh_o2a', label: 'Estás cansado', next: 'gsh_n3a' },
+                    { id: 'gsh_o2r', label: '¿Qué formas viste?', next: null, resultText: "*Dibuja en el aire.* \"Altas. Con dedos como agujas. Estaban en la ventilación del Nivel 2.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Avistamiento de sombras antropomorfas en ventilación Nivel 2.') },
                     { id: 'gsh_o2b', label: 'Ignorar', next: 'gsh_n3b' }
                 ]
             },
@@ -94,6 +95,7 @@ export const gen_pools_2 = {
                 text: "*Sus dientes castañean.* \"No... no estoy enfermo. Solo tengo frío.\"",
                 options: [
                     { id: 'gc_o3c', label: 'Pareces enfermo. Aléjate.', next: null, resultText: "*Se aleja castañeteando los dientes.* \"No estoy enfermo... es el hielo...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                    { id: 'gc_o3l', label: '¿Qué tienes ahí?', next: null, resultText: "*Saca una manta vieja.* \"Era de un guardia... murió congelado de pie.\"", onclick: (g) => act.giveLoreItem(g, 'item_thermal_blanket', 'Manta Térmica Raída') },
                     { id: 'gc_o3d', label: 'Verificar hipotermia', next: null, resultText: "*Intenta quedarse quieto.* \"Perdón... no puedo parar de temblar.\"", onclick: act.testThermo, log: { text: 'Síntoma: Temperatura corporal incompatible con la vida. La sangre parece haberse detenido o helado.', icon: 'fa-snowflake' } },
                     { id: 'gc_o3f', label: 'Quieto', next: 'gc_n4b' }
                 ]
@@ -124,6 +126,7 @@ export const gen_pools_2 = {
                 text: "*Saca un puñado de tornillos oxidados y un trozo de tubería.* \"Esto vale mucho. El metal es vida aquí abajo.\"",
                 options: [
                     { id: 'gh_o2a', label: 'Parece basura', next: 'gh_n3a' },
+                    { id: 'gh_o2l', label: 'Déjame ver esa tubería', next: null, resultText: "*Te la pasa.* \"Cobre puro. De los niveles fundacionales.\"", onclick: (g) => act.giveLoreItem(g, 'item_rusty_pipe', 'Tubería de Cobre Antigua') },
                     { id: 'gh_o2b', label: 'Aceptar soborno', next: 'gh_n3b' }
                 ]
             },
@@ -201,6 +204,7 @@ export const gen_pools_2 = {
                 text: "*Te mira esperando una señal.* \"¿Puedo pasar? ¿Pasar?\"",
                 options: [
                     { id: 'ge_o3c', label: 'No. No puedes pasar.', next: null, resultText: "*Se aleja.* \"Pasar... no pasar... no pasar...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                    { id: 'ge_o3r', label: '¿Qué escuchas?', next: null, resultText: "*Se inclina.* \"Voces... que no son mías. Pero salen de mi boca.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Voces en eco que repiten pensamientos ajenos.') },
                     { id: 'ge_o3d', label: 'Voy a procesar tu solicitud, espera.', next: null, resultText: "*Asiente al ritmo de un reloj invisible.* \"Procesando... procesando...\"", onclick: act.test, log: { text: 'Síntoma: Ecolalia y retraso en respuesta. Posiblemente procesando señales de una mente colmena.', icon: 'fa-comments' } },
                     { id: 'ge_o3f', label: 'Espera', next: 'ge_n4b' }
                 ]
@@ -245,6 +249,7 @@ export const gen_pools_2 = {
                 text: "*Niega con la cabeza.* \"No es estrés. Es instinto. El cuerpo sabe cuándo está en peligro.\"",
                 options: [
                     { id: 'gsl_o3a', label: 'Estás paranoico. Vete.', next: null, resultText: "*Se tambalea.* \"Dormiré... cuando esté muerto...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                    { id: 'gsl_o3l', label: '¿Tomas algo para dormir?', next: null, resultText: "*Te muestra un frasco.* \"Vacío... desde hace días.\"", onclick: (g) => act.giveLoreItem(g, 'item_stimulant_pills', 'Frasco de Estimulantes Vacío') },
                     { id: 'gsl_o3b', label: 'Tranquilo. Déjame hacer unas pruebas.', next: null, resultText: "*Abre mucho los ojos.* \"Hazlo rápido, antes de que me duerma de pie.\"", onclick: act.test },
                     { id: 'gsl_o3e', label: 'Rápido', next: 'gsl_n4b' }
                 ]

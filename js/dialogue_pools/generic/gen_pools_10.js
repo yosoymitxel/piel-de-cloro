@@ -26,7 +26,8 @@ export const gen_pools_10 = {
                 id: 'gho_n2b',
                 text: "\"¿Enfermo? No... estoy lleno. Lleno de vida. Me hacen sentir... usado. Útil.\"",
                 options: [
-                    { id: 'gho_o2b', label: 'Necesitas ayuda', next: 'gho_n3b' }
+                    { id: 'gho_o2b', label: 'Necesitas ayuda', next: 'gho_n3b' },
+                    { id: 'gho_o2l', label: '¿Qué tienes ahí?', next: null, resultText: "*Te da un cuaderno manchado.* \"Dibujos... de lo que me piden.\"", onclick: (g) => act.giveLoreItem(g, 'item_tainted_sketchbook', 'Cuaderno Manchado') }
                 ]
             },
             'gho_n3a': {
@@ -70,7 +71,8 @@ export const gen_pools_10 = {
                 id: 'gfl_n2b',
                 text: "\"Me preparo. Para la unión. La carne debe estar tierna, expuesta. Sin barreras.\"",
                 options: [
-                    { id: 'gfl_o2b', label: 'Estás demente', next: 'gfl_n3b' }
+                    { id: 'gfl_o2b', label: 'Estás demente', next: 'gfl_n3b' },
+                    { id: 'gfl_o2r', label: '¿Unión con qué?', next: null, resultText: "*Se estremece.* \"En las calderas... hacen la ceremonia del despellejamiento. Para ser uno con el vapor.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Ceremonias de despellejamiento en la zona de calderas.') }
                 ]
             },
             'gfl_n3a': {

@@ -42,9 +42,15 @@ describe('Hierarchical Log and Rumors Tab (Phase 3.4)', () => {
 
     test('renderLog should segregate events and rumors', () => {
         State.gameLog = [
-            { type: 'danger', text: 'Critical failure', cycle: 1, dayTime: 1 },
+            { type: 'danger', text: 'Critical failure', cycle: 1, dayTime: 1 }
+        ];
+        State.rumorLog = [
             { type: 'rumor', text: 'I heard something...', cycle: 1, dayTime: 1 }
         ];
+        // Ensure LogManager returns these
+        State.logManager = {
+            getLogs: (cat) => cat === 'rumor' ? State.rumorLog : State.gameLog
+        };
 
         ui.renderLog(State);
 

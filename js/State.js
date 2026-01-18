@@ -1,5 +1,6 @@
 import { CONSTANTS } from './Constants.js';
 import { Shelter, Room } from './ShelterModel.js';
+import { LogManager } from './LogManager.js';
 
 export const State = {
     paranoia: 0,
@@ -252,7 +253,8 @@ export const State = {
         supplies: { slots: 1, occupants: [] },
         fuel: { slots: 1, occupants: [] },
         infirmary: { slots: 1, occupants: [] },
-        kitchen: { slots: 1, occupants: [] }
+        kitchen: { slots: 1, occupants: [] },
+        lab: { slots: 1, occupants: [] }
     },
     // Deprecated: sectorAssignments (se eliminará tras migración)
 
@@ -319,7 +321,10 @@ export const State = {
         this.dialoguePoolsUsed = [];
         this.dialoguePoolsLastUsed = {};
         this.gameLog = [];
+        this.rumorLog = [];
+        this.loreLog = [];
         this.dialogueMemory = [];
+        this.logManager = new LogManager(this); // Initialize LogManager here
 
         // Initialize Shelters (Phase 4.1)
         const initialShelter = Shelter.createPlaceholder('3x3');
@@ -367,18 +372,10 @@ export const State = {
     },
 
     addLogEntry(type, text, meta = {}) {
-        this.gameLog.push({
-            cycle: this.cycle,
-            dayTime: this.dayTime,
-            type, // 'lore', 'system', 'note', 'evidence'
-            text,
-            timestamp: Date.now(),
-            meta,
-            isNew: true // Para animaciones en la UI
-        });
-        if (typeof document !== 'undefined') {
-            document.dispatchEvent(new CustomEvent('log-added', { detail: { type } }));
+        if (!this.logManager) {
+            this.logManager = new LogManager(this);
         }
+        this.logManager.addEntry(type, text, meta);
     },
 
     addSectorLog(sector, message, npcName = 'SISTEMA') {

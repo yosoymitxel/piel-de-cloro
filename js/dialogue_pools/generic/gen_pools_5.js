@@ -20,6 +20,7 @@ export const gen_pools_5 = {
                 text: "*La nota dice: \"NO ES MI VOZ. SI HABLO, ELLOS ME ENCUENTRAN\".*",
                 options: [
                     { id: 'gsi_o2a', label: '¿Quiénes?', next: 'gsi_n3a' },
+                    { id: 'gsi_o2l', label: 'Guardar nota', next: null, resultText: "*Te deja quedarte el papel.* \"(Asiente agradecido)\"", onclick: (g) => act.giveLoreItem(g, 'item_silent_note', 'Nota de "Los Silenciosos"') },
                     { id: 'gsi_o2b', label: 'Escribir respuesta', next: 'gsi_n3b' }
                 ]
             },
@@ -81,7 +82,8 @@ export const gen_pools_5 = {
                 id: 'gbr_n2b',
                 text: "\"Debería interesarte. Se extiende por la ventilación. Si no sabes qué buscar, ya estás muerto.\"",
                 options: [
-                    { id: 'gbr_o2c', label: 'Amenazar', next: 'gbr_n3b' }
+                    { id: 'gbr_o2c', label: 'Amenazar', next: 'gbr_n3b' },
+                    { id: 'gbr_o2r', label: 'Habla', next: null, resultText: "*Baja la voz.* \"El moho crece hacia el calor. Revisa los generadores auxiliares.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Moho negro atraído por fuentes de calor (Generadores).') }
                 ]
             },
             'gbr_n3a': {
@@ -135,7 +137,8 @@ export const gen_pools_5 = {
                 id: 'gj_n2b',
                 text: "*Se limpia una lágrima de risa (o tristeza).* \"De la ironía. Buscamos aire limpio bajo tierra. Es... *hilarante*.\"",
                 options: [
-                    { id: 'gj_o2c', label: 'No tiene gracia', next: 'gj_n3b' }
+                    { id: 'gj_o2c', label: 'No tiene gracia', next: 'gj_n3b' },
+                    { id: 'gj_o2l', label: '¿Qué es ese gas?', next: null, resultText: "*Saca un vial vacío.* \"Lo encontré en el Sector 9. Me hace olvidar.\"", onclick: (g) => act.giveLoreItem(g, 'item_laughing_gas', 'Vial de Gas de la Risa (Vacío)') }
                 ]
             },
             'gj_n3a': {
@@ -197,6 +200,7 @@ export const gen_pools_5 = {
                 text: "*Tose discretamente en su puño.* \"Negativo. La máscara aguantó... casi todo el tiempo.\"",
                 options: [
                     { id: 'gso_o3a', label: 'Mentira. Estás contaminado.', next: null, resultText: "*Aprieta los dientes.* \"Error táctico. Se arrepentirá de perder a un combatiente.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
+                    { id: 'gso_o3r', label: '¿Dónde cayeron?', next: null, resultText: "*Señala el mapa.* \"Perímetro 4. No vaya allí.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: El Perímetro 4 ha sido superado por una nube tóxica.') },
                     { id: 'gso_o3b', label: 'Verificar pulmones (Pulso)', next: null, resultText: "*Levanta la barbilla.* \"Proceda. Mis pulmones son de acero.\"", onclick: act.testPulse, log: { text: 'Lore: Hostiles gaseosos. La infección se mueve con el viento y vuelve a los aliados en contra.', icon: 'fa-mask' } },
                     { id: 'gso_o3e', label: 'Proceda', next: 'gso_n4b' }
                 ]
@@ -236,6 +240,7 @@ export const gen_pools_5 = {
                 text: "\"Es mi... mi salvación. Lo único que quedó limpio. No dejaré que lo toquen con sus guantes sucios.\"",
                 options: [
                     { id: 'gca_o2a', label: 'Debo inspeccionarlo', next: 'gca_n3a' },
+                    { id: 'gca_o2l', label: 'Déjame ver los trapos', next: null, resultText: "*Te deja tocar una esquina.* \"Cuidado...\"", onclick: (g) => act.giveLoreItem(g, 'item_dirty_rag', 'Trapo con Sangre Azul') },
                     { id: 'gca_o2b', label: '¿Es un bebé?', next: 'gca_n3b' }
                 ]
             },

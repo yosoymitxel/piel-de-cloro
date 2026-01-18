@@ -65,24 +65,13 @@ class Game {
             }
         }
 
-        // Cargar logs iniciales si la partida está empezando
-        if (State.cycle === 1 && State.dayTime === 1 && (!State.gameLog || State.gameLog.length === 0)) {
-            State.gameLog = [
-                {
-                    type: 'system',
-                    cycle: 1,
-                    dayTime: 0,
-                    text: 'SISTEMA RUTA-01 INICIALIZADO. PROTOCOLO DE CONTENCIÓN ACTIVO.',
-                    meta: { icon: 'fa-microchip' }
-                },
-                {
-                    type: 'system',
-                    cycle: 1,
-                    dayTime: 0,
-                    text: 'CONEXIÓN ESTABLECIDA CON EL REFUGIO SUBTERRÁNEO.',
-                    meta: { icon: 'fa-network-wired' }
-                }
-            ];
+        // Cargar logs iniciales si la partida está empezando y no hay logs
+        if (State.cycle === 1 && State.dayTime === 1 && (!State.gameLog || State.gameLog.length <= 1)) {
+            // El reset ya añade uno, así que comprobamos si hay pocos
+            if (State.gameLog.length === 0) {
+                State.addLogEntry('system', 'SISTEMA RUTA-01 INICIALIZADO. PROTOCOLO DE CONTENCIÓN ACTIVO.', { icon: 'fa-microchip' });
+            }
+            State.addLogEntry('system', 'CONEXIÓN ESTABLECIDA CON EL REFUGIO SUBTERRÁNEO.', { icon: 'fa-network-wired' });
         }
     }
 

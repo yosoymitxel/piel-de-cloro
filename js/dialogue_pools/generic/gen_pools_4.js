@@ -23,7 +23,10 @@ export const gen_pools_4 = {
             'glo_n2b': {
                 id: 'glo_n2b',
                 text: "*Baja la mirada.* \"Tiene que estar. Prometió esperarme.\"",
-                options: [{ id: 'glo_o2b', label: 'Lo siento', next: 'glo_n3b' }]
+                options: [
+                    { id: 'glo_o2b', label: 'Lo siento', next: 'glo_n3b' },
+                    { id: 'glo_o2l', label: '¿Es este su ID?', next: null, resultText: "*Te muestra una tarjeta rota.* \"Sí... Sector de Ingeniería. ¿Te sirve?\"", onclick: (g) => act.giveLoreItem(g, 'item_id_card', 'ID de Ingeniería Rota') }
+                ]
             },
             'glo_n3a': {
                 id: 'glo_n3a',
@@ -68,6 +71,7 @@ export const gen_pools_4 = {
                 text: "\"Adelante. No tengo nada que ocultar.\"",
                 options: [
                     { id: 'gqt_o2a', label: 'Bien, procedo a la inspección.', next: null, resultText: "*Se mantiene firme.* \"Estoy listo. Haz tu trabajo.\"", onclick: act.testPulse },
+                    { id: 'gqt_o2r', label: '¿Por qué tan callado?', next: null, resultText: "*Te mira a los ojos.* \"El ruido atrae cosas. He aprendido a ser invisible.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: "Los Silenciosos" son inmunes al parásito auditivo.') },
                     { id: 'gqt_o2c', label: 'Adelante', next: 'gqt_n4b' }
                 ]
             },
@@ -105,6 +109,7 @@ export const gen_pools_4 = {
                 text: "\"Gracias a Dios. He oído historias horribles de los otros refugios.\"",
                 options: [
                     { id: 'gsc_o2a', label: 'Relájate, voy a revisarte.', next: null, resultText: "*Sonríe temblando.* \"Gracias... me siento más seguro si revisas.\"", onclick: act.testPulse, paranoia: 1, log: { text: 'Lore: Otros refugios han caído. El aislamiento es nuestra única defensa.', icon: 'fa-house-crack' } },
+                    { id: 'gsc_o2l', label: '¿Qué tienes ahí?', next: null, resultText: "*Te da un silbato.* \"Lo usé... pero nadie vino.\"", onclick: (g) => act.giveLoreItem(g, 'item_panic_whistle', 'Silbato de Emergencia Roto') },
                     { id: 'gsc_o2c', label: 'Tranquilo', next: 'gsc_n4b' }
                 ]
             },
@@ -158,6 +163,7 @@ export const gen_pools_4 = {
                 options: [
                     { id: 'gg_o3a', label: 'Error 404: Acceso denegado.', next: null, resultText: "*Parpadea erráticamente.* \"Conexión rechazada... reintentando en otro servidor...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                     { id: 'gg_o3b', label: 'Escanear \"hardware\" (Pupilas)', next: null, resultText: "*Adopta pose en T.* \"Iniciando diagnóstico de sistema...\"", onclick: act.testPupils, paranoia: 2, sanity: -2, log: { text: 'Anomalía: Percepción alterada. Ven la realidad como datos corruptos. ¿Efecto del gas?', icon: 'fa-bug' } },
+                    { id: 'gg_o3l', label: 'Dame esa "unidad de memoria"', next: null, resultText: "*Te entrega un chip quemado.* \"Datos corruptos. Quizás puedas recuperarlos.\"", onclick: (g) => act.giveLoreItem(g, 'item_corrupt_chip', 'Chip de Memoria Corrupto') },
                     { id: 'gg_o3e', label: 'Escaneando', next: 'gg_n4b' }
                 ]
             },
@@ -203,7 +209,8 @@ export const gen_pools_4 = {
                 id: 'gp_n2b',
                 text: "\"La humanidad era débil. El cloro nos hace fuertes... o nos mata. Yo sobreviví. Merezco entrar.\"",
                 options: [
-                    { id: 'gp_o2c', label: 'Lógica retorcida', next: 'gp_n3a' }
+                    { id: 'gp_o2c', label: 'Lógica retorcida', next: 'gp_n3a' },
+                    { id: 'gp_o2r', label: '¿Quién te enseñó eso?', next: null, resultText: "*Señala a la oscuridad.* \"El Predicador Ciego. Camina sin ojos por la Zona Muerta.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Predicador ciego recluta seguidores en la Zona Muerta.') }
                 ]
             },
             'gp_n3a': {

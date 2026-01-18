@@ -65,7 +65,8 @@ describe('Advanced Dialogue System', () => {
         const node = conv.getCurrentNode();
         
         expect(node.text).toContain('The fog is coming.');
-        expect(State.gameLog.some(entry => entry.text.includes('The fog is coming.'))).toBe(true);
+        // Rumors are stored in rumorLog, not gameLog (LogManager segregation)
+        expect(State.rumorLog.some(entry => entry.text.includes('The fog is coming.'))).toBe(true);
     });
 
     test('Flag setting and requirements work', () => {

@@ -160,8 +160,8 @@ body.phase-night {
     --color-dark: #000508;
     --color-chlorine: #008877;
     --color-chlorine-light: #99bbdd;
-    --bg-overlay-color: rgba(0, 5, 20, 0.4);
-    /* Reduced from 0.7 to 0.4 */
+    --bg-overlay-color: rgba(0, 5, 20, 0.2);
+    /* Reduced from 0.4 for better visibility */
     --npc-brightness: 0.7;
     /* Increased from 0.5 */
 }
@@ -371,6 +371,33 @@ body.paranoia-vision.vision-active::after {
     border-right: 1px solid rgba(255, 255, 255, 0.05);
     z-index: 15;
     overflow-y: auto;
+}
+
+/* Tutorial / System Monitor */
+.tutorial-msg {
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+    font-size: 14px !important; /* Increased from 10px */
+    height: 24px;
+    line-height: 24px;
+}
+
+/* Scroll Animation for long text */
+@keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+.tutorial-msg.scrolling span {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 12s linear infinite;
+}
+
+.tutorial-msg span {
+    display: block;
 }
 
 .mini-monitor {
@@ -2087,4 +2114,16 @@ input[type=number].horror-input {
         background-color: rgba(107, 140, 33, 0);
         transform: scale(1);
     }
+}
+
+/* Animations for Log Flash */
+@keyframes logFlash {
+    0% { background-color: rgba(255, 255, 255, 0.4); border-color: #fff; transform: translateX(5px); }
+    50% { background-color: rgba(255, 255, 255, 0.1); transform: translateX(0); }
+    100% { background-color: rgba(0, 0, 0, 0.2); }
+}
+
+.log-entry-flash {
+    animation: logFlash 1s ease-out;
+    border-left: 2px solid #fff !important;
 }

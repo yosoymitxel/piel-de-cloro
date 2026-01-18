@@ -5,9 +5,10 @@ export const CONSTANTS = {
     // Lugares de trabajo válidos
     ASSIGNMENTS: {
         GENERATOR: 'generator',
-        INFIRMARY: 'infirmary',
-        KITCHEN: 'kitchen',
         SECURITY: 'security',
+        SUPPLIES: 'supplies',
+        FUEL: 'fuel',
+        LAB: 'lab',
         NONE: null
     },
 
@@ -15,9 +16,9 @@ export const CONSTANTS = {
     JOB_EFFECTS: {
         'Ingeniero': { target: 'generator', effect: 'consumption_reduction', value: 0.15, assignment: 'generator' },
         'Electricista': { target: 'generator', effect: 'consumption_reduction', value: 0.10, assignment: 'generator' }, // Versión menor del ingeniero
-        'Médico': { target: 'infirmary', effect: 'death_reduction', value: 0.30, assignment: 'infirmary' },
-        'Suturador': { target: 'infirmary', effect: 'death_reduction', value: 0.15, assignment: 'infirmary' },
-        'Cocinero': { target: 'kitchen', effect: 'ration_bonus', value: 0.20, assignment: 'kitchen' },
+        'Médico': { target: 'shelter', effect: 'death_reduction', value: 0.30, assignment: null }, // Activo en refugio (sin asignar)
+        'Suturador': { target: 'shelter', effect: 'death_reduction', value: 0.15, assignment: null }, // Activo en refugio (sin asignar)
+        'Cocinero': { target: 'supplies', effect: 'ration_bonus', value: 0.20, assignment: 'supplies' },
         'Soldado': { target: 'security', effect: 'theft_reduction', value: 0.40, assignment: 'security' }, // Soldado no estaba en la lista original, añadirlo o mapear 'Seguridad'
         'Seguridad': { target: 'security', effect: 'theft_reduction', value: 0.25, assignment: 'security' }
     },
@@ -51,6 +52,7 @@ export const CONSTANTS = {
         MEDITATION: 'meditation',
         SUPPLIES_HUB: 'supplies-hub',
         FUEL_ROOM: 'fuel-room',
+        LAB: 'lab',
         FINAL_STATS: 'finalStats'
     },
     GAME: {
@@ -74,20 +76,16 @@ export const CONSTANTS = {
         generator: { id: 'generator', displayName: 'GENERADOR', icon: 'fa-bolt', size: { w: 2, h: 1 } },
         security: { id: 'security', displayName: 'SEGURIDAD', icon: 'fa-shield-halved', size: { w: 1, h: 1 } },
         supplies: { id: 'supplies', displayName: 'ALMACÉN', icon: 'fa-box-open', size: { w: 2, h: 1 } },
-        storage: { id: 'supplies', displayName: 'ALMACÉN', icon: 'fa-box-open', size: { w: 2, h: 1 } }, // Alias
-        fuel: { id: 'fuel', displayName: 'COMBUSTIBLE', icon: 'fa-gas-pump', size: { w: 1, h: 1 } },
-        meditation: { id: 'meditation', displayName: 'SALA Z', icon: 'fa-skull', size: { w: 1, h: 2 } },
-        lab: { id: 'lab', displayName: 'LABORATORIO', icon: 'fa-flask', size: { w: 1, h: 1 } },
-        infirmary: { id: 'infirmary', displayName: 'ENFERMERÍA', icon: 'fa-suitcase-medical', size: { w: 1, h: 1 } },
-        medical: { id: 'infirmary', displayName: 'ENFERMERÍA', icon: 'fa-suitcase-medical', size: { w: 1, h: 1 } }, // Alias
-        game: { id: 'game', displayName: 'PUESTO GUARDIA', icon: 'fa-person-military-rifle', size: { w: 1, h: 1 } },
         shelter: { id: 'shelter', displayName: 'REFUGIO', icon: 'fa-house', size: { w: 2, h: 2 } },
-        morgue: { id: 'morgue', displayName: 'MORGUE', icon: 'fa-skull-crossbones', size: { w: 1, h: 1 } },
-        database: { id: 'database', displayName: 'ARCHIVOS', icon: 'fa-database', size: { w: 1, h: 1 } }
+        morgue: { id: 'morgue', displayName: 'MORGUE', icon: 'fa-skull', size: { w: 1, h: 1 } },
+        database: { id: 'database', displayName: 'ARCHIVOS', icon: 'fa-database', size: { w: 1, h: 1 } },
+        meditation: { id: 'meditation', displayName: 'MEDITACIÓN', icon: 'fa-spa', size: { w: 1, h: 1 } },
+        room: { id: 'room', displayName: 'VIGILANCIA', icon: 'fa-eye', size: { w: 1, h: 1 } }
     },
     ROOM_CONFIG: {
         game: { method: 'navigateToGuard', label: 'PUESTO DE GUARDIA' },
-        room: { method: 'navigateToRoom', label: 'HABITACIÓN' },
+        room: { method: 'navigateToRoom', label: 'VIGILANCIA' },
+        security: { method: 'navigateToRoom', label: 'SEGURIDAD' }, // Unificando Seguridad con Vigilancia (Cámaras)
         shelter: { method: 'navigateToShelter', label: 'REFUGIO' },
         generator: { method: 'navigateToGenerator', label: 'GENERADOR' },
         supplies: { method: 'navigateToSuppliesHub', label: 'ALMACÉN' },
@@ -124,6 +122,13 @@ export const CONSTANTS = {
             slots: 1,
             sabotageMsg: 'SABOTAJE: Fuga de combustible provocada por {npc}.',
             feedback: '¡FUGA DE COMBUSTIBLE!'
+        },
+        lab: {
+            name: 'LABORATORIO',
+            icon: 'fa-flask',
+            slots: 1,
+            sabotageMsg: 'SABOTAJE: Muestras destruidas por {npc}.',
+            feedback: '¡LABORATORIO COMPROMETIDO!'
         }
     },
     ROOM_STATUS_CONFIG: {
@@ -197,6 +202,22 @@ export const CONSTANTS = {
                 if (!isGenOn || !isSecSystemOn) {
                     return guardId ? 'status-alert' : 'status-critical';
                 }
+                return guardId ? 'status-active' : 'status-alert';
+            }
+        },
+        lab: {
+            check: (state) => {
+                const isGenOn = state.generator && state.generator.isOn;
+                // Lab requires power
+                if (!isGenOn) return 'status-critical';
+                
+                let guardId = null;
+                if (state.assignments && state.assignments.lab) {
+                    guardId = state.assignments.lab.occupants[0];
+                } else {
+                    guardId = state.sectorAssignments?.lab?.[0];
+                }
+                
                 return guardId ? 'status-active' : 'status-alert';
             }
         }

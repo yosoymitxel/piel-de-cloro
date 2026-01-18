@@ -765,6 +765,15 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Tutorial / Alert Monitor (New) -->
+                                <div class="mini-monitor p-2 flex flex-col justify-center items-center text-center mt-2 border-t border-white/10 pt-2">
+                                    <div class="text-[9px] text-orange-400 opacity-70 uppercase mb-1 tracking-widest">
+                                        SYSTEM_NOTIFICATIONS</div>
+                                    <div id="tutorial-monitor-content" class="w-full h-auto min-h-[60px] flex flex-col gap-1 overflow-hidden">
+                                        <div class="text-[9px] text-gray-600 italic">Esperando datos...</div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Vista Principal y Herramientas -->
@@ -951,6 +960,80 @@
                             <i class="fa-solid fa-triangle-exclamation mr-1"></i> SISTEMA INSTABLE: REVISIÓN DE
                             GENERADOR
                             REQUERIDA
+                        </div>
+                    </section>
+
+                    <!-- SCREEN: LABORATORY (Added for Unified Lab/Shelter logic) -->
+                    <section id="screen-lab" class="h-full flex flex-col hidden crt-flicker overflow-y-auto">
+                        <header class="flex justify-between items-center border-b border-chlorine/30 p-6 bg-black/40">
+                            <div>
+                                <h1 class="text-3xl text-glow tracking-tighter uppercase font-black text-blue-300">
+                                    LABORATORIO_B3</h1>
+                                <p class="font-mono text-[10px] opacity-60 tracking-widest text-blue-200">ANÁLISIS
+                                    BIOLÓGICO // DESARROLLO DE CURA</p>
+                            </div>
+                            <div class="flex gap-4 items-center">
+                                <i class="fa-solid fa-flask text-4xl text-blue-500 opacity-50"></i>
+                                <div class="industrial-tag flex flex-col items-end">
+                                    <span class="text-[9px] opacity-40 uppercase">Estado</span>
+                                    <span id="lab-status-text" class="text-xs font-bold text-blue-400">OPERATIVO</span>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="flex-grow flex flex-col items-center justify-center p-12">
+                            <div
+                                class="industrial-panel p-12 border border-blue-500/20 bg-black/60 flex flex-col items-center gap-8 w-full max-w-4xl relative">
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+                                    <!-- Left: Assignment & Status -->
+                                    <div class="flex flex-col gap-4">
+                                        <div class="p-4 border border-blue-500/30 bg-blue-900/10 rounded">
+                                            <h3 class="text-blue-300 font-bold mb-2 uppercase tracking-widest text-xs border-b border-blue-500/30 pb-1">Personal Asignado</h3>
+                                            <div id="lab-guard-panel" class="min-h-[60px] flex items-center justify-center">
+                                                <!-- Dynamic Content via JS -->
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="p-4 border border-blue-500/30 bg-blue-900/10 rounded flex-1">
+                                            <h3 class="text-blue-300 font-bold mb-2 uppercase tracking-widest text-xs border-b border-blue-500/30 pb-1">Progreso de Investigación</h3>
+                                            <div id="lab-analysis-console" class="flex flex-col items-center justify-center h-full gap-2">
+                                                <i class="fa-solid fa-dna text-4xl text-blue-500/50 animate-pulse"></i>
+                                                <span class="text-xs text-blue-200/50 font-mono text-center">DATOS INSUFICIENTES<br>SE REQUIEREN MUESTRAS</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Right: Action / Info -->
+                                    <div class="flex flex-col gap-4">
+                                        <div class="p-4 border border-blue-500/30 bg-blue-900/10 rounded h-full relative overflow-hidden">
+                                            <div class="absolute inset-0 bg-blue-500/5 pointer-events-none"></div>
+                                            <h3 class="text-blue-300 font-bold mb-4 uppercase tracking-widest text-xs border-b border-blue-500/30 pb-1">Protocolos Disponibles</h3>
+                                            
+                                            <button class="w-full text-left p-3 border border-blue-500/20 hover:bg-blue-500/10 mb-2 transition-colors group">
+                                                <div class="flex items-center gap-3">
+                                                    <i class="fa-solid fa-vial text-blue-400 group-hover:scale-110 transition-transform"></i>
+                                                    <div>
+                                                        <div class="text-xs font-bold text-blue-200">SINTETIZAR ANTÍDOTO</div>
+                                                        <div class="text-[9px] text-gray-500 uppercase">Requiere Nivel 3 + Muestras</div>
+                                                    </div>
+                                                </div>
+                                            </button>
+
+                                            <button class="w-full text-left p-3 border border-blue-500/20 hover:bg-blue-500/10 transition-colors group opacity-50 cursor-not-allowed">
+                                                <div class="flex items-center gap-3">
+                                                    <i class="fa-solid fa-microscope text-blue-400 group-hover:scale-110 transition-transform"></i>
+                                                    <div>
+                                                        <div class="text-xs font-bold text-blue-200">ANÁLISIS DE TEJIDO PROFUNDO</div>
+                                                        <div class="text-[9px] text-gray-500 uppercase">Bloqueado</div>
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
                         </div>
                     </section>
 
@@ -1406,24 +1489,24 @@
                                             </button>
 
                                             <!-- Emergency Battery Refill (using supplies) -->
-                                            <div class="mt-4 pt-4 border-t border-white/5">
-                                                <button id="btn-gen-emergency-charge"
-                                                    class="horror-btn w-full py-3 bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500/20 text-xs">
-                                                    <i class="fa-solid fa-gas-pump mr-2"></i>CARGA DE EMERGENCIA
-                                                    <div class="text-[8px] opacity-40 font-mono">REQ: 3 SUMINISTROS
-                                                        (+15% BAT)</div>
-                                                </button>
-
-                                                <!-- Fase 1.1 Roadmap: Recarga con Combustible -->
-                                                <button id="btn-gen-refuel"
-                                                    class="horror-btn w-full py-3 bg-cyan-500/10 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 text-xs mt-2">
-                                                    <i class="fa-solid fa-droplet mr-2"></i>RECARGAR BATERÍA
-                                                    <div class="text-[8px] opacity-40 font-mono">REQ: 1 BIDÓN FUEL
-                                                        (+30% BAT)</div>
-                                                </button>
-                                            </div>
+                                           
                                         </div>
+                                        <div class="mt-4 pt-4 border-t border-white/5  w-100 col-span-2 flex gap-2 items-end">
+                                            <button id="btn-gen-emergency-charge"
+                                                class="horror-btn w-1/2 py-3 bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500/20 text-xs">
+                                                <i class="fa-solid fa-gas-pump mr-2"></i>CARGA DE EMERGENCIA
+                                                <div class="text-[8px] opacity-40 font-mono">REQ: 3 SUMINISTROS
+                                                    (+15% BAT)</div>
+                                            </button>
 
+                                            <!-- Fase 1.1 Roadmap: Recarga con Combustible -->
+                                            <button id="btn-gen-refuel"
+                                                class="horror-btn w-1/2 py-3 bg-cyan-500/10 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 text-xs mt-2">
+                                                <i class="fa-solid fa-droplet mr-2"></i>RECARGAR BATERÍA
+                                                <div class="text-[8px] opacity-40 font-mono">REQ: 1 BIDÓN FUEL
+                                                    (+30% BAT)</div>
+                                            </button>
+                                        </div>
                                         <p id="generator-restriction-text"
                                             class="col-span-2 text-sm font-mono opacity-40 text-center leading-tight">
                                             <i class="fa-solid fa-circle-info mr-1"></i> PROTOCOLO DE RESTRICCIÓN
@@ -2459,6 +2542,10 @@
                                 class="text-2xl font-bold text-white tracking-[0.2em] uppercase glitch-effect"
                                 data-text="X">X</h2>
                             <div class="flex flex-wrap gap-2 mt-2">
+                                <span id="modal-npc-occupation"
+                                    class="text-xs font-mono text-cyan-400 px-2 py-1 border border-cyan-500/30 bg-cyan-500/5 uppercase hidden">
+                                    <i class="fa-solid fa-briefcase mr-1"></i><span class="value">---</span>
+                                </span>
                                 <span id="modal-npc-trait"
                                     class="text-sm font-mono text-amber-500  px-2 py-1 border border-amber-500/30 bg-amber-500/5">---</span>
                                 <span id="modal-npc-status"

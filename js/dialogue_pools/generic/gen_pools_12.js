@@ -24,7 +24,8 @@ export const gen_pools_12 = {
                 id: 'n3',
                 text: "\"No. Las pastillas son blancas. Todo es blanco. Quiero ver negro. Quiero ver Tinta.\"",
                 options: [
-                    { id: 'o3a', label: 'Eso es peligroso', next: 'n4' }
+                    { id: 'o3a', label: 'Eso es peligroso', next: 'n4' },
+                    { id: 'o3l', label: '¿Qué tinta?', next: null, resultText: "*Te da un frasco negro.* \"La que sangran las paredes.\"", onclick: (g) => act.giveLoreItem(g, 'item_black_ichor', 'Muestra de Icor Negro') }
                 ]
             },
             'n4': {
@@ -56,7 +57,8 @@ export const gen_pools_12 = {
                 id: 'n2',
                 text: "\"¿Y si su realidad es más real que esto? Aquí todo sabe a metal. Allí... allí sentí calor.\"",
                 options: [
-                    { id: 'o2a', label: 'Te estás enfermando', next: null }
+                    { id: 'o2a', label: 'Te estás enfermando', next: null },
+                    { id: 'o2r', label: '¿Dónde está ese Pozo?', next: null, resultText: "*Susurra.* \"Debajo del Generador Principal. Donde el ruido tapa los gritos.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: El Pozo Profundo bajo el Generador Principal.') }
                 ]
             },
             'n3': {

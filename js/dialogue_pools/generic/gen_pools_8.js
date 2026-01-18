@@ -27,7 +27,8 @@ export const gen_pools_8 = {
                 id: 'gco_n2b',
                 text: "*Señala su propia boca con un dedo sucio.* \"Perdona. Mal hábito. Es que me faltan algunas y siempre estoy buscando repuestos. Para mi colección.\"",
                 options: [
-                    { id: 'gco_o2c', label: '¿Colección?', next: 'gco_n3a' }
+                    { id: 'gco_o2c', label: '¿Colección?', next: 'gco_n3a' },
+                    { id: 'gco_o2l', label: '¿Tienes algo útil?', next: null, resultText: "*Saca un diente de oro.* \"Este no me encaja. Tómalo.\"", onclick: (g) => act.giveLoreItem(g, 'item_gold_tooth', 'Diente de Oro') }
                 ]
             },
             'gco_n3a': {
@@ -65,7 +66,8 @@ export const gen_pools_8 = {
                 id: 'gar_n2a',
                 text: "\"Todos somos lienzos esperando la pincelada correcta. El mundo exterior nos pinta con polvo y miedo. Yo prefiero... colores más vivos.\"",
                 options: [
-                    { id: 'gar_o2a', label: 'Estás delirando', next: 'gar_n3b' }
+                    { id: 'gar_o2a', label: 'Estás delirando', next: 'gar_n3b' },
+                    { id: 'gar_o2r', label: '¿Dónde consigues los colores?', next: null, resultText: "*Baja la voz.* \"El 'Rojo Víscera' más puro brota de una fuente en el Sector Médico. Nunca se seca.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Fuente inagotable de sangre en el Sector Médico.') }
                 ]
             },
             'gar_n2b': {

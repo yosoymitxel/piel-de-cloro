@@ -193,6 +193,7 @@ export class GameMechanicsManager {
     }
 
     calculateJobBonuses() {
+        // console.log("calculateJobBonuses called");
         const bonuses = {
             consumptionMap: 1.0, // Multiplier (1.0 = normal, 0.85 = 15% off)
             deathChanceMap: 1.0,
@@ -200,11 +201,17 @@ export class GameMechanicsManager {
             securityMap: 1.0
         };
 
-        State.admittedNPCs.forEach(npc => {
-            if (npc.assignedSector && CONSTANTS.JOB_EFFECTS[npc.occupation]) {
+        const admittedNPCs = (this.game && this.game.state && this.game.state.admittedNPCs) ? this.game.state.admittedNPCs : (State.admittedNPCs || []);
+        // console.log("Admitted NPCs count:", admittedNPCs.length);
+        
+        admittedNPCs.forEach(npc => {
+            // console.log("Checking NPC:", npc.name, npc.occupation, npc.assignedSector);
+            if (CONSTANTS.JOB_EFFECTS[npc.occupation]) {
                 const effectData = CONSTANTS.JOB_EFFECTS[npc.occupation];
-                // Check if assigned to the correct place for their job
-                if (npc.assignedSector === effectData.assignment) {
+                // console.log("Effect Data:", effectData);
+                // Check if assigned to the correct place for their job OR if assignment is null (passive/shelter-wide)
+                if (effectData.assignment === null || npc.assignedSector === effectData.assignment) {
+                    // console.log("Applying bonus for", npc.occupation);
                     if (effectData.effect === 'consumption_reduction') {
                         bonuses.consumptionMap -= effectData.value;
                     } else if (effectData.effect === 'death_reduction') {
@@ -225,6 +232,51 @@ export class GameMechanicsManager {
 
         return bonuses;
     }
+
+    performLabAnalysis(npcId) {
+        // Use global State if this.game.state is unavailable
+        const state = (this.game && this.game.state) ? this.game.state : State;
+        
+        if (!state || !state.admittedNPCs) {
+            console.error("GameMechanicsManager: State or admittedNPCs not found");
+            return { success: false, message: 'Error interno: Estado no encontrado.' };
+        }
+
+        const npc = state.admittedNPCs.find(n => n.id === npcId);
+        
+        if (!npc) return { success: false, message: 'Sujeto no encontrado.' };
+        if (!state.generator.isOn) return { success: false, message: 'Energía insuficiente. Generador requerido.' };
+        if (state.generator.power < 15) return { success: false, message: 'Nivel de batería crítico. Análisis abortado.' };
+
+        // Coste energético
+        state.generator.power -= 15;
+        
+        // Resultado
+        npc.labAnalysisComplete = true;
+        
+        // Determinar resultado real vs falso (si el lab tuviera fallos, pero por ahora es definitivo)
+        const isInfected = npc.isInfected;
+        
+        // Log del evento
+        state.addLogEntry('info', `ANÁLISIS LAB: Sujeto ${npc.name} procesado. Resultado: ${isInfected ? 'POSITIVO (INFECTADO)' : 'NEGATIVO (LIMPIO)'}.`, { icon: 'fa-microscope' });
+        
+        // Si es infectado, revelar rasgo oculto si existe
+        if (isInfected) {
+            // Buscar si tiene un rasgo oculto de infección y revelarlo
+            // Por ahora asumimos que la infección es el estado principal
+        }
+
+        return {
+            success: true,
+            npc: npc,
+            isInfected: isInfected,
+            message: isInfected ? 'DETECTADO PATÓGENO ACTIVO' : 'NO SE DETECTAN ANOMALÍAS BIOLÓGICAS'
+        };
+    }
+
+    // Eliminated duplicate calculateJobBonuses here (it was previously defined above performLabAnalysis)
+    // The correct implementation is now the only one, placed before performLabAnalysis
+
 
     updateGenerator() {
         if (State.paused) return;
@@ -1078,26 +1130,70 @@ export class GameMechanicsManager {
             );
         }
 
-        // Si se apagó por batería 0 en este frame (detectado por isOn false y log reciente)
-        // ... (This logic is usually handled inside toggleGenerator or where power hits 0)
-        // 1. Procesar Blood Analyzer
+        // 1. Procesar Blood Analyzer (LEGACY - REMOVED or Kept for fallback)
         if (State.generator.bloodTestCountdown > 0) {
-            State.generator.bloodTestCountdown--;
-            if (State.generator.bloodTestCountdown === 0 && State.generator.bloodTestId) {
-                // Revelar resultado
-                const npc = State.admittedNPCs.find(n => n.id === State.generator.bloodTestId) || (State.currentNPC && State.currentNPC.id === State.generator.bloodTestId ? State.currentNPC : null);
-                if (npc) {
-                    if (!npc.revealedStats.includes('isInfected')) npc.revealedStats.push('isInfected');
-                    npc.isBloodValidated = true;
-                    State.addLogEntry('system', `ANÁLISIS COMPLETADO: ${npc.name} -> ${npc.isInfected ? 'INFECTADO' : 'LIMPIO'}`);
-                    this.ui.showFeedback(`ANALISIS: ${npc.name} (${npc.isInfected ? 'INFECTADO' : 'LIMPIO'})`, npc.isInfected ? "red" : "green", 5000);
-                }
-                State.generator.bloodTestId = null;
-            }
+             State.generator.bloodTestCountdown--;
+             // ... legacy code ...
         }
+
+        // 1.5 PROCESAR ANÁLISIS DE LABORATORIO (NUEVA LÓGICA: RESULTADO AL DÍA SIGUIENTE)
+        // Recorremos los admitidos buscando análisis pendientes
+        State.admittedNPCs.forEach(npc => {
+            if (npc.labAnalysisPending) {
+                npc.labAnalysisPending = false;
+                npc.labAnalysisComplete = true;
+                
+                // Revelar infección
+                if (!npc.revealedStats.includes('isInfected')) {
+                    npc.revealedStats.push('isInfected');
+                }
+                npc.isBloodValidated = true; // Flag legacy para compatibilidad
+
+                const resultStr = npc.isInfected ? 'POSITIVO (INFECTADO)' : 'NEGATIVO (LIMPIO)';
+                State.addLogEntry('system', `LABORATORIO: Resultados de ${npc.name} disponibles. DX: ${resultStr}`, { icon: 'fa-flask' });
+                
+                // Notification for tutorial/HUD
+                if (this.ui.tutorialManager) {
+                    this.ui.tutorialManager.addMessage(`LAB: Resultados de ${npc.name} listos.`, "info");
+                }
+            }
+        });
 
         // 2. Procesar Sabotajes de Sectores
         this.processSectorSabotages();
+    }
+
+    // --- LABORATORY SYSTEM ---
+    performLabAnalysis(npcId) {
+        if (!State.generator.isOn) {
+            return { success: false, message: "ERROR: GENERADOR APAGADO" };
+        }
+
+        const npc = State.admittedNPCs.find(n => n.id === npcId);
+        if (!npc) return { success: false, message: "ERROR: SUJETO NO ENCONTRADO" };
+
+        if (npc.labAnalysisPending || npc.labAnalysisComplete) {
+            return { success: false, message: "ERROR: ANÁLISIS YA REGISTRADO" };
+        }
+
+        const ENERGY_COST = 40; // Alto consumo
+        if (State.generator.power < ENERGY_COST) {
+            return { success: false, message: `ERROR: ENERGÍA INSUFICIENTE (REQ: ${ENERGY_COST}%)` };
+        }
+
+        // Deduct energy
+        State.updateGeneratorPower(-ENERGY_COST);
+        
+        // Set pending state
+        npc.labAnalysisPending = true;
+
+        State.addLogEntry('system', `LABORATORIO: Iniciando cultivo biológico para ${npc.name}.`, { icon: 'fa-vial' });
+
+        return { 
+            success: true, 
+            message: "CULTIVO INICIADO. RESULTADOS EN 24H.",
+            isInfected: false // No revelamos nada aún
+        };
     }
 
     assignNPCToSector(npc, sector) {
@@ -1195,6 +1291,10 @@ export class GameMechanicsManager {
                     if (room.integrity <= 0) {
                         this.ui.showFeedback(`SECTOR ${room.name.toUpperCase()} CRÍTICAMENTE DAÑADO`, "red");
                         State.addLogEntry('critical', `SALA ${room.name.toUpperCase()} INOPERATIVA POR SABOTAJE.`);
+                        
+                        if (this.game.ui.tutorialManager) {
+                            this.game.ui.tutorialManager.addMessage(`SABOTAJE CRÍTICO: ${room.name} inoperativa.`, "danger");
+                        }
                     } else if (room.integrity < 50) {
                         State.addLogEntry('warning', `INTEGRIDAD DE ${room.name.toUpperCase()} AL ${room.integrity}%`);
                     }
@@ -1202,6 +1302,11 @@ export class GameMechanicsManager {
             }
 
             this.ui.showFeedback(config.feedback || "¡SABOTAJE DETECTADO!", "red", 4000);
+            
+            // Tutorial Log for Sabotage
+            if (this.game && this.game.ui && this.game.ui.tutorialManager) {
+                this.game.ui.tutorialManager.addMessage(`SABOTAJE: Incidente en ${sector.toUpperCase()}.`, "warning");
+            }
         }
 
         this.game.updateHUD();
@@ -1293,6 +1398,11 @@ export class GameMechanicsManager {
             State.addLogEntry('system', `SEGURIDAD: ${guard.name} interceptó una intrusión vía ${via.type}.`, { icon: 'fa-shield-halved' });
             this.ui.showFeedback(`INTRUSIÓN DETENIDA POR ${guard.name}`, "green", 5000);
             this.ui.updateSecurityCombatLog(`${guard.name}: Contacto visual en ${via.type}. Objetivo neutralizado.`);
+            
+            // Tutorial Feedback
+            if (this.game.ui.tutorialManager) {
+                this.game.ui.tutorialManager.addMessage(`INTRUSIÓN NEUTRALIZADA: ${guard.name} protegió el sector.`, "success");
+            }
 
             // Riesgo de herida (puramente visual por ahora)
             if (Math.random() < 0.2) {
@@ -1306,13 +1416,29 @@ export class GameMechanicsManager {
                 const idx = State.admittedNPCs.indexOf(guard);
                 if (idx > -1) {
                     State.admittedNPCs.splice(idx, 1);
-                    State._unassignFromAll(guard);
+                    State._unassignFromAll(guard); // This updates State assignments
                     guard.death = { reason: `combate contra intruso (${via.type})`, cycle: State.cycle, revealed: true };
                     State.purgedNPCs.push(guard);
 
                     State.addLogEntry('system', `CRÍTICO: ${guard.name} murió defendiendo el refugio contra una intrusión vía ${via.type}.`, { icon: 'fa-skull' });
                     this.ui.showFeedback(`${guard.name} HA CAÍDO EN COMBATE`, "red", 7000);
                     this.ui.updateSecurityCombatLog(`ALERTA: Bio-señal de ${guard.name} perdida en ${via.type}.`);
+                    
+                    // Force Tutorial Update via Event
+                    if (typeof document !== 'undefined') {
+                        document.dispatchEvent(new CustomEvent('assignment-updated', { 
+                            detail: { sector: 'security', npc: null, reason: 'death' } 
+                        }));
+                    }
+                    
+                    if (this.game.ui.tutorialManager) {
+                        this.game.ui.tutorialManager.addMessage(`BAJA EN COMBATE: ${guard.name} ha muerto. Reasigna guardia.`, "danger");
+                    }
+
+                    // Force UI Refresh for Security Panel
+                    if (this.game.assignments) {
+                        this.game.assignments.updateUI('security');
+                    }
                 }
 
                 // La intrusión entra de todos modos
@@ -1322,6 +1448,11 @@ export class GameMechanicsManager {
                 State.addLogEntry('system', `SEGURIDAD: ${guard.name} fue superado por un intruso en ${via.type}.`, { icon: 'fa-person-falling' });
                 this.ui.showFeedback(`${guard.name} SUPERADO EN COMBATE`, "orange", 5000);
                 this.ui.updateSecurityCombatLog(`${guard.name}: Superado numéricamente. El intruso ha penetrado el perímetro.`);
+                
+                if (this.game.ui.tutorialManager) {
+                    this.game.ui.tutorialManager.addMessage(`BRECHA DE SEGURIDAD: Guardia superado. Intruso en el complejo.`, "warning");
+                }
+                
                 this.createIntrusion(via, period);
             }
         }
@@ -1356,6 +1487,11 @@ export class GameMechanicsManager {
         } else {
             // No alarm or alarm inactive
             logMessage = `Intrusión detectada vía ${via.type} (${timeText}).`;
+        }
+
+        // Tutorial Feedback for Intrusion Creation
+        if (this.game.ui.tutorialManager) {
+            this.game.ui.tutorialManager.addMessage(`INTRUSIÓN: Brecha en ${via.type}.`, "danger");
         }
 
         npc.history.push({ text: logMessage, type: 'warning' });
@@ -1690,6 +1826,35 @@ export class GameMechanicsManager {
             this.ui.showFeedback(`MODO ${newMode.toUpperCase()} ACTIVADO`, "green", 3000);
             this.ui.updateInspectionTools();
             this.ui.renderGeneratorRoom();
+        }
+    }
+
+    refuelGenerator() {
+        if (State.fuel <= 0) {
+            this.ui.showFeedback("SIN COMBUSTIBLE EN RESERVA", "red", 3000);
+            if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
+            return;
+        }
+
+        if (State.generator.power >= 100) {
+            this.ui.showFeedback("BATERÍA LLENA", "yellow", 3000);
+            return;
+        }
+
+        State.fuel--;
+        State.updateGeneratorPower(25); // +25% per canister
+        State.addLogEntry('system', "GENERADOR: Recarga manual realizada (+25%).", { icon: 'fa-gas-pump' });
+        this.ui.showFeedback("RECARGA EXITOSA", "green", 3000);
+        if (this.audio) this.audio.playSFXByKey('generator_start', { volume: 0.5 });
+
+        // UPDATE UI IMMEDIATELY
+        this.game.updateHUD(); // Updates global HUD (fuel count)
+        if (this.ui.renderGeneratorRoom && $('#screen-generator').is(':visible')) {
+            this.ui.renderGeneratorRoom(State); // Updates Generator Room UI (Battery)
+        }
+        if ($('#screen-fuel-room').is(':visible') && this.game.events && this.game.events.navigateToFuelRoom) {
+             // Refresh fuel room if we are there
+             $('#fuel-hub-count').text(`${State.fuel} UNITS`);
         }
     }
 

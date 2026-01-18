@@ -19,14 +19,16 @@ export const gen_pools_7 = {
                 id: 'gth_n2a',
                 text: "*Bebe desesperadamente, derramando agua.* \"Más... necesito más. Siento que me seco por dentro.\"",
                 options: [
-                    { id: 'gth_o2a', label: 'Es suficiente', next: 'gth_n3a' }
+                    { id: 'gth_o2a', label: 'Es suficiente', next: 'gth_n3a' },
+                    { id: 'gth_o2r', label: '¿Has oído algo sobre el agua?', next: null, resultText: "*Tiembla.* \"Dicen que los filtros del Sector 4 están llenos de... cosas gelatinosas. Bloquean el paso.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Obstrucción biológica en filtros del Sector 4.') }
                 ]
             },
             'gth_n2b': {
                 id: 'gth_n2b',
                 text: "\"Todo sabe a metal. O a cloro. No me atreví. Pero ya no aguanto más.\"",
                 options: [
-                    { id: 'gth_o2b', label: 'Entiendo', next: 'gth_n3b' }
+                    { id: 'gth_o2b', label: 'Entiendo', next: 'gth_n3b' },
+                    { id: 'gth_o2l', label: 'Toma esta cantimplora vacía', next: null, resultText: "*La mira con recelo.* \"Tiene marcas... de dientes. De alguien que no era humano.\"", onclick: (g) => act.giveLoreItem(g, 'item_gnawed_canteen', 'Cantimplora Roída') }
                 ]
             },
             'gth_n3a': {

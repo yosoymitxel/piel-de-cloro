@@ -49,7 +49,7 @@ export const ROOM_TYPES = {
     },
     MORGUE: {
         id: 'MORGUE',
-        name: "Cámara Frigorífica",
+        name: "Morgue",
         powerDraw: 8,
         icon: "fa-skull",
         category: 'survival'
