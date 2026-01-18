@@ -44,7 +44,7 @@ describe('Sistema de Recarga de Combustible (Fase 1.1)', () => {
 
             expect(result).toBe(true);
             expect(State.fuel).toBe(initialFuel - 1);
-            expect(State.generator.power).toBe(initialPower + 30);
+            expect(State.generator.power).toBe(initialPower + 25);
         });
 
         test('debe bloquear recarga si está en modo overload', () => {

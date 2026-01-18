@@ -1807,47 +1807,7 @@ export class GameMechanicsManager {
         }
     }
 
-    refuelGenerator() {
-        if (State.fuel <= 0) {
-            this.ui.showFeedback("SIN COMBUSTIBLE EN RESERVA", "red", 3000);
-            if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
-            return;
-        }
-
-        if (State.generator.power >= 100) {
-            this.ui.showFeedback("BATERÍA LLENA", "yellow", 3000);
-            return;
-        }
-
-        State.fuel--;
-        
-        // Fix: Use direct property assignment or ensure updateGeneratorPower exists
-        if (typeof State.updateGeneratorPower === 'function') {
-            State.updateGeneratorPower(25);
-        } else {
-            State.generator.power = Math.min(100, State.generator.power + 25);
-        }
-        
-        State.addLogEntry('system', "GENERADOR: Recarga manual realizada (+25%).", { icon: 'fa-gas-pump' });
-        this.ui.showFeedback("RECARGA EXITOSA", "green", 3000);
-        if (this.audio) this.audio.playSFXByKey('generator_start', { volume: 0.5 });
-
-        // UPDATE UI IMMEDIATELY
-        this.game.updateHUD(); // Updates global HUD (fuel count)
-        
-        // Force refresh of generator room if we are in it OR if we want to update the battery visual
-        // The user reported issues with real-time update, so we force the render call.
-        if (this.ui.renderGeneratorRoom) {
-             this.ui.renderGeneratorRoom(State); 
-        }
-        
-        if ($('#screen-fuel-room').is(':visible') && this.game.events && this.game.events.navigateToFuelRoom) {
-             // Refresh fuel room if we are there
-             $('#fuel-hub-count').text(`${State.fuel} UNITS`);
-        }
-
-        return true;
-    }
+    // Método duplicado refuelGenerator eliminado. Ver línea 561.
 
     handlePurgeFromModal() {
         const target = this.ui.currentModalNPC;
