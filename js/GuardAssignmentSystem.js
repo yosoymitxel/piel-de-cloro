@@ -56,11 +56,8 @@ export class GuardAssignmentSystem {
         }
 
         if (this.ui && this.ui.showFeedback) {
-            this.ui.showFeedback(`GUARDIA ASIGNADO: ${npc.name}`, "green", 2000);
-        }
-
-        if (this.audio) {
-            this.audio.playSFXByKey('ui_success', { volume: 0.5 });
+            // self.audio.playSFXByKey('ui_success', { volume: 0.5 }); // Removed in favor of assignment_set
+            this.ui.showFeedback(`GUARDIA ASIGNADO: ${npc.name}`, "green", 2000, { sound: 'assignment_set', volume: 0.5 });
         }
 
         return true;

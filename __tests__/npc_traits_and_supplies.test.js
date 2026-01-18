@@ -139,6 +139,7 @@ describe('NPC Traits and Supplies Mechanics', () => {
         test('Paranoid trait increases paranoia', () => {
             const paranoid = new NPC();
             paranoid.trait = { id: 'paranoid' };
+            paranoid.loyalty = 100; // Force high loyalty to prevent riot/sabotage during test
             State.admittedNPCs = [paranoid];
             State.paranoia = 20;
 
@@ -156,24 +157,16 @@ describe('NPC Traits and Supplies Mechanics', () => {
             State.admittedNPCs = [npc];
             State.sanity = 50;
 
+            // Mock random to avoid cannibalism (roll < 0.2) or desertion (roll < 0.5)
+            // 0.6 triggers Riot (just paranoia update)
+            const spy = jest.spyOn(Math, 'random').mockReturnValue(0.6);
+
             gmm.processNightResourcesAndTraits();
 
-            // Sanity drain -10 (base) + 0 (starvation mechanic sanity penalty depends on roll)
-            // Wait, handleStarvation calls updateSanity(-25) only on cannibalism.
-            // processNightEvents calls updateSanity(-10) if starvation.
-            // So -10. updateSanity(-10) -> -10 * 1.25 = -12.5 -> -13.
-            // 50 - 13 = 37.
-            // But previous test expected 31. Why?
-            // Old logic might have been different.
-            // Let's check handleStarvation return.
-            // If roll < 0.2, cannibalism (-25 sanity).
-            // If roll >= 0.5, riots (paranoia).
-            // processNightEvents ALWAYS does updateSanity(-10).
-            
-            // The test mocks nothing, so random behavior.
-            // But verify supply check.
             expect(State.supplies).toBe(0);
             expect(State.sanity).toBeLessThan(50);
+
+            spy.mockRestore();
         });
 
         test('Starvation death chance when supplies are 0', () => {

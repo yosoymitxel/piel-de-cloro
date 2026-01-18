@@ -266,6 +266,15 @@ export class TutorialManager {
         this.render();
     }
 
+    reset() {
+        console.log('[TutorialManager] Resetting system...');
+        this.queue = [];
+        this.activeRules.clear();
+        if (this.container) {
+            this.container.empty();
+        }
+    }
+
     render() {
         // Always try to find container if missing
         if (!this.container || !this.container.length) {

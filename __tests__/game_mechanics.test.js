@@ -181,27 +181,27 @@ describe('Game Mechanics Manager', () => {
     });
 
     describe('Generator Mode and Capacity', () => {
-        test('changeGeneratorMode increases mode up to capacity only if no action taken', () => {
+        test('setGeneratorProtocol increases mode up to capacity only if no action taken', () => {
             State.generator.isOn = true;
             State.generator.mode = 'save';
             State.generator.maxModeCapacityReached = 2; // Normal
 
-            gmm.changeGeneratorMode(1); // To normal
+            gmm.setGeneratorProtocol('normal'); // To normal
             expect(State.generator.mode).toBe('normal');
 
             // Now set action taken to block further increase
             State.currentNPC = { scanCount: 0, dialogueStarted: true };
-            gmm.changeGeneratorMode(1); // Try to go to overload (cap 3)
+            gmm.setGeneratorProtocol('overload'); // Try to go to overload (cap 3)
             expect(State.generator.mode).toBe('normal'); // Blocked because maxModeCapacityReached is 2 and actionTaken is true
         });
 
-        test('changeGeneratorMode allows increase if no action taken even if capacity reached', () => {
+        test('setGeneratorProtocol allows increase if no action taken even if capacity reached', () => {
             State.generator.isOn = true;
             State.generator.mode = 'normal';
             State.generator.maxModeCapacityReached = 2; // Normal
             State.currentNPC = { scanCount: 0, dialogueStarted: false }; // No action taken
 
-            gmm.changeGeneratorMode(1); // To overload
+            gmm.setGeneratorProtocol('overload'); // To overload
             expect(State.generator.mode).toBe('overload');
             expect(State.generator.maxModeCapacityReached).toBe(3);
         });

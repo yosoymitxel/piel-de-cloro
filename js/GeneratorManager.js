@@ -236,11 +236,15 @@ export class GeneratorManager {
 
         // Carga extrema (>95%) causa vibración física del monitor
         const loadPercent = (state.generator.load / state.generator.capacity) * 100;
+        // User requested removal of flickering at high load as it was confusing
+        /*
         if (loadPercent > 95) {
             monitor.addClass('overload-vibration');
         } else {
             monitor.removeClass('overload-vibration');
         }
+        */
+        monitor.removeClass('overload-vibration');
     }
 
     setupToggleEvent(state) {
@@ -272,11 +276,6 @@ export class GeneratorManager {
             const game = this.game || window.game;
             if (game && game.mechanics && typeof game.mechanics.toggleGenerator === 'function') {
                 game.mechanics.toggleGenerator();
-
-                // Audio mecánico
-                if (this.audio) {
-                    this.audio.playSFXByKey(state.generator.isOn ? 'ui_button_click' : 'glitch_low', { volume: 0.6 });
-                }
             }
         });
     }
@@ -447,15 +446,17 @@ export class GeneratorManager {
         });
 
         $('#btn-header-battery').off('click').on('click', () => {
-            if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.3 });
-            // Could trigger a toast or highlight battery
-            this.ui.showFeedback(`CAPACIDAD DE BATERÍA: ${state.generator.power}%`, state.generator.power < 20 ? 'red' : 'green');
+            const batLevel = Math.floor(state.generator.power || 0);
+            this.ui.showFeedback(`CAPACIDAD DE BATERÍA: ${batLevel}%`, batLevel < 20 ? 'red' : 'green');
             $('#gen-battery-visual-fill').parent().addClass('animate-pulse');
             setTimeout(() => $('#gen-battery-visual-fill').parent().removeClass('animate-pulse'), 500);
         });
 
         $('#btn-header-load').off('click').on('click', () => {
-            if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.3 });
+             // Audio handled by showFeedback (blue -> no sound in default UIManager? Check UIManager)
+             // If blue has no sound, we might want to keep click. 
+             // UIManager: red/alert/warning -> error; green/success -> confirm. Others -> No sound.
+             if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.3 });
             const loadStr = state.generator.load + '/' + state.generator.capacity;
             this.ui.showFeedback(`CARGA TOTAL DEL SISTEMA: ${loadStr} UNIDADES`, 'blue');
         });

@@ -41,7 +41,7 @@ class Game {
         this.assignments = new AssignmentManager(this);
 
         this.events.bindAll();
-        this.audio.loadManifest('assets/audio/audio_manifest.json');
+        // this.audio.loadManifest('assets/audio/audio_manifest.json'); // Moved to start button click for strict timing
 
         // Bloquear navegación al inicio
         this.ui.setNavLocked(true);
@@ -148,6 +148,11 @@ class Game {
             assignedGuardId: null,
             guardShiftLogs: [] // Legacy, but kept for safety until full migration
         };
+
+        // Reset Tutorial System
+        if (this.tutorial) {
+            this.tutorial.reset();
+        }
 
         // Calculate initial load immediately to ensure UI is correct
         this.mechanics.calculateTotalLoad();

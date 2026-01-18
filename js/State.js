@@ -203,6 +203,13 @@ export const State = {
         return this.supplies;
     },
 
+    updateGeneratorPower(amount) {
+        if (!this.generator) return 0;
+        const newPower = (this.generator.power || 0) + amount;
+        this.generator.power = Math.min(100, Math.max(0, newPower));
+        return this.generator.power;
+    },
+
     // Seguridad por run
     securityItems: [],
     nextIntrusionAt: null,
@@ -262,12 +269,6 @@ export const State = {
     debug: true, // Cambiar a false para producción
     gameLog: [], // Historial cronológico
     dialogueStarted: false,
-
-    updateGeneratorPower(amount) {
-        if (!this.generator) return;
-        const newPower = (this.generator.power || 0) + amount;
-        this.generator.power = Math.min(100, Math.max(0, newPower));
-    },
 
     // --- State Methods ---
     reset() {

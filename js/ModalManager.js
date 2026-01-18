@@ -69,6 +69,15 @@ export class ModalManager {
         });
     }
 
+    // Helper for generic modal opening (used by Settings)
+    openModalBase(selector) {
+        const modal = $(selector);
+        if (modal.length) {
+            modal.removeClass('hidden').addClass('flex');
+            if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
+        }
+    }
+
     showConfirm(text, onYes, onCancel, type = 'normal') {
         if (State.endingTriggered) return;
         const modal = this.elements.confirmModal;

@@ -282,6 +282,11 @@ export class GameActionHandler {
                 // Bloquear el botón específico y actualizar estado de energías
                 this.ui.updateInspectionTools(npc);
 
+                // Stop loop audio (if we implemented loop audio for scan)
+                // For now, we rely on the specific tool sound to finish or be short
+                // But let's add a "processing complete" chime for high-tech feel if desired
+                // this.audio.playSFXByKey('ui_blip', { volume: 0.3 }); 
+
                 // Phase 3.2: Lore Clue Reveal
                 if (npc.isLore && !npc.loreClueRevealed && npc.scanCount >= CONSTANTS.LORE_CLUE_THRESHOLD) {
                     npc.loreClueRevealed = true;

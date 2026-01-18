@@ -2078,24 +2078,33 @@
                                             <div class="flex flex-col gap-1">
                                                 <div class="flex justify-between items-center">
                                                     <span class="text-sm uppercase text-chlorine-light">Maestro</span>
-                                                    <span class="text-sm font-mono opacity-50">100%</span>
+                                                    <span id="label-volume-master" class="text-sm font-mono opacity-50">100%</span>
                                                 </div>
                                                 <input id="config-volume-master" type="range" min="0" max="100"
                                                     value="100" class="horror-range">
                                             </div>
                                             <div class="grid grid-cols-1 gap-4 mt-2">
                                                 <div class="flex flex-col gap-1">
-                                                    <span class="text-sm uppercase opacity-60">Ambiente</span>
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="text-sm uppercase opacity-60">Ambiente</span>
+                                                        <span id="label-volume-ambient" class="text-sm font-mono opacity-50">30%</span>
+                                                    </div>
                                                     <input id="config-volume-ambient" type="range" min="0" max="100"
                                                         value="30" class="horror-range">
                                                 </div>
                                                 <div class="flex flex-col gap-1">
-                                                    <span class="text-sm uppercase opacity-60">Lore</span>
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="text-sm uppercase opacity-60">Lore</span>
+                                                        <span id="label-volume-lore" class="text-sm font-mono opacity-50">25%</span>
+                                                    </div>
                                                     <input id="config-volume-lore" type="range" min="0" max="100"
                                                         value="25" class="horror-range">
                                                 </div>
                                                 <div class="flex flex-col gap-1">
-                                                    <span class="text-sm uppercase opacity-60">Efectos</span>
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="text-sm uppercase opacity-60">Efectos</span>
+                                                        <span id="label-volume-sfx" class="text-sm font-mono opacity-50">60%</span>
+                                                    </div>
                                                     <input id="config-volume-sfx" type="range" min="0" max="100"
                                                         value="60" class="horror-range">
                                                 </div>
@@ -2393,8 +2402,8 @@
         </div>
     </div>
 
-    <!-- MODAL: PAUSA -->
-    <div id="modal-pause"
+    <!-- MODAL: SETTINGS (Main Menu) -->
+    <div id="modal-settings"
         class="modal-overlay-base z-[200] hidden p-4 backdrop-blur-sm flex items-center justify-center">
         <div
             class="horror-panel-modal w-full max-w-sm p-0 flex flex-col animate__animated animate__fadeInDown animate__faster overflow-hidden">
@@ -2404,32 +2413,63 @@
             <div class="panel-screw screw-br"></div>
 
             <header>
-                <div class="text-[10px] font-mono text-chlorine-light uppercase tracking-[0.3em]">SISTEMA_PAUSA</div>
+                <div class="text-[10px] font-mono text-chlorine-light uppercase tracking-[0.3em]">SISTEMA_CONFIGURACIÓN</div>
             </header>
 
             <div class="p-8 flex flex-col gap-6 bg-[#050505]">
                 <div class="text-center">
-                    <h3 class="text-4xl font-mono tracking-[0.2em] text-chlorine-light glitch-effect" data-text="PAUSA">
-                        PAUSA</h3>
-                    <div class="text-[10px] font-mono opacity-40 mt-1 uppercase">SISTEMA EN ESPERA // RUTA-01</div>
+                    <h3 class="text-2xl font-mono tracking-[0.2em] text-chlorine-light glitch-effect" data-text="CONFIG">
+                        CONFIGURACIÓN</h3>
+                    <div class="text-[10px] font-mono opacity-40 mt-1 uppercase">AJUSTES DEL SISTEMA // RUTA-01</div>
                 </div>
 
-                <!-- Configuración Rápida -->
+                <!-- Configuración de Audio -->
                 <div class="flex flex-col gap-4 p-4 border border-white/5 bg-black/40">
-                    <label class="flex items-center justify-between gap-3 font-mono text-xs cursor-pointer group">
-                        <span class="group-hover:text-chlorine-light transition-colors uppercase">Música
-                            Ambiental</span>
-                        <input type="checkbox" id="toggle-mute-music" class="horror-checkbox">
+                    <label class="flex flex-col gap-2 font-mono text-xs cursor-pointer group">
+                        <div class="flex justify-between">
+                            <span class="group-hover:text-chlorine-light transition-colors uppercase">Volumen Maestro</span>
+                            <span id="label-volume-master" class="text-gray-500">100%</span>
+                        </div>
+                        <input type="range" id="config-volume-master" class="horror-range w-full" min="0" max="100" value="100">
                     </label>
-                    <label class="flex items-center justify-between gap-3 font-mono text-xs cursor-pointer group">
-                        <span class="group-hover:text-chlorine-light transition-colors uppercase">Efectos de
-                            Sonido</span>
-                        <input type="checkbox" id="toggle-mute-sfx" class="horror-checkbox">
-                    </label>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="flex flex-col gap-2 font-mono text-xs cursor-pointer group">
+                            <div class="flex justify-between">
+                                <span class="group-hover:text-chlorine-light transition-colors uppercase">Ambiente</span>
+                                <span id="label-volume-ambient" class="text-gray-500">30%</span>
+                            </div>
+                            <input type="range" id="config-volume-ambient" class="horror-range w-full" min="0" max="100" value="30">
+                        </label>
+                        
+                        <label class="flex flex-col gap-2 font-mono text-xs cursor-pointer group">
+                            <div class="flex justify-between">
+                                <span class="group-hover:text-chlorine-light transition-colors uppercase">SFX / Interfaz</span>
+                                <span id="label-volume-sfx" class="text-gray-500">60%</span>
+                            </div>
+                            <input type="range" id="config-volume-sfx" class="horror-range w-full" min="0" max="100" value="60">
+                        </label>
+
+                        <label class="flex flex-col gap-2 font-mono text-xs cursor-pointer group">
+                            <div class="flex justify-between">
+                                <span class="group-hover:text-chlorine-light transition-colors uppercase">Voces / Lore</span>
+                                <span id="label-volume-lore" class="text-gray-500">25%</span>
+                            </div>
+                            <input type="range" id="config-volume-lore" class="horror-range w-full" min="0" max="100" value="25">
+                        </label>
+
+                        <label class="flex flex-col gap-2 font-mono text-xs cursor-pointer group">
+                            <div class="flex justify-between">
+                                <span class="group-hover:text-chlorine-light transition-colors uppercase">Maquinaria</span>
+                                <span id="label-volume-generator" class="text-gray-500">15%</span>
+                            </div>
+                            <input type="range" id="config-volume-generator" class="horror-range w-full" min="0" max="100" value="15">
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Developer Config (Hidden by default) -->
-                <div id="dev-config-panel" class="hidden flex-col gap-3 p-3 border border-red-900/30 bg-red-900/5">
+                <div id="settings-dev-section" class="hidden flex-col gap-3 p-3 border border-red-900/30 bg-red-900/5">
                     <h4
                         class="text-[10px] font-bold text-red-500 uppercase tracking-widest border-b border-red-900/30 pb-1 mb-1">
                         <i class="fa-solid fa-code mr-1"></i> PARAMETROS DEL NUCLEO
@@ -2469,9 +2509,133 @@
                                 class="bg-black/50 border border-red-900/30 text-red-400 text-xs p-1 font-mono focus:border-red-500 outline-none"
                                 min="0" max="100">
                         </label>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-4">
+                    <button id="btn-settings-apply"
+                        class="horror-btn horror-btn-primary py-4 text-sm uppercase tracking-widest">
+                        <i class="fa-solid fa-check mr-2"></i> APLICAR Y CERRAR
+                    </button>
+                </div>
+            </div>
+
+            <footer>
+                <span class="app-version-full"></span>
+            </footer>
+        </div>
+    </div>
+
+    <!-- MODAL: PAUSA -->
+    <div id="modal-pause"
+        class="modal-overlay-base z-[200] hidden p-4 backdrop-blur-sm flex items-center justify-center">
+        <div
+            class="horror-panel-modal w-full max-w-sm p-0 flex flex-col animate__animated animate__fadeInDown animate__faster overflow-hidden">
+            <div class="panel-screw screw-tl"></div>
+            <div class="panel-screw screw-tr"></div>
+            <div class="panel-screw screw-bl"></div>
+            <div class="panel-screw screw-br"></div>
+
+            <header>
+                <div class="text-[10px] font-mono text-chlorine-light uppercase tracking-[0.3em]">SISTEMA_PAUSA</div>
+            </header>
+
+            <div class="p-8 flex flex-col gap-6 bg-[#050505]">
+                <div class="text-center">
+                    <h3 class="text-4xl font-mono tracking-[0.2em] text-chlorine-light glitch-effect" data-text="PAUSA">
+                        PAUSA</h3>
+                    <div class="text-[10px] font-mono opacity-40 mt-1 uppercase">SISTEMA EN ESPERA // RUTA-01</div>
+                </div>
+
+                            <!-- Configuración Rápida -->
+                            <div class="flex flex-col gap-4 p-4 border border-white/5 bg-black/40">
+                                <label class="flex flex-col gap-2 font-mono text-xs cursor-pointer group">
+                                    <div class="flex justify-between">
+                                        <span class="group-hover:text-chlorine-light transition-colors uppercase">Volumen Maestro</span>
+                                        <span id="pause-label-volume-master" class="text-gray-500">100%</span>
+                                    </div>
+                                    <input type="range" id="pause-config-volume-master" class="horror-range w-full" min="0" max="100" value="100">
+                                </label>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <label class="flex flex-col gap-2 font-mono text-xs cursor-pointer group">
+                                        <div class="flex justify-between">
+                                            <span class="group-hover:text-chlorine-light transition-colors uppercase">Ambiente</span>
+                                            <span id="pause-label-volume-ambient" class="text-gray-500">30%</span>
+                                        </div>
+                                        <input type="range" id="pause-config-volume-ambient" class="horror-range w-full" min="0" max="100" value="30">
+                                    </label>
+                                    
+                                    <label class="flex flex-col gap-2 font-mono text-xs cursor-pointer group">
+                                        <div class="flex justify-between">
+                                            <span class="group-hover:text-chlorine-light transition-colors uppercase">SFX / Interfaz</span>
+                                            <span id="pause-label-volume-sfx" class="text-gray-500">60%</span>
+                                        </div>
+                                        <input type="range" id="pause-config-volume-sfx" class="horror-range w-full" min="0" max="100" value="60">
+                                    </label>
+
+                                    <label class="flex flex-col gap-2 font-mono text-xs cursor-pointer group">
+                                        <div class="flex justify-between">
+                                            <span class="group-hover:text-chlorine-light transition-colors uppercase">Voces / Lore</span>
+                                            <span id="pause-label-volume-lore" class="text-gray-500">25%</span>
+                                        </div>
+                                        <input type="range" id="pause-config-volume-lore" class="horror-range w-full" min="0" max="100" value="25">
+                                    </label>
+
+                                    <label class="flex flex-col gap-2 font-mono text-xs cursor-pointer group">
+                                        <div class="flex justify-between">
+                                            <span class="group-hover:text-chlorine-light transition-colors uppercase">Maquinaria</span>
+                                            <span id="pause-label-volume-generator" class="text-gray-500">15%</span>
+                                        </div>
+                                        <input type="range" id="pause-config-volume-generator" class="horror-range w-full" min="0" max="100" value="15">
+                                    </label>
+                                </div>
+                            </div>
+
+                <!-- Developer Config (Hidden by default) -->
+                <div id="dev-config-panel" class="hidden flex-col gap-3 p-3 border border-red-900/30 bg-red-900/5">
+                    <h4
+                        class="text-[10px] font-bold text-red-500 uppercase tracking-widest border-b border-red-900/30 pb-1 mb-1">
+                        <i class="fa-solid fa-code mr-1"></i> PARAMETROS DEL NUCLEO
+                    </h4>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex flex-col gap-1">
+                            <span class="text-[9px] opacity-60 uppercase text-gray-400">Capacidad</span>
+                            <input type="number" id="pause-dev-config-shelter"
+                                class="bg-black/50 border border-red-900/30 text-red-400 text-xs p-1 font-mono focus:border-red-500 outline-none"
+                                min="1" max="50">
+                        </label>
+
+                        <label class="flex flex-col gap-1">
+                            <span class="text-[9px] opacity-60 uppercase text-gray-400">Sujetos/Día</span>
+                            <input type="number" id="pause-dev-config-daylength"
+                                class="bg-black/50 border border-red-900/30 text-red-400 text-xs p-1 font-mono focus:border-red-500 outline-none"
+                                min="1" max="20">
+                        </label>
+
+                        <label class="flex flex-col gap-1">
+                            <span class="text-[9px] opacity-60 uppercase text-gray-400">Prob. Intrusión</span>
+                            <input type="number" id="pause-dev-config-intrusion"
+                                class="bg-black/50 border border-red-900/30 text-red-400 text-xs p-1 font-mono focus:border-red-500 outline-none"
+                                min="0" max="100" step="5">
+                        </label>
+
+                        <label class="flex flex-col gap-1">
+                            <span class="text-[9px] opacity-60 uppercase text-gray-400">Suministros Ini.</span>
+                            <input type="number" id="pause-dev-config-supplies"
+                                class="bg-black/50 border border-red-900/30 text-red-400 text-xs p-1 font-mono focus:border-red-500 outline-none"
+                                min="0" max="100">
+                        </label>
+                        <label class="flex flex-col gap-1">
+                            <span class="text-[9px] opacity-60 uppercase text-gray-400">Paranoia Ini.</span>
+                            <input type="number" id="pause-dev-config-paranoia"
+                                class="bg-black/50 border border-red-900/30 text-red-400 text-xs p-1 font-mono focus:border-red-500 outline-none"
+                                min="0" max="100">
+                        </label>
                         <label class="flex flex-col gap-1">
                             <span class="text-[9px] opacity-60 uppercase text-gray-400">Coste Energía</span>
-                            <select id="dev-config-energy-cost"
+                            <select id="pause-dev-config-energy-cost"
                                 class="bg-black/50 border border-red-900/30 text-red-400 text-xs p-1 font-mono focus:border-red-500 outline-none">
                                 <option value="low">Bajo</option>
                                 <option value="normal">Normal</option>
@@ -2480,11 +2644,11 @@
                         </label>
                     </div>
 
-                    <button id="btn-dev-apply"
+                    <button id="pause-btn-dev-apply"
                         class="mt-2 text-[10px] w-full py-2 uppercase border border-red-500/50 text-red-500 hover:bg-red-900/20 transition-colors font-bold tracking-wider">
                         <i class="fa-solid fa-microchip mr-1"></i> INYECTAR PARAMETROS
                     </button>
-                    <div id="dev-feedback" class="text-[9px] text-center h-4 text-green-400 font-mono hidden">PARAMETROS
+                    <div id="pause-dev-feedback" class="text-[9px] text-center h-4 text-green-400 font-mono hidden">PARAMETROS
                         ACTUALIZADOS</div>
                 </div>
 

@@ -44,7 +44,7 @@ export class AudioManager {
     createChannel({ loop = false, volume = 1.0 } = {}) {
         const audio = new Audio();
         audio.loop = loop;
-        audio.preload = 'auto';
+        audio.preload = 'none'; // Explicitly set to none to prevent auto-loading
         audio.crossOrigin = 'anonymous';
         audio.volume = 0;
         return audio;
@@ -234,10 +234,19 @@ export class AudioManager {
         // Refresh all channels to respect master volume and mute states
         this.setChannelLevel('ambient', this.levels.ambient);
         this.setChannelLevel('lore', this.levels.lore);
-        this.setChannelLevel('lore', this.levels.lore);
         this.setChannelLevel('sfx', this.levels.sfx);
         this.setChannelLevel('generator', this.levels.generator);
         this.setChannelLevel('heartbeat', this.levels.heartbeat);
+
+        // Actualizar pool de SFX activos
+        this.sfxPool.forEach(ch => {
+            if (!ch.paused) {
+                // Recalcular volumen efectivo usando baseVolume si existe
+                const base = (ch._baseVolume !== undefined) ? ch._baseVolume : this.levels.sfx;
+                const target = base * this.master;
+                this._safeSetVolume(ch, target);
+            }
+        });
     }
 
     // --- Generator Audio Logic ---
@@ -247,17 +256,20 @@ export class AudioManager {
 
         if (!isOn || batteryLevel <= 0) {
             if (!ch.paused) {
-                this.fade(ch, 0, 500, 'generator', () => ch.pause());
+                // Fade out hum
+                this.fade(ch, 0, 800, 'generator', () => ch.pause());
             }
             return;
         }
 
         // Ensure playing
         if (ch.paused && this.unlocked) {
-            ch.src = this.getUrl('generator_hum'); // Ensure this key exists or map it
+            ch.src = this.getUrl('generator_hum'); 
             ch.loop = true;
             ch.play().catch(() => { });
-            this.fade(ch, this.levels.generator * this.master, 1000, 'generator');
+            // Fade in to target volume
+            const targetVol = this.levels.generator * this.master;
+            this.fade(ch, targetVol, 2000, 'generator');
         }
 
         // Pitch / Rate Logic
@@ -265,31 +277,32 @@ export class AudioManager {
         let volatility = 0; // chance to flutter
 
         if (mode === 'overload') {
-            rate = 1.3;
-            // Higher pitch implies stress
+            rate = 1.15; // Increased pitch for overload
         } else if (mode === 'save') {
-            rate = 0.7;
+            rate = 0.85; // Lower pitch for save mode
         }
 
         // Low battery flutter
         if (batteryLevel < 10) {
             // Randomly dip pitch or volume to simulate sputtering
-            if (Math.random() < 0.1) {
-                rate *= 0.8;
-                this._safeSetVolume(ch, (this.levels.generator * this.master) * 0.5);
+            if (Math.random() < 0.15) {
+                rate *= 0.9;
+                this._safeSetVolume(ch, (this.levels.generator * this.master) * 0.6);
             } else {
                 this._safeSetVolume(ch, this.levels.generator * this.master);
             }
         } else {
-            this._safeSetVolume(ch, this.levels.generator * this.master);
+            // Restore volume if not fluttering
+            // (Only if fade isn't running, but we can assume steady state here mostly)
+            if (!this.fadeTimers['generator']) {
+                this._safeSetVolume(ch, this.levels.generator * this.master);
+            }
         }
 
         // Apply rate securely
         if (Number.isFinite(rate)) {
+            // Use playbackRate for pitch shifting effect
             ch.playbackRate = rate;
-            // Webkit requires preserving pitch separately usually, but standard HTML5 Audio handles playbackRate = pitch change.
-            // If we wanted pitch shifting without speed change we'd need Web Audio API nodes, 
-            // but here "doppler/revving" effect (speed change) is desirable for a generator.
         }
     }
 
@@ -416,6 +429,16 @@ export class AudioManager {
     }
     playSFX(src, { volume = 0.6, rate = 1.0, priority = 0, lockMs = 100, loop = false, overlap = false } = {}) {
         const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+
+        // Ensure cooldown object exists (safeguard for existing instances)
+        if (!this.sfxCooldowns) this.sfxCooldowns = {};
+
+        // Cooldown Check (Prevent spamming the same sound)
+        if (this.sfxCooldowns[src] && now < this.sfxCooldowns[src]) {
+            return null;
+        }
+        // Set cooldown (default 50ms to prevent phase issues/stutter)
+        this.sfxCooldowns[src] = now + 50;
 
         // Priority system: if a sound is locked and the new one has lower priority, skip
         if (now < this.sfxLockUntil && priority < this.sfxPriority) {

@@ -14,7 +14,7 @@ export class GameEventManager {
      */
     async switchScreen(screenId, options = {}) {
         console.log(`[EVENT] switchScreen requested to: ${screenId}`);
-        const {
+        let {
             force = false,
             lockNav = null,
             renderFn = null,
@@ -22,6 +22,11 @@ export class GameEventManager {
             volume = 0.5,
             hideFeedback = true
         } = options;
+
+        if (screenId === CONSTANTS.SCREENS.ROOM && this.ui.lastNav !== CONSTANTS.SCREENS.ROOM) {
+             sound = 'camera_switch';
+             volume = 0.4;
+        }
 
         // Check if navigation is blocked
         if (!force && (State.paused || State.navLocked || State.endingTriggered)) {
@@ -108,6 +113,8 @@ export class GameEventManager {
                         State.addPurged(target);
                         if (State.isNight) State.nightPurgePerformed = true;
                         if (this.ui.setNavItemStatus) this.ui.setNavItemStatus(CONSTANTS.NAV_ITEMS.MORGUE, 3);
+                        
+                        if (this.audio) this.audio.playSFXByKey('morgue_incinerate', { volume: 0.7 });
 
                         this.game.mechanics.calculatePurgeConsequences(target);
 
@@ -352,7 +359,10 @@ export class GameEventManager {
                 if (Object.keys(this.audio.manifest).length === 0) {
                     await this.audio.loadManifest();
                 }
-                await this.audio.preloadAll();
+                await this.audio.preloadAll((progress) => {
+                    const pct = Math.floor(progress * 100);
+                    $text.text(`CARGANDO... ${pct}%`);
+                });
             } catch (e) {
                 console.error('Preload failed', e);
             } finally {
@@ -362,92 +372,160 @@ export class GameEventManager {
             }
         });
 
-        $('#btn-settings-toggle').on('click', () => {
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
-            $('#config-max-shelter').val(State.config.maxShelterCapacity);
-            $('#config-day-length').val(State.config.dayLength);
-            $('#config-dayafter-tests').val(State.config.dayAfterTestsDefault);
+        // Developer Apply Changes (Settings Screen)
+        $('#btn-dev-apply').on('click', () => {
+            if (!State.debug) return;
 
-            $('#config-volume-master').val(Math.round(this.audio.master * 100));
-            $('#config-volume-ambient').val(Math.round(this.audio.levels.ambient * 100));
-            $('#config-volume-lore').val(Math.round(this.audio.levels.lore * 100));
-            $('#config-volume-sfx').val(Math.round(this.audio.levels.sfx * 100));
-            $('#config-volume-lore').val(Math.round(this.audio.levels.lore * 100));
-            $('#config-volume-sfx').val(Math.round(this.audio.levels.sfx * 100));
+            // Update Config
+            State.config.maxShelterCapacity = parseInt($('#dev-config-shelter').val()) || 10;
+            State.config.dayLength = parseInt($('#dev-config-daylength').val()) || 5;
 
-            // Developer Section Visibility & Population
-            if (State.debug) {
-                $('#settings-dev-section').removeClass('hidden').addClass('flex');
-
-                // Populate dev fields
-                $('#dev-config-intrusion').val(Math.round(State.config.securityIntrusionProbability * 100));
-                $('#dev-config-supplies').val(State.config.initialSupplies || 15);
-                $('#dev-config-paranoia').val(State.config.initialParanoia || 0);
-
-                // Energy cost mapping
-                let energyMode = 'normal';
-                if (State.config.generator.consumption.normal === 1) energyMode = 'low';
-                else if (State.config.generator.consumption.normal === 3) energyMode = 'high';
-                $('#dev-config-energy-cost').val(energyMode);
-            } else {
-                $('#settings-dev-section').addClass('hidden').removeClass('flex');
-            }
-
-            this.ui.showScreen('settings');
+            const intrusionProb = parseInt($('#dev-config-intrusion').val());
+            State.config.securityIntrusionProbability = !isNaN(intrusionProb) ? intrusionProb / 100 : 0.25;
+            
+            this.ui.showFeedback('CONFIGURACIÓN DE DESARROLLADOR APLICADA', 'green');
         });
 
-        $('#btn-close-settings').on('click', () => {
-            State.config.maxShelterCapacity = parseInt($('#config-max-shelter').val());
-            State.config.dayLength = parseInt($('#config-day-length').val());
-            State.config.dayAfterTestsDefault = parseInt($('#config-dayafter-tests').val());
+        // Settings Modal Toggle
+        $('#btn-settings-toggle').off('click').on('click', () => {
+             // Audio Sliders Population
+             $('#config-volume-master').val(Math.round(this.audio.master * 100));
+             $('#label-volume-master').text(`${Math.round(this.audio.master * 100)}%`);
 
+             $('#config-volume-ambient').val(Math.round(this.audio.levels.ambient * 100));
+             $('#label-volume-ambient').text(`${Math.round(this.audio.levels.ambient * 100)}%`);
+
+             $('#config-volume-sfx').val(Math.round(this.audio.levels.sfx * 100));
+             $('#label-volume-sfx').text(`${Math.round(this.audio.levels.sfx * 100)}%`);
+
+             $('#config-volume-lore').val(Math.round(this.audio.levels.lore * 100));
+             $('#label-volume-lore').text(`${Math.round(this.audio.levels.lore * 100)}%`);
+
+             $('#config-volume-generator').val(Math.round(this.audio.levels.generator * 100));
+             $('#label-volume-generator').text(`${Math.round(this.audio.levels.generator * 100)}%`);
+             
+             // Developer Section Visibility & Population
+             if (State.debug) {
+                 $('#settings-dev-section').removeClass('hidden').addClass('flex');
+                 $('#dev-config-intrusion').val(Math.round(State.config.securityIntrusionProbability * 100));
+                 $('#dev-config-supplies').val(State.config.initialSupplies || 15);
+                 $('#dev-config-paranoia').val(Math.round(State.config.initialParanoia || 0));
+                 $('#dev-config-shelter').val(State.config.maxShelterCapacity);
+                 $('#dev-config-daylength').val(State.config.dayLength);
+             }
+
+            $('#modal-settings').removeClass('hidden').addClass('flex');
+            this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
+        });
+
+        // --- Audio Config Listeners ---
+        const bindAudioSlider = (id, channelName) => {
+            $(id).on('input', (e) => {
+                const val = parseInt(e.target.value);
+                $(id.replace('config-', 'label-')).text(`${val}%`);
+                
+                if (channelName === 'master') {
+                    this.audio.setMasterVolume(val / 100);
+                } else {
+                    this.audio.setChannelLevel(channelName, val / 100);
+                }
+
+                // UX Feedback: Beep on change (throttled)
+                if (this.audio && !this._volBeepThrottle) {
+                    // Use higher volume (1.0) so it's clearly audible at current master level
+                    this.audio.playSFXByKey('ui_hover', { volume: 1.0 }); 
+                    this._volBeepThrottle = setTimeout(() => this._volBeepThrottle = null, 100);
+                }
+            });
+        };
+
+        bindAudioSlider('#config-volume-master', 'master');
+        bindAudioSlider('#config-volume-ambient', 'ambient');
+        bindAudioSlider('#config-volume-sfx', 'sfx');
+        bindAudioSlider('#config-volume-lore', 'lore');
+        bindAudioSlider('#config-volume-generator', 'generator');
+
+        // Bind Pause Modal Sliders
+        bindAudioSlider('#pause-config-volume-master', 'master');
+        bindAudioSlider('#pause-config-volume-ambient', 'ambient');
+        bindAudioSlider('#pause-config-volume-sfx', 'sfx');
+        bindAudioSlider('#pause-config-volume-lore', 'lore');
+        bindAudioSlider('#pause-config-volume-generator', 'generator');
+
+        $('#btn-settings-apply').off('click').on('click', () => {
+            // Only update game config if dev fields exist and are visible/active
+            if (State.debug) {
+                const shelterCap = parseInt($('#dev-config-shelter').val());
+                if (!isNaN(shelterCap)) State.config.maxShelterCapacity = shelterCap;
+                
+                const dayLen = parseInt($('#dev-config-daylength').val());
+                if (!isNaN(dayLen)) State.config.dayLength = dayLen;
+
+                const intrusionProb = parseInt($('#dev-config-intrusion').val());
+                if (!isNaN(intrusionProb)) State.config.securityIntrusionProbability = intrusionProb / 100;
+            }
+
+            // Save audio settings (values are already applied via sliders, but we save to persistence)
             const mv = Math.max(0, Math.min(100, parseInt($('#config-volume-master').val()))) / 100;
             const av = Math.max(0, Math.min(100, parseInt($('#config-volume-ambient').val()))) / 100;
             const lv = Math.max(0, Math.min(100, parseInt($('#config-volume-lore').val()))) / 100;
             const sv = Math.max(0, Math.min(100, parseInt($('#config-volume-sfx').val()))) / 100;
+            const gv = Math.max(0, Math.min(100, parseInt($('#config-volume-generator').val()))) / 100;
 
+            // Update audio manager one last time to be sure
             this.audio.setMasterVolume(mv);
             this.audio.setChannelLevel('ambient', av);
             this.audio.setChannelLevel('lore', lv);
             this.audio.setChannelLevel('sfx', sv);
+            this.audio.setChannelLevel('generator', gv);
 
-            State.audioSettings = { master: mv, ambient: av, lore: lv, sfx: sv };
+            State.audioSettings = { 
+                master: mv, 
+                ambient: av, 
+                lore: lv, 
+                sfx: sv, 
+                generator: gv,
+                muted: { ...this.audio.mutedChannels } // Persist mute state
+            };
             State.savePersistentData();
 
-            if (State.cycle === 1 && State.dayTime === 1) this.ui.showScreen('start');
-            else this.ui.showScreen('game');
+            $('#modal-settings').addClass('hidden').removeClass('flex');
+            
+            // Also close pause modal if open (handling the "Apply & Close" from pause screen)
+            if (!$('#modal-pause').hasClass('hidden')) {
+                $('#modal-pause').addClass('hidden').removeClass('flex');
+                State.paused = false;
+                $('body').removeClass('paused');
+                $('#screen-game').removeClass('is-paused');
+            }
+
+            this.audio.playSFXByKey('ui_confirm', { volume: 0.5 });
         });
 
         // Navigation & Tooltips
         $('#nav-guard').on('click', () => {
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
             this.navigateToGuard();
         });
         $('#nav-map').on('click', () => {
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5, overlap: true });
             this.navigateToMap();
         });
         $('#nav-room').on('click', () => {
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
             this.navigateToRoom();
         });
         $('#nav-shelter').on('click', () => {
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
             this.navigateToShelter();
         });
         $('#nav-morgue').on('click', () => {
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
             this.navigateToMorgue();
         });
         $('#nav-log').on('click', () => {
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
             this.navigateToLog();
         });
 
         // Map Nodes Click
         $(document).on('click', '.map-node-btn', (e) => {
             const room = $(e.currentTarget).data('room');
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5, overlap: true });
+            // Removed redundant audio play to allow switchScreen to handle it contextually
 
             const navMap = {
                 game: this.navigateToGuard.bind(this),
@@ -530,7 +608,7 @@ export class GameEventManager {
         // Night Screen Actions
         $('#btn-night-sleep').on('click', () => {
             if (State.paused) return;
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.audio.playSFXByKey('sleep_begin', { volume: 0.6 });
             this.game.mechanics.sleep();
         });
 
@@ -547,7 +625,7 @@ export class GameEventManager {
 
         $('#btn-night-escape').on('click', () => {
             if (State.paused) return;
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+            this.audio.playSFXByKey('escape_attempt', { volume: 0.7 });
             this.game.mechanics.finishRun();
         });
 
@@ -557,6 +635,23 @@ export class GameEventManager {
             $('body').addClass('paused');
             $('#screen-game').addClass('is-paused');
             $('#modal-pause').removeClass('hidden').addClass('flex');
+            
+            // Sync Pause Sliders with current audio state
+            $('#pause-config-volume-master').val(Math.round(this.audio.master * 100));
+            $('#pause-label-volume-master').text(`${Math.round(this.audio.master * 100)}%`);
+
+            $('#pause-config-volume-ambient').val(Math.round(this.audio.levels.ambient * 100));
+            $('#pause-label-volume-ambient').text(`${Math.round(this.audio.levels.ambient * 100)}%`);
+
+            $('#pause-config-volume-sfx').val(Math.round(this.audio.levels.sfx * 100));
+            $('#pause-label-volume-sfx').text(`${Math.round(this.audio.levels.sfx * 100)}%`);
+
+            $('#pause-config-volume-lore').val(Math.round(this.audio.levels.lore * 100));
+            $('#pause-label-volume-lore').text(`${Math.round(this.audio.levels.lore * 100)}%`);
+
+            $('#pause-config-volume-generator').val(Math.round(this.audio.levels.generator * 100));
+            $('#pause-label-volume-generator').text(`${Math.round(this.audio.levels.generator * 100)}%`);
+
             $('#toggle-mute-music').prop('checked', !this.audio.mutedChannels.ambient);
             $('#toggle-mute-sfx').prop('checked', !this.audio.mutedChannels.sfx);
 
@@ -699,20 +794,6 @@ export class GameEventManager {
             this.ui.showMessage(report, () => { }, 'normal');
         });
 
-        $('#toggle-mute-music').on('change', (e) => {
-            const isEnabled = $(e.target).is(':checked');
-            this.audio.muteChannel('ambient', !isEnabled);
-            this.audio.muteChannel('lore', !isEnabled);
-            this.game.syncAudioPersistence();
-        });
-
-        $('#toggle-mute-sfx').on('change', (e) => {
-            const isEnabled = $(e.target).is(':checked');
-            this.audio.muteChannel('sfx', !isEnabled);
-            this.game.syncAudioPersistence();
-        });
-
-        // Al cerrar pausa
         $('#btn-pause-close').on('click', () => {
             $('#modal-pause').addClass('hidden').removeClass('flex');
             State.paused = false;
@@ -720,7 +801,7 @@ export class GameEventManager {
             $('#screen-game').removeClass('is-paused');
         });
 
-        // Developer Apply Changes
+        // Developer Apply Changes (Settings Screen)
         $('#btn-dev-apply').on('click', () => {
             if (!State.debug) return;
 
@@ -730,7 +811,7 @@ export class GameEventManager {
 
             const intrusionProb = parseInt($('#dev-config-intrusion').val());
             State.config.securityIntrusionProbability = !isNaN(intrusionProb) ? intrusionProb / 100 : 0.25;
-
+            
             State.config.initialSupplies = parseInt($('#dev-config-supplies').val()) || 15;
             State.config.initialParanoia = parseInt($('#dev-config-paranoia').val()) || 0;
 
@@ -756,6 +837,45 @@ export class GameEventManager {
             setTimeout(() => fb.addClass('hidden'), 2000);
 
             this.game.updateHUD();
+            this.ui.showMessage('CONFIGURACIÓN DE DESARROLLADOR APLICADA', () => {}, 'success');
+        });
+
+        // Developer Apply Changes (Pause Modal)
+        $('#pause-btn-dev-apply').on('click', () => {
+            if (!State.debug) return;
+
+            // Update Config
+            State.config.maxShelterCapacity = parseInt($('#pause-dev-config-shelter').val()) || 10;
+            State.config.dayLength = parseInt($('#pause-dev-config-daylength').val()) || 5;
+
+            const intrusionProb = parseInt($('#pause-dev-config-intrusion').val());
+            State.config.securityIntrusionProbability = !isNaN(intrusionProb) ? intrusionProb / 100 : 0.25;
+            
+            State.config.initialSupplies = parseInt($('#pause-dev-config-supplies').val()) || 15;
+            State.config.initialParanoia = parseInt($('#pause-dev-config-paranoia').val()) || 0;
+
+            // Apply immediate changes if sensible
+            State.supplies = State.config.initialSupplies;
+
+            // Energy Cost Logic
+            const energyMode = $('#pause-dev-config-energy-cost').val();
+            if (energyMode === 'low') {
+                State.config.generator.consumption = { save: 0, normal: 1, overload: 2 };
+            } else if (energyMode === 'high') {
+                State.config.generator.consumption = { save: 2, normal: 3, overload: 4 };
+            } else {
+                State.config.generator.consumption = { save: 1, normal: 2, overload: 3 }; // Normal
+            }
+
+            // Feedback
+            const fb = $('#pause-dev-feedback');
+            fb.removeClass('hidden');
+
+            if (this.audio) this.audio.playSFXByKey('ui_confirm', { volume: 0.5 });
+            setTimeout(() => fb.addClass('hidden'), 2000);
+
+            this.game.updateHUD();
+            this.ui.showMessage('CONFIGURACIÓN DE DESARROLLADOR APLICADA', () => {}, 'success');
         });
 
         // Controles de potencia del generador

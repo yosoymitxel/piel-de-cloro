@@ -86,6 +86,10 @@ export class ScreenManager {
                 );
             }
 
+            if (screenName === 'database') {
+                if (this.ui && this.ui.audio) this.ui.audio.playSFXByKey('database_access', { volume: 0.6 });
+            }
+
             if (screenName === 'log' && state) {
                 this.ui.renderLog(state);
             }

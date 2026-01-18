@@ -26,14 +26,23 @@ export class GameMechanicsManager {
                 const fuelNeeded = 2;
                 if (state.fuel >= fuelNeeded) {
                     state.fuel -= fuelNeeded;
-                    state.generator.power = Math.min(100, state.generator.power + 25);
+                    // state.generator.power = Math.min(100, state.generator.power + 25);
+                    if (State.updateGeneratorPower) State.updateGeneratorPower(25);
+                    else state.generator.power = Math.min(100, state.generator.power + 25);
+                    
                     summary += "Recarga nocturna completada (-2 combustible). ";
                 } else if (state.fuel > 0) {
                     state.fuel = 0;
-                    state.generator.power = Math.min(100, state.generator.power + 10);
+                    // state.generator.power = Math.min(100, state.generator.power + 10);
+                    if (State.updateGeneratorPower) State.updateGeneratorPower(10);
+                    else state.generator.power = Math.min(100, state.generator.power + 10);
+                    
                     summary += "Recarga parcial por falta de combustible. ";
                 } else {
-                    state.generator.power = Math.min(100, state.generator.power + 5);
+                    // state.generator.power = Math.min(100, state.generator.power + 5);
+                    if (State.updateGeneratorPower) State.updateGeneratorPower(5);
+                    else state.generator.power = Math.min(100, state.generator.power + 5);
+                    
                     summary += "Recarga mínima (sin combustible). ";
                 }
             }
@@ -263,13 +272,15 @@ export class GameMechanicsManager {
         const baseDrain = totalLoad / 20;
         const batteryDrain = baseDrain * bonuses.consumptionMap;
 
-        State.generator.power = Math.max(0, State.generator.power - batteryDrain);
+        // State.generator.power = Math.max(0, State.generator.power - batteryDrain);
+        if (State.updateGeneratorPower) State.updateGeneratorPower(-batteryDrain);
+        else State.generator.power = Math.max(0, State.generator.power - batteryDrain);
 
         if (State.generator.power <= 0) {
             // this.audio.playSFXByKey('generator_stop', { volume: 0.6 });
-            this.audio.playEvent('power_down');
+            // this.audio.playSFXByKey('power_down', { volume: 0.8 }); // Handled by showFeedback
             this.triggerGeneratorFailure();
-            this.ui.showFeedback("¡BATERÍA AGOTADA!", "red", 5000);
+            this.ui.showFeedback("¡BATERÍA AGOTADA!", "red", 5000, { sound: 'power_down', volume: 0.8 });
             return;
         }
 
@@ -363,7 +374,8 @@ export class GameMechanicsManager {
         this.shutdownSecuritySystem();
         this.audio.playSFXByKey('glitch_low', { volume: 0.8 });
         State.addLogEntry('system', 'FALLO CRÍTICO: Generador apagado por inestabilidad.');
-        this.ui.showFeedback("¡FALLO CRÍTICO DEL GENERADOR!", "red", 5000);
+        // Silence UI feedback sound as we already played glitch_low
+        this.ui.showFeedback("¡FALLO CRÍTICO DEL GENERADOR!", "red", 5000, { sound: false });
         if (this.ui && typeof this.ui.updateGeneratorNavStatus === 'function') {
             this.ui.updateGeneratorNavStatus();
         }
@@ -407,7 +419,7 @@ export class GameMechanicsManager {
         State.generator.maxModeCapacityReached = Math.max(currentMax, newCap);
 
         this.ui.showFeedback(`PROTOCOLO ${newMode.toUpperCase()} CARGADO`, "green", 3000);
-        this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
+        // Audio click removed to avoid interference with showFeedback (which plays ui_confirm)
 
         // Sincronizar UI centralmente
         this.ui.updateGeneratorNavStatus();
@@ -459,7 +471,7 @@ export class GameMechanicsManager {
             }
 
         } else if (!State.generator.isOn) {
-            this.audio.playSFXByKey('generator_stop', { volume: 0.6 });
+            // this.audio.playSFXByKey('generator_stop', { volume: 0.6 }); // Handled by showFeedback
             if (State.currentNPC) {
                 State.currentNPC.scanCount = 99;
             }
@@ -467,7 +479,7 @@ export class GameMechanicsManager {
             if (this.ui && typeof this.ui.updateGeneratorNavStatus === 'function') {
                 this.ui.updateGeneratorNavStatus();
             }
-            this.ui.showFeedback("GENERADOR APAGADO: ENERGÍA DISIPADA", "red", 4000);
+            this.ui.showFeedback("GENERADOR APAGADO: ENERGÍA DISIPADA", "red", 4000, { sound: 'generator_stop', volume: 0.6 });
         }
 
         this.ui.renderGeneratorRoom();
@@ -545,13 +557,17 @@ export class GameMechanicsManager {
 
         if (State.generator.power >= 100) {
             this.ui.showFeedback("BATERÍA AL MÁXIMO", "yellow");
+            if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
             return;
         }
 
         State.updateSupplies(-3);
-        State.generator.power = Math.min(100, State.generator.power + 15);
-        this.audio.playSFXByKey('ui_button_click', { volume: 0.8 });
-        this.ui.showFeedback("CARGA DE EMERGENCIA REALIZADA (+15%)", "green");
+        
+        if (State.updateGeneratorPower) State.updateGeneratorPower(15);
+        else State.generator.power = Math.min(100, State.generator.power + 15);
+        
+        // this.audio.playSFXByKey('ui_button_click', { volume: 0.8 }); // Removed to rely on feedback sound
+        this.ui.showFeedback("CARGA DE EMERGENCIA REALIZADA (+15%)", "green", 3000, { sound: 'refuel_glug', volume: 0.6 });
 
         this.ui.updateEnergyHUD();
         this.game.updateHUD();
@@ -582,6 +598,7 @@ export class GameMechanicsManager {
         // Validar: Batería ya al máximo
         if (State.generator.power >= 100) {
             this.ui.showFeedback("BATERÍA AL MÁXIMO", "yellow", 3000);
+            if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
             return false;
         }
 
@@ -598,11 +615,12 @@ export class GameMechanicsManager {
         }
 
         // Feedback visual y sonoro
-        if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.8 });
-        this.ui.showFeedback(`RECARGA COMPLETADA (+${rechargeAmount}% BATERÍA)`, "green", 4000);
+        // if (this.audio) this.audio.playSFXByKey('refuel_glug', { volume: 0.8 }); // Handled by showFeedback
+        this.ui.showFeedback(`RECARGA COMPLETADA (+${rechargeAmount}% BATERÍA)`, "green", 4000, { sound: 'refuel_glug', volume: 0.8 });
 
         // Log del evento
         State.addLogEntry('system', `Recarga de generador: -1 bidón, +${rechargeAmount}% batería.`, { icon: 'fa-gas-pump' });
+        this.ui.renderGeneratorRoom();
 
         // Update generator audio (pitch/stutter)
         if (this.game.audio && this.game.audio.updateGeneratorAudio) {
@@ -1770,44 +1788,7 @@ export class GameMechanicsManager {
     }
 
     // New methods from original Game.js decomposition
-    changeGeneratorMode(delta) {
-        if (!State.generator.isOn) return;
-        const modes = ['save', 'normal', 'overload'];
-        let currentIndex = modes.indexOf(State.generator.mode);
-        let newIndex = currentIndex + delta;
-
-        if (newIndex >= 0 && newIndex < modes.length) {
-            const newMode = modes[newIndex];
-            const newCap = newIndex + 1;
-
-            // Check if capacity increase is allowed
-            const npc = State.currentNPC;
-            const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || State.generator.restartLock;
-            const currentMax = State.generator.maxModeCapacityReached;
-
-            if (actionTaken && newCap > currentMax) {
-                this.ui.showFeedback(`SISTEMA BLOQUEADO: No puedes subir la potencia tras interactuar con el civil.`, "yellow", 4000);
-                this.audio.playSFXByKey('ui_error', { volume: 0.5 });
-                return;
-            }
-
-            State.generator.mode = newMode;
-            State.generator.maxModeCapacityReached = Math.max(currentMax, newCap);
-
-            switch (newMode) {
-                case 'normal': State.generator.power = 63; break;
-                case 'save': State.generator.power = 32; break;
-                case 'overload': State.generator.power = 100; break;
-            }
-
-            this.audio.playSFXByKey('ui_button_click', { volume: 0.5 });
-            this.ui.showFeedback(`MODO ${newMode.toUpperCase()} ACTIVADO`, "green", 3000);
-            this.ui.updateInspectionTools();
-            this.ui.renderGeneratorRoom();
-        }
-    }
-
-    // Método duplicado refuelGenerator eliminado. Ver línea 561.
+    // changeGeneratorMode(delta) removed - Legacy/Dead Code
 
     handlePurgeFromModal() {
         const target = this.ui.currentModalNPC;

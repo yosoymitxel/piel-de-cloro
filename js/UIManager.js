@@ -804,6 +804,16 @@ export class UIManager {
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
     }
 
+    // --- DRAG AND DROP AUDIO SUPPORT (Helper) ---
+    // Can be called by draggable components
+    playDragStart() {
+        if (this.audio) this.audio.playSFXByKey('ui_drag_start', { volume: 0.4 });
+    }
+    
+    playDragDrop() {
+        if (this.audio) this.audio.playSFXByKey('ui_drag_drop', { volume: 0.5 });
+    }
+
     showScreen(screenName) {
         this.cancelPurgeAnimation();
         this.screenManager.showScreen(screenName, State);
@@ -870,6 +880,13 @@ export class UIManager {
 
         if (this.audio) {
             this.audio.playSFXByKey(sfx, { volume: 0.6, priority: 2, overlap: true }); // Allow overlap so clicks don't cut it
+            
+            // Add specific purge blood flash sound if type is purge
+            if (type === 'purge') {
+                setTimeout(() => {
+                    this.audio.playSFXByKey('purge_blood_flash', { volume: 0.7, priority: 2 });
+                }, 200);
+            }
         }
 
         this.purgeTimers = this.purgeTimers || [];
@@ -2068,7 +2085,7 @@ export class UIManager {
         this.showScreen('night');
     }
 
-    showFeedback(text, color = 'yellow', duration = 0) {
+    showFeedback(text, color = 'yellow', duration = 0, audioOptions = null) {
         const colorMap = {
             'yellow': 'text-warning',
             'warning': 'text-warning',
@@ -2080,6 +2097,27 @@ export class UIManager {
             'orange': 'text-orange-400',
             'rose': 'text-rose-400'
         };
+
+        // Audio Feedback Logic
+        if (this.audio) {
+            if (audioOptions) {
+                // Custom Audio provided
+                if (audioOptions.sound) {
+                    const vol = audioOptions.volume || 0.4;
+                    this.audio.playSFXByKey(audioOptions.sound, { volume: vol });
+                } else if (audioOptions === false) {
+                    // Explicit silence
+                }
+            } else {
+                // Default Audio based on Color
+                // Use overlap: true and low priority to prevent cutting off important SFX
+                if (color === 'red' || color === 'alert' || color === 'warning') {
+                    this.audio.playSFXByKey('ui_error', { volume: 0.4, overlap: true, priority: 0 });
+                } else if (color === 'green' || color === 'success') {
+                    this.audio.playSFXByKey('ui_confirm', { volume: 0.4, overlap: true, priority: 0 });
+                }
+            }
+        }
 
         // Limpiar cualquier timer previo
         if (this.feedbackTimer) {
@@ -2425,8 +2463,8 @@ export class UIManager {
                     }
                 }
 
-                if (self.audio) self.audio.playSFXByKey('ui_success', { volume: 0.5 });
-                self.showFeedback(`✓ ASIGNADO A ${sector.toUpperCase()}: ${selectedNPC.name}`, "green", 2000);
+                // if (self.audio) self.audio.playSFXByKey('ui_success', { volume: 0.5 }); // Removed in favor of assignment_set
+                self.showFeedback(`✓ ASIGNADO A ${sector.toUpperCase()}: ${selectedNPC.name}`, "green", 2000, { sound: 'assignment_set', volume: 0.5 });
             }
             closeModal();
         });

@@ -65,16 +65,20 @@ export class AssignmentManager {
         // Log & UI
         this.addLog(sectorId, npc, this.getRandomLog('start', sectorId, npc));
 
+        // Audio Feedback
+        const game = this.game || window.game;
+        if (game && game.audio) {
+            game.audio.playSFXByKey('assignment_set', { volume: 0.6 });
+        }
+
         if (this.ui) {
             this.ui.showFeedback(`${npc.name} ASIGNADO A ${sectorId.toUpperCase()}`, "green", 3000);
             this.updateUI(sectorId);
         }
 
-        // Notify TutorialManager / Global Listeners
-        if (typeof document !== 'undefined') {
-            document.dispatchEvent(new CustomEvent('assignment-updated', { 
-                detail: { sector: sectorId, npc: npc } 
-            }));
+        // Notify Tutorial
+        if (this.game && this.game.ui && this.game.ui.tutorialManager) {
+            this.game.ui.tutorialManager.onAssignmentUpdate({ sector: sectorId, npc, reason: 'manual' });
         }
 
         return true;
@@ -97,6 +101,12 @@ export class AssignmentManager {
             if (npc) {
                 npc.assignedSector = null;
                 this.addLog(sectorId, npc, this.getRandomLog('end', sectorId, npc));
+
+                // Audio Feedback
+                const game = this.game || window.game;
+                if (game && game.audio) {
+                    game.audio.playSFXByKey('assignment_remove', { volume: 0.5 });
+                }
             }
 
             // Sync with New Room Model (Phase 4.1 bridge)
@@ -108,6 +118,11 @@ export class AssignmentManager {
             // Sync legacy
             if (sectorId === 'generator' && State.generator.assignedGuardId === npcId) {
                 State.generator.assignedGuardId = null;
+            }
+
+            // Notify Tutorial
+            if (this.game && this.game.ui && this.game.ui.tutorialManager) {
+                this.game.ui.tutorialManager.onAssignmentUpdate({ sector: sectorId, npc: null, reason: 'unassign' });
             }
 
             this.updateUI(sectorId);
@@ -184,6 +199,12 @@ export class AssignmentManager {
 
     addLog(sector, npc, message) {
         State.addSectorLog(sector, message, npc.name);
+
+        // Audio Feedback for Log Update
+        const game = this.game || window.game;
+        if (game && game.audio) {
+            game.audio.playSFXByKey('ui_dialogue_type', { volume: 0.2, rate: 1.5 });
+        }
 
         // Trigger specific UI log update if method exists
         if (this.ui && this.ui.renderRoomLog) {
