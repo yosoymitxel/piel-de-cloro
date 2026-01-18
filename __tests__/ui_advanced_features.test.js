@@ -76,18 +76,18 @@ describe('Advanced UI & Navigation Features', () => {
         expect(global.__fakeDOM['#sidebar-pinned-rooms'].append).toHaveBeenCalled();
     });
 
-    test('navigateToMap should support force option via GameEventManager', () => {
+    test('navigateToMap should support force option via GameEventManager', async () => {
         const switchSpy = jest.spyOn(gem, 'switchScreen');
 
         // Locking navigation
         State.navLocked = true;
 
         // Normal navigation should fail
-        let result = gem.navigateToMap();
+        let result = await gem.navigateToMap();
         expect(result).toBe(false);
 
         // Forced navigation should succeed
-        result = gem.navigateToMap({ force: true });
+        result = await gem.navigateToMap({ force: true });
         expect(result).toBe(true);
         expect(switchSpy).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ force: true }));
     });

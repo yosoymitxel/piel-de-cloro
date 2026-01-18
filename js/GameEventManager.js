@@ -13,6 +13,7 @@ export class GameEventManager {
      * Handles navigation locks, sound effects, and UI state updates.
      */
     async switchScreen(screenId, options = {}) {
+        console.log(`[EVENT] switchScreen requested to: ${screenId}`);
         const {
             force = false,
             lockNav = null,
@@ -26,13 +27,33 @@ export class GameEventManager {
         if (!force && (State.paused || State.navLocked || State.endingTriggered)) {
             // Exception: Allow shelter navigation during night phase if it's the current target
             if (!(screenId === CONSTANTS.SCREENS.SHELTER && State.isNight)) {
+                console.warn(`[EVENT] Navigation blocked to ${screenId}`);
                 return false;
             }
         }
 
         // Apply visual transition (Phase 5.3)
+        // Ahora pasamos la lógica de renderizado como callback para que ocurra durante el "blackout"
+        const executeSwitch = () => {
+            console.log(`[EVENT] Executing screen switch logic for: ${screenId}`);
+             // Execute specific screen rendering logic
+            if (renderFn && typeof renderFn === 'function') {
+                renderFn();
+            }
+
+            // Finalize screen transition
+            this.ui.showScreen(screenId);
+
+             // Update navigation lock state if requested
+            if (lockNav !== null) {
+                this.ui.setNavLocked(lockNav);
+            }
+        };
+
         if (this.ui && typeof this.ui.triggerTransitionEffect === 'function') {
-            await this.ui.triggerTransitionEffect();
+            await this.ui.triggerTransitionEffect(executeSwitch);
+        } else {
+            executeSwitch();
         }
 
         // Apply visual and state changes
@@ -46,18 +67,6 @@ export class GameEventManager {
 
         if (hideFeedback) this.ui.hideFeedback();
 
-        // Update navigation lock state if requested
-        if (lockNav !== null) {
-            this.ui.setNavLocked(lockNav);
-        }
-
-        // Execute specific screen rendering logic
-        if (renderFn && typeof renderFn === 'function') {
-            renderFn();
-        }
-
-        // Finalize screen transition
-        this.ui.showScreen(screenId);
         return true;
     }
 

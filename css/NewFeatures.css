@@ -417,7 +417,7 @@
 
 .map-node-pin-btn {
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.7);
     width: 24px;
     height: 24px;
     display: flex;
@@ -425,6 +425,10 @@
     justify-content: center;
     border-radius: 4px;
     transition: all 0.2s;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 20;
+    cursor: pointer;
 }
 
 .map-node-pin-btn:hover {
@@ -874,21 +878,19 @@
 /* Global Transition Effects (Phase 5.3) */
 #transition-overlay.opacity-100 {
     animation: glitch-flash 0.15s steps(2);
+    opacity: 1 !important; /* Force opacity override */
 }
 
 @keyframes glitch-flash {
     0% {
-        opacity: 0.8;
         transform: translate(1px, -1px);
     }
 
     50% {
-        opacity: 1;
         transform: translate(-1px, 1px);
     }
 
     100% {
-        opacity: 0.9;
         transform: translate(0);
     }
 }

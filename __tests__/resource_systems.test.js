@@ -75,7 +75,7 @@ describe('Resource Systems (Food, Paranoia, Sanity)', () => {
             npc2.trait = { id: 'none' };
             State.admittedNPCs = [npc1, npc2];
 
-            gmm.processNightEvents(State.admittedNPCs);
+            gmm.processNightResourcesAndTraits();
 
             // 10 - 2 = 8
             expect(State.supplies).toBe(8);
@@ -130,13 +130,14 @@ describe('Resource Systems (Food, Paranoia, Sanity)', () => {
         });
 
         test('optimist trait reduces paranoia', () => {
-            const optimist = { trait: { id: 'optimist' } };
-            State.admittedNPCs.push(optimist);
+            const optimist = new NPC();
+            optimist.trait = { id: 'optimist' };
+            State.admittedNPCs = [optimist];
             State.paranoia = 50;
 
             const spy = jest.spyOn(State, 'updateParanoia');
 
-            gmm.processNightEvents(State.admittedNPCs);
+            gmm.processNightResourcesAndTraits();
 
             // Optimist reduces flat 10.
             // updateParanoia(-10): -10 * 0.9 = -9.

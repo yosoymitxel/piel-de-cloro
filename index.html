@@ -52,6 +52,8 @@
             <div class="crt-overlay"></div>
             <div class="scanline"></div>
             <div id="time-tint" class="time-tint-overlay"></div>
+            <!-- Global Transition Overlay (Moved to Main Container) -->
+            <!-- Removed from here to place inside main-area-fixed -->
 
             <!-- Game Container -->
             <div class="game-container flex relative z-10 w-full h-full">
@@ -120,6 +122,12 @@
 
                 <!-- MAIN CONTENT AREA -->
                 <div id="main-area" class="flex-grow relative flex flex-col horror-panel-inner main-area-fixed">
+                    
+                    <!-- Global Transition Overlay (Scoped to Main Area) -->
+                    <div id="transition-overlay"
+                        class="absolute inset-0 z-[9999] pointer-events-none opacity-0 bg-black transition-opacity duration-75">
+                        <div class="absolute inset-0 bg-cyan-950/10 opacity-30"></div>
+                    </div>
 
                     <!-- SCREEN 1: START -->
                     <section id="screen-start"
@@ -2748,12 +2756,6 @@
                 EJECUTANDO PROTOCOLO DE EXTERMINIO...</div>
         </div>
         <div class="purge-noise"></div>
-    </div>
-
-    <!-- Global Transition Overlay (Phase 5.3) -->
-    <div id="transition-overlay"
-        class="fixed inset-0 z-[9999] pointer-events-none opacity-0 bg-black transition-opacity duration-75">
-        <div class="absolute inset-0 bg-cyan-950/10 opacity-30"></div>
     </div>
 
     <script type="module" src="js/main.js?v=1.1"></script>

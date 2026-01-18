@@ -1,6 +1,7 @@
 import { GameMechanicsManager } from '../js/GameMechanicsManager.js';
 import { State } from '../js/State.js';
 import { NPC } from '../js/NPC.js';
+import { jest } from '@jest/globals';
 
 // Mock localStorage at the top level
 const store = {};
@@ -152,38 +153,29 @@ describe('Advanced Mechanics and State Persistence', () => {
     describe('Paranoia Security Failure', () => {
         test('processNightResourcesAndTraits handles security failure with correct labels', () => {
             State.paranoia = 80;
-            State.admittedNPCs = [{ name: 'Test NPC', traits: [], trait: { id: 'none' } }];
+            const npc = new NPC();
+            npc.name = 'Test NPC';
+            npc.trait = { id: 'none' };
+            State.admittedNPCs = [npc];
 
             // Test door
             State.securityItems = [{ type: 'puerta', secured: true }];
-            let count = 0;
-            // Use mockReturnValueOnce to avoid infinite recursion if internal libs use Math.random
-            let spyRandom = jest.spyOn(Math, 'random')
-                .mockImplementationOnce(() => 0.1)  // trigger
-                .mockImplementationOnce(() => 0.0); // target
-            let summary = gmm.processNightEvents();
+            let spyRandom = jest.spyOn(Math, 'random').mockReturnValue(0.1);
+            let summary = gmm.processNightResourcesAndTraits();
             expect(summary).toContain('fallo en: PUERTA');
             spyRandom.mockRestore();
 
             // Test alarm
             State.securityItems = [{ type: 'alarma', active: true }];
-            count = 0;
-            count = 0;
-            spyRandom = jest.spyOn(Math, 'random')
-                .mockImplementationOnce(() => 0.1)
-                .mockImplementationOnce(() => 0.0);
-            summary = gmm.processNightEvents();
+            spyRandom = jest.spyOn(Math, 'random').mockReturnValue(0.1);
+            summary = gmm.processNightResourcesAndTraits();
             expect(summary).toContain('fallo en: ALARMA');
             spyRandom.mockRestore();
 
             // Test tuberias
             State.securityItems = [{ type: 'tuberias', secured: true }];
-            count = 0;
-            count = 0;
-            spyRandom = jest.spyOn(Math, 'random')
-                .mockImplementationOnce(() => 0.1)
-                .mockImplementationOnce(() => 0.0);
-            summary = gmm.processNightEvents();
+            spyRandom = jest.spyOn(Math, 'random').mockReturnValue(0.1);
+            summary = gmm.processNightResourcesAndTraits();
             expect(summary).toContain('fallo en: TUBERÍAS');
             spyRandom.mockRestore();
         });

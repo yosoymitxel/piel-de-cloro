@@ -1,5 +1,6 @@
 import { GameMechanicsManager } from '../js/GameMechanicsManager.js';
 import { State } from '../js/State.js';
+import { NPC } from '../js/NPC.js';
 
 describe('Game Mechanics Manager', () => {
     let gmm, gameMock, uiMock, audioMock, endingsMock;
@@ -113,11 +114,17 @@ describe('Game Mechanics Manager', () => {
 
     describe('Night Phase', () => {
         test('sleep with infected in shelter kills a civilian', () => {
-            const human = { name: 'Civilian', isInfected: false };
-            const infected = { name: 'Infected', isInfected: true };
+            const human = new NPC();
+            human.name = 'Civilian';
+            human.isInfected = false;
+
+            const infected = new NPC();
+            infected.name = 'Infected';
+            infected.isInfected = true;
+
             State.admittedNPCs = [human, infected];
 
-            gmm.processNightEvents();
+            gmm.sleep();
 
             expect(State.admittedNPCs).not.toContain(human);
         });
@@ -127,14 +134,18 @@ describe('Game Mechanics Manager', () => {
             const spy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
             State.admittedNPCs = [];
 
-            gmm.processNightEvents();
+            gmm.sleep();
 
             expect(endingsMock.triggerEnding).toHaveBeenCalledWith('night_player_death');
             spy.mockRestore();
         });
 
         test('tranquil night decreases paranoia', () => {
-            const human = { name: 'Civilian', isInfected: false };
+            const human = new NPC();
+            human.name = 'Civilian';
+            human.isInfected = false;
+            human.trait = { id: 'none' }; // Ensure no trait effects
+
             State.admittedNPCs = [human];
             State.paranoia = 50;
             // Mock Math.random to avoid random death (0.05 + paranoia/250)
@@ -143,7 +154,7 @@ describe('Game Mechanics Manager', () => {
             // Trigger the callback of showLore
             uiMock.showLore.mockImplementation((key, cb) => cb());
 
-            gmm.processNightEvents();
+            gmm.sleep();
 
             // 50 - 15 (base -10, bonus -5). 
             // updateParanoia(-15) -> -15 * 0.9 = -13.5 -> -14.

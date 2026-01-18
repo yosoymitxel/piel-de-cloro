@@ -245,7 +245,7 @@ describe('Migration Integration Testing Suite', () => {
         expect(State.isDayOver()).toBe(true);
 
         // 6. Transition to Night
-        game.mechanics.startNightPhase();
+        await game.mechanics.startNightPhase();
         expect(State.isNight).toBe(true);
         expect(State.dayClosed).toBe(true);
         expect(game.ui.renderNightScreen).toHaveBeenCalled();

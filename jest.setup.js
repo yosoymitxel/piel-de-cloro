@@ -4,6 +4,13 @@ if (typeof global.jest === 'undefined') {
         fn(impl) {
             const f = function (...args) {
                 f.mock.calls.push(args);
+                if (f._implsOnce && f._implsOnce.length > 0) {
+                    const nextImpl = f._implsOnce.shift();
+                    return nextImpl.apply(this, args);
+                }
+                if (f._returnsOnce && f._returnsOnce.length > 0) {
+                    return f._returnsOnce.shift();
+                }
                 if (f._return !== undefined) return f._return;
                 if (typeof f._impl === 'function') return f._impl.apply(this, args);
                 return undefined;
@@ -17,7 +24,11 @@ if (typeof global.jest === 'undefined') {
             f.mockClear = () => { f.mock.calls = []; return f; };
             f.mockReset = () => { f.mock.calls = []; f._return = undefined; f._impl = undefined; return f; };
             f.mockReturnValue = (v) => { f._return = v; return f; };
+            f._returnsOnce = [];
+            f.mockReturnValueOnce = (v) => { f._returnsOnce.push(v); return f; };
             f.mockImplementation = (fnimpl) => { f._impl = fnimpl; return f; };
+            f._implsOnce = [];
+            f.mockImplementationOnce = (fnimpl) => { f._implsOnce.push(fnimpl); return f; };
             f.mockResolvedValue = (v) => { f._impl = () => Promise.resolve(v); return f; };
             f.mockRejectedValue = (v) => { f._impl = () => Promise.reject(v); return f; };
             f.mockReturnThis = () => { f._impl = function() { return this; }; return f; };
@@ -79,19 +90,22 @@ if (typeof global.document === 'undefined') {
         dispatchEvent: () => {},
         getElementById: () => ({ appendChild: () => {} }),
         createElement: () => ({
-            getContext: () => ({
-                fillRect: () => {},
-                clearRect: () => {},
-                drawImage: () => {},
-                getImageData: () => ({ data: new Uint8ClampedArray(4) }),
-                putImageData: () => {},
-                beginPath: () => {},
-                arc: () => {},
-                fill: () => {}
-            }),
-            width: 100,
-            height: 100
-        })
+                getContext: () => ({
+                    fillRect: () => {},
+                    clearRect: () => {},
+                    drawImage: () => {},
+                    getImageData: () => ({ data: new Uint8ClampedArray(4) }),
+                    putImageData: () => {},
+                    beginPath: () => {},
+                    arc: () => {},
+                    fill: () => {}
+                }),
+                width: 100,
+                height: 100,
+                remove: () => {},
+                appendChild: () => {},
+                style: {}
+            })
     };
 }
 

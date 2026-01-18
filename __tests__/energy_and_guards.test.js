@@ -54,6 +54,9 @@ describe('Energy, Battery & Guard System', () => {
         // Clear shelter to isolate global system load tests
         State.shelters = {};
         State.currentShelterId = null;
+
+        // Disable random failure
+        State.config.generator.failureChance = { normal: 0, save: 0, overload: 0 };
     });
 
     test('Should calculate total load including systems and base consumption', () => {

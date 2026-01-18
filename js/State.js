@@ -26,6 +26,18 @@ export const State = {
         noInfectedGuardDeathChance: 0.05,
         // Generador
         generator: {
+            power: 100,
+            isOn: true,
+            assignedGuardId: null,
+            mode: 'normal',
+            stability: 100,
+            blackoutUntil: 0,
+            systems: {
+                security: { active: true, name: 'SEGURIDAD' },
+                lighting: { active: true, name: 'ILUMINACIÓN' },
+                lifeSupport: { active: true, name: 'SOPORTE VITAL' },
+                shelterLab: { active: true, name: 'LABORATORIO' }
+            },
             consumption: {
                 save: 1,    // Ahorro: 1 energía/turno
                 normal: 2,  // Normal: 2 energía/turno
@@ -63,6 +75,8 @@ export const State = {
         muted: { ambient: false, lore: false, sfx: false }
     },
     pinnedRooms: ['generator', 'shelter', 'room'], // Salas pineadas por defecto: Generador, Refugio, Vigilancia
+    currentLayoutKey: null, // Guarda el layout actual del mapa
+    lastRenderedShelterId: null, // Para detectar cambios de refugio
     shelter: {
         id: 'alpha-01',
         name: 'REFUGIO ALPHA-01',
@@ -89,7 +103,10 @@ export const State = {
     savePersistentData() {
         const data = {
             unlockedEndings: this.unlockedEndings,
-            audioSettings: this.audioSettings
+            audioSettings: this.audioSettings,
+            pinnedRooms: this.pinnedRooms, // Save pinned rooms
+            currentLayoutKey: this.currentLayoutKey, // Save current layout
+            lastRenderedShelterId: this.lastRenderedShelterId // Save shelter ID to prevent rotation on reload
         };
         const serialized = JSON.stringify(data);
         localStorage.setItem('ruta01_persistence', serialized);
@@ -102,6 +119,9 @@ export const State = {
             const data = JSON.parse(raw);
             if (data) {
                 if (data.unlockedEndings) this.unlockedEndings = data.unlockedEndings;
+                if (data.pinnedRooms) this.pinnedRooms = data.pinnedRooms; // Load pinned rooms
+                if (data.currentLayoutKey) this.currentLayoutKey = data.currentLayoutKey;
+                if (data.lastRenderedShelterId) this.lastRenderedShelterId = data.lastRenderedShelterId;
                 if (data.audioSettings) {
                     this.audioSettings = data.audioSettings;
                     // Asegurar que muted existe para retrocompatibilidad

@@ -116,7 +116,7 @@ export class GameMechanicsManager {
         });
     }
 
-    startNightPhase() {
+    async startNightPhase() {
         State.isNight = true;
         State.dayClosed = true;
 
@@ -130,7 +130,7 @@ export class GameMechanicsManager {
         }
 
         // Usar switchScreen para la transición a la pantalla nocturna
-        this.game.events.switchScreen(CONSTANTS.SCREENS.NIGHT, {
+        await this.game.events.switchScreen(CONSTANTS.SCREENS.NIGHT, {
             force: true,
             lockNav: true,
             sound: 'night_transition',
@@ -249,8 +249,6 @@ export class GameMechanicsManager {
         const bonuses = this.calculateJobBonuses();
         const baseDrain = totalLoad / 20;
         const batteryDrain = baseDrain * bonuses.consumptionMap;
-
-
 
         State.generator.power = Math.max(0, State.generator.power - batteryDrain);
 
@@ -904,6 +902,9 @@ export class GameMechanicsManager {
             State.updateParanoia(5);
             summary += "La falta de suministros está causando desesperación. ";
             State.addLogEntry('warning', `CRÍTICO: El refugio se ha quedado sin raciones.`, { icon: 'fa-frown' });
+            
+            // Nueva mecánica de hambruna (Phase 3.3)
+            summary += this.handleStarvation(admitted);
         }
 
         const departed = [];
@@ -981,19 +982,48 @@ export class GameMechanicsManager {
             State.addLogEntry('danger', `AMOTINAMIENTO: Conflictos violentos en curso (${rioters.length} sujetos).`, { icon: 'fa-burst' });
         }
 
-        // Caso Extremo: Canibalismo (Mantener el elemento de horror)
-        if (starvation && admitted.length >= 3 && Math.random() < 0.12) {
-            const victimIndex = Math.floor(Math.random() * admitted.length);
-            const victim = admitted[victimIndex];
-            admitted.splice(victimIndex, 1);
+        return summary;
+    }
 
-            victim.death = { reason: 'canibalismo', cycle: State.cycle, revealed: true };
-            State.purgedNPCs.push(victim);
-            State.updateSupplies(5);
-            State.updateSanity(-25);
-            summary += `INCIDENTE CRÍTICO: La desesperación absoluta ha resultado en canibalismo. ${victim.name} ha sido sacrificado. `;
-            State.addLogEntry('critical', `TRAGEDIA: Canibalismo detectado en el Sector B.`, { icon: 'fa-skull' });
-            if (this.ui.applyVHS) this.ui.applyVHS(1.0, 5000);
+    handleStarvation(admitted) {
+        let summary = "";
+        const roll = Math.random();
+
+        if (roll < 0.2) {
+            // Canibalismo (Sacrificio)
+            if (admitted.length > 0) {
+                const victimIndex = Math.floor(Math.random() * admitted.length);
+                const victim = admitted[victimIndex];
+                admitted.splice(victimIndex, 1);
+
+                victim.death = { reason: 'canibalismo', cycle: State.cycle, revealed: true };
+                State.purgedNPCs.push(victim);
+                State.updateSupplies(5);
+                State.updateSanity(-25);
+                summary += `INCIDENTE CRÍTICO: La desesperación absoluta ha resultado en canibalismo. ${victim.name} ha sido sacrificado. `;
+                State.addLogEntry('critical', `TRAGEDIA: Canibalismo detectado en el Sector B.`, { icon: 'fa-skull' });
+                if (this.ui.applyVHS) this.ui.applyVHS(1.0, 5000);
+            }
+        } else if (roll < 0.5) {
+            // Deserción
+            if (admitted.length > 0) {
+                const index = Math.floor(Math.random() * admitted.length);
+                const leaver = admitted[index];
+                admitted.splice(index, 1);
+                leaver.exitDate = State.cycle;
+                State.departedNPCs.push(leaver);
+                summary += `${leaver.name} ha huido del refugio por falta de comida. `;
+                State.addLogEntry('warning', `DESERCIÓN: ${leaver.name} ha huido por inanición.`, { icon: 'fa-person-running' });
+            }
+        } else {
+            // Motín (Pelea)
+            const damage = 10;
+            State.updateParanoia(10);
+            if (State.generator) {
+                State.generator.stability = Math.max(0, State.generator.stability - damage);
+            }
+            summary += "Se ha desatado una pelea por los últimos recursos. ";
+            State.addLogEntry('danger', `DISTURBIOS: Peleas por comida.`, { icon: 'fa-burst' });
         }
 
         return summary;

@@ -23,7 +23,7 @@ export const CONSTANTS = {
     },
 
     LORE_CLUE_THRESHOLD: 2, // Número de escaneos para revelar pista de lore
-    VERSION: '0.2.7',
+    VERSION: '0.3.7',
     VERSION_LABEL: 'PIEL DE CLORO - TERMINAL CORE',
     NAV_ITEMS: {
         GUARD: 'nav-guard',
@@ -198,6 +198,63 @@ export const CONSTANTS = {
                     return guardId ? 'status-alert' : 'status-critical';
                 }
                 return guardId ? 'status-active' : 'status-alert';
+            }
+        }
+    },
+    // Map Prefab Layouts (5x6 Grid)
+    MAP_LAYOUTS: {
+        'layout_v1': {
+            width: 5, height: 6,
+            rooms: {
+                'fuel': { col: 1, row: 2 },
+                'generator': { col: 2, row: 2 }, // 2x1
+                'storage': { col: 4, row: 2 }, // 2x1
+                'supplies': { col: 4, row: 2 },
+                'game': { col: 1, row: 3 },
+                'lab': { col: 2, row: 3 },
+                'empty': { col: 3, row: 3 },
+                'shelter': { col: 4, row: 3 }, // 2x2
+                'security': { col: 1, row: 4 },
+                'medical': { col: 2, row: 4 },
+                'database': { col: 3, row: 4 },
+                'meditation': { col: 1, row: 5 }, // 1x2
+                'morgue': { col: 2, row: 5 }
+            }
+        },
+        'layout_v2': {
+            width: 5, height: 6,
+            rooms: {
+                'security': { col: 1, row: 2 },
+                'generator': { col: 2, row: 2 }, // 2x1
+                'medical': { col: 4, row: 2 },
+                'fuel': { col: 5, row: 2 },
+                'storage': { col: 1, row: 3 }, // 2x1
+                'supplies': { col: 1, row: 3 },
+                'lab': { col: 3, row: 3 },
+                'shelter': { col: 4, row: 3 }, // 2x2
+                'game': { col: 1, row: 4 },
+                'database': { col: 2, row: 4 },
+                'morgue': { col: 3, row: 4 },
+                'meditation': { col: 5, row: 5 }, // 1x2
+                'empty': { col: 2, row: 5 }
+            }
+        },
+        'layout_v3': {
+            width: 5, height: 6,
+            rooms: {
+                'shelter': { col: 1, row: 2 }, // 2x2
+                'generator': { col: 3, row: 2 }, // 2x1
+                'fuel': { col: 5, row: 2 },
+                'storage': { col: 3, row: 3 }, // 2x1
+                'supplies': { col: 3, row: 3 },
+                'security': { col: 5, row: 3 },
+                'medical': { col: 1, row: 4 },
+                'lab': { col: 2, row: 4 },
+                'game': { col: 3, row: 4 },
+                'database': { col: 4, row: 4 },
+                'morgue': { col: 5, row: 4 },
+                'meditation': { col: 1, row: 5 }, // 1x2
+                'empty': { col: 2, row: 5 }
             }
         }
     }

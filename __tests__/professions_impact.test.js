@@ -36,6 +36,9 @@ describe('Professions Impact', () => {
         State.generator.load = 40; // Fixed load for testing
         // Mock calculateTotalLoad to satisfy updateGenerator call
         mechanics.calculateTotalLoad = jest.fn(() => 40);
+
+        // Disable random failure for consistent tests
+        State.config.generator.failureChance = { normal: 0, save: 0, overload: 0 };
     });
 
     test('Engineer should reduce generator consumption', () => {

@@ -3390,6 +3390,26 @@ export class UIManager {
     // --- BLUEPRINT SYSTEM (Phase 4.3) ---
 
     /**
+     * Rotates the map layout to a new one different from the current.
+     */
+    rotateMapLayout() {
+        const layouts = CONSTANTS.MAP_LAYOUTS;
+        if (!layouts) return;
+        
+        const keys = Object.keys(layouts);
+        if (keys.length <= 1) return;
+
+        // Filter out current key to ensure change
+        const availableKeys = keys.filter(k => k !== State.currentLayoutKey);
+        
+        // Pick random new key
+        const newKey = availableKeys[Math.floor(Math.random() * availableKeys.length)];
+        
+        State.currentLayoutKey = newKey;
+        console.log(`[UIManager] Map layout rotated to: ${newKey}`);
+    }
+
+    /**
      * Renders the tactical 2D grid based on the shelter model.
      * @param {Shelter} shelter 
      */
@@ -3402,28 +3422,87 @@ export class UIManager {
         const rooms = shelter.getAllRooms();
         if (rooms.length === 0) return;
 
-        // Use flexbox-like layout for variable-sized rooms
+        // Use layouts from CONSTANTS, with fallback
+        const PREFAB_LAYOUTS = CONSTANTS.MAP_LAYOUTS || {
+            'layout_fallback': {
+                width: 5, height: 6,
+                rooms: {
+                    'fuel': { col: 1, row: 2 },
+                    'generator': { col: 2, row: 2 },
+                    'storage': { col: 4, row: 2 },
+                    'supplies': { col: 4, row: 2 },
+                    'game': { col: 1, row: 3 },
+                    'lab': { col: 2, row: 3 },
+                    'empty': { col: 3, row: 3 },
+                    'shelter': { col: 4, row: 3 },
+                    'security': { col: 1, row: 4 },
+                    'medical': { col: 2, row: 4 },
+                    'database': { col: 3, row: 4 },
+                    'meditation': { col: 1, row: 5 },
+                    'morgue': { col: 2, row: 5 }
+                }
+            }
+        };
+
+        if (!PREFAB_LAYOUTS) {
+            console.error('[UIManager] Critical: No map layouts defined.');
+            return;
+        }
+
+        // Select active layout (persisted)
+        // If first run, pick random
+        if (!State.currentLayoutKey) {
+            const layoutKeys = Object.keys(PREFAB_LAYOUTS);
+            State.currentLayoutKey = layoutKeys[Math.floor(Math.random() * layoutKeys.length)];
+            console.log(`[UIManager] Initializing layout: ${State.currentLayoutKey}`);
+        }
+
+        // Check if shelter ID changed to trigger rotation
+        if (State.lastRenderedShelterId && State.lastRenderedShelterId !== shelter.id) {
+            console.log(`[UIManager] Detected new shelter (${shelter.id}). Rotating map layout.`);
+            this.rotateMapLayout();
+        }
+        State.lastRenderedShelterId = shelter.id;
+        
+        const activeLayoutKey = State.currentLayoutKey;
+        const activeLayout = PREFAB_LAYOUTS[activeLayoutKey] || PREFAB_LAYOUTS['layout_v1'];
+        const layoutMap = activeLayout.rooms;
+
+        // Calculate grid dimensions based on layout config
+        const maxX = activeLayout.width;
+        const maxY = activeLayout.height;
+
+        // Use CSS Grid for precise vertical/horizontal layout
+        // Using dynamic cell height to fit content and aligning to top to avoid empty space
         gridContainer.css({
-            'display': 'flex',
-            'flex-wrap': 'wrap',
-            'gap': '4px',
+            'display': 'grid',
+            'grid-template-columns': `repeat(${maxX}, 180px)`,
+            'grid-template-rows': `repeat(${maxY}, minmax(90px, auto))`,
+            'gap': '15px',
             'justify-content': 'center',
-            'align-content': 'flex-start',
-            'padding': '10px'
+            'align-content': 'start',
+            'padding': '20px',
+            'overflow-y': 'auto',
+            'max-height': '100%'
         });
 
-        // Render rooms sorted by coordinates for consistent layout
-        const sortedRooms = [...rooms].sort((a, b) => {
-            if (a.coords.y !== b.coords.y) return a.coords.y - b.coords.y;
-            return a.coords.x - b.coords.x;
-        });
+        rooms.forEach(room => {
+            const typeKey = room.type.toLowerCase();
+            
+            // Apply layout coordinates
+            if (layoutMap[typeKey]) {
+                room.coords.x = layoutMap[typeKey].col - 1; 
+                room.coords.y = layoutMap[typeKey].row - 1;
+            }
 
-        sortedRooms.forEach(room => {
-            gridContainer.append(this._createBlueprintCellHtml(room));
+            gridContainer.append(this._createBlueprintCellHtml(room, layoutMap));
         });
 
         // Attach tactical interaction
         gridContainer.off('click', '.blueprint-cell').on('click', '.blueprint-cell', (e) => {
+            // Ignore if clicking the pin button
+            if ($(e.target).closest('.map-node-pin-btn').length) return;
+
             const cell = $(e.currentTarget);
             const roomType = cell.data('room');
 
@@ -3438,9 +3517,19 @@ export class UIManager {
                 this.handleRoomNavigation(roomType);
             }
         });
+
+        // Attach Pin Button Interaction
+        gridContainer.off('click', '.map-node-pin-btn').on('click', '.map-node-pin-btn', (e) => {
+            e.stopPropagation();
+            const btn = $(e.currentTarget);
+            const roomId = btn.data('room');
+            if (this.game && this.game.events) {
+                this.game.events.togglePinRoom(roomId);
+            }
+        });
     }
 
-    _createBlueprintCellHtml(room) {
+    _createBlueprintCellHtml(room, layoutMap = null) {
         const isDiscovered = room.isDiscovered;
         const statusClass = isDiscovered ? 'is-discovered' : 'not-discovered';
 
@@ -3455,8 +3544,19 @@ export class UIManager {
         // Get room size for grid span
         const sizeW = roomConfig.size?.w || 1;
         const sizeH = roomConfig.size?.h || 1;
-        const cellWidth = sizeW * 100; // Base 100px per unit
-        const cellHeight = sizeH * 80; // Base 80px per unit
+        
+        // Determine Grid Position
+        let gridCol, gridRow;
+        
+        if (layoutMap && layoutMap[typeKey]) {
+            // Use Static Layout
+            gridCol = `${layoutMap[typeKey].col} / span ${sizeW}`;
+            gridRow = `${layoutMap[typeKey].row} / span ${sizeH}`;
+        } else {
+            // Fallback to dynamic coords
+            gridCol = `${room.coords.x + 1} / span ${sizeW}`;
+            gridRow = `${room.coords.y + 1} / span ${sizeH}`;
+        }
 
         // Map status logic
         const statusMap = {
@@ -3466,24 +3566,116 @@ export class UIManager {
             'fuel': 'fuel',
             'lab': 'generator'
         };
+        // Logic to determine ID for status/navigation
+        const roomId = roomConfig.id || typeKey;
+        
         const statusLevel = this.getRoomStatusClass(statusMap[typeKey] || typeKey);
         const isOff = (statusLevel === 'status-critical') ? 'is-off' : '';
+        const isPinned = State.pinnedRooms && State.pinnedRooms.includes(roomId);
+
+        // Indicators Generation
+        let indicatorsHtml = '';
+        if (isDiscovered) {
+            const indicators = this._getRoomIndicators(typeKey);
+            if (indicators.length > 0) {
+                // Adjust layout for wide cells (2 columns)
+                const isWide = sizeW > 1;
+                const gridClass = isWide ? 'grid grid-cols-2 gap-x-4 gap-y-1' : 'flex flex-col gap-1';
+                
+                indicatorsHtml = `<div class="map-node-indicators mt-2 w-full bg-black/20 p-2 rounded ${gridClass}">`;
+                indicators.forEach(ind => {
+                    indicatorsHtml += `
+                        <div class="map-info-line flex justify-between items-center text-[10px] font-mono opacity-80">
+                            <span class="font-bold tracking-tight text-gray-400">${ind.label}</span>
+                            <span class="map-info-value font-bold ml-2 ${ind.color || 'text-white'}">${ind.value}</span>
+                        </div>
+                    `;
+                });
+                indicatorsHtml += '</div>';
+            }
+        }
 
         return `
-            <div class="blueprint-cell ${statusClass} ${isOff}" 
-                 data-room="${roomConfig.id || typeKey}" 
+            <div class="blueprint-cell map-node-btn ${statusClass} ${isOff} ${statusLevel} flex flex-col justify-between relative group" 
+                 data-room="${roomId}" 
                  data-x="${room.coords.x}" 
                  data-y="${room.coords.y}"
-                 style="width: ${cellWidth}px; height: ${cellHeight}px; grid-column: span ${sizeW}; grid-row: span ${sizeH};">
+                 style="grid-column: ${gridCol}; grid-row: ${gridRow}; padding: 12px; width: 100%; height: 100%;">
                 
-                <div class="cell-content relative z-10 flex flex-col items-center justify-center h-full">
-                    <i class="fa-solid ${roomConfig.icon} blueprint-icon mb-2"></i>
-                    <span class="blueprint-label">${roomConfig.displayName}</span>
+                <div class="map-node-header flex justify-between items-start w-full relative z-20 sticky top-0 bg-inherit pb-2 border-b border-white/10 mb-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid ${roomConfig.icon} text-lg opacity-80"></i>
+                        <span class="map-node-title text-xs font-bold uppercase tracking-wider">${roomConfig.displayName}</span>
+                    </div>
+                    ${isDiscovered ? `
+                    <button class="map-node-pin-btn ${isPinned ? 'active text-yellow-400' : 'text-gray-600'} hover:text-yellow-400 transition-colors p-1" data-room="${roomId}" title="Anclar al inicio">
+                        <i class="fa-solid fa-thumbtack"></i>
+                    </button>
+                    ` : ''}
                 </div>
 
-                <div class="blueprint-status-indicator ${statusLevel} absolute bottom-2 right-2 w-2 h-2 rounded-full"></div>
+                ${indicatorsHtml}
+
+                <div class="map-status-light absolute bottom-2 right-2 z-10"></div>
             </div>
         `;
+    }
+
+    _getRoomIndicators(typeKey) {
+        const indicators = [];
+        
+        // Helper to count specific assignments
+        const countAssigned = (sector) => {
+            try {
+                if (State.assignments && State.assignments[sector]) return State.assignments[sector].occupants.length;
+                if (State.sectorAssignments && State.sectorAssignments[sector]) return State.sectorAssignments[sector].length;
+            } catch (e) { console.warn("Error counting assigned:", e); }
+            return 0;
+        };
+
+        try {
+            switch (typeKey) {
+                case 'game': // Puesto de Guardia
+                    indicators.push({ label: 'CICLO', value: State.cycle || 1, color: 'text-chlorine-light' });
+                    indicators.push({ label: 'HORA', value: `${State.dayTime || 0}:00` });
+                    break;
+                case 'shelter': // Refugio
+                case 'medical':
+                    const admitted = State.admittedNPCs ? State.admittedNPCs.length : 0;
+                    const max = State.config ? State.config.maxShelterCapacity : 10;
+                    indicators.push({ label: 'OCUPANTES', value: `${admitted}/${max}`, color: admitted >= max ? 'text-alert' : 'text-white' });
+                    indicators.push({ label: 'INFECTADOS', value: '???', color: 'text-gray-500' });
+                    break;
+                case 'storage': // Suministros
+                case 'supplies':
+                    indicators.push({ label: 'STOCK', value: State.supplies || 0, color: 'text-amber-400' });
+                    indicators.push({ label: 'PERSONAL', value: countAssigned('supplies'), color: 'text-gray-400' });
+                    break;
+                case 'fuel': // Combustible
+                    indicators.push({ label: 'RESERVA', value: State.fuel || 0, color: 'text-rose-400' });
+                    indicators.push({ label: 'PERSONAL', value: countAssigned('fuel'), color: 'text-gray-400' });
+                    break;
+                case 'generator': // Generador
+                case 'lab':
+                    const power = (State.generator && State.generator.power !== undefined) ? State.generator.power : 0;
+                    const isOn = (State.generator && State.generator.isOn !== undefined) ? State.generator.isOn : false;
+                    indicators.push({ label: 'ESTADO', value: isOn ? 'ONLINE' : 'OFFLINE', color: isOn ? 'text-green-400' : 'text-alert' });
+                    indicators.push({ label: 'POTENCIA', value: `${Math.round(power)}%`, color: 'text-blue-300' });
+                    break;
+                case 'security': // Seguridad
+                    const activeAlarms = State.securityItems ? State.securityItems.filter(i => i.type === 'alarma' && i.active).length : 0;
+                    indicators.push({ label: 'ALARMAS', value: activeAlarms > 0 ? 'ACTIVAS' : 'INACTIVAS', color: activeAlarms > 0 ? 'text-alert' : 'text-gray-500' });
+                    indicators.push({ label: 'PERSONAL', value: countAssigned('security'), color: 'text-gray-400' });
+                    break;
+                case 'morgue':
+                    const dead = State.purgedNPCs ? State.purgedNPCs.length : 0;
+                    indicators.push({ label: 'BAJAS', value: dead, color: 'text-red-700' });
+                    break;
+            }
+        } catch (e) {
+            console.error("Error generating room indicators:", e);
+        }
+        return indicators;
     }
 
     handleRoomNavigation(roomType) {
@@ -3658,23 +3850,54 @@ export class UIManager {
         if (this.audio) this.audio.playSFXByKey('ui_hover', { volume: 0.2 });
     }
 
-    async triggerTransitionEffect() {
+    async triggerTransitionEffect(onMidPoint = null) {
+        console.log(`[TRANSITION] Starting triggerTransitionEffect at ${Date.now()}`);
+        
+        // OVERLAY DISABLED BY USER REQUEST (Visual Glitch Removal)
+        /*
         const overlay = $('#transition-overlay');
-        if (!overlay.length) return;
-
-        overlay.removeClass('pointer-events-none').addClass('opacity-100');
-
-        // Simular glitch rápido
-        for (let i = 0; i < 3; i++) {
-            const line = $('<div>', {
-                class: 'absolute w-full h-[1px] bg-cyan-400/40 z-[10000]',
-                css: { top: Math.random() * 100 + '%' }
-            });
-            overlay.append(line);
-            setTimeout(() => line.remove(), 60);
+        if (!overlay.length) {
+            console.warn("[TRANSITION] Overlay not found, executing midpoint immediately");
+            if (onMidPoint) onMidPoint();
+            return;
         }
 
+        overlay.removeClass('pointer-events-none').addClass('opacity-100');
+        console.log("[TRANSITION] Overlay opacity set to 100");
+
+        // Simular glitch rápido
+        // Sincronizar duración con la transición (approx 200-250ms) para cubrir todo el proceso
+        for (let i = 0; i < 5; i++) {
+            const delay = i * 50; // Stagger lines
+            setTimeout(() => {
+                const line = $('<div>', {
+                    class: 'absolute w-full h-[1px] bg-cyan-400/40 z-[10000]',
+                    css: { top: Math.random() * 100 + '%' }
+                });
+                overlay.append(line);
+                setTimeout(() => line.remove(), 80); // Line life
+            }, delay);
+        }
+
+        // Esperar a que la opacidad sea total (o casi) antes de cambiar la pantalla
+        await new Promise(r => setTimeout(r, 150)); // Increased wait slightly for safety
+        console.log("[TRANSITION] Midpoint reached, executing callback");
+        */
+
+        // Ejecutar el cambio de pantalla directamente
+        if (onMidPoint) {
+            try {
+                onMidPoint();
+                console.log("[TRANSITION] Midpoint callback executed successfully");
+            } catch (e) {
+                console.error("[TRANSITION] Error during transition midpoint:", e);
+            }
+        }
+
+        /*
         await new Promise(r => setTimeout(r, 100));
         overlay.addClass('pointer-events-none').removeClass('opacity-100');
+        console.log(`[TRANSITION] Overlay hidden, transition complete at ${Date.now()}`);
+        */
     }
 }

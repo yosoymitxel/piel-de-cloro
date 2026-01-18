@@ -182,7 +182,7 @@ describe('GameMechanicsManager', () => {
 
             expect(State.admittedNPCs.length).toBe(0);
             expect(State.purgedNPCs.length).toBe(1);
-            expect(State.purgedNPCs[0].death.reason).toBe('inanición');
+            expect(State.purgedNPCs[0].death.reason).toBe('canibalismo');
         });
     });
 
