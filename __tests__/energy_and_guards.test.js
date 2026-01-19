@@ -141,7 +141,7 @@ describe('Energy, Battery & Guard System', () => {
 
         expect(State.supplies).toBe(2); // 5 - 3
         expect(State.generator.power).toBe(65); // 50 + 15
-        expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining('CARGA DE EMERGENCIA'), 'green', expect.any(Number), expect.objectContaining({ sound: 'ui_confirm' }));
+        expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining('CARGA DE EMERGENCIA'), 'green', expect.any(Number), expect.objectContaining({ sound: 'refuel_glug' }));
     });
 
     test('Emergency charge should fail if supplies are low', () => {

@@ -12,6 +12,88 @@ export const State = {
     fuelRoomCheckedThisTurn: false,
     shelters: {},
     currentShelterId: null,
+    secondsElapsed: 0, // Contador de tiempo (1 seg real = 1 min juego)
+
+    // Helper para obtener la hora del juego
+    getGameTime() {
+        const startHour = 8; // Podría venir de CONSTANTS
+        const totalMinutes = Math.floor(this.secondsElapsed);
+        
+        let hours = startHour + Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        
+        // Formato 24h
+        const isNextDay = hours >= 24;
+        if (hours >= 24) hours = hours % 24;
+        
+        // Use logic consistent with UIManager phase thresholds if needed, but 'period' is simple here
+        const period = (hours >= 19 || hours < 6) ? 'night' : 'day';
+        const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        
+        return {
+            hours,
+            minutes,
+            formatted,
+            period, // 'day' or 'night'
+            isNextDay
+        };
+    },
+
+    // Calculates the target hour based on current turn to simulate time passing
+    calculateTurnHour(turn, total) {
+        // Explicit mapping based on user request:
+        // Turn 1: 08:00
+        // Turn 2: 09:00
+        // ...
+        // Turn 3-4: Warm (Dusk) -> ~16:00 - 18:00
+        // Turn 5 (Last): Night -> 19:00+
+
+        if (turn <= 1) return 8;
+        if (turn === 2) return 9;
+        
+        // If it's the last turn, force Night start (19:00)
+        if (turn >= total) return 19;
+        
+        // If it's the second to last (e.g. 4/5), force late Dusk (18:00)
+        if (turn === total - 1) return 18;
+        
+        // If it's the third to last (e.g. 3/5), force early Dusk (16:00)
+        if (turn === total - 2) return 16;
+
+        // Fallback interpolation for longer days or middle turns
+        // Range from Turn 2 (9h) to Turn Total-2 (16h)
+        // This handles cases where dayLength > 5
+        const startH = 9;
+        const endH = 16;
+        const steps = (total - 2) - 2; // Steps between Turn 2 and Turn Total-2
+        
+        if (steps <= 0) return 12; // Fallback
+        
+        const progress = (turn - 2) / steps; 
+        return Math.floor(startH + (endH - startH) * progress);
+    },
+
+    updateGameTimeForTurn() {
+        // Calculate target hour for current turn
+        const targetHour = this.calculateTurnHour(this.dayTime, this.config.dayLength);
+        
+        // Set secondsElapsed to match this hour (relative to startHour=8)
+        // Add random minutes (0-55) to make it feel natural
+        const randomMinutes = Math.floor(Math.random() * 55);
+        
+        // secondsElapsed = (TargetHour - 8) * 60 + minutes
+        // We subtract 8 because getGameTime adds 8.
+        let targetElapsed = (targetHour - 8) * 60 + randomMinutes;
+        
+        // Ensure time always moves forward (unless new day reset)
+        if (targetElapsed < this.secondsElapsed && this.dayTime > 1) {
+            // If calculated time is behind current time (rare), just add some time
+            targetElapsed = this.secondsElapsed + Math.floor(Math.random() * 30) + 10;
+        }
+
+        this.secondsElapsed = targetElapsed;
+    },
+
     get currentShelter() {
         return (this.shelters && this.currentShelterId) ? this.shelters[this.currentShelterId] : null;
     },
@@ -28,16 +110,19 @@ export const State = {
         // Generador
         generator: {
             power: 100,
+            capacity: 100, // Capacidad de carga máxima (simulada)
             isOn: true,
             assignedGuardId: null,
             mode: 'normal',
+            modeChangedThisTurn: false, // Control de cambios por turno
             stability: 100,
             blackoutUntil: 0,
+            baseConsumption: 20, // Carga base mínima (overhead)
             systems: {
-                security: { active: true, name: 'SEGURIDAD' },
-                lighting: { active: true, name: 'ILUMINACIÓN' },
-                lifeSupport: { active: true, name: 'SOPORTE VITAL' },
-                shelterLab: { active: true, name: 'LABORATORIO' }
+                security: { active: true, name: 'SEGURIDAD', load: 8, label: 'SEGURIDAD' },
+                lighting: { active: true, name: 'ILUMINACIÓN', load: 4, label: 'ILUMINACIÓN' },
+                lifeSupport: { active: true, name: 'SOPORTE VITAL', load: 12, label: 'SOPORTE VITAL' },
+                shelterLab: { active: true, name: 'LABORATORIO', load: 15, label: 'LABORATORIO' }
             },
             consumption: {
                 save: 1,    // Ahorro: 1 energía/turno
@@ -73,7 +158,9 @@ export const State = {
         ambient: 0.3,
         lore: 0.25,
         sfx: 0.6,
-        muted: { ambient: false, lore: false, sfx: false }
+        generator: 0.15,
+        heartbeat: 0.4,
+        muted: { ambient: false, lore: false, sfx: false, generator: false, heartbeat: false }
     },
     pinnedRooms: ['generator', 'shelter', 'room'], // Salas pineadas por defecto: Generador, Refugio, Vigilancia
     currentLayoutKey: null, // Guarda el layout actual del mapa
@@ -90,7 +177,7 @@ export const State = {
         },
         config: {
             securityIntrusionProbability: 0.25,
-            initialEntrantProbability: 0.2,
+            initialEntrantProbability: 0.3,
             initialEntrantMaxFraction: 0.5,
             dayIntrusionIntervalMin: 1,
             dayIntrusionIntervalMax: 3,
@@ -116,18 +203,23 @@ export const State = {
     loadPersistentData() {
         try {
             const raw = localStorage.getItem('ruta01_persistence');
-            if (raw === null || raw === undefined || raw === 'undefined') return;
+            if (raw === null || raw === undefined || raw === 'undefined') {
+                console.log('[Persistence] No saved data found.');
+                return;
+            }
             const data = JSON.parse(raw);
+            console.log('[Persistence] Loaded data:', data);
             if (data) {
                 if (data.unlockedEndings) this.unlockedEndings = data.unlockedEndings;
                 if (data.pinnedRooms) this.pinnedRooms = data.pinnedRooms; // Load pinned rooms
                 if (data.currentLayoutKey) this.currentLayoutKey = data.currentLayoutKey;
                 if (data.lastRenderedShelterId) this.lastRenderedShelterId = data.lastRenderedShelterId;
                 if (data.audioSettings) {
-                    this.audioSettings = data.audioSettings;
-                    // Asegurar que muted existe para retrocompatibilidad
-                    if (!this.audioSettings.muted) {
-                        this.audioSettings.muted = { ambient: false, lore: false, sfx: false };
+                    // Merge with defaults to ensure structure integrity
+                    this.audioSettings = { ...this.audioSettings, ...data.audioSettings };
+                    // Ensure muted object exists and is merged
+                    if (data.audioSettings.muted) {
+                        this.audioSettings.muted = { ...this.audioSettings.muted, ...data.audioSettings.muted };
                     }
                 }
             }
@@ -277,6 +369,7 @@ export const State = {
         this.supplies = this.config.initialSupplies || 15;
         this.cycle = 1;
         this.dayTime = 1;
+        this.secondsElapsed = 0; // Reset clock
         this.admittedNPCs = [];
         this.purgedNPCs = [];
         this.ignoredNPCs = [];
@@ -284,6 +377,7 @@ export const State = {
         this.currentNPC = null;
         this.dialoguesCount = 0;
         this.verificationsCount = 0;
+        this.cureProgress = 0; // Added for cure ending
         this.infectedSeenCount = 0;
         this.interludesShown = 0;
         this.isNight = false;
@@ -307,10 +401,10 @@ export const State = {
             stability: 100,
             overloadTimer: 0,
             systems: {
-                security: { load: 15, active: true, label: 'Seguridad' },
-                lighting: { load: 10, active: true, label: 'Iluminación' },
-                lifeSupport: { load: 20, active: true, label: 'Soporte Vital' },
-                shelterLab: { load: 25, active: false, label: 'Laboratorio' }
+                security: { load: 8, active: true, label: 'Seguridad' },
+                lighting: { load: 4, active: true, label: 'Iluminación' },
+                lifeSupport: { load: 12, active: true, label: 'Soporte Vital' },
+                shelterLab: { load: 23, active: false, label: 'Laboratorio' }
             },
             blackoutUntil: 0,
             restartLock: false,
@@ -390,7 +484,7 @@ export const State = {
         if (!this.roomLogs) this.roomLogs = {};
         if (!this.roomLogs[sector]) this.roomLogs[sector] = [];
 
-        const time = this.isNight ? 'NOCT' : `${this.dayTime}:00`;
+        const time = this.getGameTime().formatted;
 
         this.roomLogs[sector].push({
             timestamp: time,

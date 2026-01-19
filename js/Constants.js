@@ -59,7 +59,9 @@ export const CONSTANTS = {
         MAX_IGNORED_BEFORE_ABANDONMENT: 15,
         PARANOIA_DEATH_THRESHOLD: 100,
         VHS_EFFECT_THRESHOLD: 70,
-        MAX_ERROR_LOGS: 20
+        MAX_ERROR_LOGS: 20,
+        ESCAPE_CHANCE_MODIFIER: 0.4, // Reducir probabilidad de escape (40% del original)
+        START_HOUR: 8 // Hora de inicio del día (8:00 AM)
     },
     GENERATOR: {
         DEFAULT_MAX_CAPACITY: 2,

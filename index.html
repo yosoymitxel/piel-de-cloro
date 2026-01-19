@@ -50,7 +50,7 @@
 
         <div class="crt-monitor tube-power-on">
             <div class="crt-overlay"></div>
-            <div class="scanline"></div>
+            <div class="scanline opacity-40"></div>
             <div id="time-tint" class="time-tint-overlay"></div>
             <!-- Global Transition Overlay (Moved to Main Container) -->
             <!-- Removed from here to place inside main-area-fixed -->
@@ -807,7 +807,7 @@
                                     </div>
                                 </div>
 
-                                <div class="analog-controls">
+                                <div class="analog-controls grid grid-cols-2 gap-2 items-center justify-center ">
                                     <div class="knob-container">
                                         <div class="knob" style="transform: rotate(45deg)"></div>
                                         <span class="text-[10px] uppercase opacity-50">SENSITIVITY</span>
@@ -816,11 +816,20 @@
                                         <div class="knob" style="transform: rotate(-30deg)"></div>
                                         <span class="text-[10px] uppercase opacity-50">THRESHOLD</span>
                                     </div>
-                                    <div class="flex gap-4 mt-2">
+                                    <div class="flex gap-4 mt-2 col-span-2 justify-center items-center">
                                         <div
                                             class="w-3 h-3 rounded-full bg-red-900 border border-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]">
                                         </div>
                                         <div class="w-3 h-3 rounded-full bg-green-900 border border-green-500"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Tutorial / Alert Monitor (New) -->
+                                <div class="mini-monitor p-2 flex flex-col justify-center items-center text-center mt-2 border-t border-white/10 pt-2">
+                                    <div class="text-[9px] text-orange-400 opacity-70 uppercase mb-1 tracking-widest">
+                                        SYSTEM_NOTIFICATIONS</div>
+                                    <div id="tutorial-monitor-content" class="w-full h-auto min-h-[60px] flex flex-col gap-1 overflow-hidden">
+                                        <div class="text-[9px] text-gray-600 italic">Esperando datos...</div>
                                     </div>
                                 </div>
 
@@ -835,14 +844,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Tutorial / Alert Monitor (New) -->
-                                <div class="mini-monitor p-2 flex flex-col justify-center items-center text-center mt-2 border-t border-white/10 pt-2">
-                                    <div class="text-[9px] text-orange-400 opacity-70 uppercase mb-1 tracking-widest">
-                                        SYSTEM_NOTIFICATIONS</div>
-                                    <div id="tutorial-monitor-content" class="w-full h-auto min-h-[60px] flex flex-col gap-1 overflow-hidden">
-                                        <div class="text-[9px] text-gray-600 italic">Esperando datos...</div>
-                                    </div>
-                                </div>
                             </div>
 
                             <!-- Vista Principal y Herramientas -->
@@ -1570,7 +1571,7 @@
 
                                             <!-- Fase 1.1 Roadmap: Recarga con Combustible -->
                                             <button id="btn-gen-refuel"
-                                                class="horror-btnborder-2 w-1/2 py-3 bg-cyan-500/10 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 text-xs mt-2">
+                                                class="border-2 w-1/2 py-3 bg-cyan-500/10 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 text-xs mt-2">
                                                 <i class="fa-solid fa-droplet mr-2"></i>RECARGAR BATERÍA
                                                 <div class="text-[8px] opacity-40 font-mono">REQ: 1 BIDÓN FUEL
                                                     (+30% BAT)</div>
@@ -1949,13 +1950,14 @@
                                         </div>
                                         <div class="p-4 border-l-4 border-yellow-500 bg-yellow-500/5">
                                             <h4 class="text-yellow-500 font-bold flex items-center gap-2"><i
-                                                    class="fa-solid fa-plug-circle-bolt"></i> MANTENIMIENTO DEL
-                                                GENERADOR</h4>
-                                            <p class="text-gray-300 mt-2 leading-relaxed">El generador principal debe
-                                                mantenerse por encima del 15% de capacidad. Si la energía cae por debajo
-                                                de este umbral, los sistemas de escaneo UV y el HUD se desactivarán
-                                                automáticamente para preservar los sistemas de soporte vital básicos.
-                                            </p>
+                                                    class="fa-solid fa-plug-circle-bolt"></i> PROTOCOLOS DE ENERGÍA</h4>
+                                            <p class="text-gray-300 mt-2 leading-relaxed">Gestión del Generador Central RUTA-01. El sistema opera en tres modos con capacidades de carga (slots) y consumos variables:</p>
+                                            <ul class="mt-2 space-y-2 text-sm text-gray-400 font-mono">
+                                                <li><span class="text-cyan-400 font-bold">AHORRO (SAVE):</span> 1 Slot. Consumo Mínimo. Mantiene sistemas vitales pero limita operaciones simultáneas. Sin riesgo de fallo.</li>
+                                                <li><span class="text-green-400 font-bold">NORMAL:</span> 2 Slots. Consumo Estándar. Balance óptimo para operaciones diarias.</li>
+                                                <li><span class="text-orange-500 font-bold">SOBRECARGA (OVERLOAD):</span> 3 Slots. Consumo Crítico. Permite operaciones masivas pero aumenta drásticamente el desgaste y riesgo de fallo (25%).</li>
+                                            </ul>
+                                            <p class="text-xs text-yellow-500 mt-2 italic">NOTA: La recarga con combustible añade un 25% de batería por bidón.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -2007,6 +2009,37 @@
                                                 supervivencia. En caso de brecha de seguridad interna o ataque nocturno,
                                                 estos individuos tienen mayor probabilidad de ser los últimos
                                                 supervivientes del sector.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Professions Section (New) -->
+                                <div id="db-professions" class="db-section hidden space-y-6">
+                                    <h3 class="text-2xl text-blue-400 border-b border-blue-900 pb-2 font-bold uppercase tracking-tighter">
+                                        Base de Datos de Profesiones</h3>
+                                    <p class="text-xs text-blue-300 italic">Especializaciones laborales y su impacto en la eficiencia del refugio.</p>
+                                    <div class="space-y-6 text-lg">
+                                        <div class="p-4 border-l-4 border-blue-400 bg-blue-400/5">
+                                            <h4 class="text-blue-400 font-bold uppercase">Ingeniería y Mantenimiento</h4>
+                                            <ul class="mt-2 space-y-2 text-sm text-gray-300">
+                                                <li><strong class="text-white">Ingeniero:</strong> Reduce el consumo del generador un 15% cuando se asigna a Energía.</li>
+                                                <li><strong class="text-white">Electricista:</strong> Reduce el consumo del generador un 10% cuando se asigna a Energía.</li>
+                                            </ul>
+                                        </div>
+                                        <div class="p-4 border-l-4 border-green-400 bg-green-400/5">
+                                            <h4 class="text-green-400 font-bold uppercase">Salud y Supervivencia</h4>
+                                            <ul class="mt-2 space-y-2 text-sm text-gray-300">
+                                                <li><strong class="text-white">Médico:</strong> Reduce la mortalidad en el refugio un 30% (Efecto Pasivo).</li>
+                                                <li><strong class="text-white">Suturador:</strong> Reduce la mortalidad en el refugio un 15% (Efecto Pasivo).</li>
+                                                <li><strong class="text-white">Cocinero:</strong> Optimiza las raciones, aumentando su rendimiento un 20% (Si asignado a Suministros).</li>
+                                            </ul>
+                                        </div>
+                                        <div class="p-4 border-l-4 border-red-400 bg-red-400/5">
+                                            <h4 class="text-red-400 font-bold uppercase">Seguridad</h4>
+                                            <ul class="mt-2 space-y-2 text-sm text-gray-300">
+                                                <li><strong class="text-white">Soldado:</strong> Reduce la probabilidad de robos internos un 40% (Si asignado a Seguridad).</li>
+                                                <li><strong class="text-white">Seguridad:</strong> Reduce la probabilidad de robos internos un 25% (Si asignado a Seguridad).</li>
+                                            </ul>
                                         </div>
                                     </div>
                                 </div>

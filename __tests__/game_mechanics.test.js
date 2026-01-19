@@ -60,7 +60,13 @@ describe('Game Mechanics Manager', () => {
 
             expect(State.generator.isOn).toBe(false);
             expect(State.securityItems[0].secured).toBe(false);
-            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("FALLO CRÍTICO"), "red", expect.any(Number));
+            // Allow for optional 4th argument (options object)
+            expect(uiMock.showFeedback).toHaveBeenCalledWith(
+                expect.stringContaining("FALLO CRÍTICO"), 
+                "red", 
+                expect.any(Number),
+                expect.anything()
+            );
             // LogManager uses unshift, so the newest entry is at index 0
             expect(State.gameLog[0].text).toContain('FALLO CRÍTICO');
         });

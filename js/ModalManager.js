@@ -136,6 +136,18 @@ export class ModalManager {
         this.elements.modal.removeClass('hidden').addClass('flex');
         if (this.audio) this.audio.playSFXByKey('ui_modal_open', { volume: 0.5 });
 
+        // Logic 2.0: Button Visibility based on Screen Context
+        // Check if we are in Morgue screen to show Autopsy/Validate buttons instead of Assign
+        // Use lastScreen from screenManager or infer from context
+        const currentScreen = this.ui.screenManager ? this.ui.screenManager.lastScreen : 'game';
+        const isMorgue = currentScreen === 'morgue';
+
+        // Assuming there are buttons for Assignment which we want to hide in Morgue
+        // and potentially Autopsy buttons to show.
+        // We will target the assignment container usually appended in renderModalStats
+        // But since renderModalStats handles the assignment UI, we might need to pass the context there
+        // OR hide/show buttons after rendering.
+        
         this.elements.modalName.text(`${npc.name}`);
 
         // Mostrar Profesión
@@ -200,10 +212,25 @@ export class ModalManager {
         // Limpiar todo excepto los overlays fijos (título y cerrar)
         visualContainer.children().not('.absolute').remove();
 
+        // SKIN COLOR CHANGE LOGIC (CLORO DEATH)
+        // Si el NPC está muerto, es un cloro, y ha pasado al menos un día desde su muerte
+        let npcToRender = npc;
+        if (npc.death && npc.isInfected && state && state.cycle > npc.death.cycle) {
+            // Clonamos visualFeatures para no mutar el original permanentemente (aunque en este caso podría ser deseable visualmente)
+            // Usamos un objeto proxy para el renderizado
+            npcToRender = { 
+                ...npc, 
+                visualFeatures: { 
+                    ...npc.visualFeatures,
+                    skinColor: '#a8d5a2' // Chlorine Light / Pale Green
+                } 
+            };
+        }
+
         const isRevealedInfected = (npc.death && npc.death.revealed && npc.isInfected) ||
             (npc.dayAfter && npc.dayAfter.validated && npc.isInfected);
         const modifier = (npc.dayAfter && npc.dayAfter.validated) || (npc.death && npc.death.revealed) ? 'perimeter' : 'normal';
-        const avatar = this.ui.renderAvatar(npc, 'lg', modifier);
+        const avatar = this.ui.renderAvatar(npcToRender, 'lg', modifier);
         visualContainer.append(avatar);
 
         const avatarEl = avatar; // Referencia para efectos
@@ -300,6 +327,14 @@ export class ModalManager {
             npc.dayAfter = { dermis: false, pupils: false, temperature: false, pulse: false, usedNightTests: 0, validated: false };
         }
 
+        const currentScreen = this.ui.screenManager ? this.ui.screenManager.lastScreen : 'game';
+        const isMorgue = currentScreen === 'morgue';
+
+        // Override: In Morgue, we want to show tests (Autopsy) but NOT Assignment
+        // In Game (DayAfter), we want to show Tests AND Assignment (if allowPurge is true)
+        const showTests = allowPurge || isMorgue;
+        const showAssignment = allowPurge && !isMorgue;
+
         const statsGrid = this.elements.modalStats;
         const testsGrid = this.elements.modalTests;
         statsGrid.empty();
@@ -326,15 +361,28 @@ export class ModalManager {
         renderStat('Temperatura', `${npc.attributes.temperature}°C`, 'temperature');
         renderStat('Pulso', `${npc.attributes.pulse} BPM`, 'pulse');
 
-        if (allowPurge) {
+        if (showTests) {
             testsGrid.removeClass('hidden');
 
+            // Logic for locking tests
+            // In Morgue, tests might always be available or depend on tools/energy?
+            // For now, let's assume same logic but without 'testsAvailable' limit if it's just visual autopsy?
+            // Or maybe Autopsy consumes something?
+            // User requirement: "btnAutopsia.style.display = 'block'"
+            
             const isPurgeLocked = npc.purgeLockedUntil && state.cycle < npc.purgeLockedUntil;
             const alreadyTested = npc.dayAfter && npc.dayAfter.usedNightTests >= 1;
-            const noTestsLeft = state.dayAfter.testsAvailable <= 0;
+            // If Morgue, maybe ignore testsAvailable limit? Or keep it?
+            // Let's keep it consistent for now.
+            const noTestsLeft = state.dayAfter.testsAvailable <= 0; 
             const noPower = state.generator && state.generator.isOn === false;
 
-            if (isPurgeLocked || alreadyTested || noTestsLeft || noPower) {
+            // In Morgue, we might want to allow Autopsy even if purged?
+            // But if they are already dead, 'usedNightTests' might not apply the same way.
+            // However, to keep it simple and safe, we use the same logic.
+            // Exception: If they are dead (isMorgue), maybe we don't check purgeLocked.
+
+            if ((!isMorgue && isPurgeLocked) || alreadyTested || noTestsLeft || noPower) {
                 testsGrid.removeClass('grid-cols-4').addClass('grid-cols-1');
                 let msg = "";
                 let icon = "";
@@ -342,7 +390,7 @@ export class ModalManager {
                 if (noPower) {
                     msg = "SISTEMA SIN ENERGÍA: REVISAR GENERADOR";
                     icon = "fa-bolt-slash";
-                } else if (isPurgeLocked) {
+                } else if (!isMorgue && isPurgeLocked) {
                     msg = "PROTOCOLO DE SEGURIDAD: SUJETO RECIENTE (BLOQUEADO)";
                     icon = "fa-lock";
                 } else if (alreadyTested) {
@@ -441,6 +489,25 @@ export class ModalManager {
                             npc.dayAfter[key] = true;
                             npc.dayAfter.usedNightTests++;
 
+                            // Logic for Cure Ending
+                            if (!npc.isInfected) {
+                                state.cureProgress = (state.cureProgress || 0) + 1;
+                                // Feedback visual
+                                if (this.ui.showMessage) {
+                                    this.ui.showMessage(`MUESTRA VIABLE REGISTRADA (${state.cureProgress}/5)`, 'bottom', 'save');
+                                }
+                                
+                                if (state.cureProgress >= 5) {
+                                     // Trigger ending
+                                     if (this.ui.game && this.ui.game.endings) {
+                                         // Delay slightly to allow message to be seen?
+                                         setTimeout(() => {
+                                             this.ui.game.endings.triggerEnding('final_cure');
+                                         }, 1500);
+                                     }
+                                }
+                            }
+
                             // Re-render stats
                             const complete = npc.dayAfter.skinTexture && npc.dayAfter.pupils && npc.dayAfter.temperature && npc.dayAfter.pulse;
                             npc.dayAfter.validated = complete;
@@ -460,8 +527,11 @@ export class ModalManager {
                     makeSlot('temperature', 'TEMP', 'fa-temperature-half', 'animateToolThermometer'),
                     makeSlot('pulse', 'PULSO', 'fa-heart-pulse', 'animateToolPulse')
                 );
-
-                // --- SECCIÓN DE ASIGNACIÓN (SELECT LIST) ---
+            }
+            
+            // --- SECCIÓN DE ASIGNACIÓN (SELECT LIST) ---
+            // MOVED OUTSIDE the "tests available" check to ensure it stays visible
+            if (showAssignment) {
                 // Remove existing container to prevent duplicates
                 if (testsGrid.parent && typeof testsGrid.parent === 'function') {
                     testsGrid.parent().find('.assignment-container-modal').remove();

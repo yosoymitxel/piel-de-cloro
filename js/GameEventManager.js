@@ -8,6 +8,20 @@ export class GameEventManager {
         this.audio = game.audio;
     }
 
+    saveAudioSettings() {
+        State.audioSettings = {
+            master: this.audio.master,
+            ambient: this.audio.levels.ambient,
+            lore: this.audio.levels.lore,
+            sfx: this.audio.levels.sfx,
+            generator: this.audio.levels.generator,
+            heartbeat: this.audio.levels.heartbeat,
+            muted: { ...this.audio.mutedChannels }
+        };
+        State.savePersistentData();
+        console.log('[Audio] Settings saved:', State.audioSettings);
+    }
+
     /**
      * Centralized method to switch between game screens.
      * Handles navigation locks, sound effects, and UI state updates.
@@ -156,9 +170,16 @@ export class GameEventManager {
     }
 
     navigateToGenerator() {
+        console.log("[EVENT] navigateToGenerator called. Setting up renderFn...");
         const renderFn = () => {
-            this.ui.renderGeneratorRoom();
+            console.log("[EVENT] Executing generator renderFn. Calling ui.renderGeneratorRoom...");
+            if (this.ui && typeof this.ui.renderGeneratorRoom === 'function') {
+                this.ui.renderGeneratorRoom(State);
+            } else {
+                console.error("[EVENT] ui.renderGeneratorRoom is not a function!", this.ui);
+            }
         };
+        console.log("[EVENT] Calling switchScreen to GENERATOR...");
         this.switchScreen(CONSTANTS.SCREENS.GENERATOR, { renderFn });
     }
 
@@ -250,6 +271,7 @@ export class GameEventManager {
             shelter: this.navigateToShelter.bind(this),
             generator: this.navigateToGenerator.bind(this),
             supplies: this.navigateToSuppliesHub.bind(this),
+            storage: this.navigateToSuppliesHub.bind(this), // Map storage to supplies
             'fuel-room': this.navigateToFuelRoom.bind(this),
             meditation: this.navigateToMeditation.bind(this),
             morgue: this.navigateToMorgue.bind(this),
@@ -485,6 +507,7 @@ export class GameEventManager {
                 lore: lv, 
                 sfx: sv, 
                 generator: gv,
+                heartbeat: this.audio.levels.heartbeat, // Persist heartbeat level
                 muted: { ...this.audio.mutedChannels } // Persist mute state
             };
             State.savePersistentData();
@@ -795,6 +818,7 @@ export class GameEventManager {
         });
 
         $('#btn-pause-close').on('click', () => {
+            this.saveAudioSettings();
             $('#modal-pause').addClass('hidden').removeClass('flex');
             State.paused = false;
             $('body').removeClass('paused');

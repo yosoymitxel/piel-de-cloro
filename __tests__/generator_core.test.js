@@ -36,10 +36,11 @@ describe('Generator Core Overhaul Tests', () => {
         State.paranoia = 0;
         State.sanity = 100;
 
-        State.generator.systems.security.active = true;   // 15
-        State.generator.systems.lighting.active = true;   // 10
-        State.generator.systems.lifeSupport.active = false; // 20 (off)
-        State.generator.systems.shelterLab.active = false;  // 25 (off)
+        // Explicitly set loads to match test expectations
+        State.generator.systems.security = { active: true, load: 15 };
+        State.generator.systems.lighting = { active: true, load: 10 };
+        State.generator.systems.lifeSupport = { active: false, load: 20 };
+        State.generator.systems.shelterLab = { active: false, load: 25 };
 
         const total = mechanics.calculateTotalLoad();
 
@@ -111,13 +112,14 @@ describe('Generator Core Overhaul Tests', () => {
 
     test('triggerGeneratorFailure resets systems and cuts power', () => {
         State.generator.isOn = true;
-        State.generator.stability = 20;
+        State.generator.load = 100;
+        State.generator.systems.security.active = true;
 
         mechanics.triggerGeneratorFailure();
 
         expect(State.generator.isOn).toBe(false);
         expect(State.generator.load).toBe(0);
-        expect(mockGame.ui.showFeedback).toHaveBeenCalledWith(expect.stringContaining('FALLO CRÍTICO'), 'red', 5000);
+        expect(mockGame.ui.showFeedback).toHaveBeenCalledWith(expect.stringContaining('FALLO CRÍTICO'), 'red', 5000, expect.any(Object));
     });
 
     test('overload risk increases with low stability', () => {

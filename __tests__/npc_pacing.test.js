@@ -27,6 +27,7 @@ const mockUI = {
     updateGeneratorNavStatus: jest.fn(),
     updateInspectionTools: jest.fn(),
     updateGameActions: jest.fn(),
+    updateTimeDisplay: jest.fn(),
     resetUI: jest.fn()
 };
 

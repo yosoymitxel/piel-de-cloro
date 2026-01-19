@@ -34,7 +34,7 @@ describe('Generator Failure and Recovery', () => {
 
         expect(State.generator.isOn).toBe(false);
         expect(npc.scanCount).toBe(99);
-        expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("FALLO CRÍTICO"), "red", 5000);
+        expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("FALLO CRÍTICO"), "red", 5000, expect.any(Object));
     });
 
     test('Toggling ON grants emergency energy if scanCount was 0', () => {

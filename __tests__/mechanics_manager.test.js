@@ -80,7 +80,7 @@ describe('GameMechanicsManager', () => {
 
             expect(State.generator.isOn).toBe(false);
             expect(npc.scanCount).toBe(99);
-            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("FALLO CRÍTICO"), "red", expect.any(Number));
+            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("FALLO CRÍTICO"), "red", expect.any(Number), expect.any(Object));
         });
 
         test('toggleGenerator turns on and applies ahorro mode', () => {
@@ -101,7 +101,8 @@ describe('GameMechanicsManager', () => {
 
             expect(State.generator.isOn).toBe(false);
             expect(npc.scanCount).toBe(99);
-            expect(audioMock.playSFXByKey).toHaveBeenCalledWith('generator_stop', expect.any(Object));
+            // Audio handled by showFeedback now
+            expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("GENERADOR APAGADO"), "red", 4000, expect.objectContaining({ sound: 'generator_stop' }));
         });
     });
 

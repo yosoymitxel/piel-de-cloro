@@ -14,9 +14,19 @@ export class LogManager {
     }
 
     addEntry(type, text, meta = {}) {
+        // Use formatted game time if available, otherwise fallback to dayTime
+        let timeLabel;
+        if (this.state.getGameTime) {
+            const gt = this.state.getGameTime();
+            timeLabel = gt.formatted; // e.g., "08:15"
+        } else {
+            timeLabel = `HORA ${this.state.dayTime || 1}`;
+        }
+
         const entry = {
             cycle: this.state.cycle || 1,
             dayTime: this.state.dayTime || 1,
+            timeLabel: timeLabel, // Store explicitly for rendering
             type, // 'lore', 'system', 'note', 'rumor', 'danger', 'warning'
             text,
             timestamp: Date.now(),

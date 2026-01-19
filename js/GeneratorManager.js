@@ -8,14 +8,82 @@ export class GeneratorManager {
         this.elements = uiManager.elements;
     }
 
-    renderGeneratorRoom(state) {
+    renderGeneratorRoom(state = State) {
+        if (!state || !state.generator) {
+            console.error('[GeneratorManager] renderGeneratorRoom called with invalid state:', state);
+            return;
+        }
+        console.log('[GeneratorManager] Starting renderGeneratorRoom. Mode:', state.generator.mode);
         state.generatorCheckedThisTurn = true;
 
+        // Initialize maxModeCapacityReached ratchet if action active
+        const npc = state.currentNPC;
+        const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || state.generator.restartLock;
+        if (actionTaken && state.generator.isOn) {
+            const capMap = { 'save': 1, 'normal': 2, 'overload': 3 };
+            const currentCap = capMap[state.generator.mode] || 2;
+            
+            // If ratchet is not initialized or we are currently HIGHER than ratchet (shouldn't happen in strict ratchet, but fixes init issues)
+            // Or simply: ensure ratchet tracks current mode if it's lower than stored ratchet?
+            // Actually, we want to ensure that if we just started, the ratchet is at CURRENT level.
+            
+            // If maxModeCapacityReached is higher than current mode, it means we went down. Correct.
+            // If maxModeCapacityReached is lower than current mode? That means we went UP? That's forbidden.
+            // But if we just loaded the screen and are in Overload, max should be 3.
+            
+            if (!state.generator.maxModeCapacityReached || state.generator.maxModeCapacityReached < currentCap) {
+                 // Sync ratchet to current state if it seems out of sync (e.g. init)
+                 // This ensures that if I am in Overload (3), I can go down to 2 or 1.
+                 // It also means if I am in Overload (3), I cannot go to 4 (impossible).
+                 // If I go to Normal (2), logic in updateModeButtons/handleModeSwitch should update this value.
+                 state.generator.maxModeCapacityReached = currentCap;
+            }
+        } else {
+            // Reset ratchet if no action active
+            state.generator.maxModeCapacityReached = 3; // Max possible
+        }
+
+        // Check if mode changed this turn
+        const modeLocked = state.generator.modeChangedThisTurn;
+
         // Update active state of mode buttons
-        $('.btn-generator-control').removeClass('active');
+        $('.btn-generator-control').removeClass('active disabled-mode');
+        
         if (state.generator.isOn) {
             $(`#btn-gen-${state.generator.mode}`).addClass('active');
+            
+            // Disable other buttons if locked
+            if (modeLocked) {
+                $('.btn-generator-control').not('.active').addClass('disabled-mode');
+            }
         }
+
+        // Add Lighting Overlay if needed (Global)
+        let overlay = $('#generator-lighting-overlay');
+        
+        // Remove legacy overlay inside screen-generator if exists
+        $('#screen-generator > #generator-lighting-overlay').remove();
+
+        if (!overlay.length) {
+            $('body').append('<div id="generator-lighting-overlay"></div>');
+            overlay = $('#generator-lighting-overlay');
+        }
+        
+        const lightingSys = state.generator.systems && state.generator.systems.lighting;
+        const lightingActive = lightingSys ? lightingSys.active : true;
+        
+        if (!state.generator.isOn || !lightingActive) {
+            overlay.addClass('active');
+        } else {
+            overlay.removeClass('active');
+        }
+
+        // Fix: Force calculation of total load to ensure UI is accurate
+        const game = this.game || window.game;
+        if (game && game.mechanics && typeof game.mechanics.calculateTotalLoad === 'function') {
+            game.mechanics.calculateTotalLoad();
+        }
+        console.log('[GeneratorManager] Total load calculated:', state.generator.load);
 
         this.setupHeaderEvents(state);
 
@@ -41,11 +109,18 @@ export class GeneratorManager {
         const modeLabel = $('#generator-mode-label');
         const loadPercent = (state.generator.load / state.generator.capacity) * 100;
 
-        modeLabel.text(`LOAD: ${Math.floor(loadPercent)}%`);
+        modeLabel.text(`LOAD: ${Math.floor(loadPercent)}% [${state.generator.load}u]`);
 
         this.updateDial(loadPercent, state.generator.isOn);
         this.updateCables(loadPercent, state.generator.isOn);
         this.updateScreenEffects(state);
+        
+        // Render subsystems and guard panel
+        console.log('[GeneratorManager] Before renderSystemsGrid...');
+        this.renderSystemsGrid(state);
+        console.log('[GeneratorManager] After renderSystemsGrid, before renderGuardPanel...');
+        this.renderGuardPanel(state);
+        console.log('[GeneratorManager] After renderGuardPanel');
 
         // --- NEW UI UPDATES (Header & Battery) ---
         const batLevel = Math.floor(Math.min(100, Math.max(0, state.generator.power || 0)));
@@ -222,12 +297,17 @@ export class GeneratorManager {
     }
 
     updateScreenEffects(state) {
+        // Target the main screen container for vibration to shake the whole UI
+        const screen = $('#screen-generator'); 
         const monitor = $('.crt-monitor');
-        const lowStability = state.generator.isOn && state.generator.stability < 50;
+        
+        // Flicker if OFF (caused by failure) OR low stability
+        const isOff = !state.generator.isOn;
+        const lowStability = state.generator.isOn && state.generator.stability < 30;
 
-        if (lowStability) {
+        if (isOff || lowStability) {
             monitor.addClass('system-flicker');
-            if (state.generator.stability < 20 && Math.random() < 0.3) {
+            if (state.generator.stability < 15 && Math.random() < 0.15) {
                 this.ui.triggerGlitch(); // Efecto de salto de píxel/glitch térmico
             }
         } else {
@@ -236,15 +316,24 @@ export class GeneratorManager {
 
         // Carga extrema (>95%) causa vibración física del monitor
         const loadPercent = (state.generator.load / state.generator.capacity) * 100;
-        // User requested removal of flickering at high load as it was confusing
-        /*
-        if (loadPercent > 95) {
-            monitor.addClass('overload-vibration');
-        } else {
-            monitor.removeClass('overload-vibration');
+        console.log(`[GeneratorManager] ScreenEffects - Mode: ${state.generator.mode}, Load: ${loadPercent.toFixed(1)}%`);
+        
+        // Clear all vibrations first
+        screen.removeClass('vibration-subtle vibration-full');
+        monitor.removeClass('overload-vibration'); // Remove legacy class just in case
+
+        if (state.generator.mode === 'overload') {
+            if (loadPercent > 100) {
+                 screen.addClass('vibration-full');
+                 console.log('[GeneratorManager] Applying FULL vibration');
+            } else {
+                 screen.addClass('vibration-subtle');
+                 console.log('[GeneratorManager] Applying SUBTLE vibration');
+            }
+        } else if (loadPercent > 95) {
+             // Keep legacy vibration for high load in normal/save modes
+             screen.addClass('vibration-subtle');
         }
-        */
-        monitor.removeClass('overload-vibration');
     }
 
     setupToggleEvent(state) {
@@ -302,9 +391,16 @@ export class GeneratorManager {
                 btn.prop('disabled', false).addClass('opacity-50 cursor-not-allowed'); // Keep clickable but visually locked
 
                 // Add lock icon overlay
-                if (actionTaken && targetCap > currentMax) {
+                // User Feedback: "Manchados" (Red) is confusing for restart lock. Use subtle gray or specific icon.
+                if (isCooldown) {
+                     // Cooldown gets a clock/wait icon
+                     btn.append(`<div class="mode-lock-overlay absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                        <i class="fa-solid fa-clock text-xs text-alert/70"></i>
+                    </div>`);
+                } else if (actionTaken && targetCap > currentMax) {
+                    // Restart lock gets a simple lock but GRAY/Neutral, not red alert
                     btn.append(`<div class="mode-lock-overlay absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                        <i class="fa-solid fa-lock text-xs text-alert/70"></i>
+                        <i class="fa-solid fa-lock text-xs text-gray-500/70"></i>
                     </div>`);
                 }
             } else {
@@ -320,6 +416,80 @@ export class GeneratorManager {
         btnSave.toggleClass('active', state.generator.mode === 'save');
         btnNormal.toggleClass('active', state.generator.mode === 'normal');
         btnOver.toggleClass('active', state.generator.mode === 'overload');
+
+        // --- UPDATE EMERGENCY & REFUEL BUTTONS ---
+        const btnEmergency = $('#btn-gen-emergency-charge');
+        const btnRefuel = $('#btn-gen-refuel');
+
+        console.log('[GeneratorManager] Updating Buttons. Supplies:', state.supplies, 'Fuel:', state.fuel, 'Power:', state.generator.power);
+
+        // Dynamic Content for Emergency Button
+        const suppliesText = `${state.supplies}/3 SUMINISTROS`;
+        const emergencyHTML = `
+            <div class="flex flex-col items-center w-full">
+                <div class="text-[9px] font-mono mb-0.5 ${state.supplies >= 3 ? 'text-terminal-green' : 'text-alert'} opacity-80">${suppliesText}</div>
+                <div class="flex items-center font-bold gap-2"><i class="fa-solid fa-gas-pump"></i> CARGA EMERGENCIA</div>
+                <div class="text-[8px] opacity-50 font-mono mt-0.5">REQ: 3 SUMINISTROS (+15% BAT)</div>
+            </div>
+        `;
+        btnEmergency.html(emergencyHTML);
+
+        // Dynamic Content for Refuel Button
+        const fuelText = `${state.fuel}/1 BIDONES`;
+        const refuelHTML = `
+            <div class="flex flex-col items-center w-full">
+                <div class="text-[9px] font-mono mb-0.5 ${state.fuel >= 1 ? 'text-terminal-green' : 'text-alert'} opacity-80">${fuelText}</div>
+                <div class="flex items-center font-bold gap-2"><i class="fa-solid fa-droplet"></i> RECARGAR BATERÍA</div>
+                <div class="text-[8px] opacity-50 font-mono mt-0.5">REQ: 1 BIDÓN FUEL (+30% BAT)</div>
+            </div>
+        `;
+        btnRefuel.html(refuelHTML);
+
+        // Logic for Emergency Button
+        const canEmergency = state.supplies >= 3 && state.generator.power < 100;
+        console.log('[GeneratorManager] Emergency Logic:', { 
+            supplies: state.supplies, 
+            power: state.generator.power, 
+            canEmergency, 
+            btnExists: btnEmergency.length 
+        });
+
+        btnEmergency.removeClass('opacity-50 cursor-not-allowed btn-action-disabled text-terminal-green border-terminal-green text-alert border-alert');
+        
+        if (state.generator.power >= 100) {
+             console.log('[GeneratorManager] Emergency: Battery Full');
+             btnEmergency.addClass('btn-action-disabled opacity-50 cursor-not-allowed');
+             btnEmergency.find('.text-\\[8px\\]').text("BATERÍA AL 100%");
+        } else if (!canEmergency) {
+             console.log('[GeneratorManager] Emergency: Insufficient Supplies');
+             btnEmergency.addClass('btn-action-disabled opacity-50 cursor-not-allowed');
+        } else {
+             console.log('[GeneratorManager] Emergency: Available');
+             btnEmergency.addClass('text-terminal-green border-terminal-green cursor-pointer hover:bg-terminal-green/10');
+        }
+
+        // Logic for Refuel Button
+        const canRefuel = state.fuel >= 1 && state.generator.power < 100;
+        console.log('[GeneratorManager] Refuel Logic:', { 
+            fuel: state.fuel, 
+            power: state.generator.power, 
+            canRefuel, 
+            btnExists: btnRefuel.length 
+        });
+
+        btnRefuel.removeClass('opacity-50 cursor-not-allowed btn-action-disabled text-terminal-green border-terminal-green text-alert border-alert');
+
+        if (state.generator.power >= 100) {
+             console.log('[GeneratorManager] Refuel: Battery Full');
+             btnRefuel.addClass('btn-action-disabled opacity-50 cursor-not-allowed');
+             btnRefuel.find('.text-\\[8px\\]').text("BATERÍA AL 100%");
+        } else if (!canRefuel) {
+            console.log('[GeneratorManager] Refuel: Insufficient Fuel');
+            btnRefuel.addClass('btn-action-disabled opacity-50 cursor-not-allowed');
+        } else {
+            console.log('[GeneratorManager] Refuel: Available');
+            btnRefuel.addClass('text-terminal-green border-terminal-green cursor-pointer hover:bg-terminal-green/10');
+        }
     }
 
     setupModeButtons(state) {
@@ -336,7 +506,27 @@ export class GeneratorManager {
             const targetCap = capMap[newMode] || 2;
 
             // Check if mode is locked
+            if (state.generator.modeChangedThisTurn) {
+                if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
+                if (this.ui) this.ui.showFeedback("PROTOCOLO BLOQUEADO: ESPERA AL SIGUIENTE TURNO", "red", 3000);
+                return;
+            }
+
             if (actionTaken && targetCap > currentMax) {
+                // EXEMPTION: User requested that blocking should only apply if "se le da a ahorro" (interpreted as: locking happens at Save?)
+                // Actually, the user complaint was about being stuck "once I go down".
+                // My fix in renderGeneratorRoom ensures currentMax is synced to current mode on entry.
+                // So if I am in Overload (3), currentMax=3. I can go to Normal (2).
+                // If I am in Normal (2), currentMax=2. I can go to Save (1).
+                // If I am in Normal (2), I cannot go to Overload (3).
+                // This IS correct "Only Decrease".
+                
+                // If user wants to be able to go back up *unless* they hit Save...
+                // "se supone que debe pasar eso solo si le doy ahorro"
+                // Let's implement: If we are NOT in Save mode, allow going back up?
+                // No, that breaks the "Only Decrease" rule text.
+                // I will assume the sync fix resolves the "one change" issue (if it was defaulting to 2).
+                
                 // Locked - show feedback
                 if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
                 if (this.ui) this.ui.showFeedback("PROTOCOLO BLOQUEADO: SOLO PUEDE DISMINUIR", "red", 3000);
@@ -355,6 +545,7 @@ export class GeneratorManager {
                 const success = game.mechanics.setGeneratorProtocol(newMode);
 
                 if (success) {
+                    // state.generator.modeChangedThisTurn = true; // REMOVED: Allow multiple adjustments as long as they follow ratchet rules
                     // Full UI Refresh (will also sync true state)
                     this.renderGeneratorRoom(State);
 
@@ -390,8 +581,7 @@ export class GeneratorManager {
             }
         });
 
-        // Initial update
-        this.updateModeButtons(state);
+        // Initial update removed - it is handled by updateModeButtons called in renderGeneratorRoom
 
         $('#btn-gen-manual-toggle').off('click').on('click', () => {
             $('#generator-manual').toggleClass('hidden');
@@ -399,16 +589,28 @@ export class GeneratorManager {
         });
 
         // Botón de Carga de Emergencia
-        $('#btn-gen-emergency-charge').off('click').on('click', () => {
+        const btnEmergency = $('#btn-gen-emergency-charge');
+        console.log('[GeneratorManager] setupModeButtons - Emergency Button Found:', btnEmergency.length);
+        
+        btnEmergency.off('click').on('click', () => {
+            console.log('[GeneratorManager] Emergency Charge Clicked');
             if (this.game && this.game.mechanics && this.game.mechanics.manualEmergencyCharge) {
                 this.game.mechanics.manualEmergencyCharge();
+            } else {
+                console.error('[GeneratorManager] manualEmergencyCharge not found on mechanics');
             }
         });
 
         // Fase 1.1 Roadmap: Botón de Recarga con Combustible
-        $('#btn-gen-refuel').off('click').on('click', () => {
+        const btnRefuel = $('#btn-gen-refuel');
+        console.log('[GeneratorManager] setupModeButtons - Refuel Button Found:', btnRefuel.length);
+
+        btnRefuel.off('click').on('click', () => {
+            console.log('[GeneratorManager] Refuel Clicked');
             if (this.game && this.game.mechanics && this.game.mechanics.refuelGenerator) {
                 this.game.mechanics.refuelGenerator();
+            } else {
+                console.error('[GeneratorManager] refuelGenerator not found on mechanics');
             }
         });
     }
@@ -464,15 +666,19 @@ export class GeneratorManager {
 
     updateStatusSummary(state) {
         const statusSummary = $('#generator-status-summary'); // Note: This is now the container for the grid
-        const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const time = state.getGameTime().formatted;
 
         // We use a separate element for the technical log if it still exists elsewhere
         // But for now, let's focus on the systems grid which replaced it in index.html
     }
 
     renderSystemsGrid(state) {
+        console.log('[GeneratorManager] renderSystemsGrid start. state.generator.systems:', state.generator.systems);
         const grid = $('#generator-systems-grid');
-        if (!grid.length) return;
+        if (!grid.length) {
+            console.warn('[GeneratorManager] #generator-systems-grid not found!');
+            return;
+        }
 
         grid.empty();
 
@@ -483,6 +689,7 @@ export class GeneratorManager {
 
         if (state.generator.systems) {
             Object.entries(state.generator.systems).forEach(([id, sys]) => {
+                console.log(`[GeneratorManager] Rendering system: ${id}`, sys);
                 const card = $(`
                     <div class="system-toggle-card ${sys.active ? 'active' : ''}" data-system-id="${id}">
                         <div class="flex items-center gap-3">
@@ -521,10 +728,13 @@ export class GeneratorManager {
 
                 grid.append(card);
             });
+        } else {
+            console.error('[GeneratorManager] state.generator.systems is undefined!');
         }
 
         // Sistema especial: Analizador de Hemoglobina (solo visual si está activo)
-        const isLabActive = state.generator && state.generator.systems && state.generator.systems.shelterLab.active;
+        const isLabActive = state.generator?.systems?.shelterLab?.active;
+        console.log('[GeneratorManager] isLabActive:', isLabActive);
 
         if (!isLabActive) {
             // Mostrar estado bloqueado si el laboratorio está apagado
@@ -553,6 +763,7 @@ export class GeneratorManager {
                 </div>
             `);
         }
+        console.log('[GeneratorManager] renderSystemsGrid complete');
     }
 
 

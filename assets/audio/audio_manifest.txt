@@ -61,3 +61,4 @@ morgue_reveal_infected.mp3
 FALTANTES 
 radio_chatter.mp3 
 ui_heavy_click.mp3 
+heartbeat_fast.mp3

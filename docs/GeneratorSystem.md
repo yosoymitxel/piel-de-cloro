@@ -8,9 +8,9 @@ El jugador puede alternar entre tres modos en la pantalla del Generador (`#scree
 
 | Modo | Modificador de Consumo | Riesgo de Fallo | Descripción |
 | :--- | :--- | :--- | :--- |
-| **AHORRO** | **+0u** | 0% | Modo seguro. Garantiza estabilidad pero limita severamente la capacidad de deducción. |
-| **NORMAL** | **+10u** | 8% | Balance estándar. Es el modo por defecto al iniciar el día. |
-| **SOBRECARGA** | **+30u** | 20% + Riesgo Crítico | Permite análisis exhaustivo. Si se mantiene, aumenta el riesgo de explosión o apagón forzoso. |
+| **AHORRO** | **+1u** | 0% | Modo seguro. Garantiza estabilidad pero limita severamente la capacidad de deducción. |
+| **NORMAL** | **+2u** | 8% | Balance estándar. Es el modo por defecto al iniciar el día. |
+| **SOBRECARGA** | **+3u** | 20% + Riesgo Crítico | Permite análisis exhaustivo. Si se mantiene, aumenta el riesgo de explosión o apagón forzoso. |
 
 ## Mecánicas de Fallo
 

@@ -7,7 +7,7 @@ export class GenLoadComponent extends BaseComponent {
 
     getTemplate() {
         return `
-            <div class="hud-component component-load" title="Carga del Generador - Click para ir al Generador">
+            <div class="hud-component component-load" title="Carga del Generador - Click para ir al Generador" style="cursor: pointer;">
                 <div class="stat-header">
                     <span class="stat-label">GENERADOR</span>
                     <i class="fa-solid fa-bolt text-[8px] text-gray-500"></i>
@@ -96,7 +96,7 @@ export class GenStationComponent extends BaseComponent {
 
     getTemplate() {
         return `
-            <div class="hud-component component-station" title="Energía del Puesto - Click para ir al Generador">
+            <div class="hud-component component-station" id="nav-generator-hud" title="Energía del Puesto - Click para ir al Generador" style="cursor: pointer;">
                 <div class="stat-header">
                     <span class="stat-label">PUESTO</span>
                     <i class="fa-solid fa-plug text-[8px] text-cyan-400"></i>
@@ -109,6 +109,17 @@ export class GenStationComponent extends BaseComponent {
                 </div>
             </div>
         `;
+    }
+
+    render() {
+        super.render();
+        // Add navigation click handler
+        this.container.find('#nav-generator-hud').off('click').on('click', () => {
+            const game = window.game;
+            if (game && game.events && typeof game.events.navigateToGenerator === 'function') {
+                game.events.navigateToGenerator();
+            }
+        });
     }
 
     update(state) {

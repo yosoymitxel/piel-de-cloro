@@ -2127,3 +2127,15 @@ input[type=number].horror-input {
     animation: logFlash 1s ease-out;
     border-left: 2px solid #fff !important;
 }
+
+/* Roadmap 2.0 Lab Colors */
+.text-danger-green {
+    color: var(--color-chlorine-light) !important;
+    text-shadow: 0 0 5px var(--color-chlorine);
+    font-weight: bold;
+}
+
+.text-neutral-white {
+    color: #ffffff !important;
+    opacity: 0.9;
+}

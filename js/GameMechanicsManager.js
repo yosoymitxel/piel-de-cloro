@@ -132,6 +132,9 @@ export class GameMechanicsManager {
         // Limpiar indicadores y bloquear navegación durante la fase nocturna
         this.ui.clearAllNavStatuses();
 
+        // Reset visual phase filters (remove warm/blue tints) for Night Screen
+        $('body').removeClass('phase-dawn phase-day phase-dusk phase-night');
+
         // Solo procesar intrusiones si es el inicio de la fase nocturna (no tras volver de purga)
         if (!State.lastNight.occurred) {
             this.processIntrusions();
@@ -158,47 +161,60 @@ export class GameMechanicsManager {
     }
 
     calculateTotalLoad() {
-        if (!State.generator.isOn) return 0;
+        const breakdown = this.getLoadBreakdown();
+        State.generator.load = breakdown.total;
+        return breakdown.total;
+    }
 
-        let total = State.generator.baseConsumption || 0;
+    getLoadBreakdown() {
+        if (!State.generator.isOn) return { base: 0, mode: 0, systems: 0, rooms: 0, total: 0 };
 
-        // Mode Consumption Modifier (Make modes consume battery faster)
-        const modeConsumption = { 'save': 0, 'normal': 5, 'overload': 15 };
-        total += modeConsumption[State.generator.mode] || 0;
-
-        // Efecto del Guardia: Reduce consumo base si está asignado y saludable
+        let base = State.generator.baseConsumption || 0;
+        
+        // Efecto del Guardia
         if (State.generator.assignedGuardId) {
-            total -= 5; // Optimización de mantenimiento
+            base = Math.max(0, base - 5);
         }
 
-        // Sumar consumo de sub-sistemas activos (Globales)
+        // Mode Consumption
+        const modeConsumption = { 'save': 0, 'normal': 5, 'overload': 15 };
+        const mode = modeConsumption[State.generator.mode] || 0;
+
+        // Systems
+        let systems = 0;
         if (State.generator.systems) {
             Object.values(State.generator.systems).forEach(system => {
-                if (system.active) total += (system.load || 0);
+                if (system.active) systems += (system.load || 0);
             });
         }
 
-        // Sumar consumo de habitaciones individuales (Phase 4.4)
+        // Rooms
+        let rooms = 0;
         if (State.currentShelter) {
             State.currentShelter.getAllRooms().forEach(room => {
-                // Evitamos duplicar con sistemas globales si coinciden en nombre
                 const globalSystemKeys = ['security', 'lighting', 'lifesupport', 'shelterlab'];
                 if (globalSystemKeys.includes(room.type.toLowerCase())) return;
-
-                if (room.powerActive) total += (room.load || 0);
+                if (room.powerActive) rooms += (room.load || 0);
             });
         }
 
-        // Cargas dinámicas adicionales
-        if (State.generator.bloodTestCountdown > 0) {
-            total += 45;
-        }
+        // Dynamic Extras
+        let extras = 0;
+        if (State.generator.bloodTestCountdown > 0) extras += 45;
+        if (State.paranoia > 80) extras += 5;
+        if (State.sanity < 20) extras += 5;
 
-        if (State.paranoia > 80) total += 5;
-        if (State.sanity < 20) total += 5;
+        // Group extras into systems or base for simplicity, or separate
+        // Let's add extras to systems for the breakdown
+        systems += extras;
 
-        State.generator.load = Math.max(0, total);
-        return State.generator.load;
+        return {
+            base,
+            mode,
+            systems,
+            rooms,
+            total: Math.max(0, base + mode + systems + rooms)
+        };
     }
 
     calculateJobBonuses() {
@@ -302,10 +318,15 @@ export class GameMechanicsManager {
             State.generator.stability = Math.max(0, State.generator.stability - stabilityDrain);
 
             if (State.generator.stability < 30) {
-                const failureChance = 0.1 + (excess * 0.4);
-                if (Math.random() < failureChance) {
-                    this.triggerGeneratorFailure();
-                    return;
+                // EXEMPTION: Save Mode is safe from random failure unless battery is empty
+                if (State.generator.mode === 'save') {
+                    // Do nothing, safe mode
+                } else {
+                    const failureChance = 0.1 + (excess * 0.4);
+                    if (Math.random() < failureChance) {
+                        this.triggerGeneratorFailure();
+                        return;
+                    }
                 }
             }
         } else {
@@ -315,11 +336,20 @@ export class GameMechanicsManager {
             }
         }
 
-        // COMPATIBILIDAD LEGACY
+        // COMPATIBILIDAD LEGACY (Removed outdated logic, rely on config)
+        // If config explicitly allows failure in save mode (which it shouldn't), handle it.
+        // But we want to enforce safety.
+        
         let legacyFailureChance = 0;
         if (State.config && State.config.generator && State.config.generator.failureChance) {
             legacyFailureChance = State.config.generator.failureChance[State.generator.mode || 'normal'] || 0;
         }
+        
+        // Force 0 chance for save mode
+        if (State.generator.mode === 'save') {
+            legacyFailureChance = 0;
+        }
+
         if (State.generator.overloadRiskTurns > 0) {
             legacyFailureChance = Math.max(legacyFailureChance, 0.25);
             State.generator.overloadRiskTurns = 0;
@@ -330,7 +360,7 @@ export class GameMechanicsManager {
             return;
         }
 
-        if (State.generator.isOn && State.generator.stability < 70) {
+        if (State.generator.isOn && State.generator.stability < 70 && State.generator.mode !== 'save') {
             const residualChance = (70 - State.generator.stability) / 1000;
             if (Math.random() < residualChance) {
                 this.triggerGeneratorFailure();
@@ -366,6 +396,7 @@ export class GameMechanicsManager {
 
     triggerGeneratorFailure() {
         State.generator.isOn = false;
+        State.generator.load = 0; // Force load to 0
         State.generator.mode = 'normal'; // Reset mode for next start
         State.generator.power = Math.floor(State.generator.power * 0.4); // Keep 40%
         if (State.currentNPC) {
@@ -443,7 +474,7 @@ export class GameMechanicsManager {
                 this.ui.updateGeneratorNavStatus();
             }
 
-            // Reinicio parcial tras fallo
+            // Reinicio de estabilidad tras encendido manual
             State.generator.mode = 'save';
             State.generator.maxModeCapacityReached = 1;
             State.generator.load = this.calculateTotalLoad();
@@ -527,7 +558,7 @@ export class GameMechanicsManager {
 
         // Generar Log según estado del NPC
         let message = "";
-        const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+        const time = State.getGameTime().formatted;
 
         if (npc.isInfected) {
             const lies = [
@@ -550,6 +581,7 @@ export class GameMechanicsManager {
     }
 
     manualEmergencyCharge() {
+        console.log('[GameMechanicsManager] manualEmergencyCharge called. Supplies:', State.supplies, 'Power:', State.generator.power);
         if (State.supplies < 3) {
             this.ui.showFeedback("SUMINISTROS INSUFICIENTES (Req: 3)", "red");
             return;
@@ -580,7 +612,7 @@ export class GameMechanicsManager {
      * @returns {boolean} true si la recarga fue exitosa
      */
     refuelGenerator() {
-        // console.log("refuelGenerator called. Mode:", State.generator.mode, "Power:", State.generator.power, "Fuel:", State.fuel);
+        console.log('[GameMechanicsManager] refuelGenerator called. Mode:', State.generator.mode, "Power:", State.generator.power, "Fuel:", State.fuel);
         // Validar: No recargar en modo Overload (riesgo de explosión)
         if (State.generator.mode === 'overload') {
             this.ui.showFeedback("¡PELIGRO! NO RECARGAR EN MODO SOBRECARGA", "red", 4000);
@@ -985,11 +1017,13 @@ export class GameMechanicsManager {
             const roll = Math.random() * 100;
 
             // Deserción (Stress alto)
-            if (npc.stress > 75 && roll < (npc.stress - 50)) {
+            // Se aplica modificador para reducir la frecuencia de escapes
+            const escapeMod = State.config.escapeChanceModifier || CONSTANTS.GAME.ESCAPE_CHANCE_MODIFIER || 0.5;
+            if (npc.stress > 75 && roll < (npc.stress - 50) * escapeMod) {
                 departed.push(npc);
             }
             // Amotinamiento/Sabotaje (Lealtad baja)
-            else if (npc.loyalty < 30 && roll < (40 - npc.loyalty)) {
+            else if (npc.loyalty < 30 && roll < (40 - npc.loyalty) * escapeMod) {
                 rioters.push(npc);
             }
         });
@@ -1134,13 +1168,22 @@ export class GameMechanicsManager {
                 }
                 npc.isBloodValidated = true; // Flag legacy para compatibilidad
 
-                const resultStr = npc.isInfected ? 'POSITIVO (INFECTADO)' : 'NEGATIVO (LIMPIO)';
-                State.addLogEntry('system', `LABORATORIO: Resultados de ${npc.name} disponibles. DX: ${resultStr}`, { icon: 'fa-flask' });
+                const resultStr = npc.isInfected ? 'POSITIVO' : 'NEGATIVO';
                 
                 // Notification for tutorial/HUD
                 if (this.ui.tutorialManager) {
                     this.ui.tutorialManager.addMessage(`LAB: Resultados de ${npc.name} listos.`, "info");
                 }
+
+                // Enviar notificación al Tutorial Manager con estilo visual específico
+                if (this.game.ui.tutorialManager) {
+                    const type = npc.isInfected ? 'danger-green' : 'neutral-white';
+                    this.game.ui.tutorialManager.addMessage(`ANÁLISIS: ${npc.name}: ${resultStr}`, type);
+                }
+                
+                // También añadir al log general (opcional, pero útil)
+                State.addLogEntry(npc.isInfected ? 'danger' : 'info', `RESULTADO LABORATORIO: ${npc.name} dio ${resultStr}.`);
+                State.addLogEntry('system', `LABORATORIO: Resultados de ${npc.name} disponibles. DX: ${resultStr}`, { icon: 'fa-flask' });
             }
         });
 
@@ -1457,7 +1500,8 @@ export class GameMechanicsManager {
 
         let logMessage = '';
         const periodText = period === 'diurna' ? 'Día' : 'Noche';
-        const timeText = period === 'diurna' ? `Ciclo ${State.cycle}, ${State.dayTime}:00` : `Ciclo ${State.cycle}, Noche`;
+        const gameTime = State.getGameTime().formatted;
+        const timeText = `Ciclo ${State.cycle}, ${gameTime}`;
 
         if (alarm && alarm.active) {
             // Alarm is active
@@ -1500,7 +1544,10 @@ export class GameMechanicsManager {
     }
 
     generateInitialEntrants() {
+        console.log("[GAME] Generando refugiados iniciales...");
         const maxHalf = Math.floor(State.config.maxShelterCapacity * State.config.initialEntrantMaxFraction);
+        let generatedCount = 0;
+
         for (let i = 0; i < maxHalf; i++) {
             if (State.isShelterFull()) break;
             if (Math.random() < State.config.initialEntrantProbability) {
@@ -1513,8 +1560,22 @@ export class GameMechanicsManager {
                 npc.history.push('Ingreso inicial por pertenencia al refugio.');
                 npc.purgeLockedUntil = State.cycle + 1;
                 State.addAdmitted(npc);
+                generatedCount++;
             }
         }
+
+        // Garantizar al menos 1 si la probabilidad falla (Safety net)
+        if (generatedCount === 0 && maxHalf > 0) {
+             const npc = new NPC(0.5);
+             npc.revealedStats.push('pulse');
+             npc.history = npc.history || [];
+             npc.history.push('Ingreso inicial (Superviviente solitario).');
+             npc.purgeLockedUntil = State.cycle + 1;
+             State.addAdmitted(npc);
+             generatedCount++;
+        }
+
+        console.log(`[GAME] Refugiados iniciales generados: ${generatedCount}`);
 
         if (State.admittedNPCs.length > 0 && this.ui && this.ui.setNavItemStatus) {
             this.ui.setNavItemStatus('nav-shelter', 3);

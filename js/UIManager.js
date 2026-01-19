@@ -194,7 +194,13 @@ export class UIManager {
         // Add click handlers for navigation after DOM is ready
         setTimeout(() => {
             $('.comp-gen-load, .comp-gen-battery, .comp-gen-station').on('click', () => {
-                this.showScreen(CONSTANTS.SCREENS.GENERATOR);
+                // Fix: Use centralized navigation to ensure renderFn is called
+                if (this.game && this.game.events && typeof this.game.events.navigateToGenerator === 'function') {
+                    this.game.events.navigateToGenerator();
+                } else {
+                    console.error('[UIManager] Cannot navigate to generator: game.events not ready');
+                    this.showScreen(CONSTANTS.SCREENS.GENERATOR); // Fallback
+                }
                 if (this.audio) this.audio.playSFXByKey('ui_click', { volume: 0.3 });
             });
         }, 100);
@@ -279,6 +285,20 @@ export class UIManager {
     updateVersionLabels() {
         $('.app-version').text(CONSTANTS.VERSION);
         $('.app-version-full').text(`${CONSTANTS.VERSION_LABEL} v${CONSTANTS.VERSION}`);
+    }
+
+    updateTimeDisplay() {
+        if (!this.elements.time || this.elements.time.length === 0) return;
+        
+        const time = State.getGameTime();
+        const icon = time.period === 'day' ? 'fa-sun' : 'fa-moon';
+        const color = time.period === 'day' ? 'text-amber-400' : 'text-indigo-400';
+        
+        // Usar HTML para incluir icono
+        this.elements.time.html(`
+            <i class="fa-solid ${icon} ${color} mr-2"></i>
+            <span class="font-mono tracking-widest">${time.formatted}</span>
+        `);
     }
 
     resetUI() {
@@ -892,7 +912,7 @@ export class UIManager {
             // Add specific purge blood flash sound if type is purge
             if (type === 'purge') {
                 setTimeout(() => {
-                    this.audio.playSFXByKey('purge_blood_flash', { volume: 0.7, priority: 2 });
+                    this.audio.playSFXByKey('purge_confirm', { volume: 0.7, priority: 2 });
                 }, 200);
             }
         }
@@ -1004,18 +1024,51 @@ export class UIManager {
         return State.playerInfected || State.sanity < 20;
     }
 
-    updateTimePhase(currentHour, totalHours) {
-        if (!totalHours) return;
+    updateTimeDisplay() {
+        const time = State.getGameTime();
+        
+        // Restore sun icon structure: 1 // <i class="fa-solid fa-sun text-yellow-500"></i> 08:00
+        const iconClass = time.period === 'night' ? 'fa-moon text-blue-400' : 'fa-sun text-yellow-500';
+        const html = `${State.cycle} <span class="text-xs opacity-50 text-white">//</span> <i class="fa-solid ${iconClass} mx-1"></i> ${time.formatted}`;
 
-        const progress = currentHour / totalHours;
+        // Target the container that holds the entire time string
+        const container = $('.hud-stat-value:contains("//")');
+        if (container.length) {
+            container.html(html);
+        } else {
+            // Fallback to individual elements if container structure changed
+            $('#cycle-count').text(State.cycle);
+            $('#time-display').html(`<i class="fa-solid ${iconClass} mr-1"></i> ${time.formatted}`);
+        }
+    }
+
+    updateTimePhase(currentHour, totalHours) {
+        // Logic updated to rely on Game Time (Hours) rather than Turn Progress
+        // This ensures the visual filters match the "Simulated Clock" requested by user.
+        
+        let hours;
+        if (typeof currentHour === 'number' && typeof totalHours === 'number') {
+             // Legacy/Manual call support (if used elsewhere)
+             // Convert progress back to estimated hours for consistency or just use progress?
+             // Better to ignore legacy progress logic and use State if available to ensure consistency.
+             const time = State.getGameTime();
+             hours = time.hours;
+        } else {
+             const time = State.getGameTime();
+             hours = time.hours;
+        }
+
         let phase = 'phase-day';
 
-        if (progress > 0.9) {
-            phase = 'phase-night'; // > 90% (Final boss / last entry)
-        } else if (progress > 0.7) {
-            phase = 'phase-dusk'; // 70% - 90%
-        } else if (progress < 0.2) {
-            phase = 'phase-dawn'; // Start of day
+        // Phase Logic based on Hour (User Request: Turn 3-4 [~16h-18h] = Warm, Last [19h+] = Night)
+        if (hours >= 19 || hours < 6) {
+            phase = 'phase-night'; // Night (Blue)
+        } else if (hours >= 16) {
+            phase = 'phase-dusk'; // Warm (Dusk) - Covers 16:00, 17:00, 18:00
+        } else if (hours < 8) {
+            phase = 'phase-dawn'; // Early morning (optional)
+        } else {
+            phase = 'phase-day'; // 08:00 - 15:59
         }
 
         // Detect Phase Change
@@ -1044,7 +1097,6 @@ export class UIManager {
     updateEnergyHUD() {
         // Deprecated: Logic moved to EnergyComponent.
     }
-
     triggerGlobalGlitch(intensity = 0.5) {
         const monitor = this.elements.crtMonitor;
         if (!monitor.length) return;
@@ -1079,7 +1131,7 @@ export class UIManager {
         }
 
         // New Phase 2.1: Update Atmosphere
-        this.updateTimePhase(dayTime, dayLength);
+        this.updateTimePhase();
 
         this.updateEnergyHUD();
 
@@ -1107,12 +1159,18 @@ export class UIManager {
         }
 
         this.elements.cycle.text(cycle);
-        this.elements.time.text(`${dayTime}/${dayLength}`);
+        
+        // Usar el nuevo sistema de reloj en lugar del contador de sujetos
+        this.updateTimeDisplay();
 
-        // Time-tint integration
-        const dayProgress = dayTime / dayLength;
-        $('body').toggleClass('is-night', dayProgress > 0.75);
-        $('body').toggleClass('is-late-night', dayProgress > 0.9);
+        // Time-tint integration based on Game Clock
+        const gameTime = State.getGameTime();
+        const isNightTime = gameTime.period === 'night';
+        // Late night: entre 02:00 y 06:00
+        const isLateNight = isNightTime && (gameTime.hours >= 2 && gameTime.hours < 6);
+
+        $('body').toggleClass('is-night', isNightTime);
+        $('body').toggleClass('is-late-night', isLateNight);
 
         // --- EFECTO VISUAL: ILUMINACIÓN ---
         const isLightingOn = State.generator && State.generator.isOn && State.generator.systems.lighting.active;
@@ -1277,6 +1335,14 @@ export class UIManager {
                 'display': 'grid',
                 'grid-template-columns': 'repeat(4, minmax(0, 1fr))',
                 'gap': '0.75rem'
+            });
+
+            // Bind click event for generator button
+            $('#btn-goto-generator').off('click').on('click', () => {
+                const game = this.game || window.game;
+                if (game && game.events && typeof game.events.navigateToGenerator === 'function') {
+                    game.events.navigateToGenerator();
+                }
             });
 
             this.refreshToolsReferences();
@@ -2580,7 +2646,7 @@ export class UIManager {
         const log = $('#security-room-log');
         if (!log.length) return;
 
-        const time = State.isNight ? 'NOCT' : `${State.dayTime}:00`;
+        const time = State.getGameTime().formatted;
         const entry = $(`<div class="mb-1 border-l border-green-700/50 pl-2">
             <span class="text-gray-600">[${time}]</span>
             <span class="text-green-500">${message}</span>
@@ -3023,10 +3089,13 @@ export class UIManager {
         const isNew = entry.isNew ? 'log-entry-new log-entry-flash' : '';
         if (entry.isNew) delete entry.isNew;
 
+        // Use entry.timeLabel if available (new format), else fallback to "HORA X"
+        const timeDisplay = entry.timeLabel ? entry.timeLabel : `HORA ${entry.dayTime}`;
+
         return `
             <div class="log-entry ${typeClass} ${isNew} animate__animated animate__fadeInUp animate__faster">
                 <div class="log-meta flex justify-between">
-                    <span><i class="fa-solid ${icon} mr-1"></i> CICLO ${entry.cycle} // HORA ${entry.dayTime}</span>
+                    <span><i class="fa-solid ${icon} mr-1"></i> CICLO ${entry.cycle} // ${timeDisplay}</span>
                 </div>
                 <div class="log-content">${entry.text}</div>
             </div>
@@ -3596,6 +3665,26 @@ export class UIManager {
     getRoomStatusClass(roomId) {
         if (!State) return '';
 
+        // Security: Orange if any item is insecure
+        if (roomId === 'room' || roomId === 'security') {
+            if (State.securityItems && State.securityItems.length > 0) {
+                const hasInsecure = State.securityItems.some(it => it.type === 'alarma' ? !it.active : !it.secured);
+                const allInsecure = State.securityItems.every(it => it.type === 'alarma' ? !it.active : !it.secured);
+                
+                if (allInsecure) return 'status-critical'; // Red
+                if (hasInsecure) return 'status-alert'; // Orange/Yellow
+            }
+        }
+        
+        // Generator Status
+        if (roomId === 'generator') {
+             if (State.generator) {
+                 if (!State.generator.isOn) return 'status-critical';
+                 if (State.generator.mode === 'overload') return 'status-level-overload';
+                 if (State.generator.mode === 'save') return 'status-level-save';
+             }
+        }
+
         // New Config-based System (Easy to extend)
         if (CONSTANTS.ROOM_STATUS_CONFIG && CONSTANTS.ROOM_STATUS_CONFIG[roomId]) {
             return CONSTANTS.ROOM_STATUS_CONFIG[roomId].check(State);
@@ -3695,7 +3784,7 @@ export class UIManager {
         gridContainer.css({
             'display': 'grid',
             'grid-template-columns': `repeat(${maxX}, 180px)`,
-            'grid-template-rows': `repeat(${maxY}, minmax(90px, auto))`,
+            'grid-template-rows': `repeat(${maxY}, minmax(50px, auto))`,
             'gap': '15px',
             'justify-content': 'center',
             'align-content': 'start',

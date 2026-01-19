@@ -91,7 +91,7 @@ describe('Centralized UI Status Logic', () => {
 
         // System Off
         State.generator.systems.security.active = false;
-        expect(ui.getRoomStatusClass('security')).toBe('status-alert'); // With guard -> Alert (Yellow)
+        expect(ui.getRoomStatusClass('security')).toBe('status-critical'); // Power Off -> Critical
         // Without guard -> Critical (Red)
         State.assignments.security.occupants = [];
         expect(ui.getRoomStatusClass('security')).toBe('status-critical');
@@ -101,7 +101,7 @@ describe('Centralized UI Status Logic', () => {
         // Generator Off
         State.generator.isOn = false;
         State.assignments.security.occupants = ['guard1'];
-        expect(ui.getRoomStatusClass('security')).toBe('status-alert');
+        expect(ui.getRoomStatusClass('security')).toBe('status-critical');
         State.assignments.security.occupants = [];
         expect(ui.getRoomStatusClass('security')).toBe('status-critical');
     });

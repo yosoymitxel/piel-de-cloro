@@ -309,6 +309,8 @@ export class TutorialManager {
             case 'danger': return 'text-red-500';
             case 'warning': return 'text-orange-400';
             case 'success': return 'text-green-400';
+            case 'danger-green': return 'text-danger-green'; // Custom class for Lab Positive
+            case 'neutral-white': return 'text-neutral-white'; // Custom class for Lab Negative
             default: return 'text-gray-400';
         }
     }

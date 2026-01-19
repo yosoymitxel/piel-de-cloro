@@ -113,6 +113,12 @@ export const LoreData = {
         type: 'calm',
         audio: 'lore_final_clean'
     },
+    final_cure: {
+        title: 'Cura Sintetizada',
+        content: 'Has recolectado las 5 muestras viables necesarias. Los datos son irrefutables: la secuencia genética del parásito ha sido decodificada. No solo has escapado; has traído el arma definitiva. La pesadilla termina hoy.',
+        type: 'save',
+        audio: 'lore_final_clean'
+    },
     final_corrupted: {
         title: 'Salida contaminada',
         content: 'Alcanzasteis la superficie, pero la victoria fue breve. Uno de los tuyos comenzó a secarse bajo el sol. Ahora, la plaga tiene un nuevo hogar: el mundo exterior.',

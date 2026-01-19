@@ -52,17 +52,24 @@ class Game {
 
         // Aplicar configuraciones de audio persistentes
         if (State.audioSettings) {
+            console.log('[Audio] Applying persistent settings:', State.audioSettings);
             const s = State.audioSettings;
             this.audio.setMasterVolume(s.master !== undefined ? s.master : 1.0);
             this.audio.setChannelLevel('ambient', s.ambient !== undefined ? s.ambient : 0.3);
             this.audio.setChannelLevel('lore', s.lore !== undefined ? s.lore : 0.25);
             this.audio.setChannelLevel('sfx', s.sfx !== undefined ? s.sfx : 0.6);
+            this.audio.setChannelLevel('generator', s.generator !== undefined ? s.generator : 0.15);
+            this.audio.setChannelLevel('heartbeat', s.heartbeat !== undefined ? s.heartbeat : 0.4);
 
             if (s.muted) {
                 this.audio.muteChannel('ambient', !!s.muted.ambient);
                 this.audio.muteChannel('lore', !!s.muted.lore);
                 this.audio.muteChannel('sfx', !!s.muted.sfx);
+                this.audio.muteChannel('generator', !!s.muted.generator);
+                this.audio.muteChannel('heartbeat', !!s.muted.heartbeat);
             }
+        } else {
+            console.warn('[Audio] No persistent settings found, using defaults.');
         }
 
         // Cargar logs iniciales si la partida está empezando y no hay logs
@@ -102,7 +109,13 @@ class Game {
         this.mechanics.calculateTotalLoad(); // Ensure load is calculated
         this.ui.showScreen('game');
         this.ui.elements.modalTutorial.removeClass('hidden').addClass('flex');
-        this.audio.playAmbientByKey('ambient_main_loop', { loop: true, volume: 0.28, fadeIn: 800 });
+        
+        // Usar volumen guardado o defecto
+        const vol = (State.audioSettings && typeof State.audioSettings.ambient === 'number') 
+            ? State.audioSettings.ambient 
+            : 0.28;
+            
+        this.audio.playAmbientByKey('ambient_main_loop', { loop: true, volume: vol, fadeIn: 800 });
 
         this.loopManager.start();
     }
@@ -111,6 +124,7 @@ class Game {
         this.ensureMeditationRoom();
         this.mechanics.generateInitialEntrants();
         this.nextTurn();
+        this.startClock(); // Ensure clock is running
         this.ui.updateRunStats(State);
     }
 
@@ -168,20 +182,21 @@ class Game {
             isOn: true,
             mode: 'normal',
             power: 100,
+            capacity: 100,
             blackoutUntil: 0,
             overclockCooldown: false,
             emergencyEnergyGranted: false,
             maxModeCapacityReached: 2,
             restartLock: false,
             load: 0,
-            baseConsumption: 5,
+            baseConsumption: 20,
             stability: 100,
             overloadTimer: 0,
             systems: {
-                security: { load: 15, active: true, label: 'Seguridad' },
-                lighting: { load: 10, active: true, label: 'Iluminación' },
-                lifeSupport: { load: 20, active: true, label: 'Soporte Vital' },
-                shelterLab: { load: 25, active: false, label: 'Laboratorio' }
+                security: { load: 8, active: true, label: 'Seguridad' },
+                lighting: { load: 4, active: true, label: 'Iluminación' },
+                lifeSupport: { load: 12, active: true, label: 'Soporte Vital' },
+                shelterLab: { load: 23, active: false, label: 'Laboratorio' }
             },
             assignedGuardId: null,
             guardShiftLogs: [] // Legacy, but kept for safety until full migration
@@ -239,11 +254,70 @@ class Game {
 
         this.ui.showScreen('start');
         this.audio.stopAmbient({ fadeOut: 800 });
-        this.audio.playAmbientByKey('ambient_main_loop', { loop: true, volume: 0.1, fadeIn: 2000 });
+        
+        const vol = (State.audioSettings && typeof State.audioSettings.ambient === 'number') 
+            ? State.audioSettings.ambient 
+            : 0.1;
+            
+        this.audio.playAmbientByKey('ambient_main_loop', { loop: true, volume: vol, fadeIn: 2000 });
+    }
+
+    start() {
+        if (State.cycle === 0) {
+            this.ui.showScreen('start');
+        } else {
+            this.ui.showScreen('game');
+        }
+        
+        // Iniciar reloj del juego
+        this.startClock();
+        
+        this.audio.stopAmbient({ fadeOut: 800 });
+        
+        const vol = (State.audioSettings && typeof State.audioSettings.ambient === 'number') 
+            ? State.audioSettings.ambient 
+            : 0.1;
+            
+        this.audio.playAmbientByKey('ambient_main_loop', { loop: true, volume: vol, fadeIn: 2000 });
+    }
+
+    startClock() {
+        if (this.clockInterval) clearInterval(this.clockInterval);
+        
+        // 1 segundo real = 1 minuto de juego
+        this.clockInterval = setInterval(() => {
+            if (!State.isNight && !State.endingTriggered) {
+                // Ensure secondsElapsed is a number
+                if (typeof State.secondsElapsed !== 'number' || isNaN(State.secondsElapsed)) {
+                    State.secondsElapsed = 0;
+                }
+                
+                State.secondsElapsed++;
+                this.ui.updateTimeDisplay();
+                
+                // Opcional: Si el reloj pasa de ciertas horas, cambiar iluminación o sonido
+                const time = State.getGameTime();
+                if (time.isNextDay && !State.dayEnded) {
+                    // Forzar fin del día si llega a la madrugada (00:00)?
+                    // Por ahora solo visual.
+                }
+            }
+        }, 1000);
+    }
+
+    stopClock() {
+        if (this.clockInterval) {
+            clearInterval(this.clockInterval);
+            this.clockInterval = null;
+        }
     }
 
     nextTurn() {
         if (State.endingTriggered) return;
+
+        // Sync Game Clock to Turn logic (Simulate hours passing)
+        State.updateGameTimeForTurn();
+        this.ui.updateTimeDisplay();
 
         // Limpiar referencia al NPC actual para evitar fugas de estado durante la transición
         State.currentNPC = null;
@@ -319,6 +393,7 @@ class Game {
         if (currentMode === 'overload') initialCap = CONSTANTS.GENERATOR.OVERLOAD_MODE_CAPACITY;
         State.generator.maxModeCapacityReached = initialCap;
         State.generator.restartLock = false;
+        State.generator.modeChangedThisTurn = false; // Permitir cambio de modo en nuevo turno
 
         this.ui.hideFeedback();
         this.ui.renderNPC(State.currentNPC);

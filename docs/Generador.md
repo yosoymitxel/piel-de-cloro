@@ -10,13 +10,13 @@ La sala de generador controla el suministro energético del puesto. Afecta las h
 - `blackoutUntil` (timestamp): si > Date.now() el generador está temporalmente bloqueado (apagar/encender deshabilitado).
 - `overclockCooldown` (boolean): impide volver a poner `overload` tras recuperaciones inmediatas.
 - `overloadRiskTurns` (int): turnos restantes con riesgo de fallo por sobrecarga.
-- `maxModeCapacityReached` (int): el máximo de cargas consumibles permitido por el modo (1,2,3).
+- `maxModeCapacityReached` (int): el máximo de cargas consumibles permitido por el modo (1,2,3). Implementa lógica de "Trinquete" (Ratchet): si empiezas en Overload (3), puedes bajar a Normal (2) y luego a Save (1). Si empiezas en Normal (2), solo puedes bajar a Save (1). No se puede subir por encima del máximo inicial del turno si ya se ha realizado una acción.
 - `emergencyEnergyGranted` (boolean): evita restaurar energía de emergencia más de una vez por NPC.
 - `restartLock` (boolean): indica si el generador acaba de ser reiniciado, impidiendo subir la potencia en el mismo turno.
 
 ## Configuración (State.config.generator)
-- `consumption`: modificador de consumo por modo (save:0, normal:10, overload:30).
-- `failureChance`: probabilidad de fallo por modo.
+- `consumption`: modificador de consumo por modo (save:1, normal:2, overload:3).
+- `failureChance`: probabilidad de fallo por modo (save: 0.0, normal: 0.08, overload: 0.2).
 - `breakdownChance`: prob. extra de rotura (uso interno/placeholder).
 
 ## Elementos UI relevantes

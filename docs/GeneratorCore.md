@@ -9,14 +9,14 @@ El generador ha sido rediseñado para actuar como el eje central de la gestión 
 - **Carga (Load)**: La suma dinámica de todos los consumos activos.
 - **Estabilidad**: La salud física del núcleo. Operar por encima de la capacidad drena la estabilidad.
 - **Batería (Power)**: Reserva de energía (0-100%). Se consume más rápido a mayor carga. Si llega a 0, el generador se apaga.
-- **Consumo Base**: El gasto mínimo pasivo del refugio (Defecto: 5u).
+- **Consumo Base**: El gasto mínimo pasivo del refugio (Defecto: 20u).
 
 ### 2. Sub-sistemas
 El jugador puede activar o desactivar sistemas individuales para gestionar la carga:
-- **Seguridad** (15u): Necesario para el funcionamiento del escáner y visores.
-- **Iluminación** (10u): Mantiene la visibilidad (si se apaga, aumenta la paranoia).
-- **Soporte Vital** (20u): Crítico para la supervivencia a largo plazo.
-- **Laboratorio** (25u): Necesario para investigaciones avanzadas (próximamente).
+- **Seguridad** (8u): Necesario para el funcionamiento del escáner y visores.
+- **Iluminación** (4u): Mantiene la visibilidad (si se apaga, aumenta la paranoia).
+- **Soporte Vital** (12u): Crítico para la supervivencia a largo plazo.
+- **Laboratorio** (15u): Necesario para investigaciones avanzadas (próximamente).
 
 ## Mecánica de Sobrecarga
 
