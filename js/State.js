@@ -374,7 +374,6 @@ export const State = {
         kitchen: { slots: 1, occupants: [] },
         lab: { slots: 1, occupants: [] }
     },
-    // Deprecated: sectorAssignments (se eliminará tras migración)
 
     paused: false,
     debug: true, // Cambiar a false para producción
@@ -467,7 +466,6 @@ export const State = {
         });
 
         // Legacy support during migration (proxies to new system if needed, or just kept empty)
-        this.sectorAssignments = {};
         this.addLogEntry('system', 'Sistema RUTA-01 inicializado. Ciclo 1.');
 
         // NO RESETEAR: unlockedEndings ni audioSettings ya que son persistentes
@@ -571,13 +569,6 @@ export const State = {
                 if (hadAssignment) {
                     this.addSectorLog(sector, `Personal perdido: ${npc.name} ha dejado el puesto.`, npc.name);
                 }
-            });
-        }
-        if (this.sectorAssignments) {
-            Object.keys(this.sectorAssignments).forEach(sector => {
-                const occupants = this.sectorAssignments[sector];
-                if (!Array.isArray(occupants)) return;
-                this.sectorAssignments[sector] = occupants.filter(id => id !== npc.id);
             });
         }
         if (this.generator?.assignedGuardId === npc.id) {
