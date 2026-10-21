@@ -176,3 +176,19 @@ input:hover, select:hover { border-color: #537879; }
   .skin-editor-row { grid-template-columns: minmax(0, 1fr) 50px; }
   #skin-color { width: 50px; min-width: 50px; }
 }
+
+/* Effective traits are part of the generator's output contract, not hidden UI state. */
+.resolved-traits {
+  margin-top: 10px;
+  padding: 10px 11px;
+  border: 1px solid var(--lab-border-dim);
+  background: #0c1519;
+  color: var(--lab-accent);
+  font-size: 9px;
+  line-height: 1.9;
+  letter-spacing: .025em;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 540px) {
+  .resolved-traits { font-size: 8px; padding: 9px; }
+}
