@@ -2455,6 +2455,12 @@ body.is-full-ui .crt-monitor {
 }
 
 /* Mobile layout: replace the fixed desktop sidebar with a touch-scrollable dock. */
+/* Dialogue controls must remain comfortably tappable on touch and desktop. */
+#screen-game button[aria-label*="diálogo" i],
+#screen-game button[title*="diálogo" i] {
+    min-height: 44px;
+}
+
 @media (max-width: 640px) {
     body {
         display: block;
