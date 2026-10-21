@@ -287,32 +287,68 @@ export class UIManager {
         $('.app-version-full').text(`${CONSTANTS.VERSION_LABEL} v${CONSTANTS.VERSION}`);
     }
 
-    updateTimeDisplay() {
-        if (!this.elements.time || this.elements.time.length === 0) return;
-        
-        const time = State.getGameTime();
-        const icon = time.period === 'day' ? 'fa-sun' : 'fa-moon';
-        const color = time.period === 'day' ? 'text-amber-400' : 'text-indigo-400';
-        
-        // Usar HTML para incluir icono
-        this.elements.time.html(`
-            <i class="fa-solid ${icon} ${color} mr-2"></i>
-            <span class="font-mono tracking-widest">${time.formatted}</span>
-        `);
-    }
-
     resetUI() {
         if (this.consoleUpdateInterval) {
             clearInterval(this.consoleUpdateInterval);
             this.consoleUpdateInterval = null;
         }
+
         this.updateVersionLabels();
-        if (this.screenManager) {
-            this.screenManager.updateEndingsRecord(State);
-        }
+        if (this.screenManager) this.screenManager.updateEndingsRecord(State);
+
+        // Close transient UI before clearing its contents.
+        this.closeModal(true);
+        this.closeRelocationModal();
+        if (this.elements.modalTutorial) this.elements.modalTutorial.addClass('hidden').removeClass('flex');
         this.hideFeedback();
         this.clearModalError();
-        // Reset any other UI states if necessary
+
+        // Reset database navigation.
+        if (this.elements.dbNavBtns) {
+            this.elements.dbNavBtns.removeClass('active');
+            this.elements.dbNavBtns.first().addClass('active');
+        }
+        if (this.elements.dbSections) {
+            this.elements.dbSections.addClass('hidden');
+            this.elements.dbSections.first().removeClass('hidden');
+        }
+
+        // Clear run-specific content.
+        if (this.elements.npcDisplay) this.elements.npcDisplay.empty();
+        if (this.elements.dialogue) this.elements.dialogue.html('Esperando sujeto...');
+        if (this.elements.dialogueOptions) this.elements.dialogueOptions.empty();
+        if (this.elements.logContainer) this.elements.logContainer.empty();
+        if (this.elements.shelterGrid) this.elements.shelterGrid.empty();
+        if (this.elements.morgueGridPurged) this.elements.morgueGridPurged.empty();
+        if (this.elements.morgueGridEscaped) this.elements.morgueGridEscaped.empty();
+        if (this.elements.morgueGridNight) this.elements.morgueGridNight.empty();
+        if (this.elements.securityGrid) this.elements.securityGrid.empty();
+
+        // Reset UI counters and navigation state.
+        if (this.elements.shelterCount) this.elements.shelterCount.text('0/0');
+        if (this.elements.securityCount) this.elements.securityCount.text('0');
+        if (this.elements.dayafterTestsLeft) this.elements.dayafterTestsLeft.text('0');
+        if (this.elements.dayafterPendingCount) this.elements.dayafterPendingCount.text('0');
+        if (this.elements.dayafterValidatedCount) this.elements.dayafterValidatedCount.text('0');
+        this.clearAllNavStatuses();
+        this.updateSecurityNavStatus([]);
+
+        // Reflect the already-reset domain state.
+        this.updateStats(
+            State.paranoia,
+            State.sanity,
+            State.cycle,
+            State.dayTime,
+            State.config.dayLength,
+            null,
+            State.supplies
+        );
+        this.updateInspectionTools(null);
+
+        // Remove effects left by the previous run.
+        $('body').css('filter', 'none');
+        $('.vhs-target').removeClass('vhs-active');
+        $('#screen-game').removeClass('is-paused');
     }
 
     initGlobalEffects() {
@@ -1481,62 +1517,6 @@ export class UIManager {
         // para evitar ejecuciones duplicadas y problemas con la recreación de elementos.
     }
 
-    resetUI() {
-        // Cerrar cualquier modal abierto
-        this.closeModal(true);
-        this.closeRelocationModal();
-        if (this.elements.modalTutorial) this.elements.modalTutorial.addClass('hidden').removeClass('flex');
-
-        // Resetear navegación de base de datos
-        this.elements.dbNavBtns.removeClass('active');
-        this.elements.dbNavBtns.first().addClass('active');
-        this.elements.dbSections.addClass('hidden');
-        this.elements.dbSections.first().removeClass('hidden');
-
-        // Limpiar contenedores principales
-        if (this.elements.npcDisplay) this.elements.npcDisplay.empty();
-        if (this.elements.dialogue) this.elements.dialogue.html('Esperando sujeto...');
-        if (this.elements.dialogueOptions) this.elements.dialogueOptions.empty();
-        if (this.elements.logContainer) this.elements.logContainer.empty();
-        if (this.elements.shelterGrid) this.elements.shelterGrid.empty();
-        if (this.elements.morgueGridPurged) this.elements.morgueGridPurged.empty();
-        if (this.elements.morgueGridEscaped) this.elements.morgueGridEscaped.empty();
-        if (this.elements.morgueGridNight) this.elements.morgueGridNight.empty();
-        if (this.elements.securityGrid) this.elements.securityGrid.empty();
-
-        // Resetear contadores de UI
-        if (this.elements.shelterCount) this.elements.shelterCount.text('0/0');
-        if (this.elements.securityCount) this.elements.securityCount.text('0');
-        if (this.elements.dayafterTestsLeft) this.elements.dayafterTestsLeft.text('0');
-        if (this.elements.dayafterPendingCount) this.elements.dayafterPendingCount.text('0');
-        if (this.elements.dayafterValidatedCount) this.elements.dayafterValidatedCount.text('0');
-
-        // Resetear estados visuales de navegación
-        this.clearAllNavStatuses();
-        this.updateSecurityNavStatus([]);
-
-        // Resetear HUD a valores iniciales (usando State ya reseteado)
-        this.updateStats(
-            State.paranoia,
-            State.sanity,
-            State.cycle,
-            State.dayTime,
-            State.config.dayLength,
-            null,
-            State.supplies
-        );
-
-        // Resetear herramientas
-        this.updateInspectionTools(null);
-
-        // Quitar filtros globales y efectos
-        $('body').css('filter', 'none');
-        $('.vhs-target').removeClass('vhs-active');
-        $('#screen-game').removeClass('is-paused');
-
-        // Resetear feedback
-        this.hideFeedback();
-    }
 
     renderNPC(npc) {
         // Stop lore audio on NPC change ONLY if the new NPC is not Lore or has different audio
