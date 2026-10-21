@@ -28,10 +28,20 @@
           <option value="0">Acero húmedo</option><option value="1">Óxido</option><option value="2">Carbón</option><option value="3">Sal pálida</option><option value="4">Cemento</option>
         </select>
         <div id="palette-swatches" class="palette-swatches" aria-label="Muestras de paleta"></div>
+        <label class="field-label" for="skin-color">Tono de piel exacto</label>
+        <div class="skin-editor-row">
+          <label class="check-row skin-follow-palette"><input type="checkbox" id="palette-skin" checked><span><b>Seguir la paleta</b><small>Desmarcá para elegir un tono personalizado.</small></span></label>
+          <input id="skin-color" type="color" value="#b78f78" disabled aria-label="Elegir color de piel personalizado">
+        </div>
 
         <label class="field-label" for="hair">Peinado / silueta</label>
         <select id="hair">
           <option value="bald">Calvo</option><option value="shaved">Rapado</option><option value="short" selected>Corto</option><option value="long">Largo</option><option value="bob">Bob</option><option value="ponytail">Coleta (ponytail)</option><option value="bun">Rodete</option><option value="wild">Desprolijo</option><option value="mohawk">Mohicano</option><option value="punk">Punk</option>
+        </select>
+
+        <label class="field-label" for="face-shape">Forma del rostro</label>
+        <select id="face-shape">
+          <option value="oval">Ovalado</option><option value="round">Redondo</option><option value="square">Cuadrado</option><option value="long">Alargado</option><option value="broad">Ancho</option><option value="angular">Angular</option><option value="heart">Corazón</option>
         </select>
 
         <label class="field-label" for="clothes">Ropa</label>
@@ -76,6 +86,11 @@
     <section class="lab-panel gallery-section" aria-labelledby="hair-gallery-title">
       <div class="section-title-row"><div><span class="section-kicker">VARIANTES COSMÉTICAS</span><h2 id="hair-gallery-title">Siluetas de pelo</h2><p>Se compara el mismo NPC con la misma paleta: solo cambia el peinado. Elegí una muestra para editarla.</p></div><span id="hair-count" class="count-code">10 FORMAS</span></div>
       <div id="hair-gallery" class="hair-gallery"></div>
+    </section>
+
+    <section class="lab-panel gallery-section" aria-labelledby="face-gallery-title">
+      <div class="section-title-row"><div><span class="section-kicker">ANATOMÍA / SILUETAS</span><h2 id="face-gallery-title">Formas del rostro</h2><p>Compará siete contornos con el mismo NPC, piel y peinado. Elegí una silueta para modificarla.</p></div><span id="face-count" class="count-code">7 FORMAS</span></div>
+      <div id="face-gallery" class="hair-gallery" aria-label="Galería de formas de rostro"></div>
     </section>
 
     <section class="lab-panel gallery-section" aria-labelledby="pxl-gallery-title">
