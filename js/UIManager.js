@@ -5,7 +5,7 @@ import { LoreData } from './LoreData.js';
 import { LoreManager } from './LoreManager.js';
 import { ModalManager } from './ModalManager.js';
 import { AvatarRenderer } from './AvatarRenderer.js?v=20261021-avatarfix2';
-import { ScreenManager } from './ScreenManager.js';
+import { ScreenManager } from './ScreenManager.js?v=20261021-daytransition1';
 import { GeneratorManager } from './GeneratorManager.js';
 import { StatsManager } from './StatsManager.js';
 import { ToolsRenderer } from './ToolsRenderer.js';
