@@ -1050,14 +1050,9 @@
 }
 
 
-/* Pause positioning is mobile-only so desktop keeps its original geometry. */
+/* Pause stays in the header flow on phones; desktop keeps its fixed position. */
 @media (max-width: 640px), (max-width: 900px) and (max-height: 520px) and (orientation: landscape) {
     #btn-pause {
-        bottom: calc(68px + 48px + 12px + env(safe-area-inset-bottom, 0px)) !important;
-        right: 12px !important;
-        width: 48px !important;
-        height: 48px !important;
-        z-index: 60 !important;
         position: static !important;
         inset: auto !important;
         align-self: center;
@@ -1065,6 +1060,7 @@
         width: 44px !important;
         height: 44px !important;
         margin: 0 !important;
+        z-index: auto !important;
     }
 }
 
@@ -1093,7 +1089,6 @@
         max-width: 100% !important;
     }
 
-    #screen-game .puesto-container,
     #screen-game .main-view-area,
     #screen-game .center-console,
     #screen-game #inspection-tools-container {
@@ -1103,10 +1098,14 @@
         min-height: 0;
     }
 
-    /* The game shell has a fixed viewport height. Let its mobile gameplay column
-       grow naturally instead of shrinking siblings into one another. */
+    /* Let mobile gameplay grow naturally rather than shrinking panels into one another. */
     #screen-game .puesto-container {
         flex: 0 0 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
         overflow: visible !important;
     }
 
@@ -1195,7 +1194,10 @@
         font-size: 11px !important;
     }
 
-    #screen-game .puesto-container,
+    #screen-game .puesto-container {
+        gap: 4px !important;
+    }
+
     #screen-game .main-view-area {
         flex: 0 0 auto !important;
         height: auto !important;
