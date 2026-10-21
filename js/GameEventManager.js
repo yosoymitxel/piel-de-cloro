@@ -243,23 +243,25 @@ export class GameEventManager {
     }
 
     togglePinRoom(roomId) {
+        if (typeof roomId !== 'string' || !roomId.trim()) return false;
+        if (!Array.isArray(State.pinnedRooms)) State.pinnedRooms = [];
+
         const idx = State.pinnedRooms.indexOf(roomId);
         if (idx > -1) {
-            // Unpin
             State.pinnedRooms.splice(idx, 1);
             this.ui.showFeedback(`SALA DESANCLADA: ${roomId.toUpperCase()}`, "normal", 2000);
         } else {
-            // Pin
             if (State.pinnedRooms.length >= 5) {
                 this.ui.showFeedback("MÁXIMO 5 SALAS ANCLADAS", "red", 3000);
-                return;
+                return false;
             }
             State.pinnedRooms.push(roomId);
             this.ui.showFeedback(`SALA ANCLADA: ${roomId.toUpperCase()}`, "green", 2000);
         }
 
-        // Refresh UI
+        State.savePersistentData();
         this.ui.renderPinnedRooms(State);
+        return true;
     }
 
     navigateToRoomByKey(key) {
