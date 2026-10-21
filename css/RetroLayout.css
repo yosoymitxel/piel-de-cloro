@@ -2449,6 +2449,11 @@ body.is-full-ui .crt-monitor {
     }
 }
 
+/* Respect Tailwind's hidden state; the component's display:flex !important must not expose navigation on the title screen. */
+.horror-sidebar.hidden {
+    display: none !important;
+}
+
 /* Mobile layout: replace the fixed desktop sidebar with a touch-scrollable dock. */
 @media (max-width: 640px) {
     body {
