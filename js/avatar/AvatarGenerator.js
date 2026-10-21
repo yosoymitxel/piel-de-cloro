@@ -111,6 +111,14 @@ export function generateAvatarSvg(seed,options={}) {
     :options.facialHair==="stubble"
       ?rect(11,21,1,1,p.skinShadow)+rect(13,23,1,1,p.skinShadow)+rect(18,22,1,1,p.skinShadow)+rect(20,21,1,1,p.skinShadow)
       :options.facialHair==="mustache"?rect(12,20,3,1,p.hair)+rect(17,20,3,1,p.hair):"";
+  // Stable, cosmetic facial marks ensure that different default IDs do not
+  // collapse to the same SVG when several seeded options happen to coincide.
+  const identityDetail = [
+    rect(12,19,1,1,p.skinShadow),
+    rect(21,18,1,1,p.skinShadow)+rect(22,19,1,1,p.skinShadow),
+    poly("20,17 22,17 20,20 19,20",p.accent),
+    rect(20,11,1,2,p.skinShadow)+rect(21,10,1,1,p.skinLight)
+  ][hashSeed(seed)%4];
   const accessoryLayer=accessory==="glasses"
     ?rect(10,eyeY-1,6,4,"none",'stroke="#10161b" stroke-width="1"')+rect(17,eyeY-1,6,4,"none",'stroke="#10161b" stroke-width="1"')+rect(16,eyeY,1,1,"#10161b")
       +rect(11,eyeY,2,1,"#c7dedb") + rect(18,eyeY,2,1,"#c7dedb")
@@ -145,7 +153,7 @@ export function generateAvatarSvg(seed,options={}) {
     rect(12,10,2,2,p.skinLight),rect(19,10,2,2,p.skinLight),
     drawRects(hair.top,p.hair),hairHighlights,
     // Hair and clothing are built from discrete color planes, not texture noise.
-    brows,eyes,underEyes,nose,mouth,beard,
+    brows,eyes,underEyes,nose,mouth,identityDetail,beard,
     // Clothes collar, seams and restrained wear.
     poly("11,27 14,29 16,31 18,29 21,27 19,33 13,33",shirt.dark),
     rect(15,31,2,8,shirt.light),rect(10,34,1,4,shirt.dark),rect(22,34,1,4,shirt.light),
