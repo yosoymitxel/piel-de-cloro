@@ -247,6 +247,11 @@ test.describe('dedicated mobile presentation', () => {
     // Capture real gameplay at common phone widths, not just the landing screen.
     for (const width of MOBILE_WIDTHS) {
       await page.setViewportSize({ width, height: 844 });
+      await page.evaluate(() => {
+        const screen = document.querySelector('#screen-game');
+        if (screen) screen.scrollTop = 0;
+        window.scrollTo(0, 0);
+      });
       await page.waitForTimeout(150);
       const responsive = await page.evaluate(() => ({
         viewport: document.documentElement.clientWidth,
