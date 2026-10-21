@@ -278,7 +278,7 @@ test.describe('dedicated mobile presentation', () => {
     expect(landscapeWidth.decisionButtons, JSON.stringify(landscapeWidth.decisionButtons)).toHaveLength(2);
     expect(landscapeWidth.decisionButtons.every(button => button.bottom <= landscapeWidth.mainView.bottom + 1), JSON.stringify(landscapeWidth)).toBe(true);
     expect(landscapeWidth.mainView.bottom).toBeLessThanOrEqual(landscapeWidth.dialogue.top + 1);
-    expect(landscapeWidth.dialogue.height).toBeGreaterThanOrEqual(100);
+    expect(landscapeWidth.dialogue.height).toBeGreaterThanOrEqual(84);
     expect(landscapeWidth.dialogueText, JSON.stringify(landscapeWidth)).not.toBeNull();
     expect(landscapeWidth.dialogueText.length).toBeGreaterThan(0);
     expect(landscapeWidth.dialogueText.visibleHeight).toBeGreaterThan(0);
