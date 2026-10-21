@@ -27,6 +27,7 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
   await page.evaluate(() => {
     const audio = window.game.audio;
     audio.manifest = { e2e: {} };
+    audio.unlock = () => {};
     audio.preloadAll = async () => {};
     audio.playSFXByKey = () => {};
     audio.playAmbientByKey = () => {};
@@ -44,6 +45,7 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
 
   await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
   await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
+  await page.waitForTimeout(1500); // Let the initial typewriter line settle before capturing the screen.
 
   const gameplayShot = testInfo.outputPath('first-day-screen.png');
   await page.screenshot({ path: gameplayShot, fullPage: true });
