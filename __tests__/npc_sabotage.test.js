@@ -21,9 +21,6 @@ describe('NPC Sabotage & Sector Assignment', () => {
                         if (!State.assignments[s]) State.assignments[s] = { slots: 1, occupants: [] };
                         State.assignments[s].occupants.push(id);
                         
-                        // Update legacy structure (if needed by other parts of test)
-                        if (!State.sectorAssignments[s]) State.sectorAssignments[s] = [];
-                        State.sectorAssignments[s].push(id);
                         
                         n.assignedSector = s;
                     }
@@ -35,16 +32,16 @@ describe('NPC Sabotage & Sector Assignment', () => {
 
     test('Should assign NPC to a sector', () => {
         const npc = new NPC();
-        State.admittedNPCs.push(npc);
+        State.addAdmitted(npc);
         mechanics.assignNPCToSector(npc, 'generator');
         expect(npc.assignedSector).toBe('generator');
-        expect(State.sectorAssignments.generator).toContain(npc.id);
+        expect(State.assignments.generator.occupants).toContain(npc.id);
     });
 
     test('Should trigger sabotage event if infected NPC is assigned to a sector', () => {
         const infectedNpc = new NPC(1.0); // 100% infected
         infectedNpc.id = 'saboteur';
-        State.admittedNPCs.push(infectedNpc);
+        State.addAdmitted(infectedNpc);
         mechanics.assignNPCToSector(infectedNpc, 'security');
 
         // Make the security effect deterministic: sabotage can only unlock a secured, non-alarm item.
@@ -62,7 +59,7 @@ describe('NPC Sabotage & Sector Assignment', () => {
     test('Clean NPCs should not sabotage', () => {
         const cleanNpc = new NPC(0.0); // 100% healthy
         cleanNpc.id = 'clean';
-        State.admittedNPCs.push(cleanNpc);
+        State.addAdmitted(cleanNpc);
         mechanics.assignNPCToSector(cleanNpc, 'generator');
 
         const sabotageTriggered = mechanics.processSectorSabotages();
