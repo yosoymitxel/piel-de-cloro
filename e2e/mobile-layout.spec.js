@@ -270,7 +270,8 @@ test.describe('dedicated mobile presentation', () => {
     expect(landscapeWidth.avatar.bottom).toBeLessThanOrEqual(landscapeWidth.avatarFrame.bottom + 1);
     expect(landscapeWidth.decisionButtons, JSON.stringify(landscapeWidth.decisionButtons)).toHaveLength(2);
     expect(landscapeWidth.decisionGrid, JSON.stringify(landscapeWidth)).not.toBeNull();
-    expect(landscapeWidth.decisionGrid.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 2);
+    // The landscape screen has 4px gutters on both sides.
+    expect(landscapeWidth.decisionGrid.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 12);
     expect(landscapeWidth.decisionButtons.every(action => action.width >= landscapeWidth.viewport * 0.4 && action.height >= 44), JSON.stringify(landscapeWidth.decisionButtons)).toBe(true);
     expect(landscapeWidth.decisionButtons[0].left).toBeGreaterThanOrEqual(landscapeWidth.decisionGrid.left - 1);
     expect(landscapeWidth.decisionButtons[1].right).toBeLessThanOrEqual(landscapeWidth.decisionGrid.right + 1);
