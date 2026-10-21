@@ -9,6 +9,7 @@ export class GameMechanicsManager {
         this.audio = game.audio;
         this.nightResolutionHooks = [];
         this.nightTransitionInFlight = false;
+        this.startNextDayPromise = null;
         this.registerDefaultHooks();
     }
 
@@ -1091,7 +1092,26 @@ export class GameMechanicsManager {
         return summary;
     }
 
-    async startNextDay() {
+    startNextDay() {
+        // Night-lore callbacks can fire more than once (double tap, repeated
+        // event, or stale callback). Share one in-flight day transition so the
+        // cycle and departures are processed exactly once.
+        if (this.startNextDayPromise) return this.startNextDayPromise;
+
+        const transition = Promise.resolve().then(() => this._startNextDay());
+        this.startNextDayPromise = transition;
+        transition.then(
+            () => {
+                if (this.startNextDayPromise === transition) this.startNextDayPromise = null;
+            },
+            () => {
+                if (this.startNextDayPromise === transition) this.startNextDayPromise = null;
+            }
+        );
+        return transition;
+    }
+
+    async _startNextDay() {
         State.startNextDay();
         // Reset per-night guards for the new cycle; the next night must run once.
         State.lastNight.occurred = false;
