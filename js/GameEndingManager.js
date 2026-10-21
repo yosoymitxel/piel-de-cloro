@@ -9,6 +9,10 @@ export class GameEndingManager {
     }
 
     triggerEnding(endingId, loreName = null) {
+        // Los finales son terminales: impedir que dos sistemas en el mismo tick
+        // encolen protocolos y pantallas finales duplicadas.
+        if (State.endingTriggered) return false;
+
         // Bloquear cualquier otra acción
         this.game.isAnimating = true;
         State.endingTriggered = true;
@@ -111,6 +115,8 @@ export class GameEndingManager {
             };
             this.ui.triggerFullscreenProtocol(protocolOptions);
         }
+
+        return true;
     }
 
     endGame() {
