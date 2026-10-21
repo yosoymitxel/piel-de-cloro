@@ -505,7 +505,8 @@ export const State = {
         const alreadyAdmitted = this.admittedNPCs.some(candidate => candidate?.id === npc.id);
         const alreadyDeparted = this.departedNPCs.some(candidate => candidate?.id === npc.id);
         const alreadyPurged = this.purgedNPCs.some(candidate => candidate?.id === npc.id);
-        if (alreadyAdmitted || alreadyDeparted || alreadyPurged) return false;
+        const alreadyIgnored = this.ignoredNPCs.some(candidate => candidate?.id === npc.id);
+        if (alreadyAdmitted || alreadyDeparted || alreadyPurged || alreadyIgnored) return false;
 
         npc.enterCycle ??= this.cycle;
         this.admittedNPCs.push(npc);
@@ -543,7 +544,7 @@ export const State = {
     },
 
     recordDeath(npc, reason = 'desconocido', revealed = false) {
-        if (!npc?.id || this.purgedNPCs.some(candidate => candidate?.id === npc.id)) return false;
+        if (!npc?.id || npc.left || npc.escaped || this.departedNPCs.some(candidate => candidate?.id === npc.id) || this.purgedNPCs.some(candidate => candidate?.id === npc.id)) return false;
         const wasAdmitted = this.removeAdmitted(npc);
         if (!wasAdmitted) this._unassignFromAll(npc);
         this.departedNPCs = this.departedNPCs.filter(candidate => candidate?.id !== npc.id);
