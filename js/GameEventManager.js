@@ -61,18 +61,22 @@ export class GameEventManager {
                 await renderFn();
             }
 
-            await this.ui.showScreen(screenId);
+            const committed = await this.ui.showScreen(screenId);
+            if (committed === false) return false;
 
             if (lockNav !== null) {
                 this.ui.setNavLocked(lockNav);
             }
+            return true;
         };
 
+        let committed;
         if (this.ui && typeof this.ui.triggerTransitionEffect === 'function') {
-            await this.ui.triggerTransitionEffect(executeSwitch);
+            committed = await this.ui.triggerTransitionEffect(executeSwitch);
         } else {
-            await executeSwitch();
+            committed = await executeSwitch();
         }
+        if (committed === false) return false;
 
         // Apply visual and state changes
         this.ui.lastNav = screenId;
