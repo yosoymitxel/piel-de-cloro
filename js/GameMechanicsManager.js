@@ -1073,6 +1073,11 @@ export class GameMechanicsManager {
 
     startNextDay() {
         State.startNextDay();
+        // Reset per-night guards for the new cycle; the next night must run once.
+        State.lastNight.occurred = false;
+        State.lastNight.resolutionStarted = false;
+        State.lastNight.victims = 0;
+        State.lastNight.message = '';
 
         // Fase 1.2 Roadmap: Randomizar cantidad de sujetos diarios (3-6)
         State.config.dayLength = Math.floor(Math.random() * 4) + 3; // 3-6 sujetos
