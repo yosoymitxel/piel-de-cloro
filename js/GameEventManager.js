@@ -53,17 +53,16 @@ export class GameEventManager {
 
         // Apply visual transition (Phase 5.3)
         // Ahora pasamos la lógica de renderizado como callback para que ocurra durante el "blackout"
-        const executeSwitch = () => {
+        const executeSwitch = async () => {
             console.log(`[EVENT] Executing screen switch logic for: ${screenId}`);
-             // Execute specific screen rendering logic
+            // Render and commit the destination before the caller continues the
+            // day/night state machine. Rendering callbacks may be synchronous.
             if (renderFn && typeof renderFn === 'function') {
-                renderFn();
+                await renderFn();
             }
 
-            // Finalize screen transition
-            this.ui.showScreen(screenId);
+            await this.ui.showScreen(screenId);
 
-             // Update navigation lock state if requested
             if (lockNav !== null) {
                 this.ui.setNavLocked(lockNav);
             }
@@ -72,7 +71,7 @@ export class GameEventManager {
         if (this.ui && typeof this.ui.triggerTransitionEffect === 'function') {
             await this.ui.triggerTransitionEffect(executeSwitch);
         } else {
-            executeSwitch();
+            await executeSwitch();
         }
 
         // Apply visual and state changes
