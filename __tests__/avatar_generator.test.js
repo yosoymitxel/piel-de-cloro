@@ -18,11 +18,28 @@ describe("AvatarGenerator", () => {
     expect(svg).toContain("</svg>");
   });
 
-  test("la coleta es una silueta explícita que sobresale de la cabeza", () => {
+  test("la coleta es una silueta explícita que sobresale detrás de la cabeza", () => {
     const svg = generateAvatarSvg("same-npc", { hair: "ponytail", paletteIndex: 1 });
-    expect(svg).toContain('x="24" y="12" width="3" height="7"');
-    expect(svg).toContain('x="23" y="12" width="3" height="1"');
+    expect(svg).toContain('x="24" y="19" width="4" height="6"');
+    expect(svg).toContain('x="25" y="12" width="2" height="1"');
     expect(svg).not.toBe(generateAvatarSvg("same-npc", { hair: "short", paletteIndex: 1 }));
+  });
+
+  test("un NPC calvo no recibe una franja oscura de pelo por el contorno facial", () => {
+    const svg = generateAvatarSvg("bald-subject", {
+      paletteIndex: 0, hair: "bald", facialHair: "none", accessory: "none"
+    });
+    expect(svg).not.toContain('fill="#20242c"');
+    expect(svg).toContain('fill="#b78f78"');
+  });
+
+  test("las diez siluetas capilares generan diseños diferentes con la misma identidad", () => {
+    const styles = avatarGeneratorOptions.hairStyles;
+    const designs = styles.map(hair => generateAvatarSvg("same-subject", {
+      paletteIndex: 0, hair, facialHair: "none", accessory: "none", faceShape: "oval"
+    }));
+    expect(styles).toHaveLength(10);
+    expect(new Set(designs).size).toBe(10);
   });
 
   test("el pelo, ropa, accesorios, ojos y expresiones son variantes del generador, no fotos", () => {
