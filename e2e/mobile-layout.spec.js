@@ -97,17 +97,64 @@ test.describe('dedicated mobile presentation', () => {
         const r = el.getBoundingClientRect();
         return { tag: el.className, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
       });
+      const hudRoot = document.querySelector('#screen-game > header > div.flex.flex-wrap');
+      const visibleHud = [...(hudRoot?.children ?? [])].filter(el => {
+        const style = getComputedStyle(el);
+        return style.display !== 'none' && el.getClientRects().length > 0;
+      }).map(el => {
+        const r = el.getBoundingClientRect();
+        return { name: el.className, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
+      });
+      const batteryCard = document.querySelector('#screen-game .comp-gen-battery .hud-component');
+      const batteryFill = document.querySelector('#screen-game #comp-gen-bat-fill');
+      const rectJSON = el => {
+        if (!el || !el.getClientRects().length) return null;
+        const r = el.getBoundingClientRect();
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
+      };
       return {
-        viewportWidth, documentWidth, bounds, monitors,
+        viewportWidth, documentWidth, bounds, monitors, visibleHud,
+        batteryCard: rectJSON(batteryCard), batteryFill: rectJSON(batteryFill),
         mainView: rectOf('#screen-game .main-view-area'),
         dialogue: rectOf('#screen-game .dialogue-sidebar'),
         dock: rectOf('#sidebar-left'),
+        pause: rectOf('#screen-game #btn-pause'),
+        actionButtons: [...document.querySelectorAll('#game-actions-container > button')].filter(isVisible).map(rectJSON),
         generatorWarning: warningRect ? { height: warningRect.height, width: warningRect.width } : null
       };
     });
 
     expect(measurements.documentWidth, JSON.stringify(measurements)).toBeLessThanOrEqual(measurements.viewportWidth + 1);
     expect(measurements.bounds.length).toBeGreaterThan(0);
+
+    // Six visible status cards must form two complete three-column rows.
+    expect(measurements.visibleHud, JSON.stringify(measurements.visibleHud)).toHaveLength(6);
+    const hudRows = [...new Set(measurements.visibleHud.map(card => Math.round(card.top / 4)))];
+    expect(hudRows.length, JSON.stringify(measurements.visibleHud)).toBe(2);
+    expect(measurements.visibleHud.every(card => card.width >= 44 && card.left >= -1 && card.right <= measurements.viewportWidth + 1)).toBe(true);
+
+    // The battery fill must remain inside its card, including at 100%.
+    if (measurements.batteryCard && measurements.batteryFill) {
+      expect(measurements.batteryFill.left).toBeGreaterThanOrEqual(measurements.batteryCard.left - 1);
+      expect(measurements.batteryFill.right).toBeLessThanOrEqual(measurements.batteryCard.right + 1);
+    }
+
+    // Decision actions must finish before the dialogue panel starts; no visual overlap.
+    if (measurements.dialogue) {
+      for (const [index, button] of measurements.actionButtons.entries()) {
+        expect(button.bottom, `decision button ${index} overlaps dialogue panel: ${JSON.stringify({button, dialogue: measurements.dialogue})}`)
+          .toBeLessThanOrEqual(measurements.dialogue.top + 1);
+      }
+    }
+
+    // The pause control may be hidden by game state; when visible it must not cover the dock or actions.
+    const overlaps = (a, b) => Boolean(a && b && a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top);
+    if (measurements.pause && measurements.pause.width > 0) {
+      expect(overlaps(measurements.pause, measurements.dock), JSON.stringify(measurements)).toBe(false);
+      for (const button of measurements.actionButtons) {
+        expect(overlaps(measurements.pause, button), JSON.stringify(measurements)).toBe(false);
+      }
+    }
     if (measurements.mainView && measurements.dialogue) {
       expect(measurements.mainView.bottom, 'inspection area overlaps dialogue panel').toBeLessThanOrEqual(measurements.dialogue.top + 1);
     }
