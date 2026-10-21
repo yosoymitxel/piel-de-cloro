@@ -249,10 +249,10 @@ test.describe('dedicated mobile presentation', () => {
       tools: [...document.querySelectorAll('#screen-game #inspection-tools-container .horror-tool-btn')]
         .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
         .map(el => { const r = el.getBoundingClientRect(); return { width: r.width, height: r.height }; }),
-      actions: [...document.querySelectorAll('#screen-game #game-actions-container > button')]
+      decisionButtons: [...document.querySelectorAll('#screen-game #inspection-tools-container > .tool-wrapper.col-span-2 > button')]
         .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
-        .map(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width, height: r.height }; }),
-      actionsContainer: (() => { const el = document.querySelector('#screen-game #game-actions-container'); if (!el || !el.getClientRects().length) return null; const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width }; })(),
+        .map(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width, height: r.height, id: el.id }; }),
+      decisionGrid: (() => { const el = document.querySelector('#screen-game #inspection-tools-container'); if (!el || !el.getClientRects().length) return null; const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width }; })(),
       centerConsoleDisplay: getComputedStyle(document.querySelector('#screen-game .center-console')).display,
       dock: (() => { const el = document.querySelector('#sidebar-left'); const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width, display: getComputedStyle(el).display }; })()
     }));
@@ -262,16 +262,12 @@ test.describe('dedicated mobile presentation', () => {
     expect(landscapeWidth.tools.length, JSON.stringify(landscapeWidth)).toBeGreaterThan(0);
     expect(landscapeWidth.tools.every(tool => tool.width >= 44 && tool.height >= 44), JSON.stringify(landscapeWidth.tools)).toBe(true);
     expect(landscapeWidth.centerConsoleDisplay).toBe('none');
-    if (landscapeWidth.actions.length > 0) {
-      expect(landscapeWidth.actions.length, JSON.stringify(landscapeWidth.actions)).toBe(2);
-      expect(landscapeWidth.actionsContainer, JSON.stringify(landscapeWidth)).not.toBeNull();
-      expect(landscapeWidth.actionsContainer.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 2);
-      expect(landscapeWidth.actions.every(action => action.width >= landscapeWidth.viewport * 0.4 && action.height >= 44), JSON.stringify(landscapeWidth.actions)).toBe(true);
-      expect(landscapeWidth.actions[0].left).toBeGreaterThanOrEqual(landscapeWidth.actionsContainer.left - 1);
-      expect(landscapeWidth.actions[1].right).toBeLessThanOrEqual(landscapeWidth.actionsContainer.right + 1);
-    } else {
-      expect(landscapeWidth.actionsContainer).toBeNull();
-    }
+    expect(landscapeWidth.decisionButtons, JSON.stringify(landscapeWidth.decisionButtons)).toHaveLength(2);
+    expect(landscapeWidth.decisionGrid, JSON.stringify(landscapeWidth)).not.toBeNull();
+    expect(landscapeWidth.decisionGrid.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 2);
+    expect(landscapeWidth.decisionButtons.every(action => action.width >= landscapeWidth.viewport * 0.4 && action.height >= 44), JSON.stringify(landscapeWidth.decisionButtons)).toBe(true);
+    expect(landscapeWidth.decisionButtons[0].left).toBeGreaterThanOrEqual(landscapeWidth.decisionGrid.left - 1);
+    expect(landscapeWidth.decisionButtons[1].right).toBeLessThanOrEqual(landscapeWidth.decisionGrid.right + 1);
     expect(landscapeWidth.dock.display).not.toBe('none');
     expect(landscapeWidth.dock.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 2);
 
