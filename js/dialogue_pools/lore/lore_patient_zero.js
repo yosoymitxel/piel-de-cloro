@@ -11,7 +11,7 @@ export const lore_patient_zero = {
     nodes: {
         'lpz_n1': {
             id: 'lpz_n1',
-            text: "*Un hombre anciano con bata de laboratorio hecha jirones. Su piel es translúcida, dejando ver venas negras pulsantes que parecen mapas de un metro alienígena.* \"Ah... otro guardián de la puerta. ¿Sigues creyendo que la cerradura está en tu lado?\"",
+            text: "*El anciano mantiene las manos a la vista. Las venas negras se mueven bajo la piel, pero su voz es precisa y tranquila.* \"Antes de preguntarme si estoy infectado, dime qué significa esa palabra aquí. ¿Fiebre? ¿Contagio? ¿Algo que ya no puedes tratar como una persona?\"",
             audio: 'lore_interlude_seen',
             options: [
                 { id: 'lpz_o1', label: '¿Quién eres?', next: 'lpz_n2' },
@@ -20,7 +20,7 @@ export const lore_patient_zero = {
         },
         'lpz_n2': {
             id: 'lpz_n2',
-            text: "\"Me llaman Paciente Cero en los registros que quemasteis. Pero es un error de cálculo. Yo fui el Paciente Uno. El Cero... el Cero estaba esperando en el hielo antes de que tuviéramos nombre para el frío.\"",
+            text: "\"En los informes me llamaron Paciente Cero porque fui el primero que sobrevivió a la exposición. No fui el primero en encontrarlo. Esa distinción desapareció cuando quemaron los registros del equipo de perforación.\"",
             options: [
                 { id: 'lpz_o2a', label: '¿El hielo?', next: 'lpz_n4' },
                 { id: 'lpz_o2b', label: '¿Quién era el Cero?', next: 'lpz_n_zero_origin' }
@@ -28,7 +28,7 @@ export const lore_patient_zero = {
         },
         'lpz_n3': {
             id: 'lpz_n3',
-            text: "*Se ríe, y el sonido es como cristal rompiéndose bajo el agua.* \"No es una infección. Es una colonización. Y ya ha terminado. Solo estáis... negociando los términos de la rendición. Tu cuerpo ya conoce el nuevo idioma.\"",
+            text: "\"Puedes llamarlo infección si te ayuda a decidir qué hacer conmigo. Yo lo llamo colonización porque el organismo no se limita a destruir tejido: conserva patrones, recuerdos y respuestas. Eso no demuestra que siga siendo la persona original.\"",
             options: [
                 { id: 'lpz_o3a', label: 'Explícate', next: 'lpz_n4' },
                 { id: 'lpz_o3b', label: 'Mientes', next: 'lpz_n_deny' }
@@ -36,7 +36,7 @@ export const lore_patient_zero = {
         },
         'lpz_n4': {
             id: 'lpz_n4',
-            text: "\"Perforamos demasiado profundo. Proyecto 'Horizonte Profundo'. Buscábamos agua pura, encontramos... memoria líquida. El Pozo Profundo no es geológico. Es biológico. Tiene sed de forma.\"",
+            text: "\"El proyecto Horizonte Profundo buscaba agua potable. Encontramos una estructura viva bajo el acuífero y la perforamos. Después, varios trabajadores describieron recuerdos que no eran suyos. El informe final los clasificó como intoxicación. Yo firmé ese informe.\"",
             options: [
                 { id: 'lpz_o4a', label: '¿Hay cura?', next: 'lpz_n5' },
                 { id: 'lpz_o4b', label: '¿Qué es la memoria líquida?', next: 'lpz_n_liquid' },
@@ -76,7 +76,7 @@ export const lore_patient_zero = {
         },
         'lpz_n5': {
             id: 'lpz_n5',
-            text: "\"¿Cura para la evolución? No. Solo adaptación. O extinción. Tú eliges. Pero te diré un secreto: El fuego no lo mata. Solo lo hace... vapor. Y si te unes a la Colmena...\"",
+            text: "\"No conozco una cura. Conozco métodos que retrasan algunos síntomas y procedimientos que empeoran otros. El fuego no lo elimina: cambia lo que se dispersa por el aire. Eso lo medimos. Lo que no medimos fue quién respiró después.\"",
             options: [
                 { id: 'lpz_o5a', label: 'No te dejaré entrar.', next: null, resultText: "*Asiente lentamente.* \"Ya estoy dentro. En el aire que respiras.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                 { id: 'lpz_o5b', label: 'Te debo revisar primero.', next: null, resultText: "\"Sí, necesito que me revises.\"" },
