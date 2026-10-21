@@ -1199,10 +1199,10 @@ export class GameMechanicsManager {
 
         State.addLogEntry('system', `LABORATORIO: Iniciando cultivo biológico para ${npc.name}.`, { icon: 'fa-vial' });
 
-        return { 
-            success: true, 
+        return {
+            success: true,
             message: "CULTIVO INICIADO. RESULTADOS EN 24H.",
-            isInfected: false // No revelamos nada aún
+            isPending: true
         };
     }
 
