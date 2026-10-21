@@ -118,6 +118,11 @@ export class GameMechanicsManager {
     }
 
     async startNightPhase() {
+        // Screen transitions can be re-entered by duplicate clicks/callbacks.
+        // Claim the phase synchronously before the first await so only one call
+        // can process intrusions and schedule the night screen.
+        if (State.endingTriggered || State.lastNight.transitionStarted) return false;
+        State.lastNight.transitionStarted = true;
         State.isNight = true;
         State.dayClosed = true;
 
@@ -143,6 +148,7 @@ export class GameMechanicsManager {
                 this.ui.renderNightScreen(State);
             }
         });
+        return true;
     }
 
     gameOver(reason) {
