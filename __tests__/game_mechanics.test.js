@@ -131,6 +131,7 @@ describe('Game Mechanics Manager', () => {
 
             State.admittedNPCs = [human, infected];
 
+            State.isNight = true; // Sleep is a valid action only during the night phase.
             gmm.sleep();
 
             expect(State.admittedNPCs).not.toContain(human);
@@ -141,6 +142,7 @@ describe('Game Mechanics Manager', () => {
             const spy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
             State.admittedNPCs = [];
 
+            State.isNight = true; // Sleep is a valid action only during the night phase.
             gmm.sleep();
 
             expect(endingsMock.triggerEnding).toHaveBeenCalledWith('night_player_death');
@@ -161,6 +163,7 @@ describe('Game Mechanics Manager', () => {
             // Trigger the callback of showLore
             uiMock.showLore.mockImplementation((key, cb) => cb());
 
+            State.isNight = true; // Sleep is a valid action only during the night phase.
             gmm.sleep();
 
             // 50 - 15 (base -10, bonus -5). 
