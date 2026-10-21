@@ -1203,6 +1203,9 @@ export class GameMechanicsManager {
         if (!State.generator.isOn) {
             return { success: false, message: "ERROR: GENERADOR APAGADO" };
         }
+        if (!State.generator.systems?.shelterLab?.active) {
+            return { success: false, message: "ERROR: LABORATORIO APAGADO" };
+        }
 
         const npc = State.admittedNPCs.find(n => n.id === npcId);
         if (!npc) return { success: false, message: "ERROR: SUJETO NO ENCONTRADO" };
