@@ -1,5 +1,4 @@
 import { State } from './State.js';
-import { DialogueData } from './DialogueData.js';
 
 /**
  * Conversation engine
