@@ -993,6 +993,30 @@
         line-height: 1.25;
     }
 
+    /* Alerts are content, not decorative tickers: keep their full text readable on phones. */
+    #screen-game #tutorial-monitor-content,
+    #screen-game #tutorial-monitor-content .tutorial-msg,
+    #screen-game #tutorial-monitor-content .tutorial-msg span {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: auto !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere;
+        word-break: normal;
+        animation: none !important;
+        transform: none !important;
+    }
+
+    #screen-game #tutorial-monitor-content {
+        overflow: visible !important;
+    }
+
+    #screen-game #tutorial-monitor-content .tutorial-msg.scrolling {
+        position: static !important;
+        animation: none !important;
+        padding-inline: 0 !important;
+    }
+
     #screen-game .dialogue-sidebar {
         padding: 12px !important;
     }
