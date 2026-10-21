@@ -25,23 +25,17 @@ export class GameMechanicsManager {
             if (state.generator.power < 100) {
                 const fuelNeeded = 2;
                 if (state.fuel >= fuelNeeded) {
-                    state.fuel -= fuelNeeded;
-                    // state.generator.power = Math.min(100, state.generator.power + 25);
-                    if (State.updateGeneratorPower) State.updateGeneratorPower(25);
-                    else state.generator.power = Math.min(100, state.generator.power + 25);
+                    state.updateFuel(-fuelNeeded);
+                    state.updateGeneratorPower(25);
                     
                     summary += "Recarga nocturna completada (-2 combustible). ";
                 } else if (state.fuel > 0) {
-                    state.fuel = 0;
-                    // state.generator.power = Math.min(100, state.generator.power + 10);
-                    if (State.updateGeneratorPower) State.updateGeneratorPower(10);
-                    else state.generator.power = Math.min(100, state.generator.power + 10);
+                    state.updateFuel(-state.fuel);
+                    state.updateGeneratorPower(10);
                     
                     summary += "Recarga parcial por falta de combustible. ";
                 } else {
-                    // state.generator.power = Math.min(100, state.generator.power + 5);
-                    if (State.updateGeneratorPower) State.updateGeneratorPower(5);
-                    else state.generator.power = Math.min(100, state.generator.power + 5);
+                    state.updateGeneratorPower(5);
                     
                     summary += "Recarga mínima (sin combustible). ";
                 }
@@ -267,8 +261,8 @@ export class GameMechanicsManager {
     updateGenerator() {
         if (State.paused) return;
 
-        // Ensure strictly within bounds
-        State.generator.power = Math.min(100, Math.max(0, State.generator.power));
+        // Normalize through the state API so every mutation follows the same bounds.
+        State.setGeneratorPower(State.generator.power);
 
         if (!State.generator.isOn) {
             State.generator.load = 0;
@@ -288,9 +282,7 @@ export class GameMechanicsManager {
         const baseDrain = totalLoad / 20;
         const batteryDrain = baseDrain * bonuses.consumptionMap;
 
-        // State.generator.power = Math.max(0, State.generator.power - batteryDrain);
-        if (State.updateGeneratorPower) State.updateGeneratorPower(-batteryDrain);
-        else State.generator.power = Math.max(0, State.generator.power - batteryDrain);
+        State.updateGeneratorPower(-batteryDrain);
 
         if (State.generator.power <= 0) {
             // this.audio.playSFXByKey('generator_stop', { volume: 0.6 });
@@ -398,7 +390,7 @@ export class GameMechanicsManager {
         State.generator.isOn = false;
         State.generator.load = 0; // Force load to 0
         State.generator.mode = 'normal'; // Reset mode for next start
-        State.generator.power = Math.floor(State.generator.power * 0.4); // Keep 40%
+        State.setGeneratorPower(Math.floor(State.generator.power * 0.4)); // Keep 40%
         if (State.currentNPC) {
             State.currentNPC.scanCount = 99;
         }
@@ -485,7 +477,7 @@ export class GameMechanicsManager {
 
             // Si la batería estaba en 0, dar un poquito para arrancar
             if (State.generator.power <= 0) {
-                State.generator.power = 5;
+                State.setGeneratorPower(5);
             }
 
             State.generator.restartLock = true;
@@ -573,7 +565,7 @@ export class GameMechanicsManager {
             message = lies[Math.floor(Math.random() * lies.length)];
 
             if (!initial) {
-                State.generator.power = Math.max(0, State.generator.power - 2);
+                State.updateGeneratorPower(-2);
             }
         } else {
             message = `Estado nominal. Carga actual: ${Math.floor((State.generator.load / State.generator.capacity) * 100)}%. Batería: ${Math.floor(State.generator.power)}%`;
@@ -598,8 +590,7 @@ export class GameMechanicsManager {
 
         State.updateSupplies(-3);
         
-        if (State.updateGeneratorPower) State.updateGeneratorPower(15);
-        else State.generator.power = Math.min(100, State.generator.power + 15);
+        State.updateGeneratorPower(15);
         
         // this.audio.playSFXByKey('ui_button_click', { volume: 0.8 }); // Removed to rely on feedback sound
         this.ui.showFeedback("CARGA DE EMERGENCIA REALIZADA (+15%)", "green", 3000, { sound: 'refuel_glug', volume: 0.6 });
@@ -638,16 +629,12 @@ export class GameMechanicsManager {
         }
 
         // Consumir 1 bidón de fuel
-        State.fuel = Math.max(0, State.fuel - 1);
+        State.updateFuel(-1);
 
         // Añadir +25% de batería (Estándar Fase 1.1)
         const rechargeAmount = 25;
         
-        if (typeof State.updateGeneratorPower === 'function') {
-            State.updateGeneratorPower(rechargeAmount);
-        } else {
-            State.generator.power = Math.min(100, State.generator.power + rechargeAmount);
-        }
+        State.updateGeneratorPower(rechargeAmount);
 
         // Feedback visual y sonoro
         // if (this.audio) this.audio.playSFXByKey('refuel_glug', { volume: 0.8 }); // Handled by showFeedback
