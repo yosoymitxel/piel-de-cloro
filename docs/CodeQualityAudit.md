@@ -46,3 +46,10 @@ Se añadió `tools/validate-dialogue-data.mjs` y el comando `npm run validate:di
 El workflow de CI usa `npm ci` para respetar el lockfile, en lugar de resolver dependencias con `npm install` en cada ejecución.
 
 **Validación más reciente:** el workflow de tests terminó correctamente en el commit `b33adf259a0966ab9721ae6dcc740b71b5277a2d`. Esto confirma las pruebas automatizadas y el validador de datos, no una auditoría completa de jugabilidad ni de compatibilidad móvil.
+
+
+### 4. Métodos duplicados dentro de clases (corregido)
+Una revisión posterior encontró declaraciones duplicadas en `UIManager.js` (`updateTimeDisplay`, `resetUI`, `showSectorAssignmentModal`) y `AudioManager.js` (`stopLore`, `stopAllSFX`). En JavaScript, la última declaración reemplaza silenciosamente a la anterior; no se ejecutaban ambas versiones. Se consolidaron los métodos de UI, se corrigió la elegibilidad por ciclo de admisión, y `stopLore` ahora acepta tanto la API de opciones como duraciones numéricas heredadas. CI valida que esos dos archivos no vuelvan a declarar métodos duplicados.
+
+### 5. Reglas de dominio conectadas a comportamiento real
+El laboratorio ahora debe estar activo para iniciar un análisis. Los resultados positivos completados registran una muestra viable por sujeto, hasta cinco; una evacuación sin infectados puede activar `final_cure`. También se añadió una guarda para que dos sistemas no encolen secuencias de final duplicadas. Estas rutas tienen pruebas automatizadas; la experiencia completa todavía necesita una pasada manual de juego.
