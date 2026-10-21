@@ -138,17 +138,23 @@ export class GameMechanicsManager {
             State.lastNight.occurred = true;
         }
 
-        // Usar switchScreen para la transición a la pantalla nocturna
-        await this.game.events.switchScreen(CONSTANTS.SCREENS.NIGHT, {
-            force: true,
-            lockNav: true,
-            sound: 'night_transition',
-            renderFn: () => {
-                this.audio.playAmbientByKey('ambient_night_loop', { loop: true, volume: this.audio.levels.ambient, fadeIn: 800 });
-                this.ui.renderNightScreen(State);
-            }
-        });
-        return true;
+        // Usar switchScreen para la transición a la pantalla nocturna.
+        // If presentation fails, release the guard so the transition can be retried.
+        try {
+            await this.game.events.switchScreen(CONSTANTS.SCREENS.NIGHT, {
+                force: true,
+                lockNav: true,
+                sound: 'night_transition',
+                renderFn: () => {
+                    this.audio.playAmbientByKey('ambient_night_loop', { loop: true, volume: this.audio.levels.ambient, fadeIn: 800 });
+                    this.ui.renderNightScreen(State);
+                }
+            });
+            return true;
+        } catch (error) {
+            State.lastNight.transitionStarted = false;
+            throw error;
+        }
     }
 
     gameOver(reason) {
@@ -1080,6 +1086,7 @@ export class GameMechanicsManager {
         State.startNextDay();
         // Reset per-night guards for the new cycle; the next night must run once.
         State.lastNight.occurred = false;
+        State.lastNight.transitionStarted = false;
         State.lastNight.resolutionStarted = false;
         State.lastNight.victims = 0;
         State.lastNight.message = '';
