@@ -87,7 +87,7 @@ class Game {
     }
 
     pauseGame() {
-        if (!this.loopManager || State.paused || State.endingTriggered) return;
+        if (!this.loopManager || State.paused) return;
         if (!this.loopManager.isRunning) this.loopManager.start();
 
         State.paused = true;
