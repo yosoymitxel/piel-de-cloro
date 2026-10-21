@@ -115,8 +115,9 @@ function makeHairGallery() {
 function updateHairGallery() {
   const options = readOptions();
   const { seed, ...visualOptions } = options;
+  const resolved = resolveAvatarOptions(seed, visualOptions);
   [...byId("hair-gallery").querySelectorAll(".hair-card")].forEach(button => {
-    button.setAttribute("aria-pressed", String(button.dataset.hair === controls.hair.value));
+    button.setAttribute("aria-pressed", String(button.dataset.hair === resolved.hair));
     const image = button.querySelector("img");
     image.src = generateAvatarDataUri(seed, { ...visualOptions, accessory: "none", hair: button.dataset.hair });
   });
@@ -154,8 +155,9 @@ function makeFaceGallery() {
 function updateFaceGallery() {
   const options = readOptions();
   const { seed, ...visualOptions } = options;
+  const resolved = resolveAvatarOptions(seed, visualOptions);
   [...byId("face-gallery").querySelectorAll(".hair-card")].forEach(button => {
-    button.setAttribute("aria-pressed", String(button.dataset.faceShape === controls.faceShape.value));
+    button.setAttribute("aria-pressed", String(button.dataset.faceShape === resolved.faceShape));
     const image = button.querySelector("img");
     image.src = generateAvatarDataUri(seed, { ...visualOptions, accessory: "none", faceShape: button.dataset.faceShape });
   });
