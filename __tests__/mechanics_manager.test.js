@@ -196,9 +196,15 @@ describe('GameMechanicsManager', () => {
 
             const result = gmm.performLabAnalysis(npc.id);
 
-            expect(result.success).toBe(true);
+            expect(result).toEqual({
+                success: true,
+                message: "CULTIVO INICIADO. RESULTADOS EN 24H.",
+                isPending: true
+            });
+            expect(result).not.toHaveProperty('isInfected');
             expect(State.generator.power).toBe(60);
             expect(npc.labAnalysisPending).toBe(true);
+            expect(npc.labAnalysisComplete).not.toBe(true);
         });
     });
 
