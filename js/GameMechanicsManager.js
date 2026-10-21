@@ -8,6 +8,7 @@ export class GameMechanicsManager {
         this.ui = game.ui;
         this.audio = game.audio;
         this.nightResolutionHooks = [];
+        this.nightTransitionInFlight = false;
         this.registerDefaultHooks();
     }
 
@@ -118,29 +119,33 @@ export class GameMechanicsManager {
     }
 
     async startNightPhase() {
-        // Screen transitions can be re-entered by duplicate clicks/callbacks.
-        // Claim the phase synchronously before the first await so only one call
-        // can process intrusions and schedule the night screen.
-        if (State.endingTriggered || State.lastNight.transitionStarted) return false;
-        State.lastNight.transitionStarted = true;
-        State.isNight = true;
-        State.dayClosed = true;
+        // Dedupe concurrent calls, but do not confuse an already-entered night
+        // with an in-flight transition: returning from the purge screen must
+        // be allowed to render the night screen again.
+        if (State.endingTriggered || this.nightTransitionInFlight) return false;
 
-        // Limpiar indicadores y bloquear navegación durante la fase nocturna
-        this.ui.clearAllNavStatuses();
-
-        // Reset visual phase filters (remove warm/blue tints) for Night Screen
-        $('body').removeClass('phase-dawn phase-day phase-dusk phase-night');
-
-        // Solo procesar intrusiones si es el inicio de la fase nocturna (no tras volver de purga)
-        if (!State.lastNight.occurred) {
-            this.processIntrusions();
-            State.lastNight.occurred = true;
+        const isReentry = State.lastNight.transitionStarted;
+        if (isReentry && (!State.isNight || this.ui.lastNav === CONSTANTS.SCREENS.NIGHT)) {
+            return false;
         }
 
-        // Usar switchScreen para la transición a la pantalla nocturna.
-        // If presentation fails, release the guard so the transition can be retried.
+        this.nightTransitionInFlight = true;
+        if (!isReentry) {
+            State.lastNight.transitionStarted = true;
+            State.isNight = true;
+            State.dayClosed = true;
+        }
+
         try {
+            this.ui.clearAllNavStatuses();
+            $('body').removeClass('phase-dawn phase-day phase-dusk phase-night');
+
+            // Intrusions are resolved once per night, never on a return from purge.
+            if (!State.lastNight.occurred) {
+                this.processIntrusions();
+                State.lastNight.occurred = true;
+            }
+
             await this.game.events.switchScreen(CONSTANTS.SCREENS.NIGHT, {
                 force: true,
                 lockNav: true,
@@ -152,8 +157,12 @@ export class GameMechanicsManager {
             });
             return true;
         } catch (error) {
-            State.lastNight.transitionStarted = false;
+            // A failed first transition may be retried; a failed re-entry keeps
+            // the night state and can be retried from the shelter again.
+            if (!isReentry) State.lastNight.transitionStarted = false;
             throw error;
+        } finally {
+            this.nightTransitionInFlight = false;
         }
     }
 
