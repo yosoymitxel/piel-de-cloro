@@ -58,9 +58,7 @@ export class GameMechanicsManager {
                     const deathProbability = 0.5 * deathReduction;
 
                     if (npc.trait && npc.trait.id === 'sickly' && Math.random() < deathProbability) {
-                        admitted.splice(i, 1);
-                        npc.death = { reason: 'fallo_soporte_vital', cycle: state.cycle, revealed: false };
-                        state.purgedNPCs.push(npc);
+                        state.recordDeath(npc, 'fallo_soporte_vital');
                         summary += `${npc.name} ha muerto debido a la falta de soporte vital. `;
                         state.addLogEntry('danger', `CRÍTICO: ${npc.name} falleció por fallo en soporte vital.`, { icon: 'fa-lungs-virus' });
                     }
@@ -802,9 +800,7 @@ export class GameMechanicsManager {
 
             if (finalVictimIndex > -1) {
                 const victim = admitted[finalVictimIndex];
-                admitted.splice(finalVictimIndex, 1);
-                victim.death = { reason: 'asesinado', cycle: State.cycle, revealed: false };
-                State.purgedNPCs.push(victim);
+                State.recordDeath(victim, 'asesinado');
                 State.lastNight.message = `${resourceSummary}Durante la noche, ${victim.name} fue asesinado. Se sospecha presencia de cloro.`;
                 State.lastNight.victims = 1;
                 this.audio.playSFXByKey('lore_night_civil_death', { volume: 0.5 });
@@ -1020,11 +1016,7 @@ export class GameMechanicsManager {
 
         // Resolver deserciones
         departed.forEach(npc => {
-            const idx = admitted.indexOf(npc);
-            if (idx > -1) {
-                admitted.splice(idx, 1);
-                npc.exitDate = State.cycle;
-                State.departedNPCs.push(npc);
+            if (State.markDeparted(npc)) {
                 summary += `${npc.name} ha abandonado el refugio por miedo. `;
                 State.addLogEntry('warning', `DESERCIÓN: ${npc.name} ha huido de la instalación.`, { icon: 'fa-person-running' });
             }
@@ -1055,10 +1047,7 @@ export class GameMechanicsManager {
             if (admitted.length > 0) {
                 const victimIndex = Math.floor(Math.random() * admitted.length);
                 const victim = admitted[victimIndex];
-                admitted.splice(victimIndex, 1);
-
-                victim.death = { reason: 'canibalismo', cycle: State.cycle, revealed: true };
-                State.purgedNPCs.push(victim);
+                State.recordDeath(victim, 'canibalismo', true);
                 State.updateSupplies(5);
                 State.updateSanity(-25);
                 summary += `INCIDENTE CRÍTICO: La desesperación absoluta ha resultado en canibalismo. ${victim.name} ha sido sacrificado. `;
@@ -1070,9 +1059,7 @@ export class GameMechanicsManager {
             if (admitted.length > 0) {
                 const index = Math.floor(Math.random() * admitted.length);
                 const leaver = admitted[index];
-                admitted.splice(index, 1);
-                leaver.exitDate = State.cycle;
-                State.departedNPCs.push(leaver);
+                State.markDeparted(leaver);
                 summary += `${leaver.name} ha huido del refugio por falta de comida. `;
                 State.addLogEntry('warning', `DESERCIÓN: ${leaver.name} ha huido por inanición.`, { icon: 'fa-person-running' });
             }
@@ -1463,12 +1450,7 @@ export class GameMechanicsManager {
             const fatal = Math.random() < 0.4;
             if (fatal) {
                 // MUERTE
-                const idx = State.admittedNPCs.indexOf(guard);
-                if (idx > -1) {
-                    State.admittedNPCs.splice(idx, 1);
-                    State._unassignFromAll(guard); // This updates State assignments
-                    guard.death = { reason: `combate contra intruso (${via.type})`, cycle: State.cycle, revealed: true };
-                    State.purgedNPCs.push(guard);
+                if (State.recordDeath(guard, `combate contra intruso (${via.type})`, true)) {
 
                     State.addLogEntry('system', `CRÍTICO: ${guard.name} murió defendiendo el refugio contra una intrusión vía ${via.type}.`, { icon: 'fa-skull' });
                     this.ui.showFeedback(`${guard.name} HA CAÍDO EN COMBATE`, "red", 7000);
@@ -1677,12 +1659,7 @@ export class GameMechanicsManager {
             }, 1500);
         } else {
             // MUERTE
-            const idx = State.admittedNPCs.indexOf(npc);
-            if (idx > -1) {
-                State.admittedNPCs.splice(idx, 1);
-                State._unassignFromAll(npc); // Ensure clean removal from posts
-                npc.death = { reason: 'muerto en expedición externa (suministros)', cycle: State.cycle, revealed: true };
-                State.purgedNPCs.push(npc);
+            if (State.recordDeath(npc, 'muerto en expedición externa (suministros)', true)) {
 
                 State.addLogEntry('system', `PÉRDIDA: La señal de ${npc.name} se perdió permanentemente durante la búsqueda de suministros.`, { icon: 'fa-skull' });
                 this.ui.showFeedback(`${npc.name} NO REGRESÓ DE LA EXPEDICIÓN`, "red", 7000);
@@ -1774,12 +1751,7 @@ export class GameMechanicsManager {
                 this.game.events.switchScreen('map', { force: true, lockNav: false });
             }, 1500);
         } else {
-            const idx = State.admittedNPCs.indexOf(npc);
-            if (idx > -1) {
-                State.admittedNPCs.splice(idx, 1);
-                State._unassignFromAll(npc); // Ensure clean removal from posts
-                npc.death = { reason: 'muerto extrayendo combustible (letalidad alta)', cycle: State.cycle, revealed: true };
-                State.purgedNPCs.push(npc);
+            if (State.recordDeath(npc, 'muerto extrayendo combustible (letalidad alta)', true)) {
 
                 State.addLogEntry('system', `BAJA CRÍTICA: La señal de ${npc.name} desapareció en el depósito de combustible.`, { icon: 'fa-radiation' });
                 this.ui.showFeedback(`${npc.name} PERECIÓ EN EL DEPÓSITO`, "red", 7000);
