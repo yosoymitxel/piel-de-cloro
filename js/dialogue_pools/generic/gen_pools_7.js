@@ -9,7 +9,7 @@ export const gen_pools_7 = {
         nodes: {
             'gth_n1': {
                 id: 'gth_n1',
-                text: "*Tiene la voz rasposa y los labios agrietados.* \"Agua... por favor. Llevo días sin beber nada seguro.\"",
+                text: "*Tiene los labios partidos y habla con dificultad. «Necesito agua que no venga de una tubería rota. Hace dos días que no encuentro una fuente segura».*",
                 options: [
                     { id: 'gth_o1', label: 'Dar agua', next: 'gth_n2a' },
                     { id: 'gth_o2', label: '¿Por qué no bebiste?', next: 'gth_n2b' }
@@ -17,7 +17,7 @@ export const gen_pools_7 = {
             },
             'gth_n2a': {
                 id: 'gth_n2a',
-                text: "*Bebe desesperadamente, derramando agua.* \"Más... necesito más. Siento que me seco por dentro.\"",
+                text: "*Bebe demasiado rápido y se obliga a detenerse. «Perdón. No sé cuándo voy a poder beber otra vez».*",
                 options: [
                     { id: 'gth_o2a', label: 'Es suficiente', next: 'gth_n3a' },
                     { id: 'gth_o2r', label: '¿Has oído algo sobre el agua?', next: null, resultText: "*Tiembla.* \"Dicen que los filtros del Sector 4 están llenos de... cosas gelatinosas. Bloquean el paso.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Obstrucción biológica en filtros del Sector 4.') }
@@ -25,7 +25,7 @@ export const gen_pools_7 = {
             },
             'gth_n2b': {
                 id: 'gth_n2b',
-                text: "\"Todo sabe a metal. O a cloro. No me atreví. Pero ya no aguanto más.\"",
+                text: "*Se toca la garganta al tragar. «El agua de los túneles sabía a metal. Preferí pasar sed. Fue una mala decisión».*",
                 options: [
                     { id: 'gth_o2b', label: 'Entiendo', next: 'gth_n3b' },
                     { id: 'gth_o2l', label: 'Toma esta cantimplora vacía', next: null, resultText: "*La mira con recelo.* \"Tiene marcas... de dientes. De alguien que no era humano.\"", onclick: (g) => act.giveLoreItem(g, 'item_gnawed_canteen', 'Cantimplora Roída') }
