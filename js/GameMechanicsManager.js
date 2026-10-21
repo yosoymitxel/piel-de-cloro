@@ -406,51 +406,46 @@ export class GameMechanicsManager {
     }
 
     setGeneratorProtocol(newMode) {
-        if (!State.generator.isOn) return false;
+        const generator = State.generator;
+        if (State.paused || !generator?.isOn) return false;
 
         const capMap = { save: 1, normal: 2, overload: 3 };
         if (!Object.prototype.hasOwnProperty.call(capMap, newMode)) {
             this.ui.showFeedback("PROTOCOLO INVÁLIDO", "red", 3000);
             return false;
         }
-        const newCap = capMap[newMode];
+        if (newMode === generator.mode) return true;
 
-        const npc = State.currentNPC;
-        const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || State.generator.restartLock;
-        const currentMax = State.generator.maxModeCapacityReached || 2;
-
-        // Validación de Protocolo (No se puede aumentar carga si ya se empezó a actuar)
-        if (actionTaken && newCap > currentMax) {
-            this.ui.showFeedback("PROTOCOLO BLOQUEADO: ACCIÓN EN CURSO", "red", 3000);
+        if (generator.modeChangedThisTurn) {
+            this.ui.showFeedback("PROTOCOLO BLOQUEADO: YA CAMBIÓ ESTE TURNO", "red", 3000);
+            this.audio.playSFXByKey('ui_error', { volume: 0.5 });
             return false;
         }
 
-        // Fase 1.1 Roadmap: Bloquear Overload si batería < 15%
-        if (newMode === 'overload' && State.generator.power < 15) {
+        const newCap = capMap[newMode];
+        const currentCap = capMap[generator.mode] ?? 2;
+        const npc = State.currentNPC;
+        const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || generator.restartLock;
+
+        if (actionTaken && newCap > currentCap) {
+            this.ui.showFeedback("PROTOCOLO BLOQUEADO: SOLO PUEDE DISMINUIR", "red", 3000);
+            return false;
+        }
+
+        if (newMode === 'overload' && generator.power < 15) {
             this.ui.showFeedback("BATERÍA INSUFICIENTE PARA SOBRECARGA (< 15%)", "red", 4000);
             this.audio.playSFXByKey('ui_error', { volume: 0.5 });
-            // Forzar cambio a modo save si estaba intentando overload
-            if (State.generator.mode !== 'save') {
-                State.generator.mode = 'save';
-                State.addLogEntry('system', 'Protocolo forzado a AHORRO por batería crítica.');
-                this.ui.showFeedback("MODO AHORRO ACTIVADO AUTOMÁTICAMENTE", "yellow", 3000);
-            }
             return false;
         }
 
-        State.generator.mode = newMode;
-        // REMOVED: State.generator.power = powerMap[newMode]; // Battery level should not jump visually
-        State.generator.maxModeCapacityReached = Math.max(currentMax, newCap);
+        generator.mode = newMode;
+        generator.modeChangedThisTurn = true;
+        generator.maxModeCapacityReached = actionTaken ? newCap : 3;
 
         this.ui.showFeedback(`PROTOCOLO ${newMode.toUpperCase()} CARGADO`, "green", 3000);
-        // Audio click removed to avoid interference with showFeedback (which plays ui_confirm)
-
-        // Sincronizar UI centralmente
         this.ui.updateGeneratorNavStatus();
         this.ui.updateEnergyHUD();
-        if (State.currentScreen === 'generator') {
-            this.ui.renderGeneratorRoom();
-        }
+        if (State.currentScreen === 'generator') this.ui.renderGeneratorRoom();
 
         return true;
     }
