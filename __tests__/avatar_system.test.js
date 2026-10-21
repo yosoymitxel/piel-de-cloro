@@ -76,7 +76,7 @@ describe('AvatarRenderer', () => {
             const npc = new NPC(1);
             AvatarRenderer.render(npc);
             expect(global.$).toHaveBeenCalledWith(expect.stringContaining('npc-pixel-portrait'));
-            expect(global.$).toHaveBeenCalledWith(expect.stringContaining('npc_human.png'));
+            expect(global.$).toHaveBeenCalledWith(expect.stringContaining('data:image/svg+xml;base64,'));
             expect(global.$).toHaveBeenCalledWith(expect.stringContaining('has-pixel-portrait'));
         } finally {
             if (previousDocument === undefined) delete global.document;
