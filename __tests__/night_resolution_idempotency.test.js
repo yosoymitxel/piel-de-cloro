@@ -82,4 +82,30 @@ describe('Night resolution idempotency', () => {
         expect(State.lastNight.transitionStarted).toBe(false);
     });
 
+
+    test('a failed screen transition releases the guard for a retry', async () => {
+        const switchScreen = jest.fn()
+            .mockRejectedValueOnce(new Error('render failed'))
+            .mockResolvedValueOnce(undefined);
+        const game = {
+            audio: {
+                levels: { ambient: 0.3 },
+                playAmbientByKey: jest.fn()
+            },
+            ui: {
+                clearAllNavStatuses: jest.fn(),
+                renderNightScreen: jest.fn()
+            },
+            events: { switchScreen }
+        };
+        const mechanics = new GameMechanicsManager(game);
+        mechanics.processIntrusions = jest.fn();
+
+        await expect(mechanics.startNightPhase()).rejects.toThrow('render failed');
+        expect(State.lastNight.transitionStarted).toBe(false);
+        await expect(mechanics.startNightPhase()).resolves.toBe(true);
+        expect(switchScreen).toHaveBeenCalledTimes(2);
+        expect(mechanics.processIntrusions).toHaveBeenCalledTimes(1);
+    });
+
 });
