@@ -9,6 +9,7 @@ test.describe('dedicated mobile presentation', () => {
       await page.goto('/', { waitUntil: 'domcontentloaded' });
       await expect(page.locator('.terminal-chasis')).toBeVisible();
       await expect(page.getByRole('button', { name: /INICIAR PARTIDA/i })).toBeVisible();
+      if (width === 390) await page.screenshot({ path: 'test-results/mobile-start-390.png', fullPage: false });
 
       const metrics = await page.evaluate(() => ({
         viewport: document.documentElement.clientWidth,
@@ -44,6 +45,7 @@ test.describe('dedicated mobile presentation', () => {
     await expect(page.locator('#modal-tutorial')).toBeVisible({ timeout: 45000 });
     await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
     await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
+    await page.screenshot({ path: 'test-results/mobile-inspection-390.png', fullPage: false });
 
     // The CRT power-on animation scales the entire monitor from a scan line.
     // Wait for actual visible controls to reach their final touch-target size
@@ -79,13 +81,42 @@ test.describe('dedicated mobile presentation', () => {
       const actionButtons = [...document.querySelectorAll('#game-actions-container > button')].filter(isVisible);
       const bounds = [...toolButtons, ...actionButtons].map(el => {
         const rect = el.getBoundingClientRect();
-        return { width: rect.width, height: rect.height, right: rect.right };
+        return { width: rect.width, height: rect.height, right: rect.right, label: (el.innerText || el.getAttribute('aria-label') || '').trim().slice(0, 50) };
       });
-      return { viewportWidth, documentWidth, bounds };
+      const rectOf = selector => {
+        const el = document.querySelector(selector);
+        if (!el || el.getClientRects().length === 0) return null;
+        const r = el.getBoundingClientRect();
+        return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, width: r.width, height: r.height };
+      };
+      const generatorWarning = document.querySelector('#inspection-tools-container > #btn-goto-generator');
+      const warningRect = generatorWarning?.getClientRects().length ? generatorWarning.getBoundingClientRect() : null;
+      const monitors = [...document.querySelectorAll('#screen-game .center-console > .mini-monitor, #screen-game .center-console > .analog-controls')].map(el => {
+        const r = el.getBoundingClientRect();
+        return { tag: el.className, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
+      });
+      return {
+        viewportWidth, documentWidth, bounds, monitors,
+        mainView: rectOf('#screen-game .main-view-area'),
+        dialogue: rectOf('#screen-game .dialogue-sidebar'),
+        dock: rectOf('#sidebar-left'),
+        generatorWarning: warningRect ? { height: warningRect.height, width: warningRect.width } : null
+      };
     });
 
     expect(measurements.documentWidth, JSON.stringify(measurements)).toBeLessThanOrEqual(measurements.viewportWidth + 1);
     expect(measurements.bounds.length).toBeGreaterThan(0);
+    if (measurements.mainView && measurements.dialogue) {
+      expect(measurements.mainView.bottom, 'inspection area overlaps dialogue panel').toBeLessThanOrEqual(measurements.dialogue.top + 1);
+    }
+    if (measurements.generatorWarning) {
+      expect(measurements.generatorWarning.height, 'generator warning overwhelms the mobile inspection view').toBeLessThanOrEqual(76);
+    }
+    for (const [index, monitor] of measurements.monitors.entries()) {
+      expect(monitor.width, `telemetry element ${index} has no usable width: ${JSON.stringify(monitor)}`).toBeGreaterThanOrEqual(44);
+      expect(monitor.left, `telemetry element ${index} starts outside viewport: ${JSON.stringify(monitor)}`).toBeGreaterThanOrEqual(-1);
+      expect(monitor.right, `telemetry element ${index} exceeds viewport: ${JSON.stringify(monitor)}`).toBeLessThanOrEqual(measurements.viewportWidth + 1);
+    }
     for (const [index, bounds] of measurements.bounds.entries()) {
       expect(bounds.width, `control ${index} is too narrow: ${JSON.stringify(bounds)}`).toBeGreaterThanOrEqual(44);
       expect(bounds.height, `control ${index} is too short: ${JSON.stringify(bounds)}`).toBeGreaterThanOrEqual(44);
