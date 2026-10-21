@@ -68,6 +68,43 @@ describe('Night resolution idempotency', () => {
         expect(State.lastNight.transitionStarted).toBe(true);
     });
 
+    test('returning from the shelter after purging reopens the night screen without replaying intrusions', async () => {
+        const game = {
+            audio: {
+                levels: { ambient: 0.3 },
+                playAmbientByKey: jest.fn()
+            },
+            ui: {
+                lastNav: null,
+                clearAllNavStatuses: jest.fn(),
+                renderNightScreen: jest.fn()
+            },
+            events: {
+                switchScreen: jest.fn(async (screen, options) => {
+                    options.renderFn();
+                    game.ui.lastNav = screen;
+                    return true;
+                })
+            }
+        };
+        const mechanics = new GameMechanicsManager(game);
+        mechanics.processIntrusions = jest.fn();
+
+        await expect(mechanics.startNightPhase()).resolves.toBe(true);
+        expect(game.ui.lastNav).toBe('night');
+        expect(mechanics.processIntrusions).toHaveBeenCalledTimes(1);
+
+        // Purging navigates away, but the night phase remains active.
+        game.ui.lastNav = 'shelter';
+        await expect(mechanics.startNightPhase()).resolves.toBe(true);
+
+        expect(game.events.switchScreen).toHaveBeenCalledTimes(2);
+        expect(game.ui.renderNightScreen).toHaveBeenCalledTimes(2);
+        expect(mechanics.processIntrusions).toHaveBeenCalledTimes(1);
+        expect(State.lastNight.transitionStarted).toBe(true);
+        expect(State.isNight).toBe(true);
+    });
+
     test('a terminal ending prevents the night transition from starting', async () => {
         State.endingTriggered = true;
         const game = {
