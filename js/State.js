@@ -364,6 +364,7 @@ export const State = {
     navLocked: true,
     lastNight: {
         occurred: false,
+        transitionStarted: false,
         victims: 0,
         message: ''
     },
@@ -419,7 +420,7 @@ export const State = {
         this.generator = createGeneratorState();
         this.playerInfected = Math.random() < this.config.playerInfectedProbability;
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
-        this.lastNight = { occurred: false, victims: 0, message: '' };
+        this.lastNight = { occurred: false, transitionStarted: false, victims: 0, message: '' };
 
         // Reset dialogue trackers and flags
         this.dialoguePoolsUsed = [];
