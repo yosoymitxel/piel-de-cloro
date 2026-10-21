@@ -50,9 +50,56 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
   await testInfo.attach('tutorial-screen-viewport', { path: tutorialViewport, contentType: 'image/png' });
 
   await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
+  const interludeContinue = page.locator('#btn-lore-continue-screen');
+  await expect(interludeContinue).toBeVisible({ timeout: 6000 }).catch(() => {});
+  if (await interludeContinue.isVisible()) await interludeContinue.click();
   await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
+
   const skipDialogue = page.getByRole('button', { name: /OMITIR POR DIÁLOGO/i });
   await expect(skipDialogue).toBeVisible();
+
+  // The CRT power-on animation temporarily scales controls below their final
+  // hit area. Measure only after that transition has settled on mobile.
+  if (await page.evaluate(() => window.innerWidth <= 640)) {
+    await page.waitForFunction(() => {
+      const button = [...document.querySelectorAll('#screen-game .option-omit')]
+        .find(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0);
+      return Boolean(button && button.getBoundingClientRect().height >= 44);
+    }, null, { timeout: 12000 });
+  }
+
+  // Check pause only after the CRT entrance animation has reached final geometry.
+  if (await page.evaluate(() => window.innerWidth > 640)) {
+    const desktopPause = page.locator('#btn-pause');
+    await expect(desktopPause).toBeVisible();
+    const pauseStyle = await desktopPause.evaluate(el => {
+      const style = getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+      const area = document.querySelector('#main-area').getBoundingClientRect();
+      return { position: style.position, bottom: parseFloat(style.bottom), right: parseFloat(style.right),
+        rectInsideArea: rect.right <= area.right + 1 && rect.bottom <= area.bottom + 1 };
+    });
+    // Preserve the exact desktop CSS geometry from the pre-layout baseline.
+    expect(pauseStyle.position).toBe('fixed');
+    expect(pauseStyle.bottom).toBe(32);
+    expect(pauseStyle.right).toBe(24);
+    expect(pauseStyle.rectInsideArea).toBe(true);
+  } else {
+    await expect(page.locator('#btn-pause-mobile')).toBeVisible();
+    await expect(page.locator('#btn-pause')).toBeHidden();
+  }
+
+  const pauseButton = page.locator(await page.evaluate(() => window.innerWidth <= 640 ? '#btn-pause-mobile' : '#btn-pause'));
+  await page.waitForFunction(() => Boolean(window.game?.loopManager?.isRunning) && !window.game.loopManager.isPaused, null, { timeout: 12000 });
+  await pauseButton.click();
+  await expect(page.locator('#modal-pause')).toBeVisible();
+  await expect(page.locator('body')).toHaveClass(/paused/);
+  expect(await page.evaluate(() => window.game.loopManager.isPaused)).toBe(true);
+  await page.locator('#btn-pause-close').click();
+  await expect(page.locator('#modal-pause')).toBeHidden();
+  await expect(page.locator('body')).not.toHaveClass(/paused/);
+  expect(await page.evaluate(() => window.game.loopManager.isPaused)).toBe(false);
+
   const touchTarget = await skipDialogue.boundingBox();
   expect(touchTarget, 'dialogue skip action must remain visible').not.toBeNull();
   // Preserve the existing desktop design; enforce touch sizing on the dedicated mobile layout.

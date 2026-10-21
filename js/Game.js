@@ -41,10 +41,93 @@ class Game {
         this.assignments = new AssignmentManager(this);
 
         this.events.bindAll();
+        this.bindPauseControls();
         // this.audio.loadManifest('assets/audio/audio_manifest.json'); // Moved to start button click for strict timing
 
         // Bloquear navegación al inicio
         this.ui.setNavLocked(true);
+    }
+
+    bindPauseControls() {
+        if (typeof document === 'undefined') return;
+
+        const bind = (id, handler) => {
+            const element = document.getElementById(id);
+            if (typeof element?.addEventListener === 'function') {
+                element.addEventListener('click', handler);
+            }
+        };
+
+        bind('btn-pause', () => this.togglePause());
+        bind('btn-pause-mobile', () => this.togglePause());
+        bind('btn-pause-close', () => this.resumeGame());
+        bind('btn-pause-fullscreen', () => this.toggleFullscreen());
+        bind('btn-pause-restart-day', () => this.restartDay());
+        bind('btn-pause-restart-game', () => this.restartGame());
+        bind('btn-pause-to-start', () => this.goToStart());
+        this.setPauseControlsVisible(false);
+    }
+
+    setPauseControlsVisible(visible) {
+        if (typeof document === 'undefined') return;
+        for (const id of ['btn-pause', 'btn-pause-mobile']) {
+            const element = document.getElementById(id);
+            if (typeof element?.classList?.toggle === 'function') {
+                element.classList.toggle('hidden', !visible);
+            }
+        }
+    }
+
+    togglePause() {
+        if (State.paused) {
+            this.resumeGame();
+        } else {
+            this.pauseGame();
+        }
+    }
+
+    pauseGame() {
+        if (!this.loopManager || State.paused) return;
+        if (!this.loopManager.isRunning) this.loopManager.start();
+
+        State.paused = true;
+        this.loopManager.pause();
+        this.stopClock();
+        document.body?.classList?.add('paused');
+        document.getElementById('screen-game')?.classList?.add?.('is-paused');
+        $('#modal-pause').removeClass('hidden').addClass('flex');
+
+        // Reflect the live audio state when opening the shared pause/settings modal.
+        const pauseAudioValues = [
+            ['master', this.audio?.master],
+            ['ambient', this.audio?.levels?.ambient],
+            ['sfx', this.audio?.levels?.sfx],
+            ['lore', this.audio?.levels?.lore],
+            ['generator', this.audio?.levels?.generator]
+        ];
+        for (const [key, rawValue] of pauseAudioValues) {
+            const value = Number.isFinite(rawValue) ? Math.round(rawValue * 100) : null;
+            if (value === null) continue;
+            const slider = document.getElementById(`pause-config-volume-${key}`);
+            const label = document.getElementById(`pause-label-volume-${key}`);
+            if (slider) slider.value = String(value);
+            if (label) label.textContent = `${value}%`;
+        }
+
+        this.audio?.playSFXByKey('ui_modal_open', { volume: 0.5 });
+    }
+
+    resumeGame() {
+        const wasPaused = State.paused;
+        State.paused = false;
+        this.loopManager?.resume();
+        if (this.loopManager?.isRunning) this.startClock();
+        if (typeof document !== 'undefined') {
+            document.body?.classList?.remove('paused');
+            document.getElementById('screen-game')?.classList?.remove?.('is-paused');
+            $('#modal-pause').addClass('hidden').removeClass('flex');
+        }
+        if (wasPaused) this.audio?.playSFXByKey('ui_modal_close', { volume: 0.5 });
     }
 
     applySavedAudioSettings() {
@@ -105,6 +188,11 @@ class Game {
     }
 
     startGame() {
+        // El tutorial no debe dejar la partida marcada como pausada al comenzar una sesión nueva.
+        State.paused = false;
+        document.body?.classList?.remove('paused');
+        $('#modal-pause').addClass('hidden').removeClass('flex');
+        this.setPauseControlsVisible(false);
         // En lugar de empezar directo, mostramos el tutorial inicial
         this.mechanics.calculateTotalLoad(); // Ensure load is calculated
         this.ui.showScreen('game');
@@ -121,10 +209,17 @@ class Game {
     }
 
     startFirstDay() {
+        State.paused = false;
+        document.body?.classList?.remove('paused');
+        document.getElementById('screen-game')?.classList?.remove?.('is-paused');
+        $('#modal-pause').addClass('hidden').removeClass('flex');
         this.ensureMeditationRoom();
         this.mechanics.generateInitialEntrants();
         this.nextTurn();
+        this.loopManager.start();
+        this.loopManager.resume();
         this.startClock(); // Ensure clock is running
+        this.setPauseControlsVisible(true);
         this.ui.updateRunStats(State);
     }
 
@@ -188,12 +283,19 @@ class Game {
         // Regenerar y reiniciar
         this.mechanics.generateInitialEntrants();
         this.nextTurn();
+        this.loopManager.resume();
+        this.loopManager.start();
+        this.startClock();
+        this.setPauseControlsVisible(true);
         this.ui.showScreen('game');
         this.ui.updateRunStats(State);
         this.ui.showFeedback("DÍA REINICIADO", "yellow", 3000);
     }
 
     restartGame() {
+        this.stopClock();
+        this.loopManager.stop();
+        this.setPauseControlsVisible(false);
         State.reset();
         this.isAnimating = false;
         this.ui.resetUI();
@@ -207,6 +309,8 @@ class Game {
     }
 
     goToStart() {
+        this.stopClock();
+        this.setPauseControlsVisible(false);
         State.reset();
         this.isAnimating = false;
         this.ui.resetUI();
@@ -229,6 +333,7 @@ class Game {
     }
 
     start() {
+        this.setPauseControlsVisible(State.cycle > 0);
         if (State.cycle === 0) {
             this.ui.showScreen('start');
         } else {
