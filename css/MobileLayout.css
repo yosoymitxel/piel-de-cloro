@@ -6,7 +6,7 @@
  * and must not change as a side effect of the mobile implementation.
  */
 
-@media (max-width: 640px), (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 640px), (max-width: 900px) and (max-height: 520px) and (orientation: landscape) {
     :root {
         --mobile-dock-height: 68px;
         --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -813,7 +813,7 @@
     }
 }
 
-@media (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 900px) and (max-height: 520px) and (orientation: landscape) {
     .terminal-chasis,
     body.is-full-ui .terminal-chasis {
         height: 100dvh;
@@ -854,7 +854,7 @@
 
 
 /* Visual hierarchy pass: mobile-specific overrides for dynamic inspection states. */
-@media (max-width: 640px), (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 640px), (max-width: 900px) and (max-height: 520px) and (orientation: landscape) {
     /* updateInspectionTools() rebuilds this node dynamically; its direct grid
        children are not always wrapped in .grid-tools. Match both render paths. */
     #screen-game #inspection-tools-container.grid {
@@ -1037,7 +1037,7 @@
 
 
 /* Pause positioning is mobile-only so desktop keeps its original geometry. */
-@media (max-width: 640px), (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 640px), (max-width: 900px) and (max-height: 520px) and (orientation: landscape) {
     #btn-pause {
         bottom: calc(68px + 48px + 12px + env(safe-area-inset-bottom, 0px)) !important;
         right: 12px !important;
@@ -1056,7 +1056,7 @@
 
 
 /* Mobile-only geometry fixes. Desktop rules and visual tokens remain untouched. */
-@media (max-width: 640px), (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 640px), (max-width: 900px) and (max-height: 520px) and (orientation: landscape) {
     /* The original desktop flex frame clips portrait and landscape content on short screens. */
     #screen-game .puesto-container {
         flex: 0 0 auto !important;
@@ -1104,7 +1104,7 @@
 }
 
 /* Landscape phones: prioritize the person, inspection tools and decisions over telemetry. */
-@media (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 900px) and (max-height: 520px) and (orientation: landscape) {
     #screen-game {
         gap: 4px !important;
         padding: 4px !important;
