@@ -17,7 +17,7 @@ export const gen_pools_2 = {
             },
             'gsh_n2a': {
                 id: 'gsh_n2a',
-"*Espera a que la lámpara vuelva a encenderse. «La sombra tardó un poco más que yo en desaparecer. O eso me pareció».*""*Espera a que la lámpara vuelva a encenderse. «La sombra tardó un poco más que yo en desaparecer. O eso me pareció».*",
+text: "*Espera a que la lámpara vuelva a encenderse. «La sombra tardó un poco más que yo en desaparecer. O eso me pareció».*",
                 options: [
                     { id: 'gsh_o2a', label: 'Estás cansado', next: 'gsh_n3a' },
                     { id: 'gsh_o2r', label: '¿Qué formas viste?', next: null, resultText: "*Dibuja en el aire.* \"Altas. Con dedos como agujas. Estaban en la ventilación del Nivel 2.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Avistamiento de sombras antropomorfas en ventilación Nivel 2.') },
@@ -26,7 +26,7 @@ export const gen_pools_2 = {
             },
             'gsh_n2b': {
                 id: 'gsh_n2b',
-"*Habla más bajo, sin apartar la vista del pasillo. «A veces las sombras parecen demasiado largas. Llevo días durmiendo mal; no te digo que sea algo real».*""*Habla más bajo, sin apartar la vista del pasillo. «A veces las sombras parecen demasiado largas. Llevo días durmiendo mal; no te digo que sea algo real».*",
+text: "*Habla más bajo, sin apartar la vista del pasillo. «A veces las sombras parecen demasiado largas. Llevo días durmiendo mal; no te digo que sea algo real».*",
                 options: [{ id: 'gsh_o2c', label: 'Psicosis', next: 'gsh_n4b' }]
             },
             'gsh_n3a': {
