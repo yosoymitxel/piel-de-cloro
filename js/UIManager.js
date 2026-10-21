@@ -1787,7 +1787,7 @@ export class UIManager {
                 const btn = $('<button>', {
                     class: `${isTooltip ? 'horror-tool-btn horror-tool-btn--dialogue' : 'horror-btn-dialogue'} ${opt.cssClass || ''} ${autoClass} animate-dialogue-in w-full ${spanClass}`,
                     html: `${tooltipIcon ? `<i class="fa-solid ${tooltipIcon}"></i>` : '&gt; '} ${escapeHtml(opt.label)}`,
-                    style: `animation-delay: ${idx * 0.1}s; min-height: 44px; touch-action: manipulation`,
+                    style: `animation-delay: ${idx * 0.1}s`,
                     'data-index': idx // Add data-index for delegated event handling
                 });
 
@@ -1802,8 +1802,7 @@ export class UIManager {
         if (!npc.optOut && !hasDynamicExit) {
             const omitBtn = $('<button>', {
                 class: `horror-btn-dialogue option-omit w-full my-2 col-span-2`,
-                html: '&gt; Omitir por diálogo',
-                style: 'min-height: 44px; touch-action: manipulation'
+                html: '&gt; Omitir por diálogo'
             });
             omitBtn.on('click', (e) => {
                 // Prevenir clics si ya estamos procesando una decisión
@@ -3706,21 +3705,14 @@ export class UIManager {
         // Using dynamic cell height to fit content and aligning to top to avoid empty space
         gridContainer.css({
             'display': 'grid',
-            // Keep rooms readable on phones; the map scrolls inside its own viewport.
-            'grid-template-columns': `repeat(${maxX}, minmax(110px, 180px))`,
+            'grid-template-columns': `repeat(${maxX}, 180px)`,
             'grid-template-rows': `repeat(${maxY}, minmax(50px, auto))`,
-            'gap': 'clamp(4px, 1.5vw, 15px)',
-            'justify-content': 'start',
+            'gap': '15px',
+            'justify-content': 'center',
             'align-content': 'start',
-            'box-sizing': 'border-box',
-            'width': '100%',
-            'min-width': '0',
-            'padding': 'clamp(6px, 2vw, 20px)',
-            'overflow-x': 'auto',
+            'padding': '20px',
             'overflow-y': 'auto',
-            'max-width': '100%',
-            'max-height': '100%',
-            '-webkit-overflow-scrolling': 'touch'
+            'max-height': '100%'
         });
 
         rooms.forEach(room => {
