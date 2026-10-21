@@ -160,3 +160,17 @@ La referencia no es copiar literalmente otros juegos, sino trasladar lo que func
 ## Criterios de cierre global
 
 El trabajo no se considera completo hasta que: (a) los flujos críticos tienen pruebas de integración; (b) generador, personal, recursos, ciclo, diálogos y finales tienen reglas centralizadas; (c) los duplicados y transiciones inconsistentes detectados están eliminados o documentados; (d) el grafo narrativo pasa validación y sus rutas críticas son alcanzables; (e) la interfaz se prueba con interacción real en tamaños móviles y escritorio; (f) el rendimiento se mide antes/después; y (g) CI queda verde en el HEAD final. Las limitaciones de navegador que no puedan probarse se declaran, no se esconden.
+
+
+## Reconstrucción sistémica adicional (2026-10-21)
+
+- [x] Introducida una API central para mutaciones de energía y combustible: `setGeneratorPower`, `updateGeneratorPower`, `updateFuel`.
+- [x] Eventos aleatorios y acciones del gestor de mecánicas enrutan recargas/consumos por esa API.
+- [x] Admisión de NPCs idempotente: no admite duplicados ni sujetos con estado terminal.
+- [x] Añadidos métodos compartidos para retirar, registrar muerte y registrar salida de NPCs; migradas las rutas nocturnas, inanición, intrusión y expediciones identificadas.
+- [x] Añadidas pruebas de invariantes de recursos y ciclo de vida de NPCs.
+- [x] Documentado el conjunto de herramientas y referencias de skills verificadas en `docs/REBUILD_TOOLKIT.md`.
+
+**Pendiente de CI:** validar los últimos cambios de recursos y ciclo de vida en la suite completa antes de dar por estable esta fase.
+
+**Pendiente estructural importante:** todavía hay duplicación de configuración del generador entre la inicialización de `State`, `State.reset()` y `Game`; se debe consolidar con una sola fábrica/configuración compartida después de revisar las dependencias y tests. También falta probar la partida completa en navegador y móvil.
