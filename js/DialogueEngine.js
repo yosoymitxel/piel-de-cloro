@@ -182,6 +182,11 @@ export class Conversation {
 
         if (!opt) return { error: 'Opción inválida' };
 
+        // Reject broken graph edges before applying flags, impacts, history, or memory.
+        if (opt.next && !this.set.nodes[opt.next]) {
+            return { error: `Nodo destino no encontrado: ${opt.next}` };
+        }
+
         // Validate requires
         if (opt.requires) {
             for (const r of opt.requires) {
