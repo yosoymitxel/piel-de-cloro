@@ -194,6 +194,36 @@ test.describe('dedicated mobile presentation', () => {
       expect(bounds.right, `control ${index} exceeds viewport: ${JSON.stringify(bounds)}`).toBeLessThanOrEqual(measurements.viewportWidth + 1);
     }
 
+    // Capture real gameplay at common phone widths, not just the landing screen.
+    for (const width of MOBILE_WIDTHS) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.waitForTimeout(150);
+      const responsive = await page.evaluate(() => ({
+        viewport: document.documentElement.clientWidth,
+        document: document.documentElement.scrollWidth,
+        hudCards: [...document.querySelectorAll('#screen-game > header > div.flex.flex-wrap > *')]
+          .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0).length,
+        navButtons: [...document.querySelectorAll('#sidebar-left .nav-sidebar-btn, #sidebar-left .nav-btn')]
+          .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
+          .map(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width }; })
+      }));
+      await page.screenshot({ path: `test-results/mobile-game-${width}.png`, fullPage: false });
+      expect(responsive.document, JSON.stringify({ width, ...responsive })).toBeLessThanOrEqual(responsive.viewport + 1);
+      expect(responsive.hudCards, JSON.stringify({ width, ...responsive })).toBe(6);
+      for (const nav of responsive.navButtons) {
+        expect(nav.left, JSON.stringify({ width, nav })).toBeGreaterThanOrEqual(-1);
+        expect(nav.right, JSON.stringify({ width, nav })).toBeLessThanOrEqual(responsive.viewport + 1);
+        expect(nav.width, JSON.stringify({ width, nav })).toBeGreaterThanOrEqual(44);
+      }
+    }
+
+    // Landscape phones are a separate constraint: retain viewport bounds and capture it for review.
+    await page.setViewportSize({ width: 844, height: 390 });
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: 'test-results/mobile-game-landscape-844.png', fullPage: false });
+    const landscapeWidth = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, document: document.documentElement.scrollWidth }));
+    expect(landscapeWidth.document, JSON.stringify(landscapeWidth)).toBeLessThanOrEqual(landscapeWidth.viewport + 1);
+
     expect(pageErrors, 'uncaught JavaScript errors during mobile gameplay').toEqual([]);
   });
 });
