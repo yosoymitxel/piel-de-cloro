@@ -89,6 +89,16 @@ describe('Dialogue system', () => {
         expect(State.dialogueFlags).toEqual({});
     });
 
+    test('State.reset restores fuel and per-turn fuel-room tracking', () => {
+        State.fuel = 0;
+        State.fuelRoomCheckedThisTurn = true;
+
+        State.reset();
+
+        expect(State.fuel).toBe(10);
+        expect(State.fuelRoomCheckedThisTurn).toBe(false);
+    });
+
     test('broken dialogue target returns an error without recording a choice', () => {
         const pool = {
             id: 'broken_target_test',
