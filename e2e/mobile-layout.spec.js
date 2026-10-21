@@ -270,6 +270,35 @@ test.describe('dedicated mobile presentation', () => {
       }
     }
 
+    // Long mobile gameplay must scroll above the fixed navigation dock; it must not
+    // simply clip telemetry and controls at the bottom of the CRT viewport.
+    await page.setViewportSize({ width: 390, height: 844 });
+    const scrollState = await page.evaluate(() => {
+      const screen = document.querySelector('#screen-game');
+      const dock = document.querySelector('#sidebar-left');
+      return { overflowY: getComputedStyle(screen).overflowY, scrollHeight: screen.scrollHeight, clientHeight: screen.clientHeight,
+        paddingBottom: parseFloat(getComputedStyle(screen).paddingBottom), dockHeight: dock?.getBoundingClientRect().height ?? 0 };
+    });
+    expect(['auto', 'scroll']).toContain(scrollState.overflowY);
+    expect(scrollState.paddingBottom).toBeGreaterThanOrEqual(scrollState.dockHeight);
+    await page.locator('#screen-game').evaluate(el => { el.scrollTop = el.scrollHeight; });
+    await page.waitForTimeout(150);
+    await page.screenshot({ path: 'test-results/mobile-game-scroll-end-390.png', fullPage: false });
+    const scrollEnd = await page.evaluate(() => {
+      const screen = document.querySelector('#screen-game');
+      const dock = document.querySelector('#sidebar-left');
+      const consolePanel = document.querySelector('#screen-game .center-console');
+      const r = consolePanel?.getBoundingClientRect();
+      const d = dock?.getBoundingClientRect();
+      return { scrollTop: screen.scrollTop, maxScroll: screen.scrollHeight - screen.clientHeight,
+        consoleBottom: r?.bottom ?? null, dockTop: d?.top ?? null };
+    });
+    expect(scrollEnd.scrollTop).toBeGreaterThan(0);
+    if (scrollEnd.consoleBottom !== null && scrollEnd.dockTop !== null) {
+      expect(scrollEnd.consoleBottom, JSON.stringify(scrollEnd)).toBeLessThanOrEqual(scrollEnd.dockTop - 4);
+    }
+    await page.locator('#screen-game').evaluate(el => { el.scrollTop = 0; });
+
     // Landscape phones are a separate constraint: retain viewport bounds and capture it for review.
     await page.setViewportSize({ width: 844, height: 390 });
     await page.waitForTimeout(200);
