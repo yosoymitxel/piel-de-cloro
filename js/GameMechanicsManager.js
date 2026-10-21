@@ -418,9 +418,12 @@ export class GameMechanicsManager {
     setGeneratorProtocol(newMode) {
         if (!State.generator.isOn) return false;
 
-        const capMap = { 'save': 1, 'normal': 2, 'overload': 3 };
-        const powerMap = { 'save': 32, 'normal': 63, 'overload': 95 };
-        const newCap = capMap[newMode] || 2;
+        const capMap = { save: 1, normal: 2, overload: 3 };
+        if (!Object.prototype.hasOwnProperty.call(capMap, newMode)) {
+            this.ui.showFeedback("PROTOCOLO INVÁLIDO", "red", 3000);
+            return false;
+        }
+        const newCap = capMap[newMode];
 
         const npc = State.currentNPC;
         const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || State.generator.restartLock;
