@@ -18,3 +18,10 @@ Editar las fuentes en `art/npcs.px.js`, generar PNGs con `npm run build:npc-art`
 
 ## Validación
 Ejecutar `npm test`, `npm run build:npc-art` y Playwright sobre una ficha real en escritorio y móvil. Afirmar que un avatar se ve solo tras confirmar que se insertó `img.npc-pixel-portrait`, que `img.complete && img.naturalWidth > 0`, que su caja no está recortada y que la captura real fue inspeccionada.
+
+
+## Laboratorio visual y código fuente
+
+Abrí [`avatar-lab.html`](../avatar-lab.html) en el repositorio o en GitHub Pages para editar rasgos cosméticos, comparar las diez siluetas de pelo, cambiar las cinco paletas y copiar el SVG generado. La sección ClaudePXL muestra los PNG compilados; el archivo que se edita sigue siendo `art/npcs.px.js`.
+
+No hace falta abrir Photoshop ni reemplazar imágenes a mano. Las muestras se generan desde código y los PNGs ClaudePXL se reconstruyen con `npm run build:npc-art`.
