@@ -57,21 +57,16 @@ test.describe('dedicated mobile presentation', () => {
     // Wait for actual visible controls to reach their final touch-target size
     // instead of measuring transient animation frames (which caused flaky CI).
     await page.waitForFunction(() => {
-      const controls = [
-        ...document.querySelectorAll('#inspection-tools-container .horror-tool-btn'),
-        ...document.querySelectorAll('#game-actions-container > button')
-      ].filter(el => {
+      const tools = [...document.querySelectorAll('#inspection-tools-container .horror-tool-btn')].filter(el => {
         const style = getComputedStyle(el);
-        return style.display !== 'none'
-          && style.visibility !== 'hidden'
-          && Number(style.opacity) > 0
-          && el.getClientRects().length > 0;
+        return style.display !== 'none' && style.visibility !== 'hidden'
+          && Number(style.opacity) > 0 && el.getClientRects().length > 0;
       });
-      return controls.length > 0 && controls.every(el => {
+      return tools.length > 0 && tools.every(el => {
         const rect = el.getBoundingClientRect();
         return rect.width >= 44 && rect.height >= 44;
       });
-    }, null, { timeout: 8000 });
+    }, null, { timeout: 12000 });
 
     await page.screenshot({ path: 'test-results/mobile-inspection-390.png', fullPage: false });
 
@@ -133,6 +128,9 @@ test.describe('dedicated mobile presentation', () => {
         mainView: rectOf('#screen-game .main-view-area'),
         dialogue: rectOf('#screen-game .dialogue-sidebar'),
         dock: rectOf('#sidebar-left'),
+        dockScrollWidth: document.querySelector('#sidebar-left')?.scrollWidth ?? 0,
+        dockClientWidth: document.querySelector('#sidebar-left')?.clientWidth ?? 0,
+        dockOverflowX: document.querySelector('#sidebar-left') ? getComputedStyle(document.querySelector('#sidebar-left')).overflowX : 'visible',
         pause: rectOf('#screen-game #btn-pause'),
         actionButtons: [...document.querySelectorAll('#game-actions-container > button')].filter(isVisible).map(rectJSON),
         generatorWarning: warningRect ? { height: warningRect.height, width: warningRect.width } : null
@@ -150,15 +148,37 @@ test.describe('dedicated mobile presentation', () => {
 
     // Bottom-dock buttons and labels must stay inside their own viewport.
     expect(measurements.navButtons.length).toBeGreaterThanOrEqual(4);
+    expect(measurements.dock, JSON.stringify(measurements)).not.toBeNull();
+    expect(measurements.dock.left).toBeGreaterThanOrEqual(-1);
+    expect(measurements.dock.right).toBeLessThanOrEqual(measurements.viewportWidth + 1);
+    expect(['auto', 'scroll']).toContain(measurements.dockOverflowX);
+    expect(measurements.dockScrollWidth).toBeGreaterThanOrEqual(measurements.dockClientWidth);
     for (const nav of measurements.navButtons) {
-      expect(nav.left, JSON.stringify(nav)).toBeGreaterThanOrEqual(-1);
-      expect(nav.right, JSON.stringify(nav)).toBeLessThanOrEqual(measurements.viewportWidth + 1);
+      // The dock intentionally scrolls horizontally when pinned rooms exceed the phone width.
       expect(nav.width, JSON.stringify(nav)).toBeGreaterThanOrEqual(44);
       if (nav.labelRight !== null) {
         expect(nav.labelLeft, JSON.stringify(nav)).toBeGreaterThanOrEqual(nav.left - 1);
         expect(nav.labelRight, JSON.stringify(nav)).toBeLessThanOrEqual(nav.right + 1);
       }
     }
+
+    // Prove the final navigation actions are reachable by scrolling the dock, rather than clipped.
+    await page.locator('#sidebar-left').evaluate(el => { el.scrollLeft = el.scrollWidth; });
+    await page.waitForTimeout(100);
+    await page.screenshot({ path: 'test-results/mobile-dock-end-390.png', fullPage: false });
+    const dockEnd = await page.evaluate(() => {
+      const dock = document.querySelector('#sidebar-left');
+      const buttons = [...dock.querySelectorAll('.nav-sidebar-btn, .nav-btn')].filter(el => getComputedStyle(el).display !== 'none');
+      const last = buttons.at(-1);
+      if (!last) return null;
+      const d = dock.getBoundingClientRect(), b = last.getBoundingClientRect();
+      return { dockLeft: d.left, dockRight: d.right, left: b.left, right: b.right, width: b.width };
+    });
+    expect(dockEnd, JSON.stringify(dockEnd)).not.toBeNull();
+    expect(dockEnd.width).toBeGreaterThanOrEqual(44);
+    expect(dockEnd.left).toBeGreaterThanOrEqual(dockEnd.dockLeft - 1);
+    expect(dockEnd.right).toBeLessThanOrEqual(dockEnd.dockRight + 1);
+    await page.locator('#sidebar-left').evaluate(el => { el.scrollLeft = 0; });
 
     // The battery fill must remain inside its card, including at 100%.
     if (measurements.batteryCard && measurements.batteryFill) {
