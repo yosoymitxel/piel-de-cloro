@@ -135,6 +135,8 @@ describe('GameMechanicsManager', () => {
         expect(npc.labAnalysisPending).toBe(false);
         expect(npc.labAnalysisComplete).toBe(true);
         expect(npc.revealedStats).toContain('isInfected');
+        expect(State.cureProgress).toBe(1);
+        expect(npc.cureSampleCollected).toBe(true);
         expect(addMessage).toHaveBeenCalledTimes(1);
         expect(addMessage).toHaveBeenCalledWith('ANÁLISIS: Sujeto de prueba: POSITIVO', 'danger-green');
     });
@@ -241,6 +243,25 @@ describe('GameMechanicsManager', () => {
 
             expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("SISTEMA BLOQUEADO"), "alert", 4000);
             expect(gameMock.endings.triggerEnding).not.toHaveBeenCalled();
+        });
+
+        test('finishRun triggers final_cure after five viable samples and a clean evacuation', () => {
+            Math.random = () => 0.99;
+            State.admittedNPCs = Array.from({ length: 5 }, () => {
+                const npc = new NPC();
+                npc.isInfected = false;
+                return npc;
+            });
+            State.config.maxShelterCapacity = 5;
+            State.cureProgress = 5;
+            State.playerInfected = false;
+            State.generator.isOn = true;
+            State.paranoia = 0;
+
+            gmm.finishRun();
+
+            expect(gameMock.endings.triggerEnding).toHaveBeenCalledWith('final_cure');
+            expect(gameMock.endings.triggerEnding).not.toHaveBeenCalledWith('final_clean');
         });
 
         test('finishRun triggers final_clean if all safe', () => {
