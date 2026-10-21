@@ -9,7 +9,7 @@ test.describe('dedicated mobile presentation', () => {
       await page.goto('/', { waitUntil: 'domcontentloaded' });
       await expect(page.locator('.terminal-chasis')).toBeVisible();
       await expect(page.getByRole('button', { name: /INICIAR PARTIDA/i })).toBeVisible();
-      if (width === 390) await page.screenshot({ path: 'test-results/mobile-start-390.png', fullPage: true });
+      if (width === 390) await page.screenshot({ path: 'test-results/mobile-start-390.png', fullPage: false });
 
       const metrics = await page.evaluate(() => ({
         viewport: document.documentElement.clientWidth,
@@ -45,7 +45,7 @@ test.describe('dedicated mobile presentation', () => {
     await expect(page.locator('#modal-tutorial')).toBeVisible({ timeout: 45000 });
     await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
     await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
-    await page.screenshot({ path: 'test-results/mobile-inspection-390.png', fullPage: true });
+    await page.screenshot({ path: 'test-results/mobile-inspection-390.png', fullPage: false });
 
     const measurements = await page.evaluate(() => {
       const viewportWidth = document.documentElement.clientWidth;
@@ -64,8 +64,12 @@ test.describe('dedicated mobile presentation', () => {
       };
       const generatorWarning = document.querySelector('#inspection-tools-container > #btn-goto-generator');
       const warningRect = generatorWarning?.getClientRects().length ? generatorWarning.getBoundingClientRect() : null;
+      const monitors = [...document.querySelectorAll('#screen-game .center-console > .mini-monitor, #screen-game .center-console > .analog-controls')].map(el => {
+        const r = el.getBoundingClientRect();
+        return { tag: el.className, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
+      });
       return {
-        viewportWidth, documentWidth, bounds,
+        viewportWidth, documentWidth, bounds, monitors,
         mainView: rectOf('#screen-game .main-view-area'),
         dialogue: rectOf('#screen-game .dialogue-sidebar'),
         dock: rectOf('#sidebar-left'),
@@ -80,6 +84,11 @@ test.describe('dedicated mobile presentation', () => {
     }
     if (measurements.generatorWarning) {
       expect(measurements.generatorWarning.height, 'generator warning overwhelms the mobile inspection view').toBeLessThanOrEqual(76);
+    }
+    for (const [index, monitor] of measurements.monitors.entries()) {
+      expect(monitor.width, `telemetry element ${index} has no usable width: ${JSON.stringify(monitor)}`).toBeGreaterThanOrEqual(44);
+      expect(monitor.left, `telemetry element ${index} starts outside viewport: ${JSON.stringify(monitor)}`).toBeGreaterThanOrEqual(-1);
+      expect(monitor.right, `telemetry element ${index} exceeds viewport: ${JSON.stringify(monitor)}`).toBeLessThanOrEqual(measurements.viewportWidth + 1);
     }
     for (const [index, bounds] of measurements.bounds.entries()) {
       expect(bounds.width, `control ${index} is too narrow: ${JSON.stringify(bounds)}`).toBeGreaterThanOrEqual(44);
