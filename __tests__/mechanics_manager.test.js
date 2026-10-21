@@ -372,6 +372,8 @@ describe('GameMechanicsManager', () => {
                 return npc;
             });
             cleanSurvivors.forEach(npc => expect(State.addAdmitted(npc)).toBe(true));
+            expect(State.admittedNPCs).toHaveLength(5);
+            expect(State.admittedNPCs.every(npc => npc.isInfected === false)).toBe(true);
 
             State.generator.power = 100;
             expect(gmm.synthesizeCure().success).toBe(true);
