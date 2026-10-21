@@ -45,7 +45,7 @@ test.describe('dedicated mobile presentation', () => {
     await expect(page.locator('#modal-tutorial')).toBeVisible({ timeout: 45000 });
     await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
     await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
-    await page.screenshot({ path: 'test-results/mobile-inspection-390.png', fullPage: false });
+    // Screenshot is captured after the control-size wait below, once the CRT entrance transition settles.
 
     // The CRT power-on animation scales the entire monitor from a scan line.
     // Wait for actual visible controls to reach their final touch-target size
@@ -66,6 +66,8 @@ test.describe('dedicated mobile presentation', () => {
         return rect.width >= 44 && rect.height >= 44;
       });
     }, null, { timeout: 8000 });
+
+    await page.screenshot({ path: 'test-results/mobile-inspection-390.png', fullPage: false });
 
     const measurements = await page.evaluate(() => {
       const viewportWidth = document.documentElement.clientWidth;
