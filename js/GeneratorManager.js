@@ -477,7 +477,6 @@ export class GeneratorManager {
 
         const handleModeSwitch = (newMode) => {
             const game = this.game || window.game;
-            const game = this.game || window.game;
             if (!game?.mechanics || typeof game.mechanics.setGeneratorProtocol !== 'function') {
                 this.ui?.showFeedback("SISTEMA DE GENERADOR NO DISPONIBLE", "red", 3000);
                 return false;
