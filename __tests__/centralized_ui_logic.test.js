@@ -161,12 +161,10 @@ describe('Centralized UI Status Logic', () => {
         // Gen ON, No Guard
         State.generator.isOn = true;
         State.assignments.security.occupants = [];
-        State.sectorAssignments.security = [];
         expect(ui.getRoomStatusClass('room')).toBe('status-alert');
 
         // Gen ON, Guard Assigned
         State.assignments.security.occupants = ['npc1'];
-        State.sectorAssignments.security = ['npc1'];
         expect(ui.getRoomStatusClass('room')).toBe('status-active');
 
         // Gen OFF (Should be critical if no guard, alert if guard)
@@ -175,7 +173,6 @@ describe('Centralized UI Status Logic', () => {
         expect(ui.getRoomStatusClass('room')).toBe('status-alert');
         // No guard -> status-critical
         State.assignments.security.occupants = [];
-        State.sectorAssignments.security = [];
         expect(ui.getRoomStatusClass('room')).toBe('status-critical');
     });
 
