@@ -50,6 +50,22 @@ describe('Resource Systems (Food, Paranoia, Sanity)', () => {
         gah = new GameActionHandler(gameMock);
     });
 
+    describe('Centralized resource mutations', () => {
+        test('generator power clamps all writes to 0–100', () => {
+            expect(State.setGeneratorPower(140)).toBe(100);
+            expect(State.updateGeneratorPower(-150)).toBe(0);
+            expect(State.updateGeneratorPower(25)).toBe(25);
+            expect(State.updateGeneratorPower(Number.NaN)).toBe(25);
+        });
+
+        test('fuel updates cannot create negative or non-finite stock', () => {
+            State.fuel = 2;
+            expect(State.updateFuel(-5)).toBe(0);
+            expect(State.updateFuel(4)).toBe(4);
+            expect(State.updateFuel(Number.NaN)).toBe(4);
+        });
+    });
+
     describe('Food (Supplies) System', () => {
         test('Initial supplies should be 15', () => {
             expect(State.supplies).toBe(15);
