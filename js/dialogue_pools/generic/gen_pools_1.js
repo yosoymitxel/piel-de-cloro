@@ -17,7 +17,7 @@ export const gen_pools_1 = {
             },
             'gs_n2a': {
                 id: 'gs_n2a',
-"*La lesión tiene bordes inflamados; no basta para identificar la causa. «A ratos noto presión debajo. Cuando intento mirarlo, deja de moverse. Puede que me lo esté imaginando».*""*La lesión tiene bordes inflamados; no basta para identificar la causa. «A ratos noto presión debajo. Cuando intento mirarlo, deja de moverse. Puede que me lo esté imaginando».*",
+text: "*La lesión tiene bordes inflamados; no basta para identificar la causa. «A ratos noto presión debajo. Cuando intento mirarlo, deja de moverse. Puede que me lo esté imaginando».*",
                 options: [
                     { id: 'gs_o2a', label: 'Inspeccionar más de cerca', next: 'gs_n3a' },
                     { id: 'gs_o2r', label: '¿Qué sientes bajo la piel?', next: null, resultText: "*Se rasca furiosamente.* \"Gusanos de luz. Dicen que si te los sacas, puedes ver el futuro.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Secta de la "Visión Dérmica" cree en parásitos luminosos.') },
@@ -26,7 +26,7 @@ export const gen_pools_1 = {
             },
             'gs_n2b': {
                 id: 'gs_n2b',
-"*Acepta la venda y se la coloca sin dejar de vigilar el antebrazo. «Gracias. No sé si lo tapa o solo me ayuda a no tocarlo».*""*Acepta la venda y se la coloca sin dejar de vigilar el antebrazo. «Gracias. No sé si lo tapa o solo me ayuda a no tocarlo».*",
+text: "*Acepta la venda y se la coloca sin dejar de vigilar el antebrazo. «Gracias. No sé si lo tapa o solo me ayuda a no tocarlo».*",
                 options: [
                     { id: 'gs_o2c', label: 'Preguntar desde cuándo', next: 'gs_n3b' },
                     { id: 'gs_o2d', label: 'Observar', next: 'gs_n3a' }
