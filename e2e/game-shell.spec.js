@@ -57,6 +57,7 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
 
   // Guard the original desktop pause geometry: mobile fixes must not leak into desktop.
   if (await page.evaluate(() => window.innerWidth > 640)) {
+    await expect(page.locator('#btn-pause')).toBeVisible();
     const pauseStyle = await page.locator('#btn-pause').evaluate(el => {
       const style = getComputedStyle(el);
       const rect = el.getBoundingClientRect();
@@ -75,7 +76,21 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
     expect(pauseStyle.right).toBeCloseTo(24, 0);
     expect(pauseStyle.rectBottom, JSON.stringify(pauseStyle)).toBeCloseTo(pauseStyle.viewportHeight - 32, 0);
     expect(pauseStyle.rectRight, JSON.stringify(pauseStyle)).toBeCloseTo(pauseStyle.viewportWidth - 24, 0);
+  } else {
+    const mobilePause = page.locator('#btn-pause-mobile');
+    await expect(mobilePause).toBeVisible();
+    await expect(page.locator('#btn-pause')).toBeHidden();
   }
+
+  const pauseButton = await page.evaluate(() => window.innerWidth <= 640 ? '#btn-pause-mobile' : '#btn-pause');
+  await page.locator(pauseButton).click();
+  await expect(page.locator('#modal-pause')).toBeVisible();
+  await expect(page.locator('body')).toHaveClass(/paused/);
+  expect(await page.evaluate(() => window.game.loopManager.isPaused)).toBe(true);
+  await page.locator('#btn-pause-close').click();
+  await expect(page.locator('#modal-pause')).toBeHidden();
+  await expect(page.locator('body')).not.toHaveClass(/paused/);
+  expect(await page.evaluate(() => window.game.loopManager.isPaused)).toBe(false);
 
   const skipDialogue = page.getByRole('button', { name: /OMITIR POR DIÁLOGO/i });
   await expect(skipDialogue).toBeVisible();
