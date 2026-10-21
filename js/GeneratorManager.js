@@ -16,33 +16,6 @@ export class GeneratorManager {
         console.log('[GeneratorManager] Starting renderGeneratorRoom. Mode:', state.generator.mode);
         state.generatorCheckedThisTurn = true;
 
-        // Initialize maxModeCapacityReached ratchet if action active
-        const npc = state.currentNPC;
-        const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || state.generator.restartLock;
-        if (actionTaken && state.generator.isOn) {
-            const capMap = { 'save': 1, 'normal': 2, 'overload': 3 };
-            const currentCap = capMap[state.generator.mode] || 2;
-            
-            // If ratchet is not initialized or we are currently HIGHER than ratchet (shouldn't happen in strict ratchet, but fixes init issues)
-            // Or simply: ensure ratchet tracks current mode if it's lower than stored ratchet?
-            // Actually, we want to ensure that if we just started, the ratchet is at CURRENT level.
-            
-            // If maxModeCapacityReached is higher than current mode, it means we went down. Correct.
-            // If maxModeCapacityReached is lower than current mode? That means we went UP? That's forbidden.
-            // But if we just loaded the screen and are in Overload, max should be 3.
-            
-            if (!state.generator.maxModeCapacityReached || state.generator.maxModeCapacityReached < currentCap) {
-                 // Sync ratchet to current state if it seems out of sync (e.g. init)
-                 // This ensures that if I am in Overload (3), I can go down to 2 or 1.
-                 // It also means if I am in Overload (3), I cannot go to 4 (impossible).
-                 // If I go to Normal (2), logic in updateModeButtons/handleModeSwitch should update this value.
-                 state.generator.maxModeCapacityReached = currentCap;
-            }
-        } else {
-            // Reset ratchet if no action active
-            state.generator.maxModeCapacityReached = 3; // Max possible
-        }
-
         // Check if mode changed this turn
         const modeLocked = state.generator.modeChangedThisTurn;
 
@@ -499,44 +472,10 @@ export class GeneratorManager {
 
         const handleModeSwitch = (newMode) => {
             const game = this.game || window.game;
-            const npc = state.currentNPC;
-            const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || state.generator.restartLock;
-            const currentMax = state.generator.maxModeCapacityReached;
-            const capMap = { save: 1, normal: 2, overload: 3 };
-            if (!Object.prototype.hasOwnProperty.call(capMap, newMode)) {
-                if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
-                if (this.ui) this.ui.showFeedback("PROTOCOLO INVÁLIDO", "red", 3000);
-                this.renderGeneratorRoom(State);
-                return;
-            }
-            const targetCap = capMap[newMode];
-
-            // Check if mode is locked
-            if (state.generator.modeChangedThisTurn) {
-                if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
-                if (this.ui) this.ui.showFeedback("PROTOCOLO BLOQUEADO: ESPERA AL SIGUIENTE TURNO", "red", 3000);
-                return;
-            }
-
-            if (actionTaken && targetCap > currentMax) {
-                // EXEMPTION: User requested that blocking should only apply if "se le da a ahorro" (interpreted as: locking happens at Save?)
-                // Actually, the user complaint was about being stuck "once I go down".
-                // My fix in renderGeneratorRoom ensures currentMax is synced to current mode on entry.
-                // So if I am in Overload (3), currentMax=3. I can go to Normal (2).
-                // If I am in Normal (2), currentMax=2. I can go to Save (1).
-                // If I am in Normal (2), I cannot go to Overload (3).
-                // This IS correct "Only Decrease".
-                
-                // If user wants to be able to go back up *unless* they hit Save...
-                // "se supone que debe pasar eso solo si le doy ahorro"
-                // Let's implement: If we are NOT in Save mode, allow going back up?
-                // No, that breaks the "Only Decrease" rule text.
-                // I will assume the sync fix resolves the "one change" issue (if it was defaulting to 2).
-                
-                // Locked - show feedback
-                if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
-                if (this.ui) this.ui.showFeedback("PROTOCOLO BLOQUEADO: SOLO PUEDE DISMINUIR", "red", 3000);
-                return;
+            const game = this.game || window.game;
+            if (!game?.mechanics || typeof game.mechanics.setGeneratorProtocol !== 'function') {
+                this.ui?.showFeedback("SISTEMA DE GENERADOR NO DISPONIBLE", "red", 3000);
+                return false;
             }
 
             // IMMEDIATE visual feedback - toggle active class right away
@@ -547,7 +486,7 @@ export class GeneratorManager {
             // Audio click effect
             if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.3 });
 
-            if (game && game.mechanics && typeof game.mechanics.setGeneratorProtocol === 'function') {
+            {
                 const success = game.mechanics.setGeneratorProtocol(newMode);
 
                 if (success) {
