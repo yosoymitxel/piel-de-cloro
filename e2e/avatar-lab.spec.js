@@ -11,7 +11,7 @@ test('avatar lab renders code-generated skins and editable hairstyle variants', 
   await expect.poll(() => portrait.evaluate(img => img.naturalWidth)).toBe(256);
   await expect(page.locator('#hair-gallery .hair-card')).toHaveCount(10);
   await expect(page.locator('#svg-source')).toContainText('<svg');
-  await expect(page.locator('#pxl-gallery .pxl-card')).toHaveCount(6);
+  await expect(page.locator('#pxl-source')).toContainText('sprite(\"npc_human\"');
 
   const before = await portrait.getAttribute('src');
   await page.getByRole('button', { name: /Elegir peinado Coleta/i }).click();
@@ -34,13 +34,10 @@ test('avatar lab renders code-generated skins and editable hairstyle variants', 
   expect(widths.page, JSON.stringify(widths)).toBeLessThanOrEqual(widths.viewport + 1);
 });
 
-test('each ClaudePXL output referenced in the lab has decoded image pixels', async ({ page }) => {
+test('ClaudePXL authoring source is visible in the repository lab without binary assets', async ({ page }) => {
   await page.goto('/avatar-lab.html', { waitUntil: 'domcontentloaded' });
-  const sprites = page.locator('#pxl-gallery img');
-  await expect(sprites).toHaveCount(6);
-  for (const sprite of await sprites.all()) {
-    await expect.poll(() => sprite.evaluate(img => img.naturalWidth), {
-      message: 'Each generated ClaudePXL sprite must exist and decode'
-    }).toBeGreaterThan(0);
-  }
+  const source = page.locator('#pxl-source');
+  await expect(source).toContainText('sprite("npc_human"');
+  await expect(source).toContainText('sprite("npc_archivist"');
+  await expect(page.locator('#pxl-gallery img')).toHaveCount(0);
 });
