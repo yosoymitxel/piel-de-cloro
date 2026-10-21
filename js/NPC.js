@@ -23,7 +23,7 @@ export class NPC {
         this.isLore = opts.isLore || false;
         this.loreId = opts.loreId || null;
 
-        const set = selectDialogueSet({ personality: this.personality, infected: this.isInfected, isLore: this.isLore, loreId: this.loreId });
+        const set = opts.dialogueSet || selectDialogueSet({ personality: this.personality, infected: this.isInfected, isLore: this.isLore, loreId: this.loreId });
         this.conversation = new Conversation(this, set);
 
         // Propagate metadata from the chosen dialogue set (Generic or Lore) to the NPC
