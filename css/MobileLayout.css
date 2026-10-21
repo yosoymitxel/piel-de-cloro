@@ -814,33 +814,6 @@
 }
 
 @media (max-width: 900px) and (max-height: 520px) and (orientation: landscape) {
-    /* Keep dialogue choices inside a real scrollport instead of painting under the dock. */
-    #screen-game .dialogue-sidebar {
-        flex: 0 0 auto !important;
-        min-height: 0 !important;
-        max-height: 128px !important;
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
-        overscroll-behavior: contain;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-    }
-
-    #screen-game .dialogue-sidebar #content-dialogue,
-    #screen-game .dialogue-sidebar #dialogue-options-container,
-    #screen-game .dialogue-sidebar #dialogue-options {
-        min-height: 0 !important;
-        overflow: visible !important;
-    }
-
-    #screen-game .dialogue-sidebar #dialogue-options > button {
-        flex: 0 0 auto !important;
-        min-height: 44px !important;
-        height: auto !important;
-        white-space: normal !important;
-        overflow-wrap: anywhere;
-    }
-
     .terminal-chasis,
     body.is-full-ui .terminal-chasis {
         height: 100dvh;
@@ -1398,5 +1371,25 @@
 
     #screen-game .center-console {
         display: none !important;
+    }
+
+    /* Last in this media query on purpose: override earlier generic mobile sizing.
+       Choices must scroll inside the panel, never paint underneath the fixed dock. */
+    #screen-game .dialogue-sidebar {
+        flex: 0 0 auto !important;
+        min-height: 0 !important;
+        max-height: 128px !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    #screen-game .dialogue-sidebar #content-dialogue,
+    #screen-game .dialogue-sidebar #dialogue-options-container,
+    #screen-game .dialogue-sidebar #dialogue-options {
+        min-height: 0 !important;
+        overflow: visible !important;
     }
 }
