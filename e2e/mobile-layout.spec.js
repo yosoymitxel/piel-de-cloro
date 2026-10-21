@@ -68,6 +68,10 @@ test.describe('dedicated mobile presentation', () => {
       });
     }, null, { timeout: 12000 });
 
+    await page.waitForFunction(() => {
+      const text = document.querySelector('#npc-dialogue .npc-text');
+      return Boolean(text && text.textContent.trim().length > 0);
+    }, null, { timeout: 8000 });
     await page.screenshot({ path: 'test-results/mobile-inspection-390.png', fullPage: false });
 
     const measurements = await page.evaluate(() => {
@@ -257,6 +261,7 @@ test.describe('dedicated mobile presentation', () => {
       avatar: (() => { const el = document.querySelector('#screen-game #npc-display > .npc-view-container'); if (!el) return null; const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height }; })(),
       mainView: (() => { const el = document.querySelector('#screen-game .main-view-area'); const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height }; })(),
       dialogue: (() => { const el = document.querySelector('#screen-game .dialogue-sidebar'); const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height }; })(),
+      dialogueText: (() => { const el = document.querySelector('#npc-dialogue .npc-text'); const d = document.querySelector('#screen-game .dialogue-sidebar'); if (!el || !d) return null; const r = el.getBoundingClientRect(), p = d.getBoundingClientRect(); return { length: el.textContent.trim().length, top: r.top, bottom: r.bottom, visibleHeight: Math.max(0, Math.min(r.bottom, p.bottom) - Math.max(r.top, p.top)) }; })(),
       centerConsoleDisplay: getComputedStyle(document.querySelector('#screen-game .center-console')).display,
       dock: (() => { const el = document.querySelector('#sidebar-left'); const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width, display: getComputedStyle(el).display }; })()
     }));
@@ -273,6 +278,10 @@ test.describe('dedicated mobile presentation', () => {
     expect(landscapeWidth.decisionButtons, JSON.stringify(landscapeWidth.decisionButtons)).toHaveLength(2);
     expect(landscapeWidth.decisionButtons.every(button => button.bottom <= landscapeWidth.mainView.bottom + 1), JSON.stringify(landscapeWidth)).toBe(true);
     expect(landscapeWidth.mainView.bottom).toBeLessThanOrEqual(landscapeWidth.dialogue.top + 1);
+    expect(landscapeWidth.dialogue.height).toBeGreaterThanOrEqual(100);
+    expect(landscapeWidth.dialogueText, JSON.stringify(landscapeWidth)).not.toBeNull();
+    expect(landscapeWidth.dialogueText.length).toBeGreaterThan(0);
+    expect(landscapeWidth.dialogueText.visibleHeight).toBeGreaterThan(0);
     expect(landscapeWidth.decisionGrid, JSON.stringify(landscapeWidth)).not.toBeNull();
     // The landscape screen has 4px gutters on both sides.
     expect(landscapeWidth.decisionGrid.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 12);
