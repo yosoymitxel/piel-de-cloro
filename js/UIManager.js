@@ -1787,7 +1787,7 @@ export class UIManager {
                 const btn = $('<button>', {
                     class: `${isTooltip ? 'horror-tool-btn horror-tool-btn--dialogue' : 'horror-btn-dialogue'} ${opt.cssClass || ''} ${autoClass} animate-dialogue-in w-full ${spanClass}`,
                     html: `${tooltipIcon ? `<i class="fa-solid ${tooltipIcon}"></i>` : '&gt; '} ${escapeHtml(opt.label)}`,
-                    style: `animation-delay: ${idx * 0.1}s`,
+                    style: `animation-delay: ${idx * 0.1}s; min-height: 44px; touch-action: manipulation`,
                     'data-index': idx // Add data-index for delegated event handling
                 });
 
@@ -1802,7 +1802,8 @@ export class UIManager {
         if (!npc.optOut && !hasDynamicExit) {
             const omitBtn = $('<button>', {
                 class: `horror-btn-dialogue option-omit w-full my-2 col-span-2`,
-                html: '&gt; Omitir por diálogo'
+                html: '&gt; Omitir por diálogo',
+                style: 'min-height: 44px; touch-action: manipulation'
             });
             omitBtn.on('click', (e) => {
                 // Prevenir clics si ya estamos procesando una decisión
