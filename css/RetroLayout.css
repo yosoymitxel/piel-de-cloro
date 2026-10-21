@@ -2461,6 +2461,14 @@ body.is-full-ui .crt-monitor {
     min-height: 44px;
 }
 
+/* Touch targets: the dialogue skip action is a frequent, time-sensitive control. */
+#btn-skip-dialogue,
+#btn-skip-dialogue.horror-btn {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+}
+
 @media (max-width: 640px) {
     body {
         display: block;
