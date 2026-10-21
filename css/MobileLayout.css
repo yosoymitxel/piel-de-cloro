@@ -1200,9 +1200,19 @@
     }
 
     #game-screen-container {
-        height: 72px !important;
-        min-height: 72px !important;
-        max-height: 72px !important;
+        height: 92px !important;
+        min-height: 92px !important;
+        max-height: 92px !important;
+    }
+
+    /* The generated avatar is designed at 180px; scale the whole frame instead
+       of clipping its hair and face into the short landscape viewport. */
+    #screen-game #npc-display > .npc-view-container {
+        flex: 0 0 180px !important;
+        width: 180px !important;
+        height: 180px !important;
+        transform: scale(0.5) !important;
+        transform-origin: center center !important;
     }
 
     #screen-game #inspection-tools-container,
