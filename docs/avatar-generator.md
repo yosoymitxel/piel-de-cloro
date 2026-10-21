@@ -4,11 +4,12 @@
 Generar retratos de terror analógico deterministas; una misma identidad conserva el mismo retrato. El módulo es puramente visual y no cambia el estado global, reglas de deducción ni resultados del juego.
 
 ## Integración
-`js/avatar/AvatarGenerator.js` entrega SVG pixelado como data URI; `js/AvatarRenderer.js` lo inserta en cada ficha existente. NPCs de lore pueden usar sprites PNG hechos con ClaudePXL, con retrato procedural como alternativa si falta un recurso. No sustituir el nodo de la ficha ni mutar estado para pintar un avatar.
+`js/avatar/AvatarGenerator.js` entrega SVG pixelado como data URI; `js/AvatarRenderer.js` lo inserta en cada ficha existente. Los retratos de NPC usan el mismo generador SVG y conservan los rasgos cosméticos conocidos; ClaudePXL sigue siendo una fuente editable de arte, no una dependencia de runtime. No sustituir el nodo de la ficha ni mutar estado para pintar un avatar.
 
 ## Identidad y seguridad narrativa
 - Usar `npc.id` como semilla estable; no llamar `Math.random()` durante el render.
-- Pasar únicamente rasgos cosméticos ya existentes: peinado, ropa, accesorio, ojos, boca, tono de piel y vello facial.
+- Pasar únicamente rasgos cosméticos: peinado, forma del rostro, ropa, accesorio, ojos, boca, tono de piel y vello facial.
+- Si `skinColor` llega como `var(--avatar-skin-1)` hasta `var(--avatar-skin-5)`, resolver el token a los valores originales de `css/avatars.css`. También se acepta un hexadecimal (`#rgb` o `#rrggbb`); el tono personalizado cambia la piel, no la paleta de ropa.
 - **No usar `npc.isInfected` para elegir colores, marcas, ojos, sprite o cualquier detalle visible en el retrato normal.** La imagen no debe resolver la deducción de infección.
 - Usar `loreId` solamente para asignar un retrato fijo ya aprobado para un personaje conocido.
 - Las siluetas deben leerse a escala final, especialmente coleta (`ponytail`), mohawk y cabello largo. Evitar ruido decorativo sin causa.
