@@ -68,6 +68,15 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
 
   const skipDialogue = page.getByRole('button', { name: /OMITIR POR DIÁLOGO/i });
   await expect(skipDialogue).toBeVisible();
+  // The CRT power-on animation temporarily scales controls below their final
+  // hit area. Measure only after that transition has settled on mobile.
+  if (await page.evaluate(() => window.innerWidth <= 640)) {
+    await page.waitForFunction(() => {
+      const button = [...document.querySelectorAll('#screen-game .option-omit')]
+        .find(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0);
+      return Boolean(button && button.getBoundingClientRect().height >= 44);
+    }, null, { timeout: 12000 });
+  }
   const touchTarget = await skipDialogue.boundingBox();
   expect(touchTarget, 'dialogue skip action must remain visible').not.toBeNull();
   // Preserve the existing desktop design; enforce touch sizing on the dedicated mobile layout.
