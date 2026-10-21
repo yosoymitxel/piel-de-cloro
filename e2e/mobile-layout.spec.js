@@ -253,6 +253,8 @@ test.describe('dedicated mobile presentation', () => {
         .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
         .map(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width, height: r.height, id: el.id }; }),
       decisionGrid: (() => { const el = document.querySelector('#screen-game #inspection-tools-container'); if (!el || !el.getClientRects().length) return null; const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width }; })(),
+      avatarFrame: (() => { const el = document.querySelector('#game-screen-container'); const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height }; })(),
+      avatar: (() => { const el = document.querySelector('#screen-game #npc-display > .npc-view-container'); if (!el) return null; const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height }; })(),
       centerConsoleDisplay: getComputedStyle(document.querySelector('#screen-game .center-console')).display,
       dock: (() => { const el = document.querySelector('#sidebar-left'); const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width, display: getComputedStyle(el).display }; })()
     }));
@@ -262,6 +264,10 @@ test.describe('dedicated mobile presentation', () => {
     expect(landscapeWidth.tools.length, JSON.stringify(landscapeWidth)).toBeGreaterThan(0);
     expect(landscapeWidth.tools.every(tool => tool.width >= 44 && tool.height >= 44), JSON.stringify(landscapeWidth.tools)).toBe(true);
     expect(landscapeWidth.centerConsoleDisplay).toBe('none');
+    expect(landscapeWidth.avatar, JSON.stringify(landscapeWidth)).not.toBeNull();
+    expect(landscapeWidth.avatar.height).toBeGreaterThanOrEqual(60);
+    expect(landscapeWidth.avatar.top).toBeGreaterThanOrEqual(landscapeWidth.avatarFrame.top - 1);
+    expect(landscapeWidth.avatar.bottom).toBeLessThanOrEqual(landscapeWidth.avatarFrame.bottom + 1);
     expect(landscapeWidth.decisionButtons, JSON.stringify(landscapeWidth.decisionButtons)).toHaveLength(2);
     expect(landscapeWidth.decisionGrid, JSON.stringify(landscapeWidth)).not.toBeNull();
     expect(landscapeWidth.decisionGrid.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 2);
