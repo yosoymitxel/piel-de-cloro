@@ -1,7 +1,8 @@
 import {
   avatarGeneratorOptions,
   generateAvatarDataUri,
-  generateAvatarSvg
+  generateAvatarSvg,
+  resolveAvatarOptions
 } from "./AvatarGenerator.js";
 
 const byId = (id) => document.getElementById(id);
@@ -14,6 +15,7 @@ const controls = {
   faceShape: byId("face-shape"),
   clothes: byId("clothes"),
   accessory: byId("accessory"),
+  facialHair: byId("facial-hair"),
   eyes: byId("eyes"),
   mouth: byId("mouth"),
   exhausted: byId("exhausted"),
@@ -31,27 +33,31 @@ const faceLabels = {
   broad: "Ancho", angular: "Angular", heart: "Corazón"
 };
 const defaults = {
-  seed: "npc-daniel-morales", palette: "0", paletteSkin: true, skinColor: "#b78f78",
-  hair: "short", faceShape: "oval", clothes: "scavenger", accessory: "none",
-  eyes: "normal", mouth: "tight", exhausted: false, anomaly: false
+  seed: "npc-daniel-morales", palette: "", paletteSkin: true, skinColor: "#b78f78",
+  hair: "", faceShape: "", clothes: "", accessory: "", facialHair: "",
+  eyes: "", mouth: "", exhausted: false, anomaly: false
 };
 
 function readOptions() {
-  return {
-    seed: controls.seed.value.trim() || "npc-sin-id",
-    paletteIndex: Number(controls.palette.value),
-    skinColor: controls.paletteSkin.checked ? undefined : controls.skinColor.value,
-    hair: controls.hair.value,
-    faceShape: controls.faceShape.value,
-    clothes: controls.clothes.value,
-    accessory: controls.accessory.value,
-    eyeType: controls.eyes.value,
-    mouthType: controls.mouth.value,
-    exhausted: controls.exhausted.checked,
-    // A diagnostic can be previewed only through an explicit revealed state.
-    infected: controls.anomaly.checked,
-    revealed: controls.anomaly.checked
-  };
+  const options = { seed: controls.seed.value.trim() || "npc-sin-id" };
+  if (controls.palette.value !== "") options.paletteIndex = Number(controls.palette.value);
+  if (!controls.paletteSkin.checked) options.skinColor = controls.skinColor.value;
+  const traitControls = [
+    ["hair", "hair"], ["faceShape", "faceShape"], ["clothes", "clothes"],
+    ["accessory", "accessory"], ["facialHair", "facialHair"],
+    ["eyes", "eyeType"], ["mouth", "mouthType"]
+  ];
+  traitControls.forEach(([controlKey, optionKey]) => {
+    const value = controls[controlKey].value;
+    if (value !== "") options[optionKey] = value;
+  });
+  if (controls.exhausted.checked) options.exhausted = true;
+  // Anomaly appearance is allowed only in this explicit, already-revealed preview.
+  if (controls.anomaly.checked) {
+    options.infected = true;
+    options.revealed = true;
+  }
+  return options;
 }
 function makePaletteSwatches() {
   const container = byId("palette-swatches");
@@ -155,32 +161,57 @@ function updateFaceGallery() {
   });
 }
 function containerState() {
-  const paletteIndex = Number(controls.palette.value);
+  const chosenPalette = controls.palette.value;
   [...byId("palette-swatches").querySelectorAll(".palette-swatch")].forEach(button => {
-    button.setAttribute("aria-pressed", String(Number(button.dataset.palette) === paletteIndex));
+    button.setAttribute("aria-pressed", String(chosenPalette !== "" && button.dataset.palette === chosenPalette));
   });
 }
 function update() {
   const options = readOptions();
   const { seed, ...visualOptions } = options;
+  const resolved = resolveAvatarOptions(seed, visualOptions);
   const svg = generateAvatarSvg(seed, visualOptions);
-  const palette = avatarGeneratorOptions.palettes[options.paletteIndex];
-  const visibleSkin = options.skinColor || palette.skin;
+  const palette = avatarGeneratorOptions.palettes[resolved.paletteIndex];
+  const visibleSkin = resolved.skinColor;
+
   controls.skinColor.disabled = controls.paletteSkin.checked;
   if (controls.paletteSkin.checked) controls.skinColor.value = palette.skin;
+
   portrait.src = generateAvatarDataUri(seed, visualOptions);
-  portrait.dataset.hairStyle = options.hair;
-  portrait.dataset.faceShape = options.faceShape;
-  portrait.dataset.paletteIndex = String(options.paletteIndex);
+  portrait.dataset.hairStyle = resolved.hair;
+  portrait.dataset.faceShape = resolved.faceShape;
+  portrait.dataset.paletteIndex = String(resolved.paletteIndex);
   portrait.dataset.npcId = seed;
+  portrait.dataset.clothes = resolved.clothes;
+  portrait.dataset.facialHair = resolved.facialHair;
+  portrait.dataset.generatedSignature = JSON.stringify([
+    resolved.paletteIndex, resolved.skinColor, resolved.hair, resolved.faceShape,
+    resolved.clothes, resolved.accessory, resolved.facialHair,
+    resolved.eyeType, resolved.mouthType
+  ]);
+
   byId("preview-id").textContent = seed.toUpperCase().replace(/[^A-Z0-9_-]/g, "_").slice(0, 34);
-  byId("preview-state").textContent = options.anomaly ? "ANOMALÍA REVELADA" : "SIN REVELAR";
+  byId("preview-state").textContent = options.revealed ? "ANOMALÍA REVELADA" : "SIN REVELAR";
   byId("skin-hex").textContent = `PIEL ${visibleSkin.toUpperCase()}`;
   byId("hair-hex").textContent = `PELO ${palette.hair.toUpperCase()}`;
   byId("accent-hex").textContent = `ACENTO ${palette.accent.toUpperCase()}`;
   document.querySelector(".skin-dot").style.background = visibleSkin;
   document.querySelector(".hair-dot").style.background = palette.hair;
   document.querySelector(".accent-dot").style.background = palette.accent;
+
+  const clothesLabels = { worker: "MANTENIMIENTO", civilian: "CIVIL", scavenger: "CHATARRERO", suit: "FORMAL", rags: "HARAPOS" };
+  const accessoryLabels = { none: "NINGUNO", glasses: "LENTES", mask: "MÁSCARA", scar: "CICATRIZ", patch: "PARCHE", earring: "ARO", hood: "CAPUCHA" };
+  const facialHairLabels = { none: "SIN VELLO", beard: "BARBA", stubble: "BARBA DE DÍAS", mustache: "BIGOTE" };
+  byId("resolved-traits").textContent = [
+    `PELO: ${hairLabels[resolved.hair] || resolved.hair}`,
+    `ROSTRO: ${faceLabels[resolved.faceShape] || resolved.faceShape}`,
+    `ROPA: ${clothesLabels[resolved.clothes] || resolved.clothes}`,
+    `VELLO: ${facialHairLabels[resolved.facialHair] || resolved.facialHair}`,
+    `ACCESORIO: ${accessoryLabels[resolved.accessory] || resolved.accessory}`,
+    `OJOS: ${resolved.eyeType.toUpperCase()}`,
+    `BOCA: ${resolved.mouthType.toUpperCase()}`
+  ].join("  /  ");
+
   byId("source-summary").textContent = `generateAvatarSvg("${seed}", ${JSON.stringify(visualOptions)})`;
   svgSource.textContent = svg;
   byId("render-status").textContent = "RENDER OK";
@@ -198,6 +229,7 @@ function setDefaults() {
   controls.faceShape.value = defaults.faceShape;
   controls.clothes.value = defaults.clothes;
   controls.accessory.value = defaults.accessory;
+  controls.facialHair.value = defaults.facialHair;
   controls.eyes.value = defaults.eyes;
   controls.mouth.value = defaults.mouth;
   controls.exhausted.checked = defaults.exhausted;
