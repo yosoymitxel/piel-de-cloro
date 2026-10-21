@@ -75,7 +75,7 @@ export class AvatarRenderer {
                 <div class="npc-glitch-layer"></div>
 
                 <!-- NPC Content Area -->
-                <div class="npc-content-wrapper ${pixelArtEnabled ? 'has-pixel-portrait' : ''}">
+                <div class="npc-content-wrapper has-pixel-portrait">
                     ${pixelPortraitHTML}
                     <div class="pixel-avatar ${sizeClass} ${npc.isInfected ? 'infected' : ''} ${npc.loreId ? 'lore-' + npc.loreId.replace('lore_', '') : ''} state-${modifier}">
                         <div class="avatar-body ${npc.visualFeatures.clothes || 'civilian'}">
