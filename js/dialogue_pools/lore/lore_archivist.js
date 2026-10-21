@@ -11,7 +11,7 @@ export const lore_archivist = {
     nodes: {
         'la_n1': {
             id: 'la_n1',
-            text: "*Su cuerpo es un mapa de cicatrices con texto ilegible.* \"Lee... la historia está en la carne. Cada corte es un día de supervivencia. ¿Qué capítulo deseas conocer hoy?\" *Te ofrece una lupa.*",
+            text: "*No levanta la vista de las cicatrices de su brazo. Cuenta las marcas con el pulgar, como si comprobara un inventario.* \"No son adornos. Son fechas. Si dejo de registrarlas, empiezo a olvidar quién falta. Puedes leer, si no te importa lo que la gente hizo para seguir viva.\"",
             audio: 'lore_interlude_seen',
             options: [
                 { id: 'la_o1', label: 'Leer brazo izquierdo', next: 'la_n2' },
@@ -22,7 +22,7 @@ export const lore_archivist = {
         },
         'la_n2': {
             id: 'la_n2',
-            text: "*La piel está apergaminada. Lees: 'Día 402. El agua sabe a ceniza. Kystra ha muerto'.* \"¿Ves? No se puede borrar. La tinta se va, la cicatriz se queda.\"",
+            text: "*La piel está seca y tirante. Entre dos marcas hay una fecha tachada tres veces.* \"Día 402. Kystra murió. No escribí cómo. Primero anoté el hecho; el resto lo cambié tantas veces que ya no sé cuál versión vi yo y cuál me contaron.\"",
             options: [
                 { id: 'la_o2a', label: '¿Quién era Kystra?', next: 'la_n4', sets: ['known_kystra'] },
                 { id: 'la_o2b', label: 'Seguir leyendo el brazo', next: 'la_n2_b' }
@@ -44,7 +44,7 @@ export const lore_archivist = {
         },
         'la_n4': {
             id: 'la_n4',
-            text: "*Llora sangre.* \"Ella fue la primera en beber directamente del pozo. Dijo que escuchaba el mar. Ahora es parte del ciclo. Todos volveremos al agua.\"",
+            text: "*Aprieta los párpados. La sangre le resbala por la mejilla y él ni siquiera la limpia.* \"Kystra bebió del pozo después de que el filtro dio la alarma. Dijo que oía olas. Yo anoté 'fiebre'. Era una palabra más fácil de archivar que 'algo le contestó'.\"",
             options: [
                 { id: 'la_o4a', label: '¿Qué pozo?', next: 'la_n4_a' },
                 { id: 'la_o4b', label: 'Volver', next: 'la_n1' }
@@ -67,7 +67,7 @@ export const lore_archivist = {
         },
         'la_n6': {
             id: 'la_n6',
-            text: "\"Hace tres ciclos de líderes. Queríamos aire puro. Pero el aire puro nos quemaba los pulmones. Nos habíamos adaptado al cloro. La libertad nos asfixió.\"",
+            text: "\"Voren abrió la compuerta de ventilación. Juraba que afuera el aire era limpio. Tres personas llegaron hasta el corredor; ninguna pudo respirar. Después lo llamaron traidor para no tener que admitir que todos votamos a favor.\"",
             options: [
                 { id: 'la_o6a', label: '¿Quién lideraba?', next: 'la_n6_a' },
                 { id: 'la_o6b', label: 'Volver', next: 'la_n1' }
@@ -97,7 +97,7 @@ export const lore_archivist = {
         },
         'la_n8': {
             id: 'la_n8',
-            text: "*El pecho tiene un símbolo grande tallado, aún supurando.* \"El Juramento de Silencio. Lo rompí para hablar contigo. Cada palabra me cuesta sangre.\"",
+            text: "*En el pecho tiene un símbolo cortado sobre una cicatriz vieja. Al hablar, la herida vuelve a abrirse.* \"Hice un juramento de no hablar de lo que vi bajo la estación. Lo rompí porque tus registros terminan demasiado pronto. Alguien tiene que saber qué ocurrió después.\"",
             options: [
                 { id: 'la_o8a', label: '¿Por qué hablar entonces?', next: 'la_n9' },
                 { id: 'la_o8b', label: 'No hables más', next: null }
@@ -105,7 +105,7 @@ export const lore_archivist = {
         },
         'la_n9': {
             id: 'la_n9',
-            text: "\"Porque el final del libro se acerca. Y alguien debe leer el epílogo. Tú tienes ojos de lector. Ojos que han visto el abismo.\"",
+            text: "\"No sé si se acerca el final. Sé que ya no quedan páginas limpias en mi cuerpo y que cada año recuerdo menos. Si encuentras un registro que contradiga el mío, no lo destruyas. Por primera vez, quizá yo sea quien está equivocado.\"",
             options: [
                 { id: 'la_o9a', label: '¿Qué final?', next: 'la_n9_a' },
                 { id: 'la_o9b', label: 'Volver', next: 'la_n1' }
