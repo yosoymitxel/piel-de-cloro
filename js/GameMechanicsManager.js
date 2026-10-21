@@ -1171,6 +1171,13 @@ export class GameMechanicsManager {
                 }
                 npc.isBloodValidated = true; // Flag legacy para compatibilidad
 
+                // Cada sujeto infectado analizado aporta una muestra viable única.
+                if (npc.isInfected && !npc.cureSampleCollected) {
+                    npc.cureSampleCollected = true;
+                    State.cureProgress = Math.min(5, (State.cureProgress || 0) + 1);
+                    State.addLogEntry('system', `MUESTRA VIABLE: ${State.cureProgress}/5 registradas.`, { icon: 'fa-vial' });
+                }
+
                 const resultStr = npc.isInfected ? 'POSITIVO' : 'NEGATIVO';
                 
                 // Una sola notificación por resultado, con severidad explícita.
@@ -1840,7 +1847,9 @@ export class GameMechanicsManager {
         }
 
         this.ui.showLore('pre_final', () => {
-            if (infectedCount === 0) {
+            if (infectedCount === 0 && (State.cureProgress || 0) >= 5) {
+                this.game.endings.triggerEnding('final_cure');
+            } else if (infectedCount === 0) {
                 this.game.endings.triggerEnding('final_clean');
             } else {
                 this.game.endings.triggerEnding('final_corrupted');
