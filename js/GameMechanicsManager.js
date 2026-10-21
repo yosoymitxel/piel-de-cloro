@@ -1173,15 +1173,12 @@ export class GameMechanicsManager {
 
                 const resultStr = npc.isInfected ? 'POSITIVO' : 'NEGATIVO';
                 
-                // Notification for tutorial/HUD
-                if (this.ui.tutorialManager) {
-                    this.ui.tutorialManager.addMessage(`LAB: Resultados de ${npc.name} listos.`, "info");
-                }
-
-                // Enviar notificación al Tutorial Manager con estilo visual específico
-                if (this.game.ui.tutorialManager) {
+                // Una sola notificación por resultado, con severidad explícita.
+                // this.ui y this.game.ui son la misma instancia en el flujo normal.
+                const tutorialManager = this.game?.ui?.tutorialManager ?? this.ui?.tutorialManager;
+                if (tutorialManager) {
                     const type = npc.isInfected ? 'danger-green' : 'neutral-white';
-                    this.game.ui.tutorialManager.addMessage(`ANÁLISIS: ${npc.name}: ${resultStr}`, type);
+                    tutorialManager.addMessage(`ANÁLISIS: ${npc.name}: ${resultStr}`, type);
                 }
                 
                 // También añadir al log general (opcional, pero útil)
