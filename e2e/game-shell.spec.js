@@ -43,10 +43,6 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
   await page.screenshot({ path: tutorialShot, fullPage: true });
   await testInfo.attach('tutorial-screen', { path: tutorialShot, contentType: 'image/png' });
 
-  const skipDialogue = page.getByRole('button', { name: /SALTAR DIÁLOGO/i });
-  const touchTarget = await skipDialogue.boundingBox();
-  expect(touchTarget?.height ?? 0).toBeGreaterThanOrEqual(44);
-
   await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
   await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
   const skipDialogue = page.getByRole('button', { name: /OMITIR POR DIÁLOGO/i });
