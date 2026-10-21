@@ -239,7 +239,12 @@ export const State = {
             console.log('[Persistence] Loaded data:', data);
             if (data) {
                 if (data.unlockedEndings) this.unlockedEndings = data.unlockedEndings;
-                if (data.pinnedRooms) this.pinnedRooms = data.pinnedRooms; // Load pinned rooms
+                if (Array.isArray(data.pinnedRooms)) {
+                    // Ignore corrupt legacy values, duplicate IDs and entries beyond the UI limit.
+                    this.pinnedRooms = [...new Set(
+                        data.pinnedRooms.filter(roomId => typeof roomId === 'string' && roomId.trim())
+                    )].slice(0, 5);
+                }
                 if (data.currentLayoutKey) this.currentLayoutKey = data.currentLayoutKey;
                 if (data.lastRenderedShelterId) this.lastRenderedShelterId = data.lastRenderedShelterId;
                 if (data.audioSettings) {
