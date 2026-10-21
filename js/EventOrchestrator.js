@@ -7,6 +7,7 @@ export class EventOrchestrator {
         this.queue = [];
         this.isProcessing = false;
         this.currentEvent = null;
+        this.generation = 0;
     }
 
     /**
@@ -39,44 +40,49 @@ export class EventOrchestrator {
     }
 
     async process() {
-        if (this.isProcessing) return;
-        if (this.queue.length === 0) return;
+        if (this.isProcessing || this.queue.length === 0) return;
 
+        const generation = this.generation;
+        const event = this.queue.shift();
         this.isProcessing = true;
-        this.currentEvent = this.queue.shift();
+        this.currentEvent = event;
 
-        console.log(`[Orchestrator] Processing: ${this.currentEvent.id}`);
+        console.log(`[Orchestrator] Processing: ${event.id}`);
 
         try {
-            // Gestión de Audio automática según tipo
-            if (this.currentEvent.type === 'modal' || this.currentEvent.type === 'sequence') {
-                // Bajar volumen ambiental para foco
+            if (event.type === 'modal' || event.type === 'sequence') {
                 if (this.audio) this.audio.duckAmbient(0.1, 300);
             }
 
-            // Ejecutar y esperar
-            await this.currentEvent.execute();
-
+            await event.execute();
         } catch (error) {
-            console.error(`[Orchestrator] Error in event ${this.currentEvent ? this.currentEvent.id : 'unknown'}:`, error);
+            console.error(`[Orchestrator] Error in event ${event.id}:`, error);
         } finally {
-            // Restaurar estado
-            if (this.currentEvent && (this.currentEvent.type === 'modal' || this.currentEvent.type === 'sequence')) {
+            // clear() invalidates the in-flight generation. A stale promise must
+            // never clear or unduck a newer event that has already taken ownership.
+            if (generation !== this.generation) return;
+
+            if (event.type === 'modal' || event.type === 'sequence') {
                 if (this.audio) this.audio.unduckAmbient(500);
             }
 
-            this.currentEvent = null;
+            if (this.currentEvent === event) this.currentEvent = null;
             this.isProcessing = false;
-            
-            // Siguiente tick para evitar recursión profunda y permitir renderizado
-            setTimeout(() => this.process(), 10);
+
+            setTimeout(() => {
+                if (generation === this.generation) this.process();
+            }, 10);
         }
     }
 
     /**
-     * Limpia la cola de eventos (útil al reiniciar juego o cambiar escena crítica)
+     * Clears queued work and invalidates cleanup from any in-flight event.
+     * The running event cannot be forcibly cancelled unless its own executor
+     * supports cancellation, but its eventual finally block cannot corrupt the
+     * new queue's ownership state.
      */
     clear() {
+        this.generation += 1;
         this.queue = [];
         this.isProcessing = false;
         this.currentEvent = null;
