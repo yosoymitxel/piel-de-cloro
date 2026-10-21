@@ -1,4 +1,5 @@
 import { State } from './State.js';
+import { generateAvatarDataUri } from './avatar/AvatarGenerator.js?v=20261021-avatarfix2';
 
 export class AvatarRenderer {
     static render(npc, sizeClass = 'lg', modifier = 'normal') {
@@ -17,21 +18,30 @@ export class AvatarRenderer {
         const stableRoll = (identityHash >>> 0) / 4294967296;
         const statusText = stableRoll < errorChance ? 'SIGNAL_ERR' : 'SIG_STABLE';
 
-        // claude-pxl portraits are optional build-time assets. The existing
-        // procedural avatar remains the fallback when pixel mode or an asset is absent.
-        const pixelArtEnabled = typeof document !== 'undefined' &&
-            document.documentElement?.dataset?.art === 'pixel';
+        // Keep portraits visible even when the page's art-mode flag is stale.
+        // ClaudePXL PNGs are used for fixed lore characters; generic NPCs get a
+        // deterministic portrait from their stable ID and existing cosmetic traits.
         const lorePortraits = {
             lore_archivist: 'npc_archivist',
             lore_kael: 'npc_kael',
             lore_hive: 'npc_hive',
             lore_patient_zero: 'npc_patient_zero'
         };
-        // Los NPC genéricos comparten retrato neutral: el arte no debe revelar infección.
-        const portraitName = lorePortraits[npc.loreId] || 'npc_human';
-        const pixelPortraitHTML = pixelArtEnabled
-            ? `<img class="npc-pixel-portrait" src="assets/pixel/npcs/sprites/${portraitName}.png" alt="" aria-hidden="true" onload="this.parentElement.classList.add('has-pixel-portrait')" onerror="this.parentElement.classList.remove('has-pixel-portrait'); this.remove()">`
-            : '';
+        const portraitName = lorePortraits[npc.loreId] || null;
+        const features = npc.visualFeatures || {};
+        const generatedPortrait = generateAvatarDataUri(npc.id || npc.name || 'unknown-npc', {
+            hair: features.hair,
+            facialHair: features.facialHair,
+            clothes: features.clothes,
+            accessory: features.accessory,
+            eyeType: features.eyeType,
+            mouthType: features.mouthType,
+            skinColor: features.skinColor
+        });
+        const portraitSrc = portraitName
+            ? `assets/pixel/npcs/sprites/${portraitName}.png`
+            : generatedPortrait;
+        const pixelPortraitHTML = `<img class="npc-pixel-portrait" src="${portraitSrc}" data-fallback="${generatedPortrait}" alt="" aria-hidden="true" decoding="async" onload="this.parentElement.classList.add('has-pixel-portrait')" onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback;return;}this.parentElement.classList.remove('has-pixel-portrait');this.remove()">`;
 
         let accessoryHTML = '';
         if (npc.visualFeatures.accessory !== 'none') {
