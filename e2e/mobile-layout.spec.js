@@ -48,9 +48,8 @@ test.describe('dedicated mobile presentation', () => {
     // The first-day intro may show an interlude before gameplay. Close that
     // intentional narrative screen before asserting the game screen is active.
     const interludeContinue = page.locator('#btn-lore-continue-screen');
-    if (await interludeContinue.isVisible({ timeout: 2500 }).catch(() => false)) {
-      await interludeContinue.click();
-    }
+    await expect(interludeContinue).toBeVisible({ timeout: 2500 }).catch(() => {});
+    if (await interludeContinue.isVisible()) await interludeContinue.click();
     await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
     // Screenshot is captured after the control-size wait below, once the CRT entrance transition settles.
 
@@ -216,9 +215,8 @@ test('global pause control does not cover decision actions or the mobile navigat
   await expect(page.locator('#modal-tutorial')).toBeVisible({ timeout: 45000 });
   await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
   const interludeContinue = page.locator('#btn-lore-continue-screen');
-  if (await interludeContinue.isVisible({ timeout: 2500 }).catch(() => false)) {
-    await interludeContinue.click();
-  }
+  await expect(interludeContinue).toBeVisible({ timeout: 2500 }).catch(() => {});
+  if (await interludeContinue.isVisible()) await interludeContinue.click();
   await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
   const pause = page.locator('#btn-pause');
   // Some mobile states intentionally hide the global pause control; only
