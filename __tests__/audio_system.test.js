@@ -30,6 +30,14 @@ describe('Audio System (AudioManager)', () => {
         // or just check if it records the state.
     });
 
+    test('stopLore preserves legacy numeric fade durations', () => {
+        const fade = jest.spyOn(am, 'fade').mockImplementation(() => {});
+        am.stopLore(1200);
+
+        expect(fade).toHaveBeenCalledWith(am.channels.lore, 0, 1200, 'lore', expect.any(Function));
+        expect(am.desiredPlay.lore).toBe(false);
+    });
+
     test('Manifest loading', async () => {
         await am.loadManifest('mock_url');
         expect(am.manifest.test_sfx).toBe('path/to/test.mp3');
