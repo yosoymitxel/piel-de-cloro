@@ -20,9 +20,25 @@ describe("AvatarGenerator", () => {
 
   test("la coleta es una silueta explícita que sobresale de la cabeza", () => {
     const svg = generateAvatarSvg("same-npc", { hair: "ponytail", paletteIndex: 1 });
-    expect(svg).toContain('x="24" y="12" width="3" height="7"');
+    expect(svg).toContain('x="25" y="13" width="3" height="6"');
     expect(svg).toContain('x="23" y="12" width="3" height="1"');
     expect(svg).not.toBe(generateAvatarSvg("same-npc", { hair: "short", paletteIndex: 1 }));
+  });
+
+  test("calvo no dibuja una franja negra que parezca pelo", () => {
+    const bald = generateAvatarSvg("bald-subject", {
+      paletteIndex: 0, hair: "bald", facialHair: "none", accessory: "none"
+    });
+    expect(bald).not.toContain('fill="#20242c"');
+  });
+
+  test("las diez siluetas de pelo producen diez diseños distintos", () => {
+    const designs = avatarGeneratorOptions.hairStyles.map(hair =>
+      generateAvatarSvg("same-subject", {
+        paletteIndex: 0, hair, facialHair: "none", accessory: "none"
+      })
+    );
+    expect(new Set(designs).size).toBe(10);
   });
 
   test("el pelo, ropa, accesorios, ojos y expresiones son variantes del generador, no fotos", () => {
