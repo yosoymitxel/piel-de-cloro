@@ -10,6 +10,7 @@ test('avatar lab renders code-generated skins and editable hairstyle variants', 
   await expect(portrait).toBeVisible();
   await expect.poll(() => portrait.evaluate(img => img.naturalWidth)).toBe(256);
   await expect(page.locator('#hair-gallery .hair-card')).toHaveCount(10);
+  await expect(page.locator('#face-gallery .hair-card')).toHaveCount(7);
   await expect(page.locator('#svg-source')).toContainText('<svg');
   await expect(page.locator('#pxl-source')).toContainText('sprite(\"npc_human\"');
 
@@ -20,8 +21,15 @@ test('avatar lab renders code-generated skins and editable hairstyle variants', 
   await expect(page.locator('#svg-source')).toContainText('width="3" height="7"');
   expect(await portrait.getAttribute('src')).not.toBe(before);
 
+  await page.locator('#face-shape').selectOption('angular');
+  await expect(portrait).toHaveAttribute('data-face-shape', 'angular');
+  await expect(page.locator('#face-gallery .hair-card[aria-pressed="true"]')).toHaveAttribute('data-face-shape', 'angular');
+
   await page.locator('#palette').selectOption('3');
   await expect(page.locator('#palette-swatches button[aria-pressed="true"]')).toHaveAttribute('data-palette', '3');
+  await page.locator('#palette-skin').uncheck();
+  await page.locator('#skin-color').fill('#6a3f2e');
+  await expect(page.locator('#svg-source')).toContainText('fill="#6a3f2e"');
   await page.locator('#seed').fill('npc-stable-identifier-27');
   await expect(portrait).toHaveAttribute('data-npc-id', 'npc-stable-identifier-27');
 
