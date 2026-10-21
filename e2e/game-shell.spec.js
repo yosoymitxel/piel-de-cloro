@@ -33,6 +33,10 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
   });
   await page.getByRole('button', { name: /INICIAR PARTIDA/i }).click();
   await expect(page.locator('#modal-tutorial')).toBeVisible({ timeout: 45000 });
+  if (await page.evaluate(() => window.innerWidth <= 640)) {
+    const headerLayout = await page.locator('#modal-tutorial .horror-panel-modal > header').evaluate(el => getComputedStyle(el).flexDirection);
+    expect(headerLayout, 'tutorial header must stack on mobile').toBe('column');
+  }
 
   const tutorialShot = testInfo.outputPath('tutorial-screen.png');
   await page.screenshot({ path: tutorialShot, fullPage: true });
