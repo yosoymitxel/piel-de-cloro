@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10181b">
+  <title>Laboratorio de avatares · Piel de Cloro</title>
+  <link rel="stylesheet" href="css/avatar-lab.css?v=20261021-lab1">
+</head>
+<body>
+  <main class="lab-shell">
+    <header class="lab-topbar">
+      <a class="lab-back" href="./">← VOLVER AL PUESTO</a>
+      <div class="lab-mark"><span class="status-led"></span> HERRAMIENTA INTERNA / BUILD DE ARTE</div>
+      <h1>Laboratorio de identidades</h1>
+      <p>Skins generadas desde código. Sin fotos, sin assets externos y sin aleatoriedad al volver a renderizar el mismo ID.</p>
+      <div class="lab-meta"><span>SVG PIXELADO</span><span>CLAUDE-PXL</span><span>IDENTIDAD DETERMINISTA</span></div>
+    </header>
+
+    <section class="lab-workbench" aria-labelledby="editor-title">
+      <div class="lab-panel controls-panel">
+        <div class="panel-heading"><span class="panel-index">A</span><div><h2 id="editor-title">Constructor de skin</h2><p>Editá los rasgos y mirá el resultado inmediatamente.</p></div></div>
+        <label class="field-label" for="seed">ID / semilla del NPC</label>
+        <div class="seed-row"><input id="seed" value="npc-daniel-morales" autocomplete="off"><button id="new-seed" class="quiet-button" type="button">Nuevo ID</button></div>
+
+        <label class="field-label" for="palette">Paleta de piel</label>
+        <select id="palette">
+          <option value="0">Acero húmedo</option><option value="1">Óxido</option><option value="2">Carbón</option><option value="3">Sal pálida</option><option value="4">Cemento</option>
+        </select>
+        <div id="palette-swatches" class="palette-swatches" aria-label="Muestras de paleta"></div>
+
+        <label class="field-label" for="hair">Peinado / silueta</label>
+        <select id="hair">
+          <option value="bald">Calvo</option><option value="shaved">Rapado</option><option value="short" selected>Corto</option><option value="long">Largo</option><option value="bob">Bob</option><option value="ponytail">Coleta (ponytail)</option><option value="bun">Rodete</option><option value="wild">Desprolijo</option><option value="mohawk">Mohicano</option><option value="punk">Punk</option>
+        </select>
+
+        <label class="field-label" for="clothes">Ropa</label>
+        <select id="clothes"><option value="worker">Mantenimiento</option><option value="civilian">Civil</option><option value="scavenger" selected>Chatarrero</option><option value="suit">Formal</option><option value="rags">Harapos</option></select>
+
+        <label class="field-label" for="accessory">Accesorio</label>
+        <select id="accessory"><option value="none">Ninguno</option><option value="glasses">Lentes</option><option value="mask">Máscara</option><option value="scar">Cicatriz</option><option value="patch">Parche ocular</option><option value="earring">Aro</option><option value="hood">Capucha</option></select>
+
+        <div class="field-pair">
+          <div><label class="field-label" for="eyes">Mirada</label><select id="eyes"><option value="normal">Normal</option><option value="narrow">Entrecerrada</option><option value="big">Abierta</option><option value="tired">Cansada</option><option value="squint">Entrecerrar</option></select></div>
+          <div><label class="field-label" for="mouth">Boca</label><select id="mouth"><option value="tight">Tensa</option><option value="smile">Sonrisa</option><option value="frown">Fruncida</option><option value="open">Abierta</option><option value="crooked">Torcida</option></select></div>
+        </div>
+        <label class="check-row"><input type="checkbox" id="exhausted"><span><b>Cansancio visible</b><small>Sombras debajo de los ojos.</small></span></label>
+        <label class="check-row warning-check"><input type="checkbox" id="anomaly"><span><b>Anomalía revelada</b><small>Solo para probar una vista donde ya se conoce el resultado.</small></span></label>
+        <div class="control-actions"><button id="reset" class="quiet-button" type="button">Restablecer</button><button id="copy-config" class="primary-button" type="button">Copiar configuración</button></div>
+        <p id="copy-status" class="micro-status" role="status" aria-live="polite"></p>
+      </div>
+
+      <div class="lab-panel hero-panel">
+        <div class="panel-heading"><span class="panel-index">B</span><div><h2>Vista de inspección</h2><p>Render exacto del generador que usa el juego.</p></div><span id="render-status" class="render-status">RENDER OK</span></div>
+        <div class="portrait-stage">
+          <div class="stage-index">TERMINAL R-01 / SUBJECT PREVIEW</div>
+          <div class="portrait-frame">
+            <img id="current-portrait" width="256" height="320" alt="Vista previa pixel art del NPC" data-hair-style="short">
+            <div class="portrait-id"><span id="preview-id">NPC-DANIEL-MORALES</span><b id="preview-state">SIN REVELAR</b></div>
+          </div>
+          <div class="portrait-caption"><span>PROCEDURAL / SVG</span><span id="portrait-size">32 × 40 PX LÓGICOS</span></div>
+        </div>
+        <div class="current-palette">
+          <div><span class="swatch-dot skin-dot"></span><span id="skin-hex">PIEL #B78F78</span></div>
+          <div><span class="swatch-dot hair-dot"></span><span id="hair-hex">PELO #20242C</span></div>
+          <div><span class="swatch-dot accent-dot"></span><span id="accent-hex">ACENTO #70BCB2</span></div>
+        </div>
+        <details class="source-details" open>
+          <summary>Fuente SVG generada <span>· código real del retrato</span></summary>
+          <div class="source-toolbar"><code id="source-summary">generateAvatarSvg(seed, options)</code><button id="copy-svg" type="button" class="quiet-button">Copiar SVG</button></div>
+          <pre id="svg-source" aria-label="Código SVG generado"></pre>
+        </details>
+      </div>
+    </section>
+
+    <section class="lab-panel gallery-section" aria-labelledby="hair-gallery-title">
+      <div class="section-title-row"><div><span class="section-kicker">VARIANTES COSMÉTICAS</span><h2 id="hair-gallery-title">Siluetas de pelo</h2><p>Se compara el mismo NPC con la misma paleta: solo cambia el peinado. Elegí una muestra para editarla.</p></div><span id="hair-count" class="count-code">10 FORMAS</span></div>
+      <div id="hair-gallery" class="hair-gallery"></div>
+    </section>
+
+    <section class="lab-panel gallery-section" aria-labelledby="pxl-gallery-title">
+      <div class="section-title-row"><div><span class="section-kicker">ASSETS DEL REPOSITORIO</span><h2 id="pxl-gallery-title">Retratos ClaudePXL</h2><p>PNGs compilados desde <code>art/npcs.px.js</code>. La fuente editable es el archivo de código, no estas salidas generadas.</p></div><a class="source-link" href=".claude/skills/pxl-pixel-art/SKILL.md">Abrir skill PXL ↗</a></div>
+      <div id="pxl-gallery" class="pxl-gallery">
+        <article class="pxl-card"><div class="pxl-frame"><img src="assets/pixel/npcs/sprites/npc_human.png?v=20261021-lab1" alt="Sprite ClaudePXL NPC neutral"></div><div class="pxl-name"><b>npc_human</b><code>generic</code></div></article>
+        <article class="pxl-card"><div class="pxl-frame"><img src="assets/pixel/npcs/sprites/npc_archivist.png?v=20261021-lab1" alt="Sprite ClaudePXL archivista"></div><div class="pxl-name"><b>npc_archivist</b><code>lore</code></div></article>
+        <article class="pxl-card"><div class="pxl-frame"><img src="assets/pixel/npcs/sprites/npc_kael.png?v=20261021-lab1" alt="Sprite ClaudePXL Kael"></div><div class="pxl-name"><b>npc_kael</b><code>lore</code></div></article>
+        <article class="pxl-card"><div class="pxl-frame"><img src="assets/pixel/npcs/sprites/npc_hive.png?v=20261021-lab1" alt="Sprite ClaudePXL entidad encapuchada"></div><div class="pxl-name"><b>npc_hive</b><code>lore</code></div></article>
+        <article class="pxl-card"><div class="pxl-frame"><img src="assets/pixel/npcs/sprites/npc_patient_zero.png?v=20261021-lab1" alt="Sprite ClaudePXL paciente cero"></div><div class="pxl-name"><b>npc_patient_zero</b><code>lore</code></div></article>
+        <article class="pxl-card"><div class="pxl-frame"><img src="assets/pixel/npcs/sprites/npc_infected.png?v=20261021-lab1" alt="Sprite ClaudePXL anomalía revelada"></div><div class="pxl-name"><b>npc_infected</b><code>revealed only</code></div></article>
+      </div>
+    </section>
+
+    <footer class="lab-footer"><span>ARTE COMO CÓDIGO / NO HAY FOTOS EXTERNAS</span><span><a href="js/avatar/AvatarGenerator.js">AvatarGenerator.js</a> · <a href="art/npcs.px.js">npcs.px.js</a> · <a href="docs/avatar-generator.md">documentación</a></span></footer>
+  </main>
+  <script type="module" src="js/avatar/AvatarLab.js?v=20261021-lab1"></script>
+</body>
+</html>
