@@ -9,7 +9,7 @@ export const gen_pools_2 = {
         nodes: {
             'gsh_n1': {
                 id: 'gsh_n1',
-"*Mira dos veces hacia el pasillo cada vez que parpadea la lámpara. «Con esta luz, cualquier cosa parece moverse. ¿Siempre falla así?»*""*Mira dos veces hacia el pasillo cada vez que parpadea la lámpara. «Con esta luz, cualquier cosa parece moverse. ¿Siempre falla así?»*",
+                text: "*Mira dos veces hacia el pasillo cada vez que parpadea la lámpara. «Con esta luz, cualquier cosa parece moverse. ¿Siempre falla así?»*",
                 options: [
                     { id: 'gsh_o1', label: 'Es el generador', next: 'gsh_n2a' },
                     { id: 'gsh_o2', label: '¿Qué formas?', next: 'gsh_n2b' }
