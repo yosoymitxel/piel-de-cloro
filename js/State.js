@@ -422,6 +422,7 @@ export const State = {
         // Reset dialogue trackers and flags
         this.dialoguePoolsUsed = [];
         this.dialoguePoolsLastUsed = {};
+        this.dialogueFlags = {}; // Flags belong to this run; never leak into a new game.
         this.gameLog = [];
         this.rumorLog = [];
         this.loreLog = [];
