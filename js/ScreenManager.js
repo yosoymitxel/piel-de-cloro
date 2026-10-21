@@ -5,17 +5,25 @@ export class ScreenManager {
         this.ui = uiManager;
         this.screens = uiManager.screens;
         this.elements = uiManager.elements;
-        this.pendingScreenTimer = null;
+        this.pendingTransition = null;
         this.transitionRequestId = 0;
     }
 
     showScreen(screenName, state) {
+        // Never hide the active screen for an unknown destination. A typo or
+        // stale screen ID must fail closed instead of producing a black main area.
+        if (!screenName || !Object.prototype.hasOwnProperty.call(this.screens, screenName) || !this.screens[screenName]) {
+            console.error(`[ScreenManager] Refusing unknown screen: ${screenName}`);
+            return Promise.resolve(false);
+        }
+
         // A screen switch is delayed for the CRT effect. Cancel older pending
         // switches so an outdated callback cannot hide the screen requested last.
         const requestId = ++this.transitionRequestId;
-        if (this.pendingScreenTimer !== null) {
-            clearTimeout(this.pendingScreenTimer);
-            this.pendingScreenTimer = null;
+        if (this.pendingTransition) {
+            clearTimeout(this.pendingTransition.timer);
+            this.pendingTransition.resolve(false);
+            this.pendingTransition = null;
         }
         // Cancel purge animation if active
         if (this.ui && this.ui.cancelPurgeAnimation) {
@@ -119,20 +127,30 @@ export class ScreenManager {
             }
 
             this.lastScreen = screenName;
+            return true;
         };
 
         if (isDifferentScreen) {
             monitor.removeClass('tube-power-on');
-            // Pequeño delay para simular el cambio de canal. Keep the timer
-            // cancellable because multiple transitions can be requested during
-            // a day/night hand-off (purge, sleep, and next-day initialization).
-            this.pendingScreenTimer = setTimeout(() => {
-                this.pendingScreenTimer = null;
-                changeLogic();
-            }, 150);
-        } else {
-            changeLogic();
+            // The caller can await the visual commit. If a newer destination
+            // supersedes this one, resolve this request as cancelled instead
+            // of leaving the caller waiting forever.
+            return new Promise(resolve => {
+                const pending = {
+                    timer: null,
+                    resolve
+                };
+                this.pendingTransition = pending;
+                pending.timer = setTimeout(() => {
+                    if (this.pendingTransition === pending) {
+                        this.pendingTransition = null;
+                    }
+                    resolve(changeLogic());
+                }, 150);
+            });
         }
+
+        return Promise.resolve(changeLogic());
     }
 
     updateSidebarActive(screenName, state) {

@@ -9,6 +9,7 @@ export class GameMechanicsManager {
         this.audio = game.audio;
         this.nightResolutionHooks = [];
         this.nightTransitionInFlight = false;
+        this.startNextDayPromise = null;
         this.registerDefaultHooks();
     }
 
@@ -1092,6 +1093,25 @@ export class GameMechanicsManager {
     }
 
     startNextDay() {
+        // Night-lore callbacks can fire more than once (double tap, repeated
+        // event, or stale callback). Share one in-flight day transition so the
+        // cycle and departures are processed exactly once.
+        if (this.startNextDayPromise) return this.startNextDayPromise;
+
+        const transition = Promise.resolve().then(() => this._startNextDay());
+        this.startNextDayPromise = transition;
+        transition.then(
+            () => {
+                if (this.startNextDayPromise === transition) this.startNextDayPromise = null;
+            },
+            () => {
+                if (this.startNextDayPromise === transition) this.startNextDayPromise = null;
+            }
+        );
+        return transition;
+    }
+
+    async _startNextDay() {
         State.startNextDay();
         // Reset per-night guards for the new cycle; the next night must run once.
         State.lastNight.occurred = false;
@@ -1122,10 +1142,24 @@ export class GameMechanicsManager {
                 }
             }
         }
-        this.game.events.switchScreen(CONSTANTS.SCREENS.GAME, {
-            force: true,
-            lockNav: false
-        });
+        // Commit the guard screen before advancing turn logic. nextTurn() can
+        // immediately trigger another phase transition, so running it before
+        // this navigation finishes can leave the main area with no active screen.
+        // This state transition has already committed the new cycle and
+        // departure results. If a stale navigation supersedes the first UI
+        // request, retry the guard screen rather than silently stranding the
+        // game between cycles.
+        let screenCommitted = false;
+        for (let attempt = 0; attempt < 3 && screenCommitted === false; attempt++) {
+            screenCommitted = await this.game.events.switchScreen(CONSTANTS.SCREENS.GAME, {
+                force: true,
+                lockNav: false
+            });
+        }
+        if (screenCommitted === false) {
+            throw new Error('Unable to commit the guard screen after three transition attempts.');
+        }
+
         this.game.nextTurn();
         this.updateTurnEndSystems();
         this.ui.updateRunStats(State);
@@ -1340,7 +1374,13 @@ export class GameMechanicsManager {
     }
 
     continueDay() {
-        this.startNextDay();
+        // Night resolution is the sole owner of the night -> day hand-off.
+        // A stale/double-fired lore callback must not advance another cycle
+        // after the first transition has reset this guard.
+        if (!State.isNight || !State.lastNight.resolutionStarted) {
+            return Promise.resolve(false);
+        }
+        return this.startNextDay();
     }
 
     processIntrusions() {

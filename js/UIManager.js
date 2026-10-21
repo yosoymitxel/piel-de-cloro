@@ -888,10 +888,11 @@ export class UIManager {
 
     showScreen(screenName) {
         this.cancelPurgeAnimation();
-        this.screenManager.showScreen(screenName, State);
+        const transition = this.screenManager.showScreen(screenName, State);
 
-        // Refrescar pines del sidebar
+        // Refrescar pines del sidebar independently of the visual transition.
         this.renderPinnedRooms(State);
+        return transition;
     }
 
     renderFinalStats(state, endingId) {
@@ -4124,12 +4125,14 @@ export class UIManager {
         // Ejecutar el cambio de pantalla directamente
         if (onMidPoint) {
             try {
-                onMidPoint();
-                console.log("[TRANSITION] Midpoint callback executed successfully");
+                return await onMidPoint();
             } catch (e) {
                 console.error("[TRANSITION] Error during transition midpoint:", e);
+                throw e;
             }
         }
+
+        return true;
 
         /*
         await new Promise(r => setTimeout(r, 100));

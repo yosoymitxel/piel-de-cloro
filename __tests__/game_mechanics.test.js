@@ -244,7 +244,7 @@ describe('Game Mechanics Manager', () => {
     });
 
     describe('State Transitions', () => {
-        test('startNextDay increments cycle and handles departures', () => {
+        test('startNextDay increments cycle and handles departures', async () => {
             const npc1 = { name: 'NPC 1', id: 1 };
             const npc2 = { name: 'NPC 2', id: 2 };
             State.admittedNPCs = [npc1, npc2];
@@ -253,7 +253,7 @@ describe('Game Mechanics Manager', () => {
             // Mock Math.random to guarantee 1 departure
             const spy = jest.spyOn(Math, 'random').mockReturnValue(0.1);
 
-            gmm.startNextDay();
+            await gmm.startNextDay();
 
             expect(State.cycle).toBe(2);
             expect(State.admittedNPCs.length).toBeLessThan(2);
