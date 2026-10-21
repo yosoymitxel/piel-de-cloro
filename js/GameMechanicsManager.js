@@ -1234,6 +1234,31 @@ export class GameMechanicsManager {
         };
     }
 
+    synthesizeCure() {
+        if (!State.generator.isOn) {
+            return { success: false, message: "ERROR: GENERADOR APAGADO" };
+        }
+        if (!State.generator.systems?.shelterLab?.active) {
+            return { success: false, message: "ERROR: LABORATORIO APAGADO" };
+        }
+        if ((State.cureProgress || 0) < 5) {
+            return { success: false, message: `MUESTRAS INSUFICIENTES (${State.cureProgress || 0}/5)` };
+        }
+        if (State.cureSynthesized) {
+            return { success: false, message: "LA CURA YA FUE SINTETIZADA" };
+        }
+
+        const ENERGY_COST = 50;
+        if (State.generator.power < ENERGY_COST) {
+            return { success: false, message: `ENERGÍA INSUFICIENTE (REQ: ${ENERGY_COST}%)` };
+        }
+
+        State.updateGeneratorPower(-ENERGY_COST);
+        State.cureSynthesized = true;
+        State.addLogEntry('system', 'LABORATORIO: Cura sintetizada a partir de cinco muestras viables.', { icon: 'fa-flask-vial' });
+        return { success: true, message: 'CURA SINTETIZADA. PROTOCOLO DE EVACUACIÓN DISPONIBLE.' };
+    }
+
     assignNPCToSector(npc, sector) {
         if (this.game.assignments) {
             this.game.assignments.assign(npc.id, sector);
@@ -1850,7 +1875,7 @@ export class GameMechanicsManager {
         }
 
         this.ui.showLore('pre_final', () => {
-            if (infectedCount === 0 && (State.cureProgress || 0) >= 5) {
+            if (infectedCount === 0 && State.cureSynthesized) {
                 this.game.endings.triggerEnding('final_cure');
             } else if (infectedCount === 0) {
                 this.game.endings.triggerEnding('final_clean');
