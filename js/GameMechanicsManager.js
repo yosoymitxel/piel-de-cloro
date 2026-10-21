@@ -878,8 +878,8 @@ export class GameMechanicsManager {
         const admitted = State.admittedNPCs;
         let summary = "";
 
-        if (admitted.length === 0) return summary;
-
+        // Nightly system hooks (generator recharge, life support, security, anomalies)
+        // must run even when the shelter has no admitted NPCs.
         let totalConsumption = 0;
         let scavenged = 0;
         let sanityMod = 0;
