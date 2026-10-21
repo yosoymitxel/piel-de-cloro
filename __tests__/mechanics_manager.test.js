@@ -149,6 +149,18 @@ describe('GameMechanicsManager', () => {
     });
 
     describe('Night Resolution Deep Logic', () => {
+        test('nightly generator recharge still runs when shelter is empty', () => {
+            State.admittedNPCs = [];
+            State.generator.power = 50;
+            State.fuel = 10;
+
+            gmm.processNightResourcesAndTraits();
+
+            expect(State.generator.power).toBe(75);
+            expect(State.fuel).toBe(8);
+        });
+
+
         test('scavenger trait increases supplies at night', () => {
             const npc = new NPC();
             npc.trait = { id: 'scavenger', name: 'Scavenger' };
