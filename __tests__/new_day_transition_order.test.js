@@ -67,6 +67,7 @@ describe('New-day transition ordering', () => {
         mechanics.updateTurnEndSystems = jest.fn();
 
         const start = mechanics.startNextDay();
+        await Promise.resolve();
 
         expect(game.events.switchScreen).toHaveBeenCalledWith('game', {
             force: true,
