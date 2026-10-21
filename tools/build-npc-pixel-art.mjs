@@ -14,7 +14,7 @@ const args = [
   'build',
   'art/npcs.px.js',
   '--out',
-  'assets/pixel/npcs/sprites'
+  'assets/pixel/npcs'
 ];
 
 const result = spawnSync('npx', args, { stdio: 'inherit', shell: process.platform === 'win32' });
