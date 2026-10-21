@@ -47,6 +47,9 @@ describe('NPC Sabotage & Sector Assignment', () => {
         State.admittedNPCs.push(infectedNpc);
         mechanics.assignNPCToSector(infectedNpc, 'security');
 
+        // Make the security effect deterministic: sabotage can only unlock a secured, non-alarm item.
+        State.securityItems = [{ type: 'puerta', secured: true }];
+
         // Mocking random to ensure sabotage
         jest.spyOn(Math, 'random').mockReturnValue(0.01);
 
