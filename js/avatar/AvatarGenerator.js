@@ -60,12 +60,22 @@ export function generateAvatarSvg(seed,options={}) {
     ? ((options.paletteIndex%PALETTES.length)+PALETTES.length)%PALETTES.length
     : mappedSkin ?? Math.floor(random()*PALETTES.length);
   const p=PALETTES[paletteIndex];
-  const hairStyle=safeHair(options.hair);
+  // If the caller does not supply cosmetics, derive them from the seed. This
+  // guarantees that different NPC IDs can produce visibly different designs,
+  // while explicit NPC traits always win and remain stable across rerenders.
+  const hairStyles=Object.keys(HAIR);
+  const clothesOptions=["worker","civilian","scavenger","suit","rags"];
+  const accessoryOptions=["none","glasses","mask","scar","patch","earring","hood"];
+  const eyeOptions=["normal","narrow","big","tired","squint"];
+  const mouthOptions=["smile","frown","open","tight","crooked"];
+  const hairStyle=options.hair == null
+    ? hairStyles[Math.floor(random()*hairStyles.length)]
+    : safeHair(options.hair);
   const hair=HAIR[hairStyle];
-  const clothes=safeOption(options.clothes,["worker","civilian","scavenger","suit","rags"],"scavenger");
-  const accessory=safeOption(options.accessory,["none","glasses","mask","scar","patch","earring","hood"],"none");
-  const eyeType=safeOption(options.eyeType,["normal","narrow","big","tired","squint"],"normal");
-  const mouthType=safeOption(options.mouthType,["smile","frown","open","tight","crooked"],"tight");
+  const clothes=safeOption(options.clothes,clothesOptions,clothesOptions[Math.floor(random()*clothesOptions.length)]);
+  const accessory=safeOption(options.accessory,accessoryOptions,accessoryOptions[Math.floor(random()*accessoryOptions.length)]);
+  const eyeType=safeOption(options.eyeType,eyeOptions,eyeOptions[Math.floor(random()*eyeOptions.length)]);
+  const mouthType=safeOption(options.mouthType,mouthOptions,mouthOptions[Math.floor(random()*mouthOptions.length)]);
   const shirtMap={
     worker:{base:"#8d4a2e",light:"#c77a48",dark:"#4b2d2a"},
     civilian:{base:"#345a70",light:"#5f899a",dark:"#203744"},
