@@ -99,7 +99,7 @@ export class GameActionHandler {
         // Iniciar countdown
         State.generator.bloodTestId = npc.id || npc.name;
         State.generator.bloodTestCountdown = 2;
-        State.paranoia += 15; // Coste de tensión mental
+        State.updateParanoia(15); // Coste de tensión mental
 
         // Recalcular carga inmediatamente
         if (this.game.mechanics && this.game.mechanics.calculateTotalLoad) {
