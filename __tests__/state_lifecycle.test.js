@@ -28,6 +28,7 @@ describe('State NPC lifecycle', () => {
     test('departure removes the NPC and assignments exactly once', () => {
         const npc = new NPC();
         State.addAdmitted(npc);
+        npc.assignedSector = 'security';
         State.assignments = { security: { occupants: [npc.id] } };
         State.sectorAssignments = { fuel: [npc.id] };
         State.generator.assignedGuardId = npc.id;
@@ -41,6 +42,7 @@ describe('State NPC lifecycle', () => {
         expect(State.assignments.security.occupants).not.toContain(npc.id);
         expect(State.sectorAssignments.fuel).not.toContain(npc.id);
         expect(State.generator.assignedGuardId).toBeNull();
+        expect(npc.assignedSector).toBeNull();
     });
 
     test('death removes admission and records one terminal status with its reason', () => {
