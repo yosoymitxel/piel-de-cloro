@@ -1125,10 +1125,12 @@ export class GameMechanicsManager {
         // Commit the guard screen before advancing turn logic. nextTurn() can
         // immediately trigger another phase transition, so running it before
         // this navigation finishes can leave the main area with no active screen.
-        await this.game.events.switchScreen(CONSTANTS.SCREENS.GAME, {
+        const screenCommitted = await this.game.events.switchScreen(CONSTANTS.SCREENS.GAME, {
             force: true,
             lockNav: false
         });
+        if (screenCommitted === false) return false;
+
         this.game.nextTurn();
         this.updateTurnEndSystems();
         this.ui.updateRunStats(State);
