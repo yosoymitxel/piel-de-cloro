@@ -225,10 +225,7 @@ async function copyText(value, successMessage) {
   }
 }
 
-Object.values(controls).forEach(control => {
-  control.addEventListener("input", update);
-  control.addEventListener("change", update);
-});
+Object.values(controls).forEach(control => control.addEventListener("input", update));
 byId("new-seed").addEventListener("click", () => {
   const next = Number((controls.seed.value.match(/(\d+)$/) || [])[1] || 0) + 1;
   controls.seed.value = `npc-subject-${String(next).padStart(3, "0")}`;
