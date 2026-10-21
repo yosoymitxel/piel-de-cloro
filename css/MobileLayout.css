@@ -973,3 +973,150 @@
         z-index: 60 !important;
     }
 }
+
+
+/*
+ * Layout correction pass — based on the actual Playwright captures.
+ * Keep the existing CRT palette and component styling; correct only geometry.
+ */
+@media (min-width: 1024px) {
+    #screen-game .puesto-container {
+        display: grid !important;
+        grid-template-columns: minmax(280px, 0.95fr) minmax(190px, 0.55fr) minmax(360px, 1.25fr);
+        align-items: stretch;
+        gap: 12px !important;
+    }
+
+    #screen-game .dialogue-sidebar,
+    #screen-game .center-console,
+    #screen-game .main-view-area {
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        height: 100%;
+        min-height: 0;
+    }
+
+    #screen-game .dialogue-sidebar {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    #screen-game .center-console {
+        grid-column: 2;
+        grid-row: 1;
+        overflow-x: hidden;
+    }
+
+    #screen-game .main-view-area {
+        grid-column: 3;
+        grid-row: 1;
+    }
+
+    #screen-game #inspection-tools-container {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+        gap: 8px !important;
+        width: 100%;
+        min-width: 0;
+    }
+
+    #screen-game #inspection-tools-container > *,
+    #screen-game #game-actions-container > * {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    #screen-game #inspection-tools-container .horror-tool-btn,
+    #screen-game #game-actions-container > button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        height: auto;
+        padding: 10px 8px;
+        line-height: 1.25;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+}
+
+@media (max-width: 640px) {
+    /* Align the seven HUD modules to a consistent grid instead of flex-wrapping
+       cards of unrelated intrinsic widths into uneven rows. */
+    #screen-game > header > div.flex.flex-wrap {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        align-items: stretch;
+        justify-items: stretch;
+        gap: 8px !important;
+        width: 100%;
+        min-width: 0;
+    }
+
+    #screen-game > header > div.flex.flex-wrap > .comp-paranoia,
+    #screen-game > header > div.flex.flex-wrap > .comp-sanity,
+    #screen-game > header > div.flex.flex-wrap > .comp-supplies,
+    #screen-game > header > div.flex.flex-wrap > .comp-fuel,
+    #screen-game > header > div.flex.flex-wrap > .comp-gen-load,
+    #screen-game > header > div.flex.flex-wrap > .comp-gen-battery,
+    #screen-game > header > div.flex.flex-wrap > .comp-gen-station {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        margin: 0 !important;
+    }
+
+    #screen-game > header > div.flex.flex-wrap > * {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    #screen-game > header > div.flex.flex-wrap .hud-stat-box {
+        min-width: 0;
+        width: 100%;
+        gap: 6px;
+    }
+
+    #screen-game > header > div.flex.flex-wrap .hud-stat-label {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    #screen-game > header > div.flex.flex-wrap .hud-stat-value {
+        flex-shrink: 0;
+    }
+
+    /* Preserve the two-column monitor layout and keep all sensor content inside it. */
+    #screen-game .center-console {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+        gap: 8px !important;
+        overflow: visible;
+    }
+
+    #screen-game .center-console > * {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    #screen-game .analog-controls {
+        grid-column: 1 / -1;
+        min-width: 0;
+    }
+
+    /* Pausing stays clear of the decision row and dock, including safe-area insets. */
+    #btn-pause {
+        bottom: calc(var(--mobile-content-bottom) + 48px + 12px) !important;
+        right: max(12px, env(safe-area-inset-right, 0px)) !important;
+    }
+}
