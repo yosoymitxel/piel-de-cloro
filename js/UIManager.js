@@ -888,10 +888,11 @@ export class UIManager {
 
     showScreen(screenName) {
         this.cancelPurgeAnimation();
-        this.screenManager.showScreen(screenName, State);
+        const transition = this.screenManager.showScreen(screenName, State);
 
-        // Refrescar pines del sidebar
+        // Refrescar pines del sidebar independently of the visual transition.
         this.renderPinnedRooms(State);
+        return transition;
     }
 
     renderFinalStats(state, endingId) {
