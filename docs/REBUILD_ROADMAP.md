@@ -15,6 +15,8 @@ La referencia no es copiar literalmente otros juegos, sino trasladar lo que func
 - **Ambigüedad justa:** el jugador puede equivocarse, pero debe poder explicar por qué tomó la decisión. Evitar azar opaco, pistas contradictorias por error y soluciones obvias.
 - **Escritura económica y específica:** cada línea caracteriza, revela, presiona o altera una decisión. Recortar repetición, frases genéricas y exposición que el jugador ya conoce.
 
+La auditoría visual mobile y los criterios anti-slop están definidos en [MOBILE_DESIGN_AUDIT.md](./MOBILE_DESIGN_AUDIT.md); los cambios responsive deben probarse con capturas reales y no deben alterar escritorio sin evidencia.
+
 ## Plan completo por prioridad
 
 ### P0 — Integridad del juego y regresiones
