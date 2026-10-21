@@ -51,7 +51,7 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
 
   await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
   const interludeContinue = page.locator('#btn-lore-continue-screen');
-  await expect(interludeContinue).toBeVisible({ timeout: 2500 }).catch(() => {});
+  await expect(interludeContinue).toBeVisible({ timeout: 6000 }).catch(() => {});
   if (await interludeContinue.isVisible()) await interludeContinue.click();
   await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
 
