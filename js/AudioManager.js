@@ -197,7 +197,6 @@ export class AudioManager {
         this.desiredPlay[name] = false;
     }
     stopAmbient(ms = 300) { this.stopChannel('ambient', ms); }
-    stopLore(ms = 300) { this.stopChannel('lore', ms); }
     ensureAmbientPlaying() {
         const ch = this.channels.ambient;
         if (!ch) return;
@@ -400,7 +399,9 @@ export class AudioManager {
     playLoreByKey(key, opts = {}) {
         return this.playLore(this.getUrl(key), opts);
     }
-    stopLore({ fadeOut = 400, unduckAmbient = true } = {}) {
+    stopLore(options = {}) {
+        const { fadeOut = 400, unduckAmbient = true } =
+            typeof options === 'number' ? { fadeOut: options } : options;
         const ch = this.channels.lore;
         // Cancelar cualquier fade anterior en este canal usando el objeto fadeTimers correcto
         if (this.fadeTimers['lore']) {
@@ -533,19 +534,6 @@ export class AudioManager {
         };
         const key = map[name] || name;
         return this.playSFXByKey(key, opts);
-    }
-
-    /**
-     * Detiene todos los efectos de sonido en el pool.
-     * @param {boolean} includeLooping - Si es true, también detiene los sonidos en bucle (como typewriter).
-     */
-    stopAllSFX(includeLooping = false) {
-        this.sfxPool.forEach(ch => {
-            if (includeLooping || !ch.loop) {
-                ch.pause();
-                ch.currentTime = 0;
-            }
-        });
     }
 
     fade(audio, target, ms, key, onDone) {
