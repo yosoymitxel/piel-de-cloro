@@ -249,6 +249,10 @@ test.describe('dedicated mobile presentation', () => {
       tools: [...document.querySelectorAll('#screen-game #inspection-tools-container .horror-tool-btn')]
         .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
         .map(el => { const r = el.getBoundingClientRect(); return { width: r.width, height: r.height }; }),
+      actions: [...document.querySelectorAll('#screen-game #game-actions-container > button')]
+        .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
+        .map(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width, height: r.height }; }),
+      actionsContainer: (() => { const el = document.querySelector('#screen-game #game-actions-container'); const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width }; })(),
       centerConsoleDisplay: getComputedStyle(document.querySelector('#screen-game .center-console')).display,
       dock: (() => { const el = document.querySelector('#sidebar-left'); const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width, display: getComputedStyle(el).display }; })()
     }));
@@ -258,6 +262,11 @@ test.describe('dedicated mobile presentation', () => {
     expect(landscapeWidth.tools.length, JSON.stringify(landscapeWidth)).toBeGreaterThan(0);
     expect(landscapeWidth.tools.every(tool => tool.width >= 44 && tool.height >= 44), JSON.stringify(landscapeWidth.tools)).toBe(true);
     expect(landscapeWidth.centerConsoleDisplay).toBe('none');
+    expect(landscapeWidth.actions.length, JSON.stringify(landscapeWidth.actions)).toBe(2);
+    expect(landscapeWidth.actionsContainer.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 2);
+    expect(landscapeWidth.actions.every(action => action.width >= landscapeWidth.viewport * 0.4 && action.height >= 44), JSON.stringify(landscapeWidth.actions)).toBe(true);
+    expect(landscapeWidth.actions[0].left).toBeGreaterThanOrEqual(landscapeWidth.actionsContainer.left - 1);
+    expect(landscapeWidth.actions[1].right).toBeLessThanOrEqual(landscapeWidth.actionsContainer.right + 1);
     expect(landscapeWidth.dock.display).not.toBe('none');
     expect(landscapeWidth.dock.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 2);
 
