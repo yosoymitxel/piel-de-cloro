@@ -44,6 +44,10 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
 
   await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
   await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
+
+  const gameplayShot = testInfo.outputPath('first-day-screen.png');
+  await page.screenshot({ path: gameplayShot, fullPage: true });
+  await testInfo.attach('first-day-screen', { path: gameplayShot, contentType: 'image/png' });
   expect(pageErrors, 'uncaught browser errors while starting a run').toEqual([]);
 });
 
