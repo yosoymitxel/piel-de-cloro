@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit",
-    "test:clean": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --silent --no-colors --forceExit"
+    "test:clean": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --silent --no-colors --forceExit",
+    "build:npc-art": "node tools/build-npc-pixel-art.mjs"
   },
   "devDependencies": {
     "jest": "^29.6.0"
@@ -12,6 +13,8 @@
   "jest": {
     "testEnvironment": "node",
     "testTimeout": 10000,
-    "setupFilesAfterEnv": ["<rootDir>/jest.setup.js"]
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
+    ]
   }
 }
