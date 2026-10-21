@@ -52,7 +52,10 @@ class Game {
         if (typeof document === 'undefined') return;
 
         const bind = (id, handler) => {
-            document.getElementById(id)?.addEventListener('click', handler);
+            const element = document.getElementById(id);
+            if (typeof element?.addEventListener === 'function') {
+                element.addEventListener('click', handler);
+            }
         };
 
         bind('btn-pause', () => this.togglePause());
@@ -68,7 +71,10 @@ class Game {
     setPauseControlsVisible(visible) {
         if (typeof document === 'undefined') return;
         for (const id of ['btn-pause', 'btn-pause-mobile']) {
-            document.getElementById(id)?.classList.toggle('hidden', !visible);
+            const element = document.getElementById(id);
+            if (typeof element?.classList?.toggle === 'function') {
+                element.classList.toggle('hidden', !visible);
+            }
         }
     }
 
@@ -86,8 +92,8 @@ class Game {
         State.paused = true;
         this.loopManager.pause();
         this.stopClock();
-        document.body.classList.add('paused');
-        document.getElementById('screen-game')?.classList.add('is-paused');
+        document.body?.classList?.add('paused');
+        document.getElementById('screen-game')?.classList?.add?.('is-paused');
         $('#modal-pause').removeClass('hidden').addClass('flex');
         this.audio?.playSFXByKey('ui_modal_open', { volume: 0.5 });
     }
@@ -98,8 +104,8 @@ class Game {
         this.loopManager?.resume();
         if (this.loopManager?.isRunning) this.startClock();
         if (typeof document !== 'undefined') {
-            document.body.classList.remove('paused');
-            document.getElementById('screen-game')?.classList.remove('is-paused');
+            document.body?.classList?.remove('paused');
+            document.getElementById('screen-game')?.classList?.remove?.('is-paused');
             $('#modal-pause').addClass('hidden').removeClass('flex');
         }
         if (wasPaused) this.audio?.playSFXByKey('ui_modal_close', { volume: 0.5 });
