@@ -30,3 +30,19 @@ En el código inspeccionado, `ponytail` aparece como un valor de estilo de pelo 
 ## Validación pendiente
 
 La ejecución local no fue posible porque este entorno no puede resolver `github.com` y el repositorio no está montado localmente. El workflow agregado permitirá obtener el resultado real desde GitHub Actions si Actions está habilitado en el repositorio. Hasta ver ese resultado, no se debe afirmar que los tests pasan.
+
+## Correcciones posteriores verificadas
+
+### 4. Requisitos de opciones que no se aplicaban de forma coherente
+Los datos de lore usan `req`, pero el motor solo validaba `requires`, y la vista devolvía opciones bloqueadas. `Conversation` ahora acepta ambos nombres, oculta opciones bloqueadas y vuelve a comprobar los requisitos al seleccionar por ID. Se añadió un test que demuestra que la opción no aparece ni puede ejecutarse antes de obtener la flag, y sí aparece cuando la flag está activa.
+
+### 5. Callbacks de salida inexistentes
+Tres opciones de lore apuntaban a `act.leave`, que no estaba exportado. Como esas opciones ya terminan la rama con `next: null`, se eliminaron las referencias a callbacks inexistentes en lugar de introducir una función vacía que ocultara el problema.
+
+### 6. Integridad del contenido integrada en CI
+Se añadió `tools/validate-dialogue-data.mjs` y el comando `npm run validate:dialogues`. Valida raíces, nodos destino, IDs, texto, etiquetas, requisitos y callbacks. El validador detectó las tres referencias rotas anteriores y, tras corregirlas, pasó en GitHub Actions.
+
+### 7. Instalación reproducible
+El workflow de CI usa `npm ci` para respetar el lockfile, en lugar de resolver dependencias con `npm install` en cada ejecución.
+
+**Validación más reciente:** el workflow de tests terminó correctamente en el commit `b33adf259a0966ab9721ae6dcc740b71b5277a2d`. Esto confirma las pruebas automatizadas y el validador de datos, no una auditoría completa de jugabilidad ni de compatibilidad móvil.
