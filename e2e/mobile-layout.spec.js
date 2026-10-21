@@ -9,6 +9,7 @@ test.describe('dedicated mobile presentation', () => {
       await page.goto('/', { waitUntil: 'domcontentloaded' });
       await expect(page.locator('.terminal-chasis')).toBeVisible();
       await expect(page.getByRole('button', { name: /INICIAR PARTIDA/i })).toBeVisible();
+      if (width === 390) await page.screenshot({ path: 'test-results/mobile-start-390.png', fullPage: true });
 
       const metrics = await page.evaluate(() => ({
         viewport: document.documentElement.clientWidth,
@@ -44,6 +45,7 @@ test.describe('dedicated mobile presentation', () => {
     await expect(page.locator('#modal-tutorial')).toBeVisible({ timeout: 45000 });
     await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
     await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
+    await page.screenshot({ path: 'test-results/mobile-inspection-390.png', fullPage: true });
 
     const measurements = await page.evaluate(() => {
       const viewportWidth = document.documentElement.clientWidth;
