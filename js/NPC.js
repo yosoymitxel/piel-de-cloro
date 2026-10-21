@@ -122,10 +122,16 @@ export class NPC {
     }
 
     getDisplayName() {
-        const epithet = this.getEpithet();
-        let displayName = this.name;
-        if (epithet && Math.random() > 0.5) displayName += ` — ${epithet}`;
-        return displayName;
+        // A name must remain stable throughout one encounter. Re-rolls here made
+        // the same NPC appear to change identity whenever the UI rendered again.
+        if (this._displayName === undefined) {
+            const epithet = this.getEpithet();
+            this._displayName = this.name;
+            if (epithet && Math.random() > 0.5) {
+                this._displayName += ` — ${epithet}`;
+            }
+        }
+        return this._displayName;
     }
 
     generateAttributes(infected) {
