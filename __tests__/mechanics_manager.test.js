@@ -142,6 +142,34 @@ describe('GameMechanicsManager', () => {
         expect(addMessage).toHaveBeenCalledWith('ANÁLISIS: Sujeto de prueba: POSITIVO', 'danger-green');
     });
 
+    describe('Laboratory analysis', () => {
+        test('analysis is blocked while the lab system is off', () => {
+            const npc = new NPC();
+            State.admittedNPCs = [npc];
+            State.generator.power = 100;
+            State.generator.systems.shelterLab.active = false;
+
+            const result = gmm.performLabAnalysis(npc.id);
+
+            expect(result).toEqual({ success: false, message: 'ERROR: LABORATORIO APAGADO' });
+            expect(State.generator.power).toBe(100);
+            expect(npc.labAnalysisPending).not.toBe(true);
+        });
+
+        test('analysis consumes power only when the lab is active', () => {
+            const npc = new NPC();
+            State.admittedNPCs = [npc];
+            State.generator.power = 100;
+            State.generator.systems.shelterLab.active = true;
+
+            const result = gmm.performLabAnalysis(npc.id);
+
+            expect(result.success).toBe(true);
+            expect(State.generator.power).toBe(60);
+            expect(npc.labAnalysisPending).toBe(true);
+        });
+    });
+
     describe('Purge Consequences', () => {
         test('purging human increases paranoia and decreases sanity', () => {
             const npc = new NPC();
