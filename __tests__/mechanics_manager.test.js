@@ -131,6 +131,7 @@ describe('GameMechanicsManager', () => {
         State.admittedNPCs = [npc];
 
         gmm.updateTurnEndSystems();
+        gmm.updateTurnEndSystems(); // Reprocessing the same day must not duplicate the sample or notification.
 
         expect(npc.labAnalysisPending).toBe(false);
         expect(npc.labAnalysisComplete).toBe(true);
