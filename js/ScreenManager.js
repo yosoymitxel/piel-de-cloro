@@ -10,6 +10,13 @@ export class ScreenManager {
     }
 
     showScreen(screenName, state) {
+        // Never hide the active screen for an unknown destination. A typo or
+        // stale screen ID must fail closed instead of producing a black main area.
+        if (!screenName || !Object.prototype.hasOwnProperty.call(this.screens, screenName) || !this.screens[screenName]) {
+            console.error(`[ScreenManager] Refusing unknown screen: ${screenName}`);
+            return Promise.resolve(false);
+        }
+
         // A screen switch is delayed for the CRT effect. Cancel older pending
         // switches so an outdated callback cannot hide the screen requested last.
         const requestId = ++this.transitionRequestId;
