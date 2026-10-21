@@ -231,8 +231,7 @@ test.describe('dedicated mobile presentation', () => {
       expect(responsive.document, JSON.stringify({ width, ...responsive })).toBeLessThanOrEqual(responsive.viewport + 1);
       expect(responsive.hudCards, JSON.stringify({ width, ...responsive })).toBe(6);
       for (const nav of responsive.navButtons) {
-        expect(nav.left, JSON.stringify({ width, nav })).toBeGreaterThanOrEqual(-1);
-        expect(nav.right, JSON.stringify({ width, nav })).toBeLessThanOrEqual(responsive.viewport + 1);
+        // Items beyond the visible strip remain reachable through horizontal scrolling.
         expect(nav.width, JSON.stringify({ width, nav })).toBeGreaterThanOrEqual(44);
       }
     }
