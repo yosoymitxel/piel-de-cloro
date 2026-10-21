@@ -170,7 +170,10 @@ class Game {
     }
 
     startGame() {
-        // El control de pausa aparece cuando termina el tutorial y comienza el primer día.
+        // El tutorial no debe dejar la partida marcada como pausada al comenzar una sesión nueva.
+        State.paused = false;
+        document.body?.classList?.remove('paused');
+        $('#modal-pause').addClass('hidden').removeClass('flex');
         this.setPauseControlsVisible(false);
         // En lugar de empezar directo, mostramos el tutorial inicial
         this.mechanics.calculateTotalLoad(); // Ensure load is calculated
@@ -188,6 +191,10 @@ class Game {
     }
 
     startFirstDay() {
+        State.paused = false;
+        document.body?.classList?.remove('paused');
+        document.getElementById('screen-game')?.classList?.remove?.('is-paused');
+        $('#modal-pause').addClass('hidden').removeClass('flex');
         this.ensureMeditationRoom();
         this.mechanics.generateInitialEntrants();
         this.nextTurn();
