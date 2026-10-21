@@ -525,8 +525,7 @@
 
     #screen-game .puesto-container,
     #screen-game .main-view-area,
-    #screen-game #inspection-tools-container,
-    #screen-game #game-actions-container {
+    #screen-game #inspection-tools-container {
         box-sizing: border-box !important;
         width: 100% !important;
         min-width: 0 !important;
@@ -534,23 +533,21 @@
     }
 
     #screen-game .puesto-container > .main-view-area,
-    #screen-game .main-view-area > #inspection-tools-container,
-    #screen-game .main-view-area > #game-actions-container {
+    #screen-game .main-view-area > #inspection-tools-container {
         flex: 0 0 auto;
         align-self: stretch;
     }
 
-    #game-actions-container {
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 8px !important;
+    /* UIManager replaces #game-actions-container with decision wrappers at runtime. */
+    #screen-game #inspection-tools-container > .tool-wrapper.col-span-2 {
+        grid-column: span 2 !important;
         width: 100% !important;
         min-width: 0 !important;
         max-width: 100% !important;
-        overflow: visible;
+        margin: 0 !important;
     }
 
-    #game-actions-container > button {
+    #screen-game #inspection-tools-container > .tool-wrapper.col-span-2 > button {
         box-sizing: border-box;
         width: 100% !important;
         max-width: 100% !important;
@@ -577,8 +574,7 @@
     #screen-game .puesto-container,
     #screen-game .main-view-area,
     #screen-game .dialogue-sidebar,
-    #screen-game #inspection-tools-container,
-    #screen-game #game-actions-container {
+    #screen-game #inspection-tools-container {
         flex-shrink: 1 !important;
         align-self: stretch;
         width: 100% !important;
@@ -589,8 +585,7 @@
     #screen-game .puesto-container > *,
     #screen-game .main-view-area > *,
     #screen-game .dialogue-sidebar > *,
-    #screen-game #inspection-tools-container > *,
-    #screen-game #game-actions-container > * {
+    #screen-game #inspection-tools-container > * {
         min-width: 0 !important;
         max-width: 100% !important;
     }
@@ -780,7 +775,7 @@
             max-width: 52px !important;
         }
 
-        #game-actions-container > button {
+        #screen-game #inspection-tools-container > .tool-wrapper.col-span-2 > button {
             font-size: 12px !important;
         }
     }
@@ -1039,8 +1034,7 @@
     #screen-game .puesto-container,
     #screen-game .main-view-area,
     #screen-game .center-console,
-    #screen-game #inspection-tools-container,
-    #screen-game #game-actions-container {
+    #screen-game #inspection-tools-container {
         min-width: 0 !important;
         max-width: 100% !important;
         height: auto !important;
@@ -1050,19 +1044,6 @@
     #screen-game .main-view-area {
         gap: 10px !important;
         overflow: visible !important;
-    }
-
-    #screen-game #game-actions-container {
-        margin-bottom: 4px !important;
-    }
-
-    /* Decision controls are siblings inside the tools grid, so explicitly span
-       its full row instead of inheriting a single grid cell. */
-    #screen-game #inspection-tools-container > .grid-tools > #game-actions-container,
-    #screen-game #inspection-tools-container > #game-actions-container {
-        grid-column: 1 / -1 !important;
-        width: 100% !important;
-        min-width: 0 !important;
     }
 
     #screen-game .center-console {
