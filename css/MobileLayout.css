@@ -1093,15 +1093,6 @@
 
 /* Mobile-only geometry fixes. Desktop rules and visual tokens remain untouched. */
 @media (max-width: 640px), (max-width: 900px) and (max-height: 520px) and (orientation: landscape) {
-    /* The original desktop flex frame clips portrait and landscape content on short screens. */
-    #screen-game .puesto-container {
-        flex: 0 0 auto !important;
-        height: auto !important;
-        min-height: 0 !important;
-        max-height: none !important;
-        overflow: visible !important;
-    }
-
     #screen-game .comp-gen-battery,
     #screen-game .comp-gen-battery .hud-component,
     #screen-game .comp-gen-battery .stat-bar-bg {
