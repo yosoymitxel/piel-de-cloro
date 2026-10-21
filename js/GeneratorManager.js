@@ -440,7 +440,7 @@ export class GeneratorManager {
             <div class="flex flex-col items-center w-full">
                 <div class="text-[9px] font-mono mb-0.5 ${state.fuel >= 1 ? 'text-terminal-green' : 'text-alert'} opacity-80">${fuelText}</div>
                 <div class="flex items-center font-bold gap-2"><i class="fa-solid fa-droplet"></i> RECARGAR BATERÍA</div>
-                <div class="text-[8px] opacity-50 font-mono mt-0.5">REQ: 1 BIDÓN FUEL (+30% BAT)</div>
+                <div class="text-[8px] opacity-50 font-mono mt-0.5">REQ: 1 BIDÓN FUEL (+25% BAT)</div>
             </div>
         `;
         btnRefuel.html(refuelHTML);
