@@ -21,13 +21,6 @@ export class AvatarRenderer {
         // Keep portraits visible even when the page's art-mode flag is stale.
         // ClaudePXL PNGs are used for fixed lore characters; generic NPCs get a
         // deterministic portrait from their stable ID and existing cosmetic traits.
-        const lorePortraits = {
-            lore_archivist: 'npc_archivist',
-            lore_kael: 'npc_kael',
-            lore_hive: 'npc_hive',
-            lore_patient_zero: 'npc_patient_zero'
-        };
-        const portraitName = lorePortraits[npc.loreId] || null;
         const features = npc.visualFeatures || {};
         const generatedPortrait = generateAvatarDataUri(npc.id || npc.name || 'unknown-npc', {
             hair: features.hair,
@@ -38,13 +31,9 @@ export class AvatarRenderer {
             mouthType: features.mouthType,
             skinColor: features.skinColor
         });
-        const portraitSrc = portraitName
-            ? `assets/pixel/npcs/sprites/${portraitName}.png`
-            : generatedPortrait;
-        // Only fixed lore PNGs need a fallback URI; avoid duplicating every SVG
-        // data URI in the DOM for ordinary NPCs.
-        const fallbackAttribute = portraitName ? `data-fallback="${generatedPortrait}"` : '';
-        const pixelPortraitHTML = `<img class="npc-pixel-portrait" src="${portraitSrc}" ${fallbackAttribute} alt="" aria-hidden="true" decoding="async" onload="this.parentElement.classList.add('has-pixel-portrait')" onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback;return;}this.parentElement.classList.remove('has-pixel-portrait');this.remove()">`;
+        // The generator is the single runtime source for every NPC, including lore.
+        // ClaudePXL remains an authoring tool; no generated PNG or network request is required.
+        const pixelPortraitHTML = `<img class="npc-pixel-portrait" src="${generatedPortrait}" alt="" aria-hidden="true" decoding="async" onload="this.parentElement.classList.add('has-pixel-portrait')" onerror="this.parentElement.classList.remove('has-pixel-portrait');this.remove()">`;
 
         let accessoryHTML = '';
         if (npc.visualFeatures.accessory !== 'none') {
