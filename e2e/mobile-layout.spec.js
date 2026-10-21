@@ -119,6 +119,13 @@ test.describe('dedicated mobile presentation', () => {
         const labelRect = label?.getBoundingClientRect();
         return { name: (label?.innerText || el.title || '').trim(), left: r.left, right: r.right, width: r.width, labelLeft: labelRect?.left ?? null, labelRight: labelRect?.right ?? null };
       });
+      const tutorialMonitor = document.querySelector('#screen-game #tutorial-monitor-content');
+      const tutorialMessages = [...(tutorialMonitor?.querySelectorAll('.tutorial-msg span') ?? [])].map(el => {
+        const r = el.getBoundingClientRect();
+        return { text: el.textContent.trim(), left: r.left, right: r.right, width: r.width,
+          scrollWidth: el.scrollWidth, clientWidth: el.clientWidth,
+          animation: getComputedStyle(el.parentElement).animationName };
+      });
       const batteryCard = document.querySelector('#screen-game .comp-gen-battery .hud-component');
       const batteryFill = document.querySelector('#screen-game #comp-gen-bat-fill');
       const rectJSON = el => {
@@ -127,7 +134,7 @@ test.describe('dedicated mobile presentation', () => {
         return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
       };
       return {
-        viewportWidth, documentWidth, bounds, monitors, visibleHud, navButtons,
+        viewportWidth, documentWidth, bounds, monitors, visibleHud, navButtons, tutorialMessages,
         batteryCard: rectJSON(batteryCard), batteryFill: rectJSON(batteryFill),
         mainView: rectOf('#screen-game .main-view-area'),
         dialogue: rectOf('#screen-game .dialogue-sidebar'),
@@ -151,6 +158,13 @@ test.describe('dedicated mobile presentation', () => {
     const hudRows = [...new Set(measurements.visibleHud.map(card => Math.round(card.top / 4)))];
     expect(hudRows.length, JSON.stringify(measurements.visibleHud)).toBe(2);
     expect(measurements.visibleHud.every(card => card.width >= 44 && card.left >= -1 && card.right <= measurements.viewportWidth + 1)).toBe(true);
+    expect(measurements.tutorialMessages.length).toBeGreaterThan(0);
+    for (const message of measurements.tutorialMessages) {
+      expect(message.left, JSON.stringify(message)).toBeGreaterThanOrEqual(-1);
+      expect(message.right, JSON.stringify(message)).toBeLessThanOrEqual(measurements.viewportWidth + 1);
+      expect(message.scrollWidth, JSON.stringify(message)).toBeLessThanOrEqual(message.clientWidth + 1);
+      expect(message.animation, JSON.stringify(message)).toBe('none');
+    }
 
     // Bottom-dock buttons and labels must stay inside their own viewport.
     expect(measurements.navButtons.length).toBeGreaterThanOrEqual(4);
