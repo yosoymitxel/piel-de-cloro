@@ -823,8 +823,13 @@ export class GeneratorManager {
             // Attach event
             container.find('.btn-reassign-guard').one('click', () => {
                 this.ui.showSectorAssignmentModal('generator', state, (npc) => {
-                    if (npc && this.game.assignments) {
-                        this.game.assignments.assign(npc.id, 'generator');
+                    if (this.game.assignments) {
+                        if (npc) {
+                            this.game.assignments.assign(npc.id, 'generator');
+                        } else {
+                            const currentGuardId = state.generator.assignedGuardId || state.assignments?.generator?.occupants?.[0];
+                            if (currentGuardId) this.game.assignments.unassign(currentGuardId, 'generator');
+                        }
                     }
                     this.renderGuardPanel(state);
                 });
@@ -854,8 +859,13 @@ export class GeneratorManager {
             // Both card and button trigger assignment
             container.find('.guard-card, .btn-assign-guard').one('click', () => {
                 this.ui.showSectorAssignmentModal('generator', state, (npc) => {
-                    if (npc && this.game.assignments) {
-                        this.game.assignments.assign(npc.id, 'generator');
+                    if (this.game.assignments) {
+                        if (npc) {
+                            this.game.assignments.assign(npc.id, 'generator');
+                        } else {
+                            const currentGuardId = state.generator.assignedGuardId || state.assignments?.generator?.occupants?.[0];
+                            if (currentGuardId) this.game.assignments.unassign(currentGuardId, 'generator');
+                        }
                     }
                     this.renderGuardPanel(state);
                 });
