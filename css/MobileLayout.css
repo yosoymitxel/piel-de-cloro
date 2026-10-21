@@ -1204,9 +1204,9 @@
     }
 
     #game-screen-container {
-        height: 92px !important;
-        min-height: 92px !important;
-        max-height: 92px !important;
+        height: 64px !important;
+        min-height: 64px !important;
+        max-height: 64px !important;
     }
 
     /* The generated avatar is designed at 180px; scale the whole frame instead
@@ -1215,7 +1215,7 @@
         flex: 0 0 180px !important;
         width: 180px !important;
         height: 180px !important;
-        transform: scale(0.5) !important;
+        transform: scale(0.35) !important;
         transform-origin: center center !important;
     }
 
@@ -1263,32 +1263,63 @@
     }
 
     #screen-game .dialogue-sidebar {
-        flex: 0 0 110px !important;
-        height: 110px !important;
-        min-height: 110px !important;
-        max-height: 110px !important;
+        flex: 0 0 88px !important;
+        height: 88px !important;
+        min-height: 88px !important;
+        max-height: 88px !important;
         padding: 4px !important;
         overflow: hidden !important;
     }
 
     /* Metadata is secondary in landscape; preserve room for the live conversation and choices. */
+    #screen-game .dialogue-sidebar > .flex.text-xs.border-b {
+        flex: 0 0 24px !important;
+        height: 24px !important;
+        min-height: 24px !important;
+    }
+
+    #screen-game .dialogue-sidebar #tab-dialogue,
+    #screen-game .dialogue-sidebar #tab-history {
+        flex: 1 1 0;
+        height: 24px !important;
+        min-height: 24px !important;
+        padding: 2px 4px !important;
+        font-size: 10px !important;
+        line-height: 1.1 !important;
+    }
+
+    #screen-game .dialogue-sidebar #tab-dialogue i,
+    #screen-game .dialogue-sidebar #tab-history i {
+        margin-right: 4px !important;
+        font-size: 10px !important;
+    }
+
     #screen-game .dialogue-sidebar #content-dialogue > .flex-1.overflow-y-auto > .flex.justify-between.items-start.mb-2.opacity-40 {
         display: none !important;
     }
 
     #screen-game .dialogue-sidebar #content-dialogue > .flex-1.overflow-y-auto {
-        padding: 4px !important;
+        flex: 0 0 12px !important;
+        height: 12px !important;
+        min-height: 12px !important;
+        max-height: 12px !important;
+        padding: 0 2px !important;
+        overflow: hidden !important;
         font-size: 10px !important;
     }
 
     #screen-game .dialogue-sidebar #npc-dialogue {
-        margin-bottom: 4px !important;
-        font-size: 11px !important;
-        line-height: 1.2 !important;
+        margin: 0 !important;
+        font-size: 10px !important;
+        line-height: 12px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     #screen-game .dialogue-sidebar #dialogue-options-container {
-        padding: 4px !important;
+        flex: 0 0 auto;
+        padding: 2px !important;
     }
 
     #screen-game .dialogue-sidebar #dialogue-options {
