@@ -41,7 +41,10 @@ export class AvatarRenderer {
         const portraitSrc = portraitName
             ? `assets/pixel/npcs/sprites/${portraitName}.png`
             : generatedPortrait;
-        const pixelPortraitHTML = `<img class="npc-pixel-portrait" src="${portraitSrc}" data-fallback="${generatedPortrait}" alt="" aria-hidden="true" decoding="async" onload="this.parentElement.classList.add('has-pixel-portrait')" onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback;return;}this.parentElement.classList.remove('has-pixel-portrait');this.remove()">`;
+        // Only fixed lore PNGs need a fallback URI; avoid duplicating every SVG
+        // data URI in the DOM for ordinary NPCs.
+        const fallbackAttribute = portraitName ? `data-fallback="${generatedPortrait}"` : '';
+        const pixelPortraitHTML = `<img class="npc-pixel-portrait" src="${portraitSrc}" ${fallbackAttribute} alt="" aria-hidden="true" decoding="async" onload="this.parentElement.classList.add('has-pixel-portrait')" onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback;return;}this.parentElement.classList.remove('has-pixel-portrait');this.remove()">`;
 
         let accessoryHTML = '';
         if (npc.visualFeatures.accessory !== 'none') {
