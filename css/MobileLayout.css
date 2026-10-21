@@ -822,6 +822,144 @@
         min-height: 44px;
         max-height: 44px;
     }
+
+    /* Landscape is height-constrained: keep every gameplay-critical control in view. */
+    #screen-game {
+        gap: 4px !important;
+        padding: 4px !important;
+    }
+
+    #screen-game > header.horror-panel-modal {
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 6px !important;
+        padding: 4px !important;
+        margin: 0 !important;
+    }
+
+    #screen-game > header > div.flex.flex-wrap {
+        flex: 1 1 auto;
+        grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+        gap: 4px !important;
+        min-width: 0;
+    }
+
+    #screen-game > header > div.flex.flex-wrap > .comp-paranoia,
+    #screen-game > header > div.flex.flex-wrap > .comp-sanity,
+    #screen-game > header > div.flex.flex-wrap > .comp-supplies,
+    #screen-game > header > div.flex.flex-wrap > .comp-gen-load,
+    #screen-game > header > div.flex.flex-wrap > .comp-gen-battery,
+    #screen-game > header > div.flex.flex-wrap > .comp-gen-station {
+        min-width: 0 !important;
+        height: 48px !important;
+        max-height: 48px !important;
+    }
+
+    #screen-game > header .hud-component {
+        height: 48px !important;
+        min-height: 48px !important;
+        padding: 4px !important;
+        gap: 2px !important;
+    }
+
+    #screen-game > header .stat-header {
+        margin: 0 !important;
+        padding-bottom: 1px !important;
+    }
+
+    #screen-game > header .hud-stat-box {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px !important;
+        white-space: nowrap;
+    }
+
+    #screen-game > header .hud-stat-label {
+        font-size: 8px !important;
+    }
+
+    #screen-game > header .hud-stat-value {
+        font-size: 11px !important;
+        line-height: 1.1;
+    }
+
+    #screen-game > header > div.flex.gap-4.items-center {
+        flex: 0 0 auto;
+        gap: 6px !important;
+    }
+
+    #screen-game > header > div.flex.gap-4.items-center .hud-stat-box {
+        display: flex;
+        flex-direction: column;
+        gap: 2px !important;
+        padding: 0 !important;
+    }
+
+    #screen-game > header > div.flex.gap-4.items-center .hud-stat-value {
+        font-size: 11px !important;
+    }
+
+    #screen-game .puesto-container {
+        gap: 4px !important;
+    }
+
+    #screen-game .main-view-area {
+        gap: 4px !important;
+    }
+
+    #game-screen-container {
+        height: 72px !important;
+        min-height: 72px !important;
+        max-height: 72px !important;
+    }
+
+    #screen-game #inspection-tools-container,
+    #screen-game #inspection-tools-container.grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        align-items: stretch;
+        gap: 4px !important;
+        margin: 0 !important;
+    }
+
+    #screen-game #inspection-tools-container > .tool-wrapper {
+        grid-column: span 1 !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+    }
+
+    #screen-game #inspection-tools-container .horror-tool-btn {
+        min-height: 44px !important;
+        height: 44px !important;
+        padding: 4px !important;
+        gap: 4px !important;
+        font-size: 10px !important;
+        line-height: 1.1 !important;
+    }
+
+    #screen-game #game-actions-container {
+        gap: 4px !important;
+        margin: 0 !important;
+    }
+
+    #screen-game #game-actions-container > button {
+        min-height: 44px !important;
+        height: 44px !important;
+        padding: 4px !important;
+        font-size: 11px !important;
+    }
+
+    #screen-game .dialogue-sidebar {
+        max-height: 76px !important;
+        padding: 4px !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
+    }
+
+    #screen-game .center-console {
+        display: none !important;
+    }
 }
 
 
