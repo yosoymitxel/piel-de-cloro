@@ -449,10 +449,8 @@ export class GameActionHandler {
         const abandonedCount = abandoned.length;
 
         abandoned.forEach(npc => {
-            State.departedNPCs.push(npc);
+            State.markDeparted(npc);
         });
-
-        State.admittedNPCs = selectedNPCs;
 
         this.audio.playSFXByKey('preclose_overlay_open', { volume: 0.8 });
         State.addLogEntry('system', `MUDANZA: Sector abandonado. ${abandonedCount} sujetos dejados atrás. ${selectedNPCs.length} mantenidos.`);
