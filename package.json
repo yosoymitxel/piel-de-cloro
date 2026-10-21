@@ -6,7 +6,8 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit",
     "validate:dialogues": "node tools/validate-dialogue-data.mjs",
     "test:clean": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --silent --no-colors --forceExit",
-    "build:npc-art": "node tools/build-npc-pixel-art.mjs"
+    "build:npc-art": "node tools/build-npc-pixel-art.mjs",
+    "validate:structure": "node tools/validate-ui-methods.mjs"
   },
   "devDependencies": {
     "jest": "^29.6.0"
