@@ -3058,6 +3058,7 @@ export class UIManager {
         
         // Update Status
         const isGenOn = state.generator && state.generator.isOn;
+        const isLabActive = Boolean(state.generator?.systems?.shelterLab?.active);
         const statusText = $('#lab-status-text');
         
         if (statusText.length) {
@@ -3103,6 +3104,29 @@ export class UIManager {
                 </option>`;
             });
 
+            const cureActionHtml = state.cureSynthesized
+                ? `
+                    <div class="border border-green-500/30 bg-green-500/5 p-3 text-center">
+                        <div class="text-green-400 text-xs font-bold tracking-widest"><i class="fa-solid fa-check-circle mr-1"></i> CURA SINTETIZADA</div>
+                        <div class="text-[10px] text-gray-400 mt-1">Muestras viables: 5/5 · Coste aplicado: 50% energía</div>
+                    </div>
+                `
+                : (Number(state.cureProgress || 0) >= 5
+                    ? `
+                        <div class="border border-cyan-500/30 bg-cyan-500/5 p-3 flex flex-col gap-2">
+                            <div class="text-cyan-300 text-xs font-bold tracking-widest">MUESTRAS VIABLES: 5/5</div>
+                            <button id="btn-lab-synthesize" class="horror-btn border-cyan-400/50 text-cyan-200 text-xs px-3 py-2 uppercase font-bold tracking-wider" ${(!isLabActive || state.generator.power < 50) ? 'disabled' : ''}>
+                                <i class="fa-solid fa-flask-vial mr-1"></i> SINTETIZAR CURA · 50% ENERGÍA
+                            </button>
+                            ${!isLabActive ? '<span class="text-[10px] text-alert">ACTIVA EL LABORATORIO PARA CONTINUAR</span>' : (state.generator.power < 50 ? '<span class="text-[10px] text-alert">ENERGÍA INSUFICIENTE</span>' : '')}
+                        </div>
+                    `
+                    : `
+                        <div class="border border-white/10 bg-black/30 p-2 text-[10px] text-gray-500 font-mono text-center">
+                            MUESTRAS PARA CURA: ${Math.min(5, Number(state.cureProgress || 0))}/5
+                        </div>
+                    `);
+
             const html = `
                 <div class="flex flex-col gap-4 w-full">
                     <div class="flex items-center gap-2 mb-2">
@@ -3123,6 +3147,8 @@ export class UIManager {
                         <span class="text-[10px] text-blue-500/50 font-mono animate-pulse">ESPERANDO MUESTRA...</span>
                     </div>
 
+                    ${cureActionHtml}
+
                     <div class="text-[9px] text-gray-500 font-mono mt-1 border-t border-white/5 pt-2 flex justify-between">
                         <span>COSTE: 40% ENERGÍA</span>
                         <span>TIEMPO: 24 HORAS</span>
@@ -3133,6 +3159,18 @@ export class UIManager {
             consoleContainer.html(html);
 
             // Bind Events
+            $('#btn-lab-synthesize').off('click').on('click', () => {
+                const result = this.game.mechanics.synthesizeCure();
+                if (result.success) {
+                    if (this.audio) this.audio.playSFXByKey('ui_success', { volume: 0.7 });
+                    this.showFeedback(result.message, 'green', 4000);
+                } else {
+                    this.showFeedback(result.message, 'red', 3000);
+                }
+                this.renderLab(state);
+                this.updateEnergyHUD();
+            });
+
             $('#btn-lab-analyze').off('click').on('click', () => {
                 const subjectId = $('#lab-subject-select').val();
                 if (!subjectId) return;
