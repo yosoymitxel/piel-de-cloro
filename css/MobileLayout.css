@@ -1106,7 +1106,7 @@
         display: none !important;
     }
 
-    #screen-game #btn-pause-mobile:not(.hidden) {
+    #btn-pause-mobile:not(.hidden) {
         display: flex !important;
         position: static !important;
         inset: auto !important;
