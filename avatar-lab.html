@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#10181b">
   <title>Laboratorio de avatares · Piel de Cloro</title>
-  <link rel="stylesheet" href="css/avatar-lab.css?v=20261021-faces2">
+  <link rel="stylesheet" href="css/avatar-lab.css?v=20261021-auto3">
 </head>
 <body>
   <main class="lab-shell">
@@ -13,7 +13,7 @@
       <a class="lab-back" href="./">← VOLVER AL PUESTO</a>
       <div class="lab-mark"><span class="status-led"></span> HERRAMIENTA INTERNA / BUILD DE ARTE</div>
       <h1>Laboratorio de identidades</h1>
-      <p>Skins generadas desde código. Sin fotos, sin assets externos y sin aleatoriedad al volver a renderizar el mismo ID.</p>
+      <p>Cada ID genera una identidad completa y reproducible. Los selectores son modificaciones opcionales: cambiá el ID para generar otra skin o fijá un rasgo sin alterar los demás.</p>
       <div class="lab-meta"><span>SVG PIXELADO</span><span>CLAUDE-PXL</span><span>IDENTIDAD DETERMINISTA</span></div>
     </header>
 
@@ -25,7 +25,7 @@
 
         <label class="field-label" for="palette">Paleta de piel</label>
         <select id="palette">
-          <option value="0">Acero húmedo</option><option value="1">Óxido</option><option value="2">Carbón</option><option value="3">Sal pálida</option><option value="4">Cemento</option>
+          <option value="" selected>Auto por ID</option><option value="0">Acero húmedo</option><option value="1">Óxido</option><option value="2">Carbón</option><option value="3">Sal pálida</option><option value="4">Cemento</option>
         </select>
         <div id="palette-swatches" class="palette-swatches" aria-label="Muestras de paleta"></div>
         <label class="field-label" for="skin-color">Tono de piel exacto</label>
@@ -36,23 +36,26 @@
 
         <label class="field-label" for="hair">Peinado / silueta</label>
         <select id="hair">
-          <option value="bald">Calvo</option><option value="shaved">Rapado</option><option value="short" selected>Corto</option><option value="long">Largo</option><option value="bob">Bob</option><option value="ponytail">Coleta (ponytail)</option><option value="bun">Rodete</option><option value="wild">Desprolijo</option><option value="mohawk">Mohicano</option><option value="punk">Punk</option>
+          <option value="" selected>Auto del NPC</option><option value="bald">Calvo</option><option value="shaved">Rapado</option><option value="short">Corto</option><option value="long">Largo</option><option value="bob">Bob</option><option value="ponytail">Coleta (ponytail)</option><option value="bun">Rodete</option><option value="wild">Desprolijo</option><option value="mohawk">Mohicano</option><option value="punk">Punk</option>
         </select>
 
         <label class="field-label" for="face-shape">Forma del rostro</label>
         <select id="face-shape">
-          <option value="oval">Ovalado</option><option value="round">Redondo</option><option value="square">Cuadrado</option><option value="long">Alargado</option><option value="broad">Ancho</option><option value="angular">Angular</option><option value="heart">Corazón</option>
+          <option value="" selected>Auto del NPC</option><option value="oval">Ovalado</option><option value="round">Redondo</option><option value="square">Cuadrado</option><option value="long">Alargado</option><option value="broad">Ancho</option><option value="angular">Angular</option><option value="heart">Corazón</option>
         </select>
 
         <label class="field-label" for="clothes">Ropa</label>
-        <select id="clothes"><option value="worker">Mantenimiento</option><option value="civilian">Civil</option><option value="scavenger" selected>Chatarrero</option><option value="suit">Formal</option><option value="rags">Harapos</option></select>
+        <select id="clothes"><option value="" selected>Auto del NPC</option><option value="worker">Mantenimiento</option><option value="civilian">Civil</option><option value="scavenger">Chatarrero</option><option value="suit">Formal</option><option value="rags">Harapos</option></select>
 
         <label class="field-label" for="accessory">Accesorio</label>
-        <select id="accessory"><option value="none">Ninguno</option><option value="glasses">Lentes</option><option value="mask">Máscara</option><option value="scar">Cicatriz</option><option value="patch">Parche ocular</option><option value="earring">Aro</option><option value="hood">Capucha</option></select>
+        <select id="accessory"><option value="" selected>Auto del NPC</option><option value="none">Ninguno</option><option value="glasses">Lentes</option><option value="mask">Máscara</option><option value="scar">Cicatriz</option><option value="patch">Parche ocular</option><option value="earring">Aro</option><option value="hood">Capucha</option></select>
+
+        <label class="field-label" for="facial-hair">Vello facial</label>
+        <select id="facial-hair"><option value="" selected>Auto del NPC</option><option value="none">Sin vello</option><option value="beard">Barba</option><option value="stubble">Barba de días</option><option value="mustache">Bigote</option></select>
 
         <div class="field-pair">
-          <div><label class="field-label" for="eyes">Mirada</label><select id="eyes"><option value="normal">Normal</option><option value="narrow">Entrecerrada</option><option value="big">Abierta</option><option value="tired">Cansada</option><option value="squint">Entrecerrar</option></select></div>
-          <div><label class="field-label" for="mouth">Boca</label><select id="mouth"><option value="tight">Tensa</option><option value="smile">Sonrisa</option><option value="frown">Fruncida</option><option value="open">Abierta</option><option value="crooked">Torcida</option></select></div>
+          <div><label class="field-label" for="eyes">Mirada</label><select id="eyes"><option value="" selected>Auto del NPC</option><option value="normal">Normal</option><option value="narrow">Entrecerrada</option><option value="big">Abierta</option><option value="tired">Cansada</option><option value="squint">Entrecerrar</option></select></div>
+          <div><label class="field-label" for="mouth">Boca</label><select id="mouth"><option value="" selected>Auto del NPC</option><option value="tight">Tensa</option><option value="smile">Sonrisa</option><option value="frown">Fruncida</option><option value="open">Abierta</option><option value="crooked">Torcida</option></select></div>
         </div>
         <label class="check-row"><input type="checkbox" id="exhausted"><span><b>Cansancio visible</b><small>Sombras debajo de los ojos.</small></span></label>
         <label class="check-row warning-check"><input type="checkbox" id="anomaly"><span><b>Anomalía revelada</b><small>Solo para probar una vista donde ya se conoce el resultado.</small></span></label>
@@ -75,6 +78,7 @@
           <div><span class="swatch-dot hair-dot"></span><span id="hair-hex">PELO #20242C</span></div>
           <div><span class="swatch-dot accent-dot"></span><span id="accent-hex">ACENTO #70BCB2</span></div>
         </div>
+        <div id="resolved-traits" class="resolved-traits" aria-live="polite"></div>
         <details class="source-details" open>
           <summary>Fuente SVG generada <span>· código real del retrato</span></summary>
           <div class="source-toolbar"><code id="source-summary">generateAvatarSvg(seed, options)</code><button id="copy-svg" type="button" class="quiet-button">Copiar SVG</button></div>
@@ -100,6 +104,6 @@
 
     <footer class="lab-footer"><span>ARTE COMO CÓDIGO / NO HAY FOTOS EXTERNAS</span><span><a href="js/avatar/AvatarGenerator.js">AvatarGenerator.js</a> · <a href="art/npcs.px.js">npcs.px.js</a> · <a href="docs/avatar-generator.md">documentación</a></span></footer>
   </main>
-  <script type="module" src="js/avatar/AvatarLab.js?v=20261021-faces2"></script>
+  <script type="module" src="js/avatar/AvatarLab.js?v=20261021-auto3"></script>
 </body>
 </html>
