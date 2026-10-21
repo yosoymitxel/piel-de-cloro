@@ -324,7 +324,11 @@ export class GameActionHandler {
     handleDecision(action) {
         if (State.paused || this.processingDecision) return;
         const npc = State.currentNPC;
-        if (!npc) return;
+        if (!npc || this.processingDecision) return;
+        if (action !== 'admit' && action !== 'ignore') {
+            this.ui.showMessage('DECISIÓN INVÁLIDA.', null, 'warning');
+            return;
+        }
 
         // Stop visual alerts after decision
         if (this.ui.stopGlobalFlicker) this.ui.stopGlobalFlicker();
@@ -342,11 +346,18 @@ export class GameActionHandler {
                 this.ui.showMessage("REFUGIO LLENO. Debes purgar a alguien desde la pantalla de Refugio.", null, 'warning');
                 return;
             }
+            if (!State.addAdmitted(npc)) {
+                this.processingDecision = false;
+                this.ui.showMessage('NO SE PUEDE ADMITIR A ESTE SUJETO EN SU ESTADO ACTUAL.', null, 'warning');
+                return;
+            }
             npc.initDayAfterStatus();
-            State.addAdmitted(npc);
         } else if (action === 'ignore') {
-            npc.exitCycle = State.cycle;
-            State.ignoredNPCs.push(npc);
+            if (!State.addIgnored(npc)) {
+                this.processingDecision = false;
+                this.ui.showMessage('ESTE SUJETO YA FUE REGISTRADO.', null, 'warning');
+                return;
+            }
 
             // Consecuencia por ignorar: la paranoia aumenta porque no sabes qué has dejado fuera
             // REBALANCEO: Ahora es un factor aleatorio que no supera los 7 (antes era 5 o 10 fijo)
