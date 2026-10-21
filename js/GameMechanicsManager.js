@@ -1380,7 +1380,7 @@ export class GameMechanicsManager {
     }
 
     handleIntrusionCombat(via, period) {
-        const securityNPCId = State.sectorAssignments?.security?.[0];
+        const securityNPCId = State.assignments?.security?.occupants?.[0] ?? null;
         const guard = State.admittedNPCs.find(n => n.id === securityNPCId);
 
         if (!guard) {
@@ -1859,26 +1859,12 @@ export class GameMechanicsManager {
     }
 
     unassignNPC(npc) {
-        if (this.game.assignments) {
-            // Find current sector and unassign
-            const sector = this.game.assignments.getAssignmentForNPC(npc.id);
-            if (sector) {
-                this.game.assignments.unassign(npc.id, sector);
-            }
-        } else {
-            // Fallback (legacy)
-            if (npc.assignedSector) {
-                if (State.sectorAssignments[npc.assignedSector]) {
-                    const idx = State.sectorAssignments[npc.assignedSector].indexOf(npc.id);
-                    if (idx > -1) State.sectorAssignments[npc.assignedSector].splice(idx, 1);
-                }
-                
-                if (npc.assignedSector === 'generator' && State.generator.assignedGuardId === npc.id) {
-                    State.generator.assignedGuardId = null;
-                }
-                
-                npc.assignedSector = null;
-            }
+        const assignments = this.game?.assignments;
+        if (assignments?.getAssignmentForNPC && assignments?.unassign) {
+            const sector = assignments.getAssignmentForNPC(npc.id);
+            if (sector) return assignments.unassign(npc.id, sector);
         }
+        State._unassignFromAll(npc);
+        return true;
     }
 }
