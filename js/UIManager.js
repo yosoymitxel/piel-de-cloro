@@ -2442,15 +2442,7 @@ export class UIManager {
 
         container.empty();
 
-        let guardId = null;
-        if (state.assignments && state.assignments[sector]) {
-            // New System
-            guardId = state.assignments[sector].occupants[0];
-        } else if (sector === 'generator') {
-            guardId = state.generator.assignedGuardId;
-        } else {
-            guardId = state.sectorAssignments && state.sectorAssignments[sector] ? state.sectorAssignments[sector][0] : null;
-        }
+        const guardId = state.assignments?.[sector]?.occupants?.[0] ?? null;
 
         const guard = guardId ? state.admittedNPCs.find(n => n.id === guardId) : null;
         const title = titleOverride || (guard ? 'OPERADOR ACTIVO' : 'PUESTO VACANTE');
@@ -3862,13 +3854,7 @@ export class UIManager {
         const indicators = [];
         
         // Helper to count specific assignments
-        const countAssigned = (sector) => {
-            try {
-                if (State.assignments && State.assignments[sector]) return State.assignments[sector].occupants.length;
-                if (State.sectorAssignments && State.sectorAssignments[sector]) return State.sectorAssignments[sector].length;
-            } catch (e) { console.warn("Error counting assigned:", e); }
-            return 0;
-        };
+        const countAssigned = (sector) => State.assignments?.[sector]?.occupants?.length ?? 0;
 
         try {
             switch (typeKey) {
