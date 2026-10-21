@@ -476,23 +476,43 @@
         display: none !important;
     }
 
+    .puesto-container,
+    .main-view-area,
+    #inspection-tools-container,
+    #game-actions-container {
+        box-sizing: border-box;
+        max-width: 100% !important;
+    }
+
     #game-actions-container {
         display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         gap: 8px !important;
-        width: 100%;
-        min-width: 0;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow: visible;
     }
 
     #game-actions-container > button {
-        min-width: 0;
-        min-height: 48px;
+        box-sizing: border-box;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        min-height: 48px !important;
+        height: auto !important;
         padding: 10px 8px !important;
         font-size: 13px !important;
         line-height: 1.25;
         letter-spacing: 0.04em !important;
         overflow-wrap: anywhere;
+        white-space: normal;
         touch-action: manipulation;
+    }
+
+    #screen-game button[aria-label*="OMITIR POR DIÁLOGO"],
+    #screen-game button[title*="OMITIR POR DIÁLOGO"] {
+        min-height: 44px !important;
     }
 
     /* Map: the viewport scrolls; the desktop coordinates remain untouched in JS. */
