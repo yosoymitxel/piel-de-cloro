@@ -11,7 +11,7 @@ export const lore_hive = {
     nodes: {
         'lh_n1': {
             id: 'lh_n1',
-            text: "*Un niño pequeño te mira, pero su voz suena como una multitud sintonizando una radio.* \"Tenemos hambre... todos nosotros. La jaula de carne es pequeña. ¿Traes biomasa o traes silencio?\" *Su piel se mueve sola, como si algo reptara debajo.*",
+            text: "*El niño te mira. Su respiración llega un instante antes que el sonido de sus palabras; detrás de su voz, alguien tose.* \"¿Trajiste comida? No para mí. Para los que no pueden pedirla.\" *La piel de su muñeca se contrae bajo la manga.*",
             audio: 'lore_interlude_seen',
             options: [
                 { id: 'lh_o1', label: '¿Quiénes sois?', next: 'lh_n2' },
@@ -21,7 +21,7 @@ export const lore_hive = {
         },
         'lh_n2': {
             id: 'lh_n2',
-            text: "*Abre la boca demasiado grande, mostrando oscuridad infinita.* \"La colonia. Los que vivían en el filtro de agua. El anciano que cayó. La niña que se escondió. El perro que ladró. Ahora somos el niño.\" *Zumbido de insectos.*",
+            text: "*Abre la boca para responder, pero la voz que sale es la de un hombre mayor.* \"Avisé que el agua olía a cobre.\" *Otra voz, más pequeña, interrumpe:* \"Yo me escondí en el filtro.\" *El niño parpadea.* \"No recuerdo haber dicho eso.\"",
             options: [
                 { id: 'lh_o2a', label: 'Preguntar por el anciano', next: 'lh_n2_a' },
                 { id: 'lh_o2b', label: 'Preguntar por el propósito', next: 'lh_n4' }
@@ -44,7 +44,7 @@ export const lore_hive = {
         },
         'lh_n4': {
             id: 'lh_n4',
-            text: "*Se dispersa momentáneamente en las sombras y se recompone.* \"Purificar... consumiendo. La soledad es una enfermedad. Nosotros somos la cura. La Unidad Final. Nos vemos en el tanque principal.\"",
+            text: "*Por un segundo, el niño deja de moverse. Las voces continúan.* \"Queremos que nadie vuelva a quedarse solo.\" *Pausa.* \"No todos estamos de acuerdo en que eso sea bueno.\"",
             options: [
                 { id: 'lh_o4a', label: '¿Tanque principal?', next: 'lh_n4_a' },
                 { id: 'lh_o4b', label: 'Terminar', next: null }
@@ -75,7 +75,7 @@ export const lore_hive = {
         },
         'lh_n5': {
             id: 'lh_n5',
-            text: "*Se lame los labios con una lengua bífida.* \"No solo carne. Queremos lo que pesa. Tus miedos. Tu primer recuerdo. El nombre de quien amaste. La carne nutre al niño, el recuerdo nutre a la Colonia.\"",
+            text: "*Mira la boca del guardia, luego aparta los ojos como si hubiera cometido una falta.* \"La carne nos mantiene aquí. Los recuerdos nos dicen quién falta. A veces recibimos uno y no sabemos a quién pertenece.\"",
             options: [
                 { id: 'lh_o5a', label: 'Ofrecer un recuerdo falso', next: 'lh_n6' },
                 { id: 'lh_o5b', label: 'Negarse', next: 'lh_n1' }
@@ -83,7 +83,7 @@ export const lore_hive = {
         },
         'lh_n6': {
             id: 'lh_n6',
-            text: "*Saborea el aire.* \"Mentira... sabe a ceniza. Pero aceptamos la ofrenda. La mentira también es una forma de arte. Nos hace... creativos.\"",
+            text: "*Aspira por la nariz. Una voz susurra 'ceniza'; otra la corrige: 'mentira'.* \"Sabemos que no es verdad. Pero alguien aquí quería creerlo. No sabemos si eso cuenta como alimento.\"",
             options: [
                 { id: 'lh_o6a', label: 'Volver', next: 'lh_n1' }
             ]
