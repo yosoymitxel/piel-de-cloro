@@ -748,7 +748,12 @@ export class UIManager {
     }
 
     showSectorAssignmentModal(sector, state, onAssign) {
-        const candidates = state.admittedNPCs.filter(n => !n.death && !n.left && !n.escaped);
+        const currentCycle = state.cycle || 1;
+        const candidates = (state.admittedNPCs || []).filter(npc => {
+            if (!npc || npc.death || npc.left || npc.escaped) return false;
+            const admittedCycle = npc.enterCycle ?? npc.admittedCycle ?? npc.cycle ?? 0;
+            return admittedCycle < currentCycle;
+        });
         const sectorName = CONSTANTS.SECTOR_CONFIG && CONSTANTS.SECTOR_CONFIG[sector] ? CONSTANTS.SECTOR_CONFIG[sector].name : sector.toUpperCase();
 
         // 1. Ensure Modal Exists (Lazy Creation)
@@ -808,7 +813,10 @@ export class UIManager {
         candidates.forEach(npc => {
             const isAssignedHere = npc.assignedSector === sector;
             const isAssignedElsewhere = npc.assignedSector && npc.assignedSector !== sector;
-            const avatarHTML = this.renderAvatar(npc, 'sm').prop('outerHTML'); // Keep this helper for now, usually returns jQuery obj
+            const avatarElement = this.renderAvatar(npc, 'sm');
+            const avatarHTML = avatarElement && typeof avatarElement.prop === 'function'
+                ? avatarElement.prop('outerHTML')
+                : '<div class="text-xs text-gray-500">?</div>';
 
             htmlContent += `
                 <button class="btn-assign-candidate w-full p-2 border ${isAssignedHere ? 'border-terminal-green bg-terminal-green/20' : 'border-white/10 bg-white/5'} hover:bg-white/10 text-left flex items-center gap-3 transition-all" data-id="${npc.id}">
@@ -2447,100 +2455,6 @@ export class UIManager {
                 // User might want to assign multiple, but feedback is important.
                 // Let's just show feedback and stay closed.
             });
-        });
-    }
-
-    showSectorAssignmentModal(sector, state, onAssign) {
-        // Filter eligible NPCs: must have been admitted BEFORE this cycle
-        const currentCycle = state.cycle || 1;
-        const candidates = (state.admittedNPCs || []).filter(npc => {
-            const admittedCycle = npc.admittedCycle || npc.cycle || 0;
-            return admittedCycle < currentCycle;
-        });
-
-        if (candidates.length === 0) {
-            if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
-            this.showFeedback("NO HAY PERSONAL DISPONIBLE (Los NPCs deben esperar un turno)", "orange", 3000);
-            return;
-        }
-
-        const self = this;
-        $('#sector-assignment-modal').remove();
-
-        let candidatesHtml = '';
-        candidates.forEach(npc => {
-            const avatarEl = this.renderAvatar(npc, 'md');
-            const avatarHtml = avatarEl && avatarEl.prop ? avatarEl.prop('outerHTML') : '<div class="text-xs text-gray-500">?</div>';
-
-            // Determine if assigned
-            let isCurrent = false;
-            if (sector === 'generator') {
-                isCurrent = state.generator.assignedGuardId === npc.id;
-            } else {
-                isCurrent = state.sectorAssignments && state.sectorAssignments[sector] && state.sectorAssignments[sector].includes(npc.id);
-            }
-
-            candidatesHtml += `
-                <div class="guard-candidate-item cursor-pointer w-full flex items-center gap-3 p-3 ${isCurrent ? 'bg-terminal-green/10 border-terminal-green/40' : 'bg-white/5 border-white/10'} border hover:bg-terminal-green/20 hover:border-terminal-green/50 transition-all rounded mb-2" data-npcid="${npc.id}">
-                    <div class="w-10 h-10 border border-white/10 bg-black rounded overflow-hidden flex-shrink-0">
-                        ${avatarHtml}
-                    </div>
-                    <div class="flex flex-col flex-1 min-w-0">
-                        <span class="text-sm font-bold text-white truncate">${npc.name}</span>
-                        <span class="text-[10px] opacity-50 font-mono">${npc.uniqueType === 'lore' ? 'Sujeto Especial' : 'Civil Admitido'}</span>
-                    </div>
-                    ${isCurrent ? '<span class="text-[9px] text-terminal-green font-mono uppercase flex-shrink-0">● Actual</span>' : '<i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>'}
-                </div>
-            `;
-        });
-
-        const modalHtml = `
-            <div id="sector-assignment-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-                <div class="horror-panel-modal w-full max-w-sm p-0 overflow-hidden border border-terminal-green/30 bg-[#0a0a0a] rounded animate__animated animate__fadeIn animate__faster">
-                    <div class="p-3 border-b border-terminal-green/20 flex justify-between items-center bg-terminal-green/5">
-                        <h3 class="text-sm font-bold uppercase tracking-widest text-terminal-green">
-                            <i class="fa-solid fa-user-shield mr-2"></i>Asignar a ${sector.toUpperCase()}
-                        </h3>
-                        <button id="sector-modal-close" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fa-solid fa-xmark text-lg"></i>
-                        </button>
-                    </div>
-                    <div class="p-4 max-h-[400px] overflow-y-auto custom-scrollbar">
-                        ${candidatesHtml}
-                    </div>
-                </div>
-            </div>
-        `;
-
-        $('body').append(modalHtml);
-
-        const closeModal = () => {
-            $('#sector-assignment-modal').fadeOut(150, function () { $(this).remove(); });
-        };
-
-        $('#sector-modal-close').on('click', closeModal);
-        $('#sector-assignment-modal').on('click', function (e) { if (e.target === this) closeModal(); });
-
-        $('.guard-candidate-item').on('click', function (e) {
-            e.preventDefault();
-            const selectedId = $(this).attr('data-npcid');
-            const selectedNPC = state.admittedNPCs.find(n => n.id === selectedId);
-
-            if (selectedNPC) {
-                if (onAssign) {
-                    onAssign(selectedNPC);
-                } else {
-                    // Default logic
-                    const game = self.game || window.game;
-                    if (game && game.mechanics) {
-                        game.mechanics.assignNPCToSector(selectedNPC, sector);
-                    }
-                }
-
-                // if (self.audio) self.audio.playSFXByKey('ui_success', { volume: 0.5 }); // Removed in favor of assignment_set
-                self.showFeedback(`✓ ASIGNADO A ${sector.toUpperCase()}: ${selectedNPC.name}`, "green", 2000, { sound: 'assignment_set', volume: 0.5 });
-            }
-            closeModal();
         });
     }
 
