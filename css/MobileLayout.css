@@ -1038,6 +1038,18 @@
         min-height: 0;
     }
 
+    /* The game shell has a fixed viewport height. Let its mobile gameplay column
+       grow naturally instead of shrinking siblings into one another. */
+    #screen-game .puesto-container {
+        flex: 0 0 auto !important;
+        overflow: visible !important;
+    }
+
+    #screen-game .main-view-area,
+    #screen-game .dialogue-sidebar {
+        flex-shrink: 0 !important;
+    }
+
 }
 
 /* Landscape phones: prioritize the person, inspection tools and decisions over telemetry. */
@@ -1187,35 +1199,35 @@
     }
 
     #screen-game .dialogue-sidebar {
-        flex: 0 0 88px !important;
-        height: 88px !important;
-        min-height: 88px !important;
-        max-height: 88px !important;
-        padding: 4px !important;
+        flex: 0 0 96px !important;
+        height: 96px !important;
+        min-height: 96px !important;
+        max-height: 96px !important;
+        padding: 2px !important;
         overflow: hidden !important;
     }
 
-    /* Metadata is secondary in landscape; preserve room for the live conversation and choices. */
+    /* Keep the conversation readable; only remove low-value link metadata here. */
     #screen-game .dialogue-sidebar > .flex.text-xs.border-b {
-        flex: 0 0 24px !important;
-        height: 24px !important;
-        min-height: 24px !important;
+        flex: 0 0 20px !important;
+        height: 20px !important;
+        min-height: 20px !important;
     }
 
     #screen-game .dialogue-sidebar #tab-dialogue,
     #screen-game .dialogue-sidebar #tab-history {
         flex: 1 1 0;
-        height: 24px !important;
-        min-height: 24px !important;
+        height: 20px !important;
+        min-height: 20px !important;
         padding: 2px 4px !important;
-        font-size: 10px !important;
+        font-size: 9px !important;
         line-height: 1.1 !important;
     }
 
     #screen-game .dialogue-sidebar #tab-dialogue i,
     #screen-game .dialogue-sidebar #tab-history i {
-        margin-right: 4px !important;
-        font-size: 10px !important;
+        margin-right: 3px !important;
+        font-size: 9px !important;
     }
 
     #screen-game .dialogue-sidebar #content-dialogue > .flex-1.overflow-y-auto > .flex.justify-between.items-start.mb-2.opacity-40 {
@@ -1223,10 +1235,10 @@
     }
 
     #screen-game .dialogue-sidebar #content-dialogue > .flex-1.overflow-y-auto {
-        flex: 0 0 12px !important;
-        height: 12px !important;
-        min-height: 12px !important;
-        max-height: 12px !important;
+        flex: 0 0 24px !important;
+        height: 24px !important;
+        min-height: 24px !important;
+        max-height: 24px !important;
         padding: 0 2px !important;
         overflow: hidden !important;
         font-size: 10px !important;
@@ -1236,9 +1248,8 @@
         margin: 0 !important;
         font-size: 10px !important;
         line-height: 12px !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        max-height: 24px !important;
+        overflow: hidden !important;
     }
 
     #screen-game .dialogue-sidebar #dialogue-options-container {
