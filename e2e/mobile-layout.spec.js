@@ -105,6 +105,15 @@ test.describe('dedicated mobile presentation', () => {
         const r = el.getBoundingClientRect();
         return { name: el.className, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
       });
+      const navButtons = [...document.querySelectorAll('#sidebar-left .nav-sidebar-btn, #sidebar-left .nav-btn')].filter(el => {
+        const style = getComputedStyle(el);
+        return style.display !== 'none' && el.getClientRects().length > 0;
+      }).map(el => {
+        const r = el.getBoundingClientRect();
+        const label = el.querySelector('span');
+        const labelRect = label?.getBoundingClientRect();
+        return { name: (label?.innerText || el.title || '').trim(), left: r.left, right: r.right, width: r.width, labelLeft: labelRect?.left ?? null, labelRight: labelRect?.right ?? null };
+      });
       const batteryCard = document.querySelector('#screen-game .comp-gen-battery .hud-component');
       const batteryFill = document.querySelector('#screen-game #comp-gen-bat-fill');
       const rectJSON = el => {
@@ -113,7 +122,7 @@ test.describe('dedicated mobile presentation', () => {
         return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
       };
       return {
-        viewportWidth, documentWidth, bounds, monitors, visibleHud,
+        viewportWidth, documentWidth, bounds, monitors, visibleHud, navButtons,
         batteryCard: rectJSON(batteryCard), batteryFill: rectJSON(batteryFill),
         mainView: rectOf('#screen-game .main-view-area'),
         dialogue: rectOf('#screen-game .dialogue-sidebar'),
@@ -132,6 +141,18 @@ test.describe('dedicated mobile presentation', () => {
     const hudRows = [...new Set(measurements.visibleHud.map(card => Math.round(card.top / 4)))];
     expect(hudRows.length, JSON.stringify(measurements.visibleHud)).toBe(2);
     expect(measurements.visibleHud.every(card => card.width >= 44 && card.left >= -1 && card.right <= measurements.viewportWidth + 1)).toBe(true);
+
+    // Bottom-dock buttons and labels must stay inside their own viewport.
+    expect(measurements.navButtons.length).toBeGreaterThanOrEqual(4);
+    for (const nav of measurements.navButtons) {
+      expect(nav.left, JSON.stringify(nav)).toBeGreaterThanOrEqual(-1);
+      expect(nav.right, JSON.stringify(nav)).toBeLessThanOrEqual(measurements.viewportWidth + 1);
+      expect(nav.width, JSON.stringify(nav)).toBeGreaterThanOrEqual(44);
+      if (nav.labelRight !== null) {
+        expect(nav.labelLeft, JSON.stringify(nav)).toBeGreaterThanOrEqual(nav.left - 1);
+        expect(nav.labelRight, JSON.stringify(nav)).toBeLessThanOrEqual(nav.right + 1);
+      }
+    }
 
     // The battery fill must remain inside its card, including at 100%.
     if (measurements.batteryCard && measurements.batteryFill) {
