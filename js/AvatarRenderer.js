@@ -24,6 +24,7 @@ export class AvatarRenderer {
         const features = npc.visualFeatures || {};
         const generatedPortrait = generateAvatarDataUri(npc.id || npc.name || 'unknown-npc', {
             hair: features.hair,
+            faceShape: features.faceShape,
             facialHair: features.facialHair,
             clothes: features.clothes,
             accessory: features.accessory,

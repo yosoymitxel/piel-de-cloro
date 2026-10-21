@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#10181b">
   <title>Laboratorio de avatares · Piel de Cloro</title>
-  <link rel="stylesheet" href="css/avatar-lab.css?v=20261021-lab1">
+  <link rel="stylesheet" href="css/avatar-lab.css?v=20261021-faces2">
 </head>
 <body>
   <main class="lab-shell">
@@ -28,10 +28,20 @@
           <option value="0">Acero húmedo</option><option value="1">Óxido</option><option value="2">Carbón</option><option value="3">Sal pálida</option><option value="4">Cemento</option>
         </select>
         <div id="palette-swatches" class="palette-swatches" aria-label="Muestras de paleta"></div>
+        <label class="field-label" for="skin-color">Tono de piel exacto</label>
+        <div class="skin-editor-row">
+          <label class="check-row skin-follow-palette"><input type="checkbox" id="palette-skin" checked><span><b>Seguir la paleta</b><small>Desmarcá para elegir un tono personalizado.</small></span></label>
+          <input id="skin-color" type="color" value="#b78f78" disabled aria-label="Elegir color de piel personalizado">
+        </div>
 
         <label class="field-label" for="hair">Peinado / silueta</label>
         <select id="hair">
           <option value="bald">Calvo</option><option value="shaved">Rapado</option><option value="short" selected>Corto</option><option value="long">Largo</option><option value="bob">Bob</option><option value="ponytail">Coleta (ponytail)</option><option value="bun">Rodete</option><option value="wild">Desprolijo</option><option value="mohawk">Mohicano</option><option value="punk">Punk</option>
+        </select>
+
+        <label class="field-label" for="face-shape">Forma del rostro</label>
+        <select id="face-shape">
+          <option value="oval">Ovalado</option><option value="round">Redondo</option><option value="square">Cuadrado</option><option value="long">Alargado</option><option value="broad">Ancho</option><option value="angular">Angular</option><option value="heart">Corazón</option>
         </select>
 
         <label class="field-label" for="clothes">Ropa</label>
@@ -78,6 +88,11 @@
       <div id="hair-gallery" class="hair-gallery"></div>
     </section>
 
+    <section class="lab-panel gallery-section" aria-labelledby="face-gallery-title">
+      <div class="section-title-row"><div><span class="section-kicker">ANATOMÍA / SILUETAS</span><h2 id="face-gallery-title">Formas del rostro</h2><p>Compará siete contornos con el mismo NPC, piel y peinado. Elegí una silueta para modificarla.</p></div><span id="face-count" class="count-code">7 FORMAS</span></div>
+      <div id="face-gallery" class="hair-gallery" aria-label="Galería de formas de rostro"></div>
+    </section>
+
     <section class="lab-panel gallery-section" aria-labelledby="pxl-gallery-title">
       <div class="section-title-row"><div><span class="section-kicker">FUENTE EDITABLE</span><h2 id="pxl-gallery-title">ClaudePXL como código</h2><p>La fuente PXL se inspecciona como código; el juego no depende de PNG compilados ni de una descarga externa para renderizar NPCs.</p></div><a class="source-link" href="art/npcs.px.js">Abrir art/npcs.px.js ↗</a></div>
       <pre id="pxl-source" class="pxl-source" aria-label="Código fuente ClaudePXL">Cargando art/npcs.px.js…</pre>
@@ -85,6 +100,6 @@
 
     <footer class="lab-footer"><span>ARTE COMO CÓDIGO / NO HAY FOTOS EXTERNAS</span><span><a href="js/avatar/AvatarGenerator.js">AvatarGenerator.js</a> · <a href="art/npcs.px.js">npcs.px.js</a> · <a href="docs/avatar-generator.md">documentación</a></span></footer>
   </main>
-  <script type="module" src="js/avatar/AvatarLab.js?v=20261021-lab1"></script>
+  <script type="module" src="js/avatar/AvatarLab.js?v=20261021-faces2"></script>
 </body>
 </html>

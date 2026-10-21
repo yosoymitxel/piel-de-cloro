@@ -33,6 +33,37 @@ describe("AvatarGenerator", () => {
     expect(generateAvatarSvg("skin-editor", { paletteIndex: 2, eyeType: "tired" })).not.toBe(base);
   });
 
+  test("ofrece siete siluetas faciales realmente distintas", () => {
+    expect(avatarGeneratorOptions.faceShapes).toEqual([
+      "oval", "round", "square", "long", "broad", "angular", "heart"
+    ]);
+    const faces = avatarGeneratorOptions.faceShapes.map(faceShape =>
+      generateAvatarSvg("same-face", { paletteIndex: 0, hair: "short", faceShape })
+    );
+    expect(new Set(faces).size).toBe(7);
+  });
+
+  test("conserva exactamente los cinco tonos heredados de css/avatars.css", () => {
+    const legacy = [
+      ["var(--avatar-skin-1)", "#ffdbac"],
+      ["var(--avatar-skin-2)", "#f1c27d"],
+      ["var(--avatar-skin-3)", "#e0ac69"],
+      ["var(--avatar-skin-4)", "#8d5524"],
+      ["var(--avatar-skin-5)", "#c68642"]
+    ];
+    for (const [skinColor, expected] of legacy) {
+      expect(generateAvatarSvg("legacy-skin", { paletteIndex: 0, skinColor }))
+        .toContain(`fill="${expected}"`);
+    }
+  });
+
+  test("acepta un tono hexadecimal personalizado y normaliza la forma corta", () => {
+    expect(generateAvatarSvg("custom-skin", { skinColor: "#6a3f2e" }))
+      .toContain('fill="#6a3f2e"');
+    expect(generateAvatarSvg("custom-skin", { skinColor: "#abc" }))
+      .toContain('fill="#aabbcc"');
+  });
+
   test("permite fijar cualquiera de las cinco paletas", () => {
     expect(avatarGeneratorOptions.palettes).toHaveLength(5);
     for (let paletteIndex = 0; paletteIndex < 5; paletteIndex += 1) {

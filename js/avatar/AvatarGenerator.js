@@ -23,10 +23,51 @@ const HAIR = {
   punk:     { rear:[], top:[[9,6,4,4],[12,3,4,6],[16,2,4,7],[19,5,4,5],[9,9,15,2]], temples:[[9,10,2,3],[21,10,2,3]] }
 };
 
-const SKIN_PALETTE = {
-  "--avatar-skin-1":0, "--avatar-skin-2":1, "--avatar-skin-3":3,
-  "--avatar-skin-4":2, "--avatar-skin-5":4
+// Keep the original CSS avatar skin tokens working, including the exact colors
+// defined in css/avatars.css. A skin token changes skin only, not clothing or mood.
+const LEGACY_SKIN_COLORS = Object.freeze({
+  "var(--avatar-skin-1)": "#ffdbac", "--avatar-skin-1": "#ffdbac",
+  "var(--avatar-skin-2)": "#f1c27d", "--avatar-skin-2": "#f1c27d",
+  "var(--avatar-skin-3)": "#e0ac69", "--avatar-skin-3": "#e0ac69",
+  "var(--avatar-skin-4)": "#8d5524", "--avatar-skin-4": "#8d5524",
+  "var(--avatar-skin-5)": "#c68642", "--avatar-skin-5": "#c68642"
+});
+
+const FACE_SHAPES = {
+  oval:    [[7,6],[8,10],[9,12],[10,14],[11,14],[12,14],[13,14],[14,14],[15,14],[16,14],[17,14],[18,14],[19,14],[20,14],[21,12],[22,10],[23,8]],
+  round:   [[7,8],[8,12],[9,14],[10,16],[11,16],[12,16],[13,16],[14,16],[15,16],[16,16],[17,16],[18,16],[19,16],[20,14],[21,12],[22,10],[23,8]],
+  square:  [[7,8],[8,12],[9,14],[10,16],[11,16],[12,16],[13,16],[14,16],[15,16],[16,16],[17,16],[18,16],[19,16],[20,16],[21,14],[22,12],[23,10]],
+  long:    [[7,5],[8,8],[9,10],[10,12],[11,12],[12,12],[13,12],[14,12],[15,12],[16,12],[17,12],[18,12],[19,12],[20,12],[21,10],[22,8],[23,6]],
+  broad:   [[7,8],[8,12],[9,16],[10,18],[11,18],[12,18],[13,18],[14,18],[15,18],[16,18],[17,18],[18,18],[19,18],[20,16],[21,14],[22,12],[23,10]],
+  angular: [[7,6],[8,10],[9,14],[10,16],[11,16],[12,16],[13,16],[14,16],[15,16],[16,16],[17,14],[18,14],[19,12],[20,10],[21,8],[22,6],[23,4]],
+  heart:   [[7,7],[8,12],[9,16],[10,16],[11,16],[12,16],[13,16],[14,14],[15,14],[16,12],[17,12],[18,10],[19,10],[20,8],[21,8],[22,6],[23,4]]
 };
+
+function normalizeSkinColor(value) {
+  if (typeof value !== "string") return null;
+  const input = value.trim().toLowerCase();
+  const resolved = LEGACY_SKIN_COLORS[input] || input;
+  if (/^#[0-9a-f]{6}$/.test(resolved)) return resolved;
+  if (/^#[0-9a-f]{3}$/.test(resolved)) {
+    return "#" + [...resolved.slice(1)].map(channel => channel + channel).join("");
+  }
+  return null;
+}
+function mixColor(color, target, amount) {
+  const from = [1, 3, 5].map(index => parseInt(color.slice(index, index + 2), 16));
+  const to = [1, 3, 5].map(index => parseInt(target.slice(index, index + 2), 16));
+  return "#" + from.map((channel, index) =>
+    Math.round(channel + (to[index] - channel) * amount).toString(16).padStart(2, "0")
+  ).join("");
+}
+function skinShades(color) {
+  return {
+    skin: color,
+    skinLight: mixColor(color, "#ffffff", 0.24),
+    skinShadow: mixColor(color, "#000000", 0.34)
+  };
+}
+
 
 function hashSeed(value) {
   const input=String(value ?? "unknown-npc");
@@ -46,20 +87,20 @@ function row(cx,y,width,color){return rect(cx-Math.floor(width/2),y,width,1,colo
 function shapeRows(cx,rows,color){return rows.map(([y,w])=>row(cx,y,w,color)).join("");}
 function safeHair(value){return Object.hasOwn(HAIR,value)?value:"short";}
 function safeOption(value,choices,fallback){return choices.includes(value)?value:fallback;}
-function skinIndex(value){return SKIN_PALETTE[value];}
 
 /**
  * @param {string|number} seed Stable NPC ID.
- * @param {{hair?:string,facialHair?:string,clothes?:string,accessory?:string,eyeType?:string,mouthType?:string,skinColor?:string,paletteIndex?:number,exhausted?:boolean,infected?:boolean,revealed?:boolean}} options
+ * @param {{hair?:string,faceShape?:string,facialHair?:string,clothes?:string,accessory?:string,eyeType?:string,mouthType?:string,skinColor?:string,paletteIndex?:number,exhausted?:boolean,infected?:boolean,revealed?:boolean}} options
  * @returns {string} Crisp-edge SVG on a 32×40 logical pixel grid.
  */
 export function generateAvatarSvg(seed,options={}) {
   const random=makeRandom(hashSeed(seed));
-  const mappedSkin=skinIndex(options.skinColor);
   const paletteIndex=Number.isInteger(options.paletteIndex)
     ? ((options.paletteIndex%PALETTES.length)+PALETTES.length)%PALETTES.length
-    : mappedSkin ?? Math.floor(random()*PALETTES.length);
-  const p=PALETTES[paletteIndex];
+    : Math.floor(random()*PALETTES.length);
+  const basePalette=PALETTES[paletteIndex];
+  const exactSkin=normalizeSkinColor(options.skinColor);
+  const p=exactSkin ? {...basePalette, ...skinShades(exactSkin)} : basePalette;
   // If the caller does not supply cosmetics, derive them from the seed. This
   // guarantees that different NPC IDs can produce visibly different designs,
   // while explicit NPC traits always win and remain stable across rerenders.
@@ -71,6 +112,9 @@ export function generateAvatarSvg(seed,options={}) {
   const hairStyle=options.hair == null
     ? hairStyles[Math.floor(random()*hairStyles.length)]
     : safeHair(options.hair);
+  const faceShape=options.faceShape == null
+    ? Object.keys(FACE_SHAPES)[Math.floor(random()*Object.keys(FACE_SHAPES).length)]
+    : safeOption(options.faceShape,Object.keys(FACE_SHAPES),"oval");
   const hair=HAIR[hairStyle];
   const clothes=safeOption(options.clothes,clothesOptions,clothesOptions[Math.floor(random()*clothesOptions.length)]);
   const accessory=safeOption(options.accessory,accessoryOptions,accessoryOptions[Math.floor(random()*accessoryOptions.length)]);
@@ -86,8 +130,8 @@ export function generateAvatarSvg(seed,options={}) {
   const shirt=shirtMap[clothes];
   const anomaly=options.revealed===true && options.infected===true;
   const cx=16;
-  const headOuter=[[7,6],[8,10],[9,12],[10,14],[11,14],[12,14],[13,14],[14,14],[15,14],[16,14],[17,14],[18,14],[19,14],[20,14],[21,12],[22,10],[23,8]];
-  const headInner=headOuter.map(([y,w])=>[y+1,Math.max(4,w-2)]);
+  const headOuter=FACE_SHAPES[faceShape];
+  const headInner=headOuter.map(([y,w])=>[y+1,Math.max(2,w-2)]);
   const eyeY=eyeType==="tired"?15:14+Math.floor(random()*2);
   const eyeW=eyeType==="big"?4:eyeType==="narrow"||eyeType==="squint"?2:3;
   const leftEye=11,rightEye=18;
@@ -190,6 +234,8 @@ export function renderAvatar(container,seed,options={}) {
 
 export const avatarGeneratorOptions = Object.freeze({
   palettes: PALETTES.map(({name,skin,skinLight,skinShadow,hair,accent,background,shirt})=>({name,skin,skinLight,skinShadow,hair,accent,background,shirt})),
+  legacySkinColors: LEGACY_SKIN_COLORS,
+  faceShapes: Object.freeze(Object.keys(FACE_SHAPES)),
   hairStyles: Object.freeze(Object.keys(HAIR)),
   clothesStyles: Object.freeze(["worker","civilian","scavenger","suit","rags"]),
   accessories: Object.freeze(["none","glasses","mask","scar","patch","earring","hood"]),

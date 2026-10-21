@@ -164,3 +164,15 @@ input:hover, select:hover { border-color: #537879; }
   white-space: pre;
   tab-size: 2;
 }
+
+
+/* Skin-tone control remains usable at narrow widths. */
+.skin-editor-row { display: grid; grid-template-columns: minmax(0, 1fr) 58px; gap: 8px; align-items: center; }
+.controls-panel .skin-follow-palette { margin-top: 0; min-width: 0; grid-column: auto; }
+#skin-color { width: 58px; min-width: 58px; padding: 4px; border: 1px solid var(--lab-border); background: var(--lab-panel-raised); }
+#skin-color:disabled { opacity: .55; cursor: not-allowed; }
+#face-gallery .hair-card img { image-rendering: pixelated; }
+@media (max-width: 390px) {
+  .skin-editor-row { grid-template-columns: minmax(0, 1fr) 50px; }
+  #skin-color { width: 50px; min-width: 50px; }
+}
