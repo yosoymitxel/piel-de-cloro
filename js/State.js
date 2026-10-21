@@ -547,6 +547,13 @@ export const State = {
         return true;
     },
 
+    addIgnored(npc) {
+        if (!npc?.id || this.ignoredNPCs.some(candidate => candidate?.id === npc.id)) return false;
+        npc.exitCycle = this.cycle;
+        this.ignoredNPCs.push(npc);
+        return true;
+    },
+
     markDeparted(npc) {
         if (!npc?.id || this.departedNPCs.some(candidate => candidate?.id === npc.id)) return false;
         if (!this.removeAdmitted(npc)) return false;
@@ -558,8 +565,9 @@ export const State = {
 
     recordDeath(npc, reason = 'desconocido', revealed = false) {
         if (!npc?.id || this.purgedNPCs.some(candidate => candidate?.id === npc.id)) return false;
-        this.removeAdmitted(npc);
-        this._unassignFromAll(npc);
+        const wasAdmitted = this.removeAdmitted(npc);
+        if (!wasAdmitted) this._unassignFromAll(npc);
+        this.departedNPCs = this.departedNPCs.filter(candidate => candidate?.id !== npc.id);
         npc.death = { reason, cycle: this.cycle, revealed: Boolean(revealed) };
         this.purgedNPCs.push(npc);
         return true;
