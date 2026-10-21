@@ -5,8 +5,8 @@ describe('ScreenManager transition ordering', () => {
         const classes = new Set(['hidden']);
         return {
             classes,
-            addClass: (name) => { name.split(/\\s+/).forEach(c => classes.add(c)); },
-            removeClass: (name) => { name.split(/\\s+/).forEach(c => classes.delete(c)); }
+            addClass: (name) => { name.split(/\s+/).forEach(c => classes.add(c)); },
+            removeClass: (name) => { name.split(/\s+/).forEach(c => classes.delete(c)); }
         };
     };
 
