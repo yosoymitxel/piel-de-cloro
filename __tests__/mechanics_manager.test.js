@@ -85,6 +85,40 @@ describe('GameMechanicsManager', () => {
         });
 
 
+        test('protocol changes are accepted once per subject and reset at the next subject', () => {
+            State.generator.mode = 'normal';
+            State.currentNPC = new NPC();
+            State.currentNPC.scanCount = 0;
+
+            expect(gmm.setGeneratorProtocol('save')).toBe(true);
+            expect(State.generator.modeChangedThisTurn).toBe(true);
+            expect(gmm.setGeneratorProtocol('overload')).toBe(false);
+            expect(State.generator.mode).toBe('save');
+
+            State.nextSubject();
+            expect(State.generator.modeChangedThisTurn).toBe(false);
+            expect(gmm.setGeneratorProtocol('overload')).toBe(true);
+            expect(State.generator.mode).toBe('overload');
+        });
+
+        test('an action already taken prevents raising generator mode', () => {
+            State.generator.mode = 'normal';
+            State.generator.modeChangedThisTurn = false;
+            State.currentNPC = new NPC();
+            State.currentNPC.scanCount = 1;
+
+            expect(gmm.setGeneratorProtocol('overload')).toBe(false);
+            expect(State.generator.mode).toBe('normal');
+        });
+
+        test('low battery rejects overload without silently changing the current mode', () => {
+            State.generator.mode = 'normal';
+            State.generator.power = 10;
+
+            expect(gmm.setGeneratorProtocol('overload')).toBe(false);
+            expect(State.generator.mode).toBe('normal');
+        });
+
         test('triggerGeneratorFailure updates state and UI', () => {
             State.generator.isOn = true;
             const npc = new NPC();
