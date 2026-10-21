@@ -259,8 +259,16 @@ test.describe('dedicated mobile presentation', () => {
         await page.waitForTimeout(100);
         await page.screenshot({ path: 'test-results/mobile-game-dialogue-end-390.png', fullPage: false });
         const lastButton = await page.locator('#screen-game #dialogue-options button').last().boundingBox();
-        expect(lastButton, JSON.stringify(dialogue)).not.toBeNull();
+        const scrolledViewport = await page.evaluate(() => {
+          const screen = document.querySelector('#screen-game');
+          const r = screen.getBoundingClientRect();
+          return { top: r.top, bottom: r.bottom, scrollTop: screen.scrollTop, scrollHeight: screen.scrollHeight, clientHeight: screen.clientHeight };
+        });
+        expect(lastButton, JSON.stringify({ dialogue, scrolledViewport })).not.toBeNull();
         expect(lastButton.height).toBeGreaterThanOrEqual(40);
+        expect(lastButton.bottom, JSON.stringify({ dialogue, lastButton, scrolledViewport })).toBeLessThanOrEqual(scrolledViewport.bottom + 1);
+        expect(lastButton.top, JSON.stringify({ dialogue, lastButton, scrolledViewport })).toBeGreaterThanOrEqual(scrolledViewport.top - 1);
+        expect(scrolledViewport.scrollHeight, JSON.stringify(scrolledViewport)).toBeGreaterThan(scrolledViewport.clientHeight);
       }
       expect(responsive.document, JSON.stringify({ width, ...responsive })).toBeLessThanOrEqual(responsive.viewport + 1);
       expect(responsive.hudCards, JSON.stringify({ width, ...responsive })).toBe(6);
