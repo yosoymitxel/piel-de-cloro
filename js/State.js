@@ -582,6 +582,7 @@ export const State = {
         if (this.generator?.assignedGuardId === npc.id) {
             this.generator.assignedGuardId = null;
         }
+        npc.assignedSector = null;
     },
 
     isShelterFull() {
