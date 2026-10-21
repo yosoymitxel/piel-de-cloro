@@ -478,38 +478,30 @@ export class GeneratorManager {
                 return false;
             }
 
-            // IMMEDIATE visual feedback - toggle active class right away
-            $('.btn-generator-control').removeClass('active');
-            const modeMap = { 'save': 'btn-gen-save', 'normal': 'btn-gen-normal', 'overload': 'btn-gen-over' };
-            $(`#${modeMap[newMode]}`).addClass('active');
-
-            // Audio click effect
-            if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.3 });
-
-            {
-                const success = game.mechanics.setGeneratorProtocol(newMode);
-
-                if (success) {
-                    // Full UI refresh follows the validated domain transition.
-                    this.renderGeneratorRoom(State);
-
-                    // Trigger level change animation
-                    const monitor = $('.crt-monitor');
-                    monitor.removeClass('glitch-level-change');
-                    if (this._glitchTimeout) clearTimeout(this._glitchTimeout);
-
-                    requestAnimationFrame(() => {
-                        monitor.each((i, el) => void el.offsetWidth);
-                        monitor.addClass('glitch-level-change');
-                        this._glitchTimeout = setTimeout(() => {
-                            monitor.removeClass('glitch-level-change');
-                            this._glitchTimeout = null;
-                        }, 400);
-                    });
-                }
-                return success;
+            const success = game.mechanics.setGeneratorProtocol(newMode);
+            if (!success) {
+                this.renderGeneratorRoom(State);
+                return false;
             }
-            return false;
+
+            if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.3 });
+            this.renderGeneratorRoom(State);
+
+            // Animate only after the domain transition succeeds.
+            const monitor = $('.crt-monitor');
+            monitor.removeClass('glitch-level-change');
+            if (this._glitchTimeout) clearTimeout(this._glitchTimeout);
+
+            requestAnimationFrame(() => {
+                monitor.each((i, el) => void el.offsetWidth);
+                monitor.addClass('glitch-level-change');
+                this._glitchTimeout = setTimeout(() => {
+                    monitor.removeClass('glitch-level-change');
+                    this._glitchTimeout = null;
+                }, 400);
+            });
+
+            return true;
         };
 
         btnSave.off('click').on('click', () => handleModeSwitch('save'));
