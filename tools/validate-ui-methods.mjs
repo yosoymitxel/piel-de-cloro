@@ -19,9 +19,9 @@ for (const match of source.matchAll(methodPattern)) {
 if (duplicates.length) {
     console.error('Duplicate UIManager methods found:');
     for (const duplicate of duplicates) {
-        console.error(\`- \${duplicate.name}: lines \${duplicate.firstLine} and \${duplicate.duplicateLine}\`);
+        console.error('- ' + duplicate.name + ': lines ' + duplicate.firstLine + ' and ' + duplicate.duplicateLine);
     }
     process.exitCode = 1;
 } else {
-    console.log(\`UIManager method check passed (\${seen.size} methods, no duplicate declarations).\`);
+    console.log('UIManager method check passed (' + seen.size + ' methods, no duplicate declarations).');
 }
