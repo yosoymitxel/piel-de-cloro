@@ -997,6 +997,8 @@
     #screen-game #tutorial-monitor-content,
     #screen-game #tutorial-monitor-content .tutorial-msg,
     #screen-game #tutorial-monitor-content .tutorial-msg span {
+        display: block !important;
+        width: 100% !important;
         min-width: 0 !important;
         max-width: 100% !important;
         height: auto !important;
