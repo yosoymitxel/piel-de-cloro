@@ -1145,11 +1145,20 @@ export class GameMechanicsManager {
         // Commit the guard screen before advancing turn logic. nextTurn() can
         // immediately trigger another phase transition, so running it before
         // this navigation finishes can leave the main area with no active screen.
-        const screenCommitted = await this.game.events.switchScreen(CONSTANTS.SCREENS.GAME, {
-            force: true,
-            lockNav: false
-        });
-        if (screenCommitted === false) return false;
+        // This state transition has already committed the new cycle and
+        // departure results. If a stale navigation supersedes the first UI
+        // request, retry the guard screen rather than silently stranding the
+        // game between cycles.
+        let screenCommitted = false;
+        for (let attempt = 0; attempt < 3 && screenCommitted === false; attempt++) {
+            screenCommitted = await this.game.events.switchScreen(CONSTANTS.SCREENS.GAME, {
+                force: true,
+                lockNav: false
+            });
+        }
+        if (screenCommitted === false) {
+            throw new Error('Unable to commit the guard screen after three transition attempts.');
+        }
 
         this.game.nextTurn();
         this.updateTurnEndSystems();
