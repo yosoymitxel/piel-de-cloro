@@ -9,7 +9,7 @@ export const gen_pools_2 = {
         nodes: {
             'gsh_n1': {
                 id: 'gsh_n1',
-                text: "*Mira constantemente a sus espaldas.* \"La luz aquí parpadea mucho, ¿verdad? Crea... formas raras.\"",
+                text: "*Mira dos veces hacia el pasillo cada vez que parpadea la lámpara. «Con esta luz, cualquier cosa parece moverse. ¿Siempre falla así?»*",
                 options: [
                     { id: 'gsh_o1', label: 'Es el generador', next: 'gsh_n2a' },
                     { id: 'gsh_o2', label: '¿Qué formas?', next: 'gsh_n2b' }
@@ -17,7 +17,7 @@ export const gen_pools_2 = {
             },
             'gsh_n2a': {
                 id: 'gsh_n2a',
-                text: "*Asiente, poco convencido.* \"Sí... seguro. Pero a veces parece que la oscuridad se queda quieta cuando la luz vuelve.\"",
+                text: "*Espera a que la lámpara vuelva a encenderse. «La sombra tardó un poco más que yo en desaparecer. O eso me pareció».*",
                 options: [
                     { id: 'gsh_o2a', label: 'Estás cansado', next: 'gsh_n3a' },
                     { id: 'gsh_o2r', label: '¿Qué formas viste?', next: null, resultText: "*Dibuja en el aire.* \"Altas. Con dedos como agujas. Estaban en la ventilación del Nivel 2.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Avistamiento de sombras antropomorfas en ventilación Nivel 2.') },
@@ -26,7 +26,7 @@ export const gen_pools_2 = {
             },
             'gsh_n2b': {
                 id: 'gsh_n2b',
-                text: "*Baja la voz.* \"Cosas que te siguen. Sombras que son demasiado largas para ser tuyas.\"",
+                text: "*Habla más bajo, sin apartar la vista del pasillo. «A veces las sombras parecen demasiado largas. Llevo días durmiendo mal; no te digo que sea algo real».*",
                 options: [{ id: 'gsh_o2c', label: 'Psicosis', next: 'gsh_n4b' }]
             },
             'gsh_n3a': {
