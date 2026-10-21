@@ -16,6 +16,15 @@ describe('State NPC lifecycle', () => {
         expect(State.admittedNPCs.some(item => item.id === dead.id)).toBe(false);
     });
 
+    test('ignored subjects are recorded once with their exit cycle', () => {
+        const npc = new NPC();
+        expect(State.addIgnored(npc)).toBe(true);
+        expect(State.addIgnored(npc)).toBe(false);
+        expect(npc.exitCycle).toBe(State.cycle);
+        expect(State.ignoredNPCs.filter(item => item.id === npc.id)).toHaveLength(1);
+        expect(State.admittedNPCs).not.toContain(npc);
+    });
+
     test('departure removes the NPC and assignments exactly once', () => {
         const npc = new NPC();
         State.addAdmitted(npc);
