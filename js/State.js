@@ -2,6 +2,33 @@ import { CONSTANTS } from './Constants.js';
 import { Shelter, Room } from './ShelterModel.js';
 import { LogManager } from './LogManager.js';
 
+const createGeneratorState = () => ({
+    isOn: true,
+    mode: 'normal',
+    power: 100,
+    capacity: 100,
+    load: 0,
+    baseConsumption: 5,
+    stability: 100,
+    overloadTimer: 0,
+    systems: {
+        security: { load: 8, active: true, label: 'Seguridad' },
+        lighting: { load: 4, active: true, label: 'Iluminación' },
+        lifeSupport: { load: 12, active: true, label: 'Soporte Vital' },
+        shelterLab: { load: 23, active: false, label: 'Laboratorio' }
+    },
+    modeChangedThisTurn: false,
+    blackoutUntil: 0,
+    overclockCooldown: false,
+    restartLock: false,
+    bloodTestId: null,
+    bloodTestCountdown: 0,
+    emergencyEnergyGranted: false,
+    maxModeCapacityReached: 2,
+    assignedGuardId: null,
+    guardShiftLogs: []
+});
+
 export const State = {
     paranoia: 0,
     sanity: 100,
@@ -336,31 +363,7 @@ export const State = {
         victims: 0,
         message: ''
     },
-    generator: {
-        isOn: true,
-        mode: 'normal',           // Compatibility: 'save', 'normal', 'overload'
-        power: 100,               // Compatibility: 0-100
-        capacity: 100,           // Capacidad total nominal
-        load: 0,                // Carga actual (calculada dinámicamente)
-        baseConsumption: 5,     // Consumo mínimo pasivo
-        stability: 100,         // Salud del núcleo (0-100)
-        overloadTimer: 0,       // Turnos consecutivos en sobrecarga
-        systems: {
-            security: { load: 15, active: true, label: 'Seguridad' },
-            lighting: { load: 10, active: true, label: 'Iluminación' },
-            lifeSupport: { load: 20, active: true, label: 'Soporte Vital' },
-            shelterLab: { load: 25, active: false, label: 'Laboratorio' }
-        },
-        // Flags de control y legacy compatibility
-        blackoutUntil: 0,
-        restartLock: false,
-        bloodTestId: null,
-        bloodTestCountdown: 0,
-        emergencyEnergyGranted: false,
-        maxModeCapacityReached: 2, // Start with Normal
-        assignedGuardId: null,      // NPC assigned as guard
-        guardShiftLogs: []          // Information provided by the guard
-    },
+    generator: createGeneratorState(),
     // Nueva estructura centralizada de asignaciones
     assignments: {
         generator: { slots: 1, occupants: [] },
@@ -410,30 +413,7 @@ export const State = {
         this.paused = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
-        this.generator = {
-            isOn: true,
-            mode: 'normal',
-            power: 100,
-            capacity: 100,
-            load: 0,
-            baseConsumption: 5,
-            stability: 100,
-            overloadTimer: 0,
-            systems: {
-                security: { load: 8, active: true, label: 'Seguridad' },
-                lighting: { load: 4, active: true, label: 'Iluminación' },
-                lifeSupport: { load: 12, active: true, label: 'Soporte Vital' },
-                shelterLab: { load: 23, active: false, label: 'Laboratorio' }
-            },
-            blackoutUntil: 0,
-            restartLock: false,
-            bloodTestId: null,
-            bloodTestCountdown: 0,
-            emergencyEnergyGranted: false,
-            maxModeCapacityReached: 2,
-            assignedGuardId: null,
-            guardShiftLogs: []
-        };
+        this.generator = createGeneratorState();
         this.playerInfected = Math.random() < this.config.playerInfectedProbability;
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight = { occurred: false, victims: 0, message: '' };
