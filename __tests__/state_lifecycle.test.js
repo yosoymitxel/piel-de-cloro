@@ -23,6 +23,7 @@ describe('State NPC lifecycle', () => {
         expect(npc.exitCycle).toBe(State.cycle);
         expect(State.ignoredNPCs.filter(item => item.id === npc.id)).toHaveLength(1);
         expect(State.admittedNPCs).not.toContain(npc);
+        expect(State.addAdmitted(npc)).toBe(false);
     });
 
     test('departure removes the NPC and assignments exactly once', () => {
@@ -43,6 +44,8 @@ describe('State NPC lifecycle', () => {
         expect(State.sectorAssignments.fuel).not.toContain(npc.id);
         expect(State.generator.assignedGuardId).toBeNull();
         expect(npc.assignedSector).toBeNull();
+        expect(State.recordDeath(npc, 'late death')).toBe(false);
+        expect(State.purgedNPCs).not.toContain(npc);
     });
 
     test('death removes admission and records one terminal status with its reason', () => {
