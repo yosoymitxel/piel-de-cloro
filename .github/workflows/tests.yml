@@ -29,3 +29,19 @@ jobs:
         run: npm run validate:structure
       - name: Run test suite
         run: npm test
+      - name: Install Playwright browser test runner
+        run: npm install --no-save --package-lock=false @playwright/test
+      - name: Install Chromium for visual browser checks
+        run: npx playwright install --with-deps chromium
+      - name: Run desktop and mobile browser checks
+        run: npm run test:e2e
+      - name: Upload browser screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
