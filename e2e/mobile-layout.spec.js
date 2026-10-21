@@ -45,11 +45,38 @@ test.describe('dedicated mobile presentation', () => {
     await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
     await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
 
+    // The CRT power-on animation scales the entire monitor from a scan line.
+    // Wait for actual visible controls to reach their final touch-target size
+    // instead of measuring transient animation frames (which caused flaky CI).
+    await page.waitForFunction(() => {
+      const controls = [
+        ...document.querySelectorAll('#inspection-tools-container .horror-tool-btn'),
+        ...document.querySelectorAll('#game-actions-container > button')
+      ].filter(el => {
+        const style = getComputedStyle(el);
+        return style.display !== 'none'
+          && style.visibility !== 'hidden'
+          && Number(style.opacity) > 0
+          && el.getClientRects().length > 0;
+      });
+      return controls.length > 0 && controls.every(el => {
+        const rect = el.getBoundingClientRect();
+        return rect.width >= 44 && rect.height >= 44;
+      });
+    }, null, { timeout: 8000 });
+
     const measurements = await page.evaluate(() => {
       const viewportWidth = document.documentElement.clientWidth;
       const documentWidth = document.documentElement.scrollWidth;
-      const toolButtons = [...document.querySelectorAll('#inspection-tools-container .horror-tool-btn')];
-      const actionButtons = [...document.querySelectorAll('#game-actions-container > button')];
+      const isVisible = el => {
+        const style = getComputedStyle(el);
+        return style.display !== 'none'
+          && style.visibility !== 'hidden'
+          && Number(style.opacity) > 0
+          && el.getClientRects().length > 0;
+      };
+      const toolButtons = [...document.querySelectorAll('#inspection-tools-container .horror-tool-btn')].filter(isVisible);
+      const actionButtons = [...document.querySelectorAll('#game-actions-container > button')].filter(isVisible);
       const bounds = [...toolButtons, ...actionButtons].map(el => {
         const rect = el.getBoundingClientRect();
         return { width: rect.width, height: rect.height, right: rect.right };
