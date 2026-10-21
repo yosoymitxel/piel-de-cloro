@@ -1,18 +1,18 @@
 import { ScreenManager } from '../js/ScreenManager.js';
 
 describe('ScreenManager transition ordering', () => {
-    test('a stale delayed screen switch cannot overwrite the latest requested screen', async () => {
-        const makeScreen = () => {
-            const classes = new Set(['hidden']);
-            return {
-                classes,
-                addClass: (name) => { name.split(/\s+/).forEach(c => classes.add(c)); },
-                removeClass: (name) => { name.split(/\s+/).forEach(c => classes.delete(c)); }
-            };
+    const makeScreen = () => {
+        const classes = new Set(['hidden']);
+        return {
+            classes,
+            addClass: (name) => { name.split(/\\s+/).forEach(c => classes.add(c)); },
+            removeClass: (name) => { name.split(/\\s+/).forEach(c => classes.delete(c)); }
         };
+    };
 
+    const makeManager = () => {
         const screens = { night: makeScreen(), game: makeScreen() };
-        const game = {
+        const ui = {
             screens,
             elements: {
                 settingsBtn: { toggleClass: jest.fn() },
@@ -22,16 +22,37 @@ describe('ScreenManager transition ordering', () => {
             cancelPurgeAnimation: jest.fn(),
             hideFeedback: jest.fn()
         };
-        const manager = new ScreenManager(game);
+        const manager = new ScreenManager(ui);
         manager.updateSidebarActive = jest.fn();
+        return { manager, screens };
+    };
 
-        manager.showScreen('night', {});
-        manager.showScreen('game', {});
+    test('a newer destination cancels the old request and resolves both callers', async () => {
+        const { manager, screens } = makeManager();
 
-        await new Promise(resolve => setTimeout(resolve, 180));
+        const staleTransition = manager.showScreen('night', {});
+        const currentTransition = manager.showScreen('game', {});
+
+        await expect(staleTransition).resolves.toBe(false);
+        await expect(currentTransition).resolves.toBe(true);
 
         expect(screens.game.classes.has('hidden')).toBe(false);
         expect(screens.night.classes.has('hidden')).toBe(true);
         expect(manager.lastScreen).toBe('game');
+    });
+
+    test('a caller can await the actual screen commit', async () => {
+        const { manager, screens } = makeManager();
+
+        let committed = false;
+        const transition = manager.showScreen('game', {}).then(result => {
+            committed = true;
+            return result;
+        });
+
+        expect(committed).toBe(false);
+        await expect(transition).resolves.toBe(true);
+        expect(committed).toBe(true);
+        expect(screens.game.classes.has('hidden')).toBe(false);
     });
 });
