@@ -146,6 +146,7 @@ describe('Resource Systems (Food, Paranoia, Sanity)', () => {
             const spy = jest.spyOn(Math, 'random').mockReturnValue(0.99);
             uiMock.showLore.mockImplementation((key, cb) => cb());
 
+            State.isNight = true; // Sleep is a valid action only during the night phase.
             gmm.sleep();
 
             // Base reduction is 10, bonus is 5 -> Total 15
