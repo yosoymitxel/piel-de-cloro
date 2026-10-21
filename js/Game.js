@@ -96,6 +96,24 @@ class Game {
         document.body?.classList?.add('paused');
         document.getElementById('screen-game')?.classList?.add?.('is-paused');
         $('#modal-pause').removeClass('hidden').addClass('flex');
+
+        // Reflect the live audio state when opening the shared pause/settings modal.
+        const pauseAudioValues = [
+            ['master', this.audio?.master],
+            ['ambient', this.audio?.levels?.ambient],
+            ['sfx', this.audio?.levels?.sfx],
+            ['lore', this.audio?.levels?.lore],
+            ['generator', this.audio?.levels?.generator]
+        ];
+        for (const [key, rawValue] of pauseAudioValues) {
+            const value = Number.isFinite(rawValue) ? Math.round(rawValue * 100) : null;
+            if (value === null) continue;
+            const slider = document.getElementById(`pause-config-volume-${key}`);
+            const label = document.getElementById(`pause-label-volume-${key}`);
+            if (slider) slider.value = String(value);
+            if (label) label.textContent = `${value}%`;
+        }
+
         this.audio?.playSFXByKey('ui_modal_open', { volume: 0.5 });
     }
 
