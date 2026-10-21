@@ -9,7 +9,7 @@ export const gen_pools_3 = {
         nodes: {
             'gtw_n1': {
                 id: 'gtw_n1',
-"*La cabeza le da un tirón seco. «Perdón. Empezó hace dos días. Si intento controlarlo, empeora».*""*La cabeza le da un tirón seco. «Perdón. Empezó hace dos días. Si intento controlarlo, empeora».*",
+                text: "*La cabeza le da un tirón seco. «Perdón. Empezó hace dos días. Si intento controlarlo, empeora».*",
                 options: [
                     { id: 'gtw_o1', label: '¿Te duele?', next: 'gtw_n2a' },
                     { id: 'gtw_o2', label: 'Cálmate', next: 'gtw_n2b' }
