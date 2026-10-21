@@ -19,7 +19,7 @@ const HAIR = {
   shaved:   { rear:[], top:[[10,7,12,1],[8,8,16,1]], temples:[] },
   long:     { rear:[[5,10,4,16],[23,10,4,16],[7,22,3,5],[22,23,3,5]], top:[[11,4,10,2],[8,6,16,3],[8,9,16,1]], temples:[[7,12,3,11],[22,12,3,11]] },
   bob:      { rear:[[6,10,4,12],[22,10,4,12],[8,19,3,5],[21,19,3,5]], top:[[11,4,10,2],[8,6,16,3],[8,9,16,3],[11,11,10,1]], temples:[[7,12,3,8],[22,12,3,8]] },
-  ponytail: { rear:[[23,9,5,4],[25,13,3,6],[24,19,4,6],[23,25,3,4],[22,29,2,2]], top:[[11,4,10,2],[8,6,16,3],[8,9,15,1]], temples:[[7,12,3,6]] },
+  ponytail: { rear:[[22,8,6,4],[25,12,5,7],[26,19,4,7],[25,26,4,5],[23,31,3,2]], top:[[11,4,10,2],[8,6,16,3],[8,9,15,1]], temples:[[7,12,3,6]] },
   bun:      { rear:[[20,5,6,5],[21,3,4,3],[7,11,3,7],[22,11,3,7]], top:[[11,4,10,2],[8,6,16,3],[8,9,16,1],[19,3,5,4],[20,2,3,2]], temples:[[7,12,3,7],[22,12,3,7]] },
   wild:     { rear:[[5,11,4,10],[23,11,4,11],[7,19,3,5],[22,19,3,5]], top:[[9,6,4,4],[13,3,4,7],[17,4,4,5],[21,7,4,3],[8,8,16,3],[8,11,3,3],[21,11,3,3]], temples:[[7,12,3,8],[22,12,3,8]] },
   mohawk:   { rear:[], top:[[14,1,4,4],[13,4,6,4],[12,7,8,3]], temples:[] },
@@ -164,14 +164,6 @@ export function generateAvatarSvg(seed,options={}) {
     :options.facialHair==="stubble"
       ?rect(11,21,1,1,p.skinShadow)+rect(13,23,1,1,p.skinShadow)+rect(18,22,1,1,p.skinShadow)+rect(20,21,1,1,p.skinShadow)
       :options.facialHair==="mustache"?rect(12,20,3,1,p.hair)+rect(17,20,3,1,p.hair):"";
-  // Stable, cosmetic facial marks ensure that different default IDs do not
-  // collapse to the same SVG when several seeded options happen to coincide.
-  const identityDetail = [
-    rect(12,19,1,1,p.skinShadow),
-    rect(21,18,1,1,p.skinShadow)+rect(22,19,1,1,p.skinShadow),
-    poly("20,17 22,17 20,20 19,20",p.accent),
-    rect(20,11,1,2,p.skinShadow)+rect(21,10,1,1,p.skinLight)
-  ][hashSeed(seed)%4];
   const accessoryLayer=accessory==="glasses"
     ?rect(10,eyeY-1,6,4,"none",'stroke="#10161b" stroke-width="1"')+rect(17,eyeY-1,6,4,"none",'stroke="#10161b" stroke-width="1"')+rect(16,eyeY,1,1,"#10161b")
       +rect(11,eyeY,2,1,"#c7dedb") + rect(18,eyeY,2,1,"#c7dedb")
@@ -184,7 +176,7 @@ export function generateAvatarSvg(seed,options={}) {
   const facialAnomaly=anomaly
     ?poly("10,12 12,11 13,13 12,16 10,17", "#a43e4b")+poly("21,17 23,17 22,21 20,20","#a43e4b")+rect(15,8,2,1,"#a43e4b"):"";
   const ponytailTie=hairStyle==="ponytail"
-    ?rect(25,12,2,1,p.accent)+rect(25,13,1,1,p.skinLight):"";
+    ?rect(25,12,3,2,p.accent)+rect(26,12,1,2,p.skinLight):"";
   const hairHighlights=hairStyle==="bald"||hairStyle==="shaved"?""
     :hairStyle==="mohawk"
       ?rect(15,3,2,1,p.hairLight)+rect(15,5,2,2,p.hairLight)
@@ -199,7 +191,8 @@ export function generateAvatarSvg(seed,options={}) {
     // Shoulder and jacket silhouette, with lit left plane and dark right plane.
     poly("7,29 10,27 13,26 19,26 22,28 26,31 29,40 3,40",shirt.base),
     poly("7,30 11,28 14,28 14,40 4,40",shirt.light),poly("19,28 22,29 26,32 28,40 19,40",shirt.dark),
-    rect(15,29,2,11,shirt.dark),rect(13,29,1,3,p.accent),rect(18,30,1,7,shirt.light),
+    // One jacket closure and seam, instead of unrelated vertical decoration.
+    rect(15,31,1,8,shirt.dark),rect(14,32,1,4,shirt.light),rect(15,34,2,1,p.accent),
     // Neck, ears and rear hair are behind the face.
     rect(13,23,6,7,p.skinShadow),rect(14,24,4,5,p.skin),
     rect(8,15,3,5,p.skinShadow),rect(9,15,2,4,p.skin),rect(21,15,3,5,p.skinShadow),rect(21,15,2,4,p.skin),
@@ -208,17 +201,18 @@ export function generateAvatarSvg(seed,options={}) {
     // on the outer sides/jaw only; this keeps bald and shaved visibly distinct.
     shapeRows(cx,headOuter,p.skin),
     faceOutline,
-    row(cx,9,10,p.skinLight),row(cx,10,12,p.skinLight),
-    rect(9,16,2,4,p.skinShadow,'opacity="0.4"'),
-    rect(21,16,1,4,p.skinShadow,'opacity="0.55"'),
+    // Smaller forehead highlights preserve skin volume without reading as a hairline.
+    row(cx,9,6,p.skinLight),row(cx,10,8,p.skinLight),row(cx,11,10,p.skinLight),
+    poly("10,15 12,16 12,19 10,18",p.skinShadow),
+    poly("20,15 22,16 22,18 20,19",p.skinShadow),
     // Hair is layered over the face, so temples and long locks stay visible.
     drawRects(hair.top,p.hair),drawRects(hair.temples,p.hair),ponytailTie,hairHighlights,
     // Hair and clothing are built from discrete color planes, not texture noise.
-    brows,eyes,underEyes,nose,mouth,identityDetail,beard,
+    brows,eyes,underEyes,nose,mouth,beard,
     // Clothes collar, seams and restrained wear.
     poly("11,27 14,29 16,31 18,29 21,27 19,33 13,33",shirt.dark),
     rect(15,31,2,8,shirt.light),rect(10,34,1,4,shirt.dark),rect(22,34,1,4,shirt.light),
-    rect(6,33,2,5,p.bgLight,'opacity="0.5"'),rect(24,33,2,5,p.bgLight,'opacity="0.4"'),
+
     accessoryLayer,facialAnomaly,
     // Sparse CRT accents; no random speckle laid over the face.
     rect(0,25,32,1,"#081115",'opacity="0.2"'),rect(0,37,32,1,"#081115",'opacity="0.45"'),
