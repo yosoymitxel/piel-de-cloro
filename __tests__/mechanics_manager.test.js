@@ -283,14 +283,41 @@ describe('GameMechanicsManager', () => {
             });
             State.config.maxShelterCapacity = 5;
             State.cureProgress = 5;
+            State.cureSynthesized = false;
+            State.playerInfected = false;
+            State.generator.isOn = true;
+            State.generator.systems.shelterLab.active = true;
+            State.generator.power = 100;
+            State.paranoia = 0;
+
+            const synthesis = gmm.synthesizeCure();
+            expect(synthesis.success).toBe(true);
+            expect(State.cureSynthesized).toBe(true);
+
+            gmm.finishRun();
+
+            expect(gameMock.endings.triggerEnding).toHaveBeenCalledWith('final_cure');
+            expect(gameMock.endings.triggerEnding).not.toHaveBeenCalledWith('final_clean');
+        });
+
+        test('five samples alone do not unlock the cure ending', () => {
+            Math.random = () => 0.99;
+            State.admittedNPCs = Array.from({ length: 5 }, () => {
+                const npc = new NPC();
+                npc.isInfected = false;
+                return npc;
+            });
+            State.config.maxShelterCapacity = 5;
+            State.cureProgress = 5;
+            State.cureSynthesized = false;
             State.playerInfected = false;
             State.generator.isOn = true;
             State.paranoia = 0;
 
             gmm.finishRun();
 
-            expect(gameMock.endings.triggerEnding).toHaveBeenCalledWith('final_cure');
-            expect(gameMock.endings.triggerEnding).not.toHaveBeenCalledWith('final_clean');
+            expect(gameMock.endings.triggerEnding).toHaveBeenCalledWith('final_clean');
+            expect(gameMock.endings.triggerEnding).not.toHaveBeenCalledWith('final_cure');
         });
 
         test('finishRun triggers final_clean if all safe', () => {
