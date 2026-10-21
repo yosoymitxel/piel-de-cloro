@@ -525,7 +525,12 @@ export const State = {
     },
 
     addIgnored(npc) {
-        if (!npc?.id || this.ignoredNPCs.some(candidate => candidate?.id === npc.id)) return false;
+        if (!npc?.id || npc.death || npc.left || npc.escaped) return false;
+        const alreadyRecorded = this.ignoredNPCs.some(candidate => candidate?.id === npc.id);
+        const alreadyAdmitted = this.admittedNPCs.some(candidate => candidate?.id === npc.id);
+        const alreadyPurged = this.purgedNPCs.some(candidate => candidate?.id === npc.id);
+        const alreadyDeparted = this.departedNPCs.some(candidate => candidate?.id === npc.id);
+        if (alreadyRecorded || alreadyAdmitted || alreadyPurged || alreadyDeparted) return false;
         npc.exitCycle = this.cycle;
         this.ignoredNPCs.push(npc);
         return true;
