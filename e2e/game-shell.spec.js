@@ -7,6 +7,7 @@ test('game shell loads without uncaught JavaScript errors', async ({ page }, tes
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page).toHaveTitle(/Piel de Cloro/i);
   await expect(page.locator('.terminal-chasis')).toBeVisible();
+  await expect(page.locator('#sidebar-left')).toBeHidden();
 
   const screenshot = testInfo.outputPath('initial-screen.png');
   await page.screenshot({ path: screenshot, fullPage: true });
