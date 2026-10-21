@@ -551,15 +551,16 @@ export const State = {
         if (!npc?.id || this.departedNPCs.some(candidate => candidate?.id === npc.id)) return false;
         if (!this.removeAdmitted(npc)) return false;
         npc.left = { cycle: this.cycle };
+        npc.exitDate = this.cycle;
         this.departedNPCs.push(npc);
         return true;
     },
 
-    recordDeath(npc, reason = 'desconocido') {
+    recordDeath(npc, reason = 'desconocido', revealed = false) {
         if (!npc?.id || this.purgedNPCs.some(candidate => candidate?.id === npc.id)) return false;
         this.removeAdmitted(npc);
         this._unassignFromAll(npc);
-        npc.death = { reason, cycle: this.cycle, revealed: false };
+        npc.death = { reason, cycle: this.cycle, revealed: Boolean(revealed) };
         this.purgedNPCs.push(npc);
         return true;
     },
