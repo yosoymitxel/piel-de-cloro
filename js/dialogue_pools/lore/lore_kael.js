@@ -11,7 +11,7 @@ export const lore_kael = {
     nodes: {
         'lk_n1': {
             id: 'lk_n1',
-            text: "*Un rostro sobresale de la pared de metal, la piel fusionada con el acero. Un ojo es humano, el otro es una lente de cámara rota.* \"La arquitectura... me abraza. Ya no necesito caminar.\" *Cables entran por su cuello y desaparecen en el conducto.*",
+            text: "*La cara está atrapada en la pared; el ojo humano sigue los cables que entran en su cuello.* \"No intentes tirar de ellos. La última persona que lo hizo dejó de tener pulso antes de soltarme.\" *Una luz del panel se apaga.* \"No sé si fui yo quien la apagó.\"",
             audio: 'lore_interlude_seen',
             options: [
                 { id: 'lk_o1', label: '¿Cómo pasó esto?', next: 'lk_n2' },
@@ -21,7 +21,7 @@ export const lore_kael = {
         },
         'lk_n2': {
             id: 'lk_n2',
-            text: "*Sonríe, y chispas saltan de sus dientes.* \"Me apoyé demasiado tiempo. La casa sintió mi cansancio y me sostuvo. Fue... amable. Ahora soy soporte vital.\" *El panel parpadea al ritmo de su voz.*",
+            text: "\"Me apoyé aquí durante un corte eléctrico. La pared cedió y después se cerró. Al principio pensé que me habían rescatado. Luego empecé a notar que el panel respondía antes de que yo tocara los controles.\"",
             options: [
                 { id: 'lk_o2a', label: '¿Qué controlas?', next: 'lk_n4', sets: ['heard_lore'] },
                 { id: 'lk_o2b', label: '¿Qué sientes?', next: 'lk_n5' },
@@ -60,7 +60,7 @@ export const lore_kael = {
         },
         'lk_n4': {
             id: 'lk_n4',
-            text: "*Cierra los ojos y la luz del pasillo disminuye.* \"Controlo... el flujo. El aire que respiras pasa por mis pulmones primero. El miedo en los sensores... es mi miedo.\" *Se funde más en el metal.*",
+            text: "*Las luces bajan cuando cierra el ojo humano.* \"Puedo desviar el aire y leer los sensores. No los controlo siempre. Cuando tengo miedo, el sistema marca una subida de presión en los conductos. No sé si la provoco o si la estación me avisa.\"",
             options: [
                 { id: 'lk_o4a', label: 'Sobre el aire', next: 'lk_n4_a' },
                 { id: 'lk_o4b', label: 'Sobre el miedo', next: 'lk_n4_b' }
@@ -82,7 +82,7 @@ export const lore_kael = {
         },
         'lk_n5': {
             id: 'lk_n5',
-            text: "\"Siento pasos. Lejanos. En el Sector 4. Siento el frío del espacio exterior presionando contra el casco. Y siento... un latido. Que no es mío. Viene de las tuberías.\"",
+            text: "\"Hay pasos en el Sector 4, pero no hay vibración en el suelo. También oigo un pulso en las tuberías. Si viene de una bomba, está fuera de los planos. Si es un corazón, es demasiado grande para estar vivo.\"",
             options: [
                 { id: 'lk_o5a', label: '¿Qué latido?', next: 'lk_n5_a', sets: ['known_heartbeat'] },
                 { id: 'lk_o5b', label: 'Volver', next: 'lk_n2' }
@@ -97,7 +97,7 @@ export const lore_kael = {
         },
         'lk_n6': {
             id: 'lk_n6',
-            text: "\"Oh, sí. Las paredes están llenas. Escucha... ¿no los oyes susurrar en la ventilación? Somos el aislamiento térmico. Somos la piel de cloro.\"",
+            text: "\"Hay gente dentro de las paredes. Lo sé porque algunos piden ayuda usando nombres que solo aparecen en registros antiguos. No sé si siguen vivos. No sé si la estación distingue la diferencia.\"",
             options: [
                 { id: 'lk_o6a', label: '¿Piel de Cloro?', next: 'lk_n6_a' },
                 { id: 'lk_o6b', label: 'Basta', next: null }
