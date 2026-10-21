@@ -1374,6 +1374,12 @@ export class GameMechanicsManager {
     }
 
     continueDay() {
+        // Night resolution is the sole owner of the night -> day hand-off.
+        // A stale/double-fired lore callback must not advance another cycle
+        // after the first transition has reset this guard.
+        if (!State.isNight || !State.lastNight.resolutionStarted) {
+            return Promise.resolve(false);
+        }
         return this.startNextDay();
     }
 
