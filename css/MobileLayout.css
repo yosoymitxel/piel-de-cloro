@@ -1196,7 +1196,11 @@
 
     #screen-game .puesto-container,
     #screen-game .main-view-area {
+        flex: 0 0 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
         gap: 4px !important;
+        overflow: visible !important;
     }
 
     #game-screen-container {
