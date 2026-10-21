@@ -75,3 +75,16 @@ El juego cuenta con un sistema de **Lore** fragmentado. Escucharás rumores, enc
 
 ---
 *Desarrollado para la jam... o quizás encontrado en un servidor abandonado.*
+
+
+## Laboratorio de avatares
+
+Abrí **[`avatar-lab.html`](avatar-lab.html)** para probar skins generadas directamente desde código:
+
+- Retrato SVG determinista: el mismo ID + las mismas opciones producen el mismo retrato.
+- Paletas de piel, peinados (incluida coleta/ponytail), ropa, accesorios, ojos, boca y cansancio.
+- Comparador que mantiene la misma semilla y modifica una sola silueta de pelo.
+- Fuente SVG exacta y configuración copiables.
+- PNGs exportados desde ClaudePXL a partir de `art/npcs.px.js`.
+
+Fuentes: `js/avatar/AvatarGenerator.js`, `js/avatar/AvatarLab.js`, `art/npcs.px.js`. Ejecutar `npm test`, `npm run build:npc-art` y `npm run test:e2e` antes de considerar aprobado el arte.
