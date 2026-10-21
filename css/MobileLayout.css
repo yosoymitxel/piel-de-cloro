@@ -975,148 +975,104 @@
 }
 
 
-/*
- * Layout correction pass — based on the actual Playwright captures.
- * Keep the existing CRT palette and component styling; correct only geometry.
- */
-@media (min-width: 1024px) {
-    #screen-game .puesto-container {
+/* Guard-post regression fix: preserve component styles; constrain geometry only. */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+    #screen-game > header > div.flex.flex-wrap {
         display: grid !important;
-        grid-template-columns: minmax(280px, 0.95fr) minmax(190px, 0.55fr) minmax(360px, 1.25fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
         align-items: stretch;
-        gap: 12px !important;
+        gap: 8px !important;
+        width: 100%;
+        min-width: 0;
+    }
+
+    #screen-game > header > div.flex.flex-wrap > * {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        width: 100%;
+        margin: 0 !important;
+        overflow: hidden;
+    }
+
+    #screen-game .comp-gen-battery,
+    #screen-game .comp-gen-battery .hud-component,
+    #screen-game .comp-gen-battery .stat-bar-bg {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow: hidden;
     }
 
     #screen-game .dialogue-sidebar,
-    #screen-game .center-console,
-    #screen-game .main-view-area {
-        width: auto !important;
+    #screen-game .dialogue-sidebar > *,
+    #screen-game .main-view-area,
+    #screen-game .center-console {
         min-width: 0 !important;
-        max-width: none !important;
-        height: 100%;
+        max-width: 100% !important;
+        height: auto !important;
         min-height: 0;
     }
 
     #screen-game .dialogue-sidebar {
-        grid-column: 1;
-        grid-row: 1;
+        padding: 12px !important;
+        overflow: visible !important;
     }
 
     #screen-game .center-console {
-        grid-column: 2;
-        grid-row: 1;
-        overflow-x: hidden;
-    }
-
-    #screen-game .main-view-area {
-        grid-column: 3;
-        grid-row: 1;
-    }
-
-    #screen-game #inspection-tools-container {
         display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         align-items: stretch;
         gap: 8px !important;
-        width: 100%;
-        min-width: 0;
-    }
-
-    #screen-game #inspection-tools-container > *,
-    #screen-game #game-actions-container > * {
-        min-width: 0;
-        max-width: 100%;
-    }
-
-    #screen-game #inspection-tools-container .horror-tool-btn,
-    #screen-game #game-actions-container > button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        width: 100%;
-        min-width: 0;
-        min-height: 48px;
-        height: auto;
-        padding: 10px 8px;
-        line-height: 1.25;
-        white-space: normal;
-        overflow-wrap: anywhere;
-    }
-}
-
-@media (max-width: 640px) {
-    /* Align the seven HUD modules to a consistent grid instead of flex-wrapping
-       cards of unrelated intrinsic widths into uneven rows. */
-    #screen-game > header > div.flex.flex-wrap {
-        display: grid !important;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        align-items: stretch;
-        justify-items: stretch;
-        gap: 8px !important;
-        width: 100%;
-        min-width: 0;
-    }
-
-    #screen-game > header > div.flex.flex-wrap > .comp-paranoia,
-    #screen-game > header > div.flex.flex-wrap > .comp-sanity,
-    #screen-game > header > div.flex.flex-wrap > .comp-supplies,
-    #screen-game > header > div.flex.flex-wrap > .comp-fuel,
-    #screen-game > header > div.flex.flex-wrap > .comp-gen-load,
-    #screen-game > header > div.flex.flex-wrap > .comp-gen-battery,
-    #screen-game > header > div.flex.flex-wrap > .comp-gen-station {
-        display: flex;
-        align-items: stretch;
-        justify-content: center;
-        width: 100%;
-        min-width: 0;
-        max-width: 100%;
-        margin: 0 !important;
-    }
-
-    #screen-game > header > div.flex.flex-wrap > * {
-        min-width: 0;
-        max-width: 100%;
-    }
-
-    #screen-game > header > div.flex.flex-wrap .hud-stat-box {
-        min-width: 0;
-        width: 100%;
-        gap: 6px;
-    }
-
-    #screen-game > header > div.flex.flex-wrap .hud-stat-label {
-        min-width: 0;
-        overflow-wrap: anywhere;
-    }
-
-    #screen-game > header > div.flex.flex-wrap .hud-stat-value {
-        flex-shrink: 0;
-    }
-
-    /* Preserve the two-column monitor layout and keep all sensor content inside it. */
-    #screen-game .center-console {
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        align-items: stretch;
-        gap: 8px !important;
-        overflow: visible;
+        overflow: visible !important;
     }
 
     #screen-game .center-console > * {
-        width: 100%;
-        min-width: 0;
-        max-width: 100%;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
     }
 
     #screen-game .analog-controls {
         grid-column: 1 / -1;
-        min-width: 0;
     }
 
-    /* Pausing stays clear of the decision row and dock, including safe-area insets. */
-    #btn-pause {
-        bottom: calc(var(--mobile-content-bottom) + 48px + 12px) !important;
-        right: max(12px, env(safe-area-inset-right, 0px)) !important;
+    #screen-game #inspection-tools-container,
+    #screen-game #game-actions-container {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    #screen-game #btn-pause {
+        position: static !important;
+        inset: auto !important;
+        align-self: flex-end;
+        flex: 0 0 48px;
+        width: 48px !important;
+        height: 48px !important;
+        margin: 8px 0 0 auto !important;
+    }
+
+    #sidebar-left .nav-sidebar-btn,
+    #sidebar-left .nav-btn {
+        flex: 0 0 58px;
+        width: 58px !important;
+        min-width: 58px !important;
+        max-width: 58px !important;
+    }
+
+    #sidebar-left .nav-sidebar-btn span,
+    #sidebar-left .nav-btn span {
+        max-width: 100%;
+        font-size: 9px !important;
+        line-height: 1.1 !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere;
     }
 }
