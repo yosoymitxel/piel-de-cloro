@@ -44,7 +44,7 @@ export const lore_hive = {
         },
         'lh_n4': {
             id: 'lh_n4',
-            text: "*Por un segundo, el niño deja de moverse. Las voces continúan.* \"Queremos que nadie vuelva a quedarse solo.\" *Pausa.* \"No todos estamos de acuerdo en que eso sea bueno.\"",
+            text: "*Por un segundo, el niño deja de moverse. Las voces continúan.* \"Vamos al tanque principal porque creemos que allí nadie volverá a quedarse solo.\" *Pausa.* \"No todos estamos de acuerdo en que eso sea bueno.\"",
             options: [
                 { id: 'lh_o4a', label: '¿Tanque principal?', next: 'lh_n4_a' },
                 { id: 'lh_o4b', label: 'Terminar', next: null }
