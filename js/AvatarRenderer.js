@@ -1,5 +1,5 @@
 import { State } from './State.js';
-import { generateAvatarDataUri } from './avatar/AvatarGenerator.js?v=20261021-avatarfix2';
+import { generateAvatarDataUri } from './avatar/AvatarGenerator.js';
 
 export class AvatarRenderer {
     static render(npc, sizeClass = 'lg', modifier = 'normal') {
