@@ -126,3 +126,37 @@ test.describe('dedicated mobile presentation', () => {
     expect(pageErrors, 'uncaught JavaScript errors during mobile gameplay').toEqual([]);
   });
 });
+
+
+test('global pause control does not cover decision actions or the mobile navigation dock', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => Boolean(window.game?.audio));
+  await page.evaluate(() => {
+    const audio = window.game.audio;
+    audio.manifest = { e2e: {} };
+    audio.unlock = () => {};
+    audio.preloadAll = async () => {};
+    audio.playSFXByKey = () => {};
+    audio.playAmbientByKey = () => {};
+  });
+  await page.getByRole('button', { name: /INICIAR PARTIDA/i }).click();
+  await expect(page.locator('#modal-tutorial')).toBeVisible({ timeout: 45000 });
+  await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
+  await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
+  const pause = page.locator('#btn-pause');
+  await expect(pause).toBeVisible();
+  const geometry = await page.evaluate(() => {
+    const rect = selector => {
+      const el = document.querySelector(selector);
+      if (!el || getComputedStyle(el).display === 'none') return null;
+      const r = el.getBoundingClientRect();
+      return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+    };
+    return { pause: rect('#btn-pause'), dock: rect('#sidebar-left'), admit: rect('#btn-admit'), ignore: rect('#btn-ignore') };
+  });
+  const overlaps = (a, b) => Boolean(a && b && a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top);
+  expect(overlaps(geometry.pause, geometry.dock), JSON.stringify(geometry)).toBe(false);
+  expect(overlaps(geometry.pause, geometry.admit), JSON.stringify(geometry)).toBe(false);
+  expect(overlaps(geometry.pause, geometry.ignore), JSON.stringify(geometry)).toBe(false);
+});
