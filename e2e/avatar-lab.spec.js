@@ -29,7 +29,7 @@ test('avatar lab renders code-generated skins and editable hairstyle variants', 
   await page.getByRole('button', { name: /Elegir peinado Coleta/i }).click();
   await expect(portrait).toHaveAttribute('data-hair-style', 'ponytail');
   await expect(page.locator('#hair')).toHaveValue('ponytail');
-  await expect(page.locator('#svg-source')).toContainText('width="3" height="7"');
+  await expect(page.locator('#svg-source')).toContainText('x="25" y="13" width="3" height="6"');
   expect(await portrait.getAttribute('src')).not.toBe(before);
   await capture('ponytail');
 
