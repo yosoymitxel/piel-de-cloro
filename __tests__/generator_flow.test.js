@@ -1,10 +1,13 @@
 import { GeneratorManager } from '../js/GeneratorManager.js';
+import { GameMechanicsManager } from '../js/GameMechanicsManager.js';
 import { State } from '../js/State.js';
+import { NPC } from '../js/NPC.js';
 
 describe('Generator System Flow', () => {
-    let uiMock, audioMock, gm;
+    let uiMock, audioMock, gm, mechanics;
 
-    beforeAll(() => {
+    beforeEach(() => {
+        State.reset();
         uiMock = {
             elements: {
                 genWarningGame: $('#gen-warning-game'),
@@ -20,12 +23,17 @@ describe('Generator System Flow', () => {
             updateGameActions: jest.fn(),
             updateInspectionTools: jest.fn(),
             updateStats: jest.fn(),
-            showFeedback: jest.fn()
+            showFeedback: jest.fn(),
+            renderGeneratorRoom: jest.fn()
         };
         audioMock = { playSFXByKey: jest.fn() };
         gm = new GeneratorManager(uiMock, audioMock);
+        mechanics = new GameMechanicsManager({
+            ui: uiMock,
+            audio: audioMock,
+            updateHUD: jest.fn()
+        });
 
-        // Mock internal render methods to avoid DOM issues
         gm.renderSystemsGrid = jest.fn();
         gm.renderGuardPanel = jest.fn();
         gm.updateToggleButton = jest.fn();
@@ -34,60 +42,57 @@ describe('Generator System Flow', () => {
         gm.setupModeButtons = jest.fn();
     });
 
-    test('Mode switching logic - can switch down anytime, cannot switch up after action', () => {
-        const state = {
-            generator: {
-                isOn: true,
-                mode: 'normal',
-                maxModeCapacityReached: 2,
-                power: 63,
-                restartLock: false
-            },
-            currentNPC: { scanCount: 1, dialogueStarted: false }, // Action taken!
-        };
+    test('domain rules allow lowering after an action but reject raising', () => {
+        State.generator.mode = 'overload';
+        State.currentNPC = new NPC();
+        State.currentNPC.scanCount = 1;
 
-        // Try to switch to overload (up) -> should fail
-        // Using private-ish handleModeSwitch via setupModeButtons or just testing the logic if exposed
-        // Since handleModeSwitch is local to setupModeButtons, we might need to test it via UI clicks 
-        // or refactor to expose the logic. For now, let's assume we test the state transitions.
+        expect(mechanics.setGeneratorProtocol('normal')).toBe(true);
+        expect(State.generator.mode).toBe('normal');
 
-        // Mocking the behavior of handleModeSwitch
-        const canSwitchUp = (newCap, currentMax, actionTaken) => {
-            if (actionTaken && newCap > currentMax) return false;
-            return true;
-        };
+        State.nextSubject(); // The mode-change lock resets; the current NPC action is still recorded.
+        expect(mechanics.setGeneratorProtocol('overload')).toBe(false);
+        expect(State.generator.mode).toBe('normal');
+    });
 
-        expect(canSwitchUp(3, state.generator.maxModeCapacityReached, true)).toBe(false);
-        expect(canSwitchUp(1, state.generator.maxModeCapacityReached, true)).toBe(true);
+    test('a second mode change is rejected until the next subject', () => {
+        State.currentNPC = new NPC();
+        State.currentNPC.scanCount = 0;
+
+        expect(mechanics.setGeneratorProtocol('save')).toBe(true);
+        expect(State.generator.modeChangedThisTurn).toBe(true);
+        expect(mechanics.setGeneratorProtocol('overload')).toBe(false);
+        expect(State.generator.mode).toBe('save');
+
+        State.nextSubject();
+        expect(State.generator.modeChangedThisTurn).toBe(false);
+        expect(mechanics.setGeneratorProtocol('overload')).toBe(true);
+        expect(State.generator.mode).toBe('overload');
+    });
+
+    test('low battery rejects overload without mutating the selected mode', () => {
+        State.generator.mode = 'normal';
+        State.generator.power = 10;
+
+        expect(mechanics.setGeneratorProtocol('overload')).toBe(false);
+        expect(State.generator.mode).toBe('normal');
     });
 
     test('renderGeneratorRoom updates UI based on generator state', () => {
         const state = {
-            generator: { isOn: false, power: 0, mode: 'save' },
+            generator: { isOn: false, power: 0, mode: 'save', systems: {} },
             generatorCheckedThisTurn: false,
-            paranoia: 10, cycle: 1, dayTime: 1, config: { dayLength: 5 },
-            currentNPC: null
+            paranoia: 10,
+            cycle: 1,
+            dayTime: 1,
+            config: { dayLength: 5 },
+            currentNPC: null,
+            assignments: {}
         };
 
         gm.renderGeneratorRoom(state);
 
         expect(state.generatorCheckedThisTurn).toBe(true);
         expect(uiMock.updateGeneratorNavStatus).toHaveBeenCalled();
-    });
-
-    test('Power levels for modes', () => {
-        // Based on handleModeSwitch logic in GeneratorManager.js
-        const getPowerForMode = (mode) => {
-            switch (mode) {
-                case 'normal': return 63;
-                case 'save': return 32;
-                case 'overload': return 95;
-                default: return 0;
-            }
-        };
-
-        expect(getPowerForMode('save')).toBe(32);
-        expect(getPowerForMode('normal')).toBe(63);
-        expect(getPowerForMode('overload')).toBe(95);
     });
 });

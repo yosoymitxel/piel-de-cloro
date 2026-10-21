@@ -16,6 +16,12 @@ Se activan al pulsar el botón **"Escapar"** durante la fase nocturna.
 - **Lore**: Has contenido la amenaza y salvado vidas humanas. El mundo exterior es seguro por ahora.
 - **Tipo**: Calma (Verde).
 
+### **Cura Sintetizada (`final_cure`)**
+- **Condición**: Completar el análisis de laboratorio de 5 sujetos infectados distintos, conservar las 5 muestras viables y escapar con el refugio sin infectados.
+- **Progreso**: Cada análisis positivo completado al avanzar el día registra una sola muestra por sujeto. El progreso persiste aunque ese sujeto sea purgado después.
+- **Lore**: El laboratorio decodifica la secuencia del parásito; el final de cura tiene prioridad sobre la salida limpia cuando se cumplen los requisitos.
+- **Tipo**: Salvación.
+
 ### **Salida Contaminada (`final_corrupted`)**
 - **Condición**: Escapar con al menos 2 refugiados, pero al menos **uno de ellos está infectado**.
 - **Lore**: La plaga llega al mundo exterior. Tu victoria es el inicio del fin para la humanidad.

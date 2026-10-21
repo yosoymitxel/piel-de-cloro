@@ -1,0 +1,45 @@
+name: NPC Pixel Art
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    paths:
+      - "art/npcs.px.js"
+      - "tools/build-npc-pixel-art.mjs"
+      - "package.json"
+      - ".github/workflows/npc-pixel-art.yml"
+  push:
+    branches:
+      - main
+      - "narrative/**"
+    paths:
+      - "art/npcs.px.js"
+      - "tools/build-npc-pixel-art.mjs"
+      - "package.json"
+      - ".github/workflows/npc-pixel-art.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-npc-art:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+      - name: Build claude-pxl portraits
+        run: npm run build:npc-art
+      - name: Upload generated portraits
+        uses: actions/upload-artifact@v4
+        with:
+          name: piel-de-cloro-npc-pixel-art
+          path: assets/pixel/npcs/
+          if-no-files-found: error
+          retention-days: 14

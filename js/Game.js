@@ -164,43 +164,9 @@ class Game {
     }
 
     restartDay() {
+        // Un solo reset canónico: evita que esta ruta conserve flags o recursos de la partida anterior.
+        State.reset();
         this.ensureMeditationRoom();
-
-        // Limpiar estado del día actual
-        State.dayTime = 1;
-        State.admittedNPCs = [];
-        State.purgedNPCs = [];
-        State.ignoredNPCs = [];
-        State.departedNPCs = [];
-        State.isNight = false;
-        State.dayClosed = false;
-        State.dayEnded = false;
-        State.endingTriggered = false;
-        State.nightPurgePerformed = false;
-        State.generatorCheckedThisTurn = false;
-        State.generator = {
-            isOn: true,
-            mode: 'normal',
-            power: 100,
-            capacity: 100,
-            blackoutUntil: 0,
-            overclockCooldown: false,
-            emergencyEnergyGranted: false,
-            maxModeCapacityReached: 2,
-            restartLock: false,
-            load: 0,
-            baseConsumption: 20,
-            stability: 100,
-            overloadTimer: 0,
-            systems: {
-                security: { load: 8, active: true, label: 'Seguridad' },
-                lighting: { load: 4, active: true, label: 'Iluminación' },
-                lifeSupport: { load: 12, active: true, label: 'Soporte Vital' },
-                shelterLab: { load: 23, active: false, label: 'Laboratorio' }
-            },
-            assignedGuardId: null,
-            guardShiftLogs: [] // Legacy, but kept for safety until full migration
-        };
 
         // Reset Tutorial System
         if (this.tutorial) {

@@ -622,3 +622,30 @@
 .pixel-avatar.infected .avatar-head {
     /* filter: none; */ /* We handle this via states now */
 }
+
+/* Optional claude-pxl portraits: enabled with <html data-art="pixel">.
+   The CSS-built avatar stays as fallback until the generated PNG is present. */
+.npc-content-wrapper.has-pixel-portrait .pixel-avatar {
+    display: none;
+}
+
+.npc-pixel-portrait {
+    display: block;
+    width: 160px;
+    height: 160px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.npc-view-container.view-sm .npc-pixel-portrait {
+    width: 112px;
+    height: 112px;
+}
+
+@media (max-width: 640px) {
+    .npc-pixel-portrait {
+        width: 140px;
+        height: 140px;
+    }
+}

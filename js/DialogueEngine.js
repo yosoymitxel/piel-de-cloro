@@ -73,6 +73,11 @@ export class Conversation {
         return obj;
     }
 
+    _isOptionAvailable(option) {
+        const requirements = option.requires ?? option.req ?? [];
+        return Array.isArray(requirements) && requirements.every(flag => State.hasFlag(flag));
+    }
+
     _injectTemplate(text, nodeId) {
         if (!text) return '';
         // Simple templating: replace {generatorStatus} {paranoia} {npcName} {prevChoiceLabel}
@@ -132,7 +137,9 @@ export class Conversation {
         if (!node) return { error: 'Nodo no encontrado' };
 
         const text = this._injectTemplate(node.text, node.id);
-        let options = (node.options || []).map(o => ({ ...o }));
+        // Display only choices whose requirements are satisfied. Keep this same
+        // rule in getNextDialogue so hidden choices cannot be selected by ID.
+        let options = (node.options || []).filter(o => this._isOptionAvailable(o)).map(o => ({ ...o }));
 
         // Lógica para añadir una tercera opción de "finalizar diálogo" 
         // cuando hay acciones disponibles (no solo si son 2)
@@ -155,7 +162,8 @@ export class Conversation {
         if (!node) return { error: 'Nodo no encontrado' };
 
         let opt = null;
-        const nodeOptions = node.options || [];
+        const allNodeOptions = node.options || [];
+        const nodeOptions = allNodeOptions.filter(o => this._isOptionAvailable(o));
 
         if (typeof choice === 'number') {
             if (nodeOptions.length === 0 && choice === 0) {
@@ -173,6 +181,9 @@ export class Conversation {
             }
         } else {
             opt = nodeOptions.find(o => o.id === choice);
+            if (!opt && allNodeOptions.some(o => o.id === choice)) {
+                return { error: 'Requisitos no satisfechos' };
+            }
             if (!opt) {
                 if (choice === 'auto_end' || choice === 'exit_conversation') {
                     opt = { id: choice, label: 'Terminar diálogo', next: null, resultText: 'El sujeto asiente y espera en silencio.' };
@@ -182,11 +193,14 @@ export class Conversation {
 
         if (!opt) return { error: 'Opción inválida' };
 
-        // Validate requires
-        if (opt.requires) {
-            for (const r of opt.requires) {
-                if (!State.hasFlag(r)) return { error: 'Requisitos no satisfechos' };
-            }
+        // Reject broken graph edges before applying flags, impacts, history, or memory.
+        if (opt.next && !this.set.nodes[opt.next]) {
+            return { error: `Nodo destino no encontrado: ${opt.next}` };
+        }
+
+        // Defense in depth: requirements must hold at selection time too.
+        if (!this._isOptionAvailable(opt)) {
+            return { error: 'Requisitos no satisfechos' };
         }
 
         // Apply impacts: Sanity and Paranoia

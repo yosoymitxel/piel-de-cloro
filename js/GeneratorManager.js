@@ -16,33 +16,6 @@ export class GeneratorManager {
         console.log('[GeneratorManager] Starting renderGeneratorRoom. Mode:', state.generator.mode);
         state.generatorCheckedThisTurn = true;
 
-        // Initialize maxModeCapacityReached ratchet if action active
-        const npc = state.currentNPC;
-        const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || state.generator.restartLock;
-        if (actionTaken && state.generator.isOn) {
-            const capMap = { 'save': 1, 'normal': 2, 'overload': 3 };
-            const currentCap = capMap[state.generator.mode] || 2;
-            
-            // If ratchet is not initialized or we are currently HIGHER than ratchet (shouldn't happen in strict ratchet, but fixes init issues)
-            // Or simply: ensure ratchet tracks current mode if it's lower than stored ratchet?
-            // Actually, we want to ensure that if we just started, the ratchet is at CURRENT level.
-            
-            // If maxModeCapacityReached is higher than current mode, it means we went down. Correct.
-            // If maxModeCapacityReached is lower than current mode? That means we went UP? That's forbidden.
-            // But if we just loaded the screen and are in Overload, max should be 3.
-            
-            if (!state.generator.maxModeCapacityReached || state.generator.maxModeCapacityReached < currentCap) {
-                 // Sync ratchet to current state if it seems out of sync (e.g. init)
-                 // This ensures that if I am in Overload (3), I can go down to 2 or 1.
-                 // It also means if I am in Overload (3), I cannot go to 4 (impossible).
-                 // If I go to Normal (2), logic in updateModeButtons/handleModeSwitch should update this value.
-                 state.generator.maxModeCapacityReached = currentCap;
-            }
-        } else {
-            // Reset ratchet if no action active
-            state.generator.maxModeCapacityReached = 3; // Max possible
-        }
-
         // Check if mode changed this turn
         const modeLocked = state.generator.modeChangedThisTurn;
 
@@ -376,10 +349,15 @@ export class GeneratorManager {
 
         const npc = state.currentNPC;
         const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || state.generator.restartLock;
-        const currentMax = state.generator.maxModeCapacityReached;
+        const capMap = { save: 1, normal: 2, overload: 3 };
+        const currentCap = capMap[state.generator.mode] ?? 2;
+        const modeLocked = Boolean(state.generator.modeChangedThisTurn);
 
         const updateBtn = (btn, targetCap, isCooldown = false) => {
-            const isBlocked = (actionTaken && targetCap > currentMax) || isCooldown || !state.generator.isOn;
+            const isBlocked = (actionTaken && targetCap > currentCap)
+                || (modeLocked && targetCap !== currentCap)
+                || isCooldown
+                || !state.generator.isOn;
 
             // Remove previous lock overlays
             const overlays = btn.find('.mode-lock-overlay');
@@ -440,7 +418,7 @@ export class GeneratorManager {
             <div class="flex flex-col items-center w-full">
                 <div class="text-[9px] font-mono mb-0.5 ${state.fuel >= 1 ? 'text-terminal-green' : 'text-alert'} opacity-80">${fuelText}</div>
                 <div class="flex items-center font-bold gap-2"><i class="fa-solid fa-droplet"></i> RECARGAR BATERÍA</div>
-                <div class="text-[8px] opacity-50 font-mono mt-0.5">REQ: 1 BIDÓN FUEL (+30% BAT)</div>
+                <div class="text-[8px] opacity-50 font-mono mt-0.5">REQ: 1 BIDÓN FUEL (+25% BAT)</div>
             </div>
         `;
         btnRefuel.html(refuelHTML);
@@ -499,73 +477,35 @@ export class GeneratorManager {
 
         const handleModeSwitch = (newMode) => {
             const game = this.game || window.game;
-            const npc = state.currentNPC;
-            const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || state.generator.restartLock;
-            const currentMax = state.generator.maxModeCapacityReached;
-            const capMap = { 'save': 1, 'normal': 2, 'overload': 3 };
-            const targetCap = capMap[newMode] || 2;
-
-            // Check if mode is locked
-            if (state.generator.modeChangedThisTurn) {
-                if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
-                if (this.ui) this.ui.showFeedback("PROTOCOLO BLOQUEADO: ESPERA AL SIGUIENTE TURNO", "red", 3000);
-                return;
+            if (!game?.mechanics || typeof game.mechanics.setGeneratorProtocol !== 'function') {
+                this.ui?.showFeedback("SISTEMA DE GENERADOR NO DISPONIBLE", "red", 3000);
+                return false;
             }
 
-            if (actionTaken && targetCap > currentMax) {
-                // EXEMPTION: User requested that blocking should only apply if "se le da a ahorro" (interpreted as: locking happens at Save?)
-                // Actually, the user complaint was about being stuck "once I go down".
-                // My fix in renderGeneratorRoom ensures currentMax is synced to current mode on entry.
-                // So if I am in Overload (3), currentMax=3. I can go to Normal (2).
-                // If I am in Normal (2), currentMax=2. I can go to Save (1).
-                // If I am in Normal (2), I cannot go to Overload (3).
-                // This IS correct "Only Decrease".
-                
-                // If user wants to be able to go back up *unless* they hit Save...
-                // "se supone que debe pasar eso solo si le doy ahorro"
-                // Let's implement: If we are NOT in Save mode, allow going back up?
-                // No, that breaks the "Only Decrease" rule text.
-                // I will assume the sync fix resolves the "one change" issue (if it was defaulting to 2).
-                
-                // Locked - show feedback
-                if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
-                if (this.ui) this.ui.showFeedback("PROTOCOLO BLOQUEADO: SOLO PUEDE DISMINUIR", "red", 3000);
-                return;
+            const success = game.mechanics.setGeneratorProtocol(newMode);
+            if (!success) {
+                this.renderGeneratorRoom(State);
+                return false;
             }
 
-            // IMMEDIATE visual feedback - toggle active class right away
-            $('.btn-generator-control').removeClass('active');
-            const modeMap = { 'save': 'btn-gen-save', 'normal': 'btn-gen-normal', 'overload': 'btn-gen-over' };
-            $(`#${modeMap[newMode]}`).addClass('active');
-
-            // Audio click effect
             if (this.audio) this.audio.playSFXByKey('ui_button_click', { volume: 0.3 });
+            this.renderGeneratorRoom(State);
 
-            if (game && game.mechanics && typeof game.mechanics.setGeneratorProtocol === 'function') {
-                const success = game.mechanics.setGeneratorProtocol(newMode);
+            // Animate only after the domain transition succeeds.
+            const monitor = $('.crt-monitor');
+            monitor.removeClass('glitch-level-change');
+            if (this._glitchTimeout) clearTimeout(this._glitchTimeout);
 
-                if (success) {
-                    // state.generator.modeChangedThisTurn = true; // REMOVED: Allow multiple adjustments as long as they follow ratchet rules
-                    // Full UI Refresh (will also sync true state)
-                    this.renderGeneratorRoom(State);
-
-                    // Trigger level change animation
-                    const monitor = $('.crt-monitor');
+            requestAnimationFrame(() => {
+                monitor.each((i, el) => void el.offsetWidth);
+                monitor.addClass('glitch-level-change');
+                this._glitchTimeout = setTimeout(() => {
                     monitor.removeClass('glitch-level-change');
-                    if (this._glitchTimeout) clearTimeout(this._glitchTimeout);
+                    this._glitchTimeout = null;
+                }, 400);
+            });
 
-                    requestAnimationFrame(() => {
-                        monitor.each((i, el) => void el.offsetWidth);
-                        monitor.addClass('glitch-level-change');
-                        this._glitchTimeout = setTimeout(() => {
-                            monitor.removeClass('glitch-level-change');
-                            this._glitchTimeout = null;
-                        }, 400);
-                    });
-                }
-                return success;
-            }
-            return false;
+            return true;
         };
 
         btnSave.off('click').on('click', () => handleModeSwitch('save'));
@@ -823,8 +763,13 @@ export class GeneratorManager {
             // Attach event
             container.find('.btn-reassign-guard').one('click', () => {
                 this.ui.showSectorAssignmentModal('generator', state, (npc) => {
-                    if (npc && this.game.assignments) {
-                        this.game.assignments.assign(npc.id, 'generator');
+                    if (this.game.assignments) {
+                        if (npc) {
+                            this.game.assignments.assign(npc.id, 'generator');
+                        } else {
+                            const currentGuardId = state.generator.assignedGuardId || state.assignments?.generator?.occupants?.[0];
+                            if (currentGuardId) this.game.assignments.unassign(currentGuardId, 'generator');
+                        }
                     }
                     this.renderGuardPanel(state);
                 });
@@ -854,8 +799,13 @@ export class GeneratorManager {
             // Both card and button trigger assignment
             container.find('.guard-card, .btn-assign-guard').one('click', () => {
                 this.ui.showSectorAssignmentModal('generator', state, (npc) => {
-                    if (npc && this.game.assignments) {
-                        this.game.assignments.assign(npc.id, 'generator');
+                    if (this.game.assignments) {
+                        if (npc) {
+                            this.game.assignments.assign(npc.id, 'generator');
+                        } else {
+                            const currentGuardId = state.generator.assignedGuardId || state.assignments?.generator?.occupants?.[0];
+                            if (currentGuardId) this.game.assignments.unassign(currentGuardId, 'generator');
+                        }
                     }
                     this.renderGuardPanel(state);
                 });

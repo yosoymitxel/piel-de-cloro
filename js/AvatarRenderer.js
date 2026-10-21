@@ -10,6 +10,22 @@ export class AvatarRenderer {
         const errorChance = Math.min(0.8, infectedFactor + paranoiaFactor + sanityFactor);
         const statusText = Math.random() < errorChance ? 'SIGNAL_ERR' : 'SIG_STABLE';
 
+        // claude-pxl portraits are optional build-time assets. The existing
+        // procedural avatar remains the fallback when pixel mode or an asset is absent.
+        const pixelArtEnabled = typeof document !== 'undefined' &&
+            document.documentElement?.dataset?.art === 'pixel';
+        const lorePortraits = {
+            lore_archivist: 'npc_archivist',
+            lore_kael: 'npc_kael',
+            lore_hive: 'npc_hive',
+            lore_patient_zero: 'npc_patient_zero'
+        };
+        const portraitName = lorePortraits[npc.loreId] ||
+            (npc.isInfected ? 'npc_infected' : 'npc_human');
+        const pixelPortraitHTML = pixelArtEnabled
+            ? `<img class="npc-pixel-portrait" src="assets/pixel/npcs/sprites/${portraitName}.png" alt="" aria-hidden="true" onerror="this.parentElement.classList.remove('has-pixel-portrait'); this.remove()">`
+            : '';
+
         let accessoryHTML = '';
         if (npc.visualFeatures.accessory !== 'none') {
             accessoryHTML = `
@@ -42,7 +58,8 @@ export class AvatarRenderer {
                 <div class="npc-glitch-layer"></div>
 
                 <!-- NPC Content Area -->
-                <div class="npc-content-wrapper">
+                <div class="npc-content-wrapper ${pixelArtEnabled ? 'has-pixel-portrait' : ''}">
+                    ${pixelPortraitHTML}
                     <div class="pixel-avatar ${sizeClass} ${npc.isInfected ? 'infected' : ''} ${npc.loreId ? 'lore-' + npc.loreId.replace('lore_', '') : ''} state-${modifier}">
                         <div class="avatar-body ${npc.visualFeatures.clothes || 'civilian'}">
                             <div class="clothes-detail"></div>

@@ -6,7 +6,7 @@ export const gen_pools_12 = {
         nodes: {
             'n1': {
                 id: 'n1',
-                text: "*El sujeto se frota la piel hasta enrojecerla.* \"¿Lo sientes? El Estrato Blanco. Está demasiado limpio. Necesitamos ensuciarnos para recordar.\"",
+                text: "*Se frota el antebrazo hasta enrojecerlo. «El jabón no quita esta sensación. Cuanto más limpio queda todo, más noto la suciedad que no puedo ver».*",
                 options: [
                     { id: 'o1', label: '¿Qué quieres recordar?', next: 'n2' },
                     { id: 'o2', label: 'Toma tus pastillas', next: 'n3' }
@@ -14,7 +14,7 @@ export const gen_pools_12 = {
             },
             'n2': {
                 id: 'n2',
-                text: "\"Mi nombre. El nombre de mi madre. El Cloro se lo llevó todo. Solo dejó la función. Soy 'Técnico de Valvulas 4'. Antes era... alguien.\"",
+                text: "*«Mi nombre era…» Se detiene, buscando la palabra. «En los registros figuro como Técnico de Válvulas 4. No recuerdo cuándo dejaron de usar mi nombre».*",
                 options: [
                     { id: 'o2a', label: 'El Cloro nos protege', next: 'n4' },
                     { id: 'o2b', label: 'Lo siento', next: 'n_end_sad' }
@@ -22,7 +22,7 @@ export const gen_pools_12 = {
             },
             'n3': {
                 id: 'n3',
-                text: "\"No. Las pastillas son blancas. Todo es blanco. Quiero ver negro. Quiero ver Tinta.\"",
+                text: "*Mira las pastillas blancas en su palma y no las toma. «Sé que son para dormir. No quiero otra noche sin recordar qué soñé».*",
                 options: [
                     { id: 'o3a', label: 'Eso es peligroso', next: 'n4' },
                     { id: 'o3l', label: '¿Qué tinta?', next: null, resultText: "*Te da un frasco negro.* \"La que sangran las paredes.\"", onclick: (g) => act.giveLoreItem(g, 'item_black_ichor', 'Muestra de Icor Negro') }

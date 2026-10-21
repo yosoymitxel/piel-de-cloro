@@ -11,7 +11,7 @@ export const lore_patient_zero = {
     nodes: {
         'lpz_n1': {
             id: 'lpz_n1',
-            text: "*Un hombre anciano con bata de laboratorio hecha jirones. Su piel es translúcida, dejando ver venas negras pulsantes que parecen mapas de un metro alienígena.* \"Ah... otro guardián de la puerta. ¿Sigues creyendo que la cerradura está en tu lado?\"",
+            text: "*El anciano mantiene las manos a la vista. Tiene venas oscuras en las muñecas, pero habla con calma.* \"Antes de decir que estoy infectado, dime qué criterio estás usando. ¿Temperatura, pulso, reacción a la luz? Si la respuesta es solo mi aspecto, no estás haciendo una evaluación.\"",
             audio: 'lore_interlude_seen',
             options: [
                 { id: 'lpz_o1', label: '¿Quién eres?', next: 'lpz_n2' },
@@ -20,7 +20,7 @@ export const lore_patient_zero = {
         },
         'lpz_n2': {
             id: 'lpz_n2',
-            text: "\"Me llaman Paciente Cero en los registros que quemasteis. Pero es un error de cálculo. Yo fui el Paciente Uno. El Cero... el Cero estaba esperando en el hielo antes de que tuviéramos nombre para el frío.\"",
+            text: "\"Me llamaron Paciente Cero porque fui el primero que sobrevivió a la exposición. No fui el primero en encontrar el organismo. El registro de perforación lo menciona seis días antes de mi ingreso. Yo vi ese registro y aprobé que lo retiraran del archivo.\"",
             options: [
                 { id: 'lpz_o2a', label: '¿El hielo?', next: 'lpz_n4' },
                 { id: 'lpz_o2b', label: '¿Quién era el Cero?', next: 'lpz_n_zero_origin' }
@@ -28,7 +28,7 @@ export const lore_patient_zero = {
         },
         'lpz_n3': {
             id: 'lpz_n3',
-            text: "*Se ríe, y el sonido es como cristal rompiéndose bajo el agua.* \"No es una infección. Es una colonización. Y ya ha terminado. Solo estáis... negociando los términos de la rendición. Tu cuerpo ya conoce el nuevo idioma.\"",
+            text: "\"En el informe usé la palabra 'colonización'. La elegí porque el tejido seguía funcionando después de que la infección destruyera partes del sistema nervioso. Eso no demuestra que la persona siguiera allí. Quería que el comité retrasara la orden de incineración; esa fue mi razón, no una certeza médica.\"",
             options: [
                 { id: 'lpz_o3a', label: 'Explícate', next: 'lpz_n4' },
                 { id: 'lpz_o3b', label: 'Mientes', next: 'lpz_n_deny' }
@@ -36,7 +36,7 @@ export const lore_patient_zero = {
         },
         'lpz_n4': {
             id: 'lpz_n4',
-            text: "\"Perforamos demasiado profundo. Proyecto 'Horizonte Profundo'. Buscábamos agua pura, encontramos... memoria líquida. El Pozo Profundo no es geológico. Es biológico. Tiene sed de forma.\"",
+            text: "\"El proyecto Horizonte Profundo buscaba agua potable. Perforamos el acuífero y encontramos tejido organizado en capas. Después, cuatro trabajadores describieron recuerdos que no eran suyos. Yo firmé el diagnóstico de intoxicación porque no teníamos una prueba aceptada para otra explicación.\"",
             options: [
                 { id: 'lpz_o4a', label: '¿Hay cura?', next: 'lpz_n5' },
                 { id: 'lpz_o4b', label: '¿Qué es la memoria líquida?', next: 'lpz_n_liquid' },
@@ -46,7 +46,7 @@ export const lore_patient_zero = {
         },
         'lpz_n_deep_well_details': {
             id: 'lpz_n_deep_well_details',
-            text: "\"El Útero Negro. Abajo, donde la presión aplasta los submarinos como latas. Allí flotan las ciudades muertas. Y allí... allí sueña Ella.\"",
+            text: "\"El Útero Negro era el nombre informal del hueco bajo el acuífero. Los equipos de presión dejaron de enviar datos a cierta profundidad. Las historias sobre ciudades sumergidas aparecieron después, cuando ya no podíamos comprobar qué había abajo.\"",
             options: [
                 { id: 'lpz_o_dwd_1', label: '¿Ella?', next: 'lpz_n_mother_hint' },
                 { id: 'lpz_o_dwd_2', label: 'Suficiente', next: 'lpz_n5' }
@@ -54,7 +54,7 @@ export const lore_patient_zero = {
         },
         'lpz_n_mother_hint': {
             id: 'lpz_n_mother_hint',
-            text: "\"La Madre. No la despiertes con tus bombas de cloro. Le gusta el silencio.\"",
+            text: "\"Los técnicos llamaban 'Madre' a la señal que aparecía en los sensores. Nunca probamos que fuera un ser ni que entendiera nuestras acciones. Aun así, yo autoricé el uso de cloro. La señal cambió después del primer tratamiento; no sabemos si fue una reacción o una coincidencia.\"",
             options: [
                 { id: 'lpz_o_mh_1', label: 'Entendido', next: 'lpz_n5', sets: ['known_mother'] },
                 { id: 'lpz_o_mh_2', label: '¿La Canción?', next: 'lpz_n_song' }
@@ -62,21 +62,21 @@ export const lore_patient_zero = {
         },
         'lpz_n_song': {
             id: 'lpz_n_song',
-            text: "\"Ah, ¿tú también la oyes? No es sonido. Es resonancia. Tus huesos vibran a la misma frecuencia que el Pozo. Es una nana... para que duermas y te dejes llevar.\"",
+            text: "\"No es una canción en el sentido acústico. Los sensores registran una vibración de baja frecuencia que se transmite por el suelo y las tuberías. Algunos pacientes dicen reconocerla. No tengo pruebas de que sea un mensaje, aunque yo también la he oído cuando el equipo está desconectado.\"",
             options: [
                 { id: 'lpz_o_song_1', label: '¿Cómo paro la música?', next: 'lpz_n_cure_rumor' }
             ]
         },
         'lpz_n_cure_rumor': {
             id: 'lpz_n_cure_rumor',
-            text: "\"Dicen... los rumores de los conductos dicen que hay una frecuencia inversa. En la Sala de Control Auxiliar, sellada hace años. El 'Silencio Blanco'. Pero yo creo que es un mito para mantenernos dóciles.\"",
+            text: "\"Hay un informe sobre una señal inversa en la Sala de Control Auxiliar. El proyecto la llamó 'Silencio Blanco', pero nunca se completó una prueba clínica. Puede reducir la actividad del tejido, puede no hacer nada. No la llames cura hasta que alguien sobreviva a un ensayo controlado.\"",
             options: [
                 { id: 'lpz_o_cr_1', label: 'Buscaré el Silencio', next: 'lpz_n5', sets: ['rumour_white_silence'] }
             ]
         },
         'lpz_n5': {
             id: 'lpz_n5',
-            text: "\"¿Cura para la evolución? No. Solo adaptación. O extinción. Tú eliges. Pero te diré un secreto: El fuego no lo mata. Solo lo hace... vapor. Y si te unes a la Colmena...\"",
+            text: "\"No conozco una cura. Algunas intervenciones retrasan los síntomas; otras aceleran el deterioro. Quemar el tejido no lo elimina de forma segura: las muestras del filtro mostraron partículas después de la combustión. Yo aprobé ese procedimiento antes de revisar los resultados.\"",
             options: [
                 { id: 'lpz_o5a', label: 'No te dejaré entrar.', next: null, resultText: "*Asiente lentamente.* \"Ya estoy dentro. En el aire que respiras.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                 { id: 'lpz_o5b', label: 'Te debo revisar primero.', next: null, resultText: "\"Sí, necesito que me revises.\"" },
@@ -85,28 +85,28 @@ export const lore_patient_zero = {
         },
         'lpz_n_hive_connection': {
             id: 'lpz_n_hive_connection',
-            text: "\"Todos somos nodos. Yo fui el primero, pero ahora hay miles. Si escuchas atentamente, puedes oír sus pensamientos superpuestos. Es... ruidoso. Pero nunca estás solo.\"",
+            text: "\"Los registros muestran patrones de actividad compartidos entre pacientes que no se conocían. No puedo afirmar que compartan pensamientos. Yo fui el primero en describirlo y también fui quien convenció al comité de ignorarlo durante dos semanas.\"",
             options: [
                 { id: 'lpz_o_hc_1', label: 'Prefiero la soledad', next: null, resultText: "\"La soledad es un lujo del pasado.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore }
             ]
         },
         'lpz_n_zero_origin': {
             id: 'lpz_n_zero_origin',
-            text: "\"No era humano. O ya no lo era. Una masa de... potencial. Lo despertamos con taladros térmicos. Nos agradeció... consumiendo al equipo Beta en segundos.\"",
+            text: "\"El equipo Beta encontró una masa organizada en la perforación inferior. Los taladros térmicos elevaron su temperatura y la estructura se movió. Tres trabajadores murieron antes de cerrar la cámara. El informe atribuyó las muertes a una fuga de presión; yo sabía que esa explicación no bastaba.\"",
             options: [
                 { id: 'lpz_o_z1', label: 'Horrible', next: 'lpz_n4' }
             ]
         },
         'lpz_n_deny': {
             id: 'lpz_n_deny',
-            text: "\"¿Miento? Mírate las manos. ¿No notas las venas un poco más oscuras hoy? ¿No oyes el zumbido cuando hay silencio?\"",
+            text: "\"¿Crees que miento? Revisa tus datos: temperatura, pulso, reflejo pupilar. Si no los has medido, no tienes un diagnóstico. Si ya los mediste y aun así no me crees, entonces no estás buscando evidencia: estás buscando permiso para decidir.\"",
             options: [
                 { id: 'lpz_o_d1', label: 'Calla', next: 'lpz_n4' }
             ]
         },
         'lpz_n_liquid': {
             id: 'lpz_n_liquid',
-            text: "\"Información sin soporte físico. ADN cuántico. Escribe sobre tu código genético como si fuera tiza en una pizarra. Quiere recordar lo que fuimos, mejor que nosotros.\"",
+            text: "\"En mis notas usé 'memoria líquida' como nombre provisional para el material que alteraba la actividad neuronal en las muestras. 'ADN cuántico' fue una expresión de un informe posterior; no es un término aceptado y no debí repetirlo como si explicara el mecanismo.\"",
             options: [
                 { id: 'lpz_o_l1', label: 'Fascinante y aterrador', next: 'lpz_n5' }
             ]

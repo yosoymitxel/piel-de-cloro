@@ -9,7 +9,7 @@ export const gen_pools_11 = {
         nodes: {
             'ggo_n1': {
                 id: 'ggo_n1',
-                text: "*Te olfatea el aire con los ojos cerrados, como un sommelier.* \"Hmm... un bouquet... limpio. Demasiado limpio. Falta... maduración.\"",
+                text: "*Inhala cerca de la bandeja de comida y frunce el ceño. «La carne enlatada tiene un olor rancio. ¿La almacenan junto al filtro?»*",
                 options: [
                     { id: 'ggo_o1', label: '¿Maduración?', next: 'ggo_n2a' },
                     { id: 'ggo_o2', label: 'Aléjate, enfermo', next: 'ggo_n2b' }
@@ -17,14 +17,14 @@ export const gen_pools_11 = {
             },
             'ggo_n2a': {
                 id: 'ggo_n2a',
-                text: "\"La carne fresca es insípida. La verdadera complejidad llega con la... colonización. El parásito ablanda el tejido, lo marina desde dentro. ¿Nunca has probado un hígado que ha... florecido?\"",
+                text: "*«La carne cambia cuando se descompone», dice con una calma incómoda. «He visto tejido infectado ablandarse más rápido de lo normal. No significa que sea seguro comerlo».*",
                 options: [
                     { id: 'ggo_o2a', label: 'DIOS SANTO, ¿QUÉ?', next: 'ggo_n3a' }
                 ]
             },
             'ggo_n2b': {
                 id: 'ggo_n2b',
-                text: "*Chasquea la lengua con decepción.* \"Paladares sin refinar. No sabéis apreciar la alta cocina de la nueva era. Os limitáis a las latas.\"",
+                text: "*Chasquea la lengua, molesto por tu reacción. «No soy cocinero. Trabajé en una sala de preparación y aprendí a reconocer cuándo algo dejó de ser comestible».*",
                 options: [
                     { id: 'ggo_o2b', label: 'Eres un caníbal', next: 'ggo_n3b' },
                     { id: 'ggo_o2r', label: '¿Dónde consigues... carne?', next: null, resultText: "*Señala arriba.* \"Los conductos de ventilación son una despensa excelente.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Cadáveres almacenados en conductos de ventilación.') }

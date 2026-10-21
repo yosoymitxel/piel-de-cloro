@@ -223,6 +223,7 @@ describe('Lore Danger System Deep Tests', () => {
 
             jest.spyOn(Math, 'random').mockReturnValue(0.1); // Force death
 
+            State.isNight = true; // Sleep is a valid action only during the night phase.
             gmm.sleep();
 
             expect(endingsMock.triggerEnding).toHaveBeenCalledWith('final_lore_assimilation');
@@ -236,6 +237,7 @@ describe('Lore Danger System Deep Tests', () => {
 
             jest.spyOn(Math, 'random').mockReturnValue(0.1); // Force death on first one
 
+            State.isNight = true; // Sleep is a valid action only during the night phase.
             gmm.sleep();
 
             expect(endingsMock.triggerEnding).toHaveBeenCalledWith('final_lore_collector');

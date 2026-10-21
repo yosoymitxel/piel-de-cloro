@@ -9,7 +9,7 @@ export const gen_pools_5 = {
         nodes: {
             'gsi_n1': {
                 id: 'gsi_n1',
-                text: "*Se señala la boca, que está sellada con cinta aislante gris. Te tiende una nota arrugada.*",
+                text: "*Señala la cinta aislante que le sella la boca y te entrega una nota escrita con letra temblorosa.*",
                 options: [
                     { id: 'gsi_o1', label: 'Leer nota', next: 'gsi_n2a' },
                     { id: 'gsi_o2', label: 'Quítate la cinta', next: 'gsi_n2b' }
@@ -17,7 +17,7 @@ export const gen_pools_5 = {
             },
             'gsi_n2a': {
                 id: 'gsi_n2a',
-                text: "*La nota dice: \"NO ES MI VOZ. SI HABLO, ELLOS ME ENCUENTRAN\".*",
+                text: "*La nota dice: «NO ME CALLES TÚ. ME LA SELLÉ PORQUE ALGO RESPONDE CUANDO HABLO». La última palabra está repasada varias veces.*",
                 options: [
                     { id: 'gsi_o2a', label: '¿Quiénes?', next: 'gsi_n3a' },
                     { id: 'gsi_o2l', label: 'Guardar nota', next: null, resultText: "*Te deja quedarte el papel.* \"(Asiente agradecido)\"", onclick: (g) => act.giveLoreItem(g, 'item_silent_note', 'Nota de "Los Silenciosos"') },
@@ -26,7 +26,7 @@ export const gen_pools_5 = {
             },
             'gsi_n2b': {
                 id: 'gsi_n2b',
-                text: "*Niega violentamente con la cabeza y se lleva un dedo a los labios haciendo 'shhh'. Sus ojos están desorbitados.*",
+                text: "*Niega con fuerza y señala primero la tubería del techo, luego la nota. No parece querer que lo oigas ni siquiera respirar.*",
                 options: [
                     { id: 'gsi_o2c', label: 'Insistir', next: 'gsi_n3b' }
                 ]

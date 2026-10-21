@@ -38,7 +38,7 @@ export class RandomEventManager {
                 chance: 0.12,
                 action: () => {
                     if (State.generator) {
-                        State.generator.power = Math.min(100, State.generator.power + 25);
+                        State.updateGeneratorPower(25);
                     }
                 },
                 type: 'positive'
@@ -62,7 +62,7 @@ export class RandomEventManager {
                 action: () => {
                     State.updateSanity(15);
                     if (State.generator) {
-                        State.generator.power = Math.min(100, State.generator.power + 15);
+                        State.updateGeneratorPower(15);
                     }
                 },
                 type: 'positive'

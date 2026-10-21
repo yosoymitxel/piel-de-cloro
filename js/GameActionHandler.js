@@ -99,7 +99,7 @@ export class GameActionHandler {
         // Iniciar countdown
         State.generator.bloodTestId = npc.id || npc.name;
         State.generator.bloodTestCountdown = 2;
-        State.paranoia += 15; // Coste de tensión mental
+        State.updateParanoia(15, { applyDifficulty: false }); // Coste fijo de tensión mental
 
         // Recalcular carga inmediatamente
         if (this.game.mechanics && this.game.mechanics.calculateTotalLoad) {
@@ -324,7 +324,11 @@ export class GameActionHandler {
     handleDecision(action) {
         if (State.paused || this.processingDecision) return;
         const npc = State.currentNPC;
-        if (!npc) return;
+        if (!npc || this.processingDecision) return;
+        if (action !== 'admit' && action !== 'ignore') {
+            this.ui.showMessage('DECISIÓN INVÁLIDA.', null, 'warning');
+            return;
+        }
 
         // Stop visual alerts after decision
         if (this.ui.stopGlobalFlicker) this.ui.stopGlobalFlicker();
@@ -339,14 +343,22 @@ export class GameActionHandler {
 
         if (action === 'admit') {
             if (State.isShelterFull()) {
+                this.processingDecision = false;
                 this.ui.showMessage("REFUGIO LLENO. Debes purgar a alguien desde la pantalla de Refugio.", null, 'warning');
                 return;
             }
+            if (!State.addAdmitted(npc)) {
+                this.processingDecision = false;
+                this.ui.showMessage('NO SE PUEDE ADMITIR A ESTE SUJETO EN SU ESTADO ACTUAL.', null, 'warning');
+                return;
+            }
             npc.initDayAfterStatus();
-            State.addAdmitted(npc);
         } else if (action === 'ignore') {
-            npc.exitCycle = State.cycle;
-            State.ignoredNPCs.push(npc);
+            if (!State.addIgnored(npc)) {
+                this.processingDecision = false;
+                this.ui.showMessage('ESTE SUJETO YA FUE REGISTRADO.', null, 'warning');
+                return;
+            }
 
             // Consecuencia por ignorar: la paranoia aumenta porque no sabes qué has dejado fuera
             // REBALANCEO: Ahora es un factor aleatorio que no supera los 7 (antes era 5 o 10 fijo)
@@ -437,10 +449,8 @@ export class GameActionHandler {
         const abandonedCount = abandoned.length;
 
         abandoned.forEach(npc => {
-            State.departedNPCs.push(npc);
+            State.markDeparted(npc);
         });
-
-        State.admittedNPCs = selectedNPCs;
 
         this.audio.playSFXByKey('preclose_overlay_open', { volume: 0.8 });
         State.addLogEntry('system', `MUDANZA: Sector abandonado. ${abandonedCount} sujetos dejados atrás. ${selectedNPCs.length} mantenidos.`);
