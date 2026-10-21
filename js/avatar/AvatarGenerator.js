@@ -112,7 +112,9 @@ export function generateAvatarSvg(seed,options={}) {
   const hairStyle=options.hair == null
     ? hairStyles[Math.floor(random()*hairStyles.length)]
     : safeHair(options.hair);
-  const faceShape=safeOption(options.faceShape,Object.keys(FACE_SHAPES),"oval");
+  const faceShape=options.faceShape == null
+    ? Object.keys(FACE_SHAPES)[Math.floor(random()*Object.keys(FACE_SHAPES).length)]
+    : safeOption(options.faceShape,Object.keys(FACE_SHAPES),"oval");
   const hair=HAIR[hairStyle];
   const clothes=safeOption(options.clothes,clothesOptions,clothesOptions[Math.floor(random()*clothesOptions.length)]);
   const accessory=safeOption(options.accessory,accessoryOptions,accessoryOptions[Math.floor(random()*accessoryOptions.length)]);
