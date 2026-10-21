@@ -293,7 +293,6 @@ export class GameMechanicsManager {
         // Fase 1.1 Roadmap: Forzar modo SAVE si batería < 15% y estamos en overload
         if (State.generator.power < 15 && State.generator.mode === 'overload') {
             State.generator.mode = 'save';
-            State.generator.maxModeCapacityReached = 1;
             State.addLogEntry('system', 'ALERTA: Batería crítica. Protocolo forzado a AHORRO.');
             this.ui.showFeedback("¡BATERÍA CRÍTICA! MODO AHORRO FORZADO", "red", 4000);
             this.audio.playSFXByKey('glitch_low', { volume: 0.5 });
@@ -440,7 +439,6 @@ export class GameMechanicsManager {
 
         generator.mode = newMode;
         generator.modeChangedThisTurn = true;
-        generator.maxModeCapacityReached = actionTaken ? newCap : 3;
 
         this.ui.showFeedback(`PROTOCOLO ${newMode.toUpperCase()} CARGADO`, "green", 3000);
         this.ui.updateGeneratorNavStatus();
