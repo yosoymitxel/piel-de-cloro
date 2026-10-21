@@ -77,3 +77,16 @@ Una fase no se considera terminada solo porque los tests unitarios pasen. Debe t
 ## Uso de la skill `web-game-toolkit`
 
 Se aplican sus principios relevantes: una sola fuente para datos que crecen, validadores automáticos, lógica de juego testeable sin DOM y pruebas reales con viewport móvil/táctil y escritorio. Las recetas específicas de otros géneros (piezas, tableros, física o temas de pixel art) no se aplican automáticamente a este juego.
+
+
+## Progreso de la reconstrucción (2026-10-21)
+
+- [x] El protocolo del generador rechaza modos desconocidos sin mutar el estado.
+- [x] La resolución nocturna y la recarga no se omiten cuando no hay NPCs admitidos.
+- [x] Los resultados de laboratorio emiten una sola notificación.
+- [x] El análisis biológico exige que el laboratorio esté encendido.
+- [x] Cinco análisis positivos completados de sujetos distintos registran hasta cinco muestras viables; la salida limpia con las cinco muestras activa `final_cure`.
+- [x] Las solicitudes repetidas de finalización no encolan una segunda secuencia de final.
+- [x] Se añadió un layout táctil para pantallas de hasta 640 px con navegación desplazable y panel principal flexible.
+
+**No se marca como terminado:** la experiencia móvil requiere validación visual e interactiva real en 360×800 y otros tamaños; la arquitectura sigue acoplada al estado global y al DOM; todavía hace falta una pasada de continuidad narrativa y pruebas de integración de los ciclos completos. Los tests automatizados no sustituyen esas verificaciones.
