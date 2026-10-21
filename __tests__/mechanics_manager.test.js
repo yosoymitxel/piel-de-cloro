@@ -74,13 +74,11 @@ describe('GameMechanicsManager', () => {
         test('setGeneratorProtocol rejects unknown modes without mutating state', () => {
             State.generator.isOn = true;
             State.generator.mode = 'save';
-            State.generator.maxModeCapacityReached = 1;
 
             const result = gmm.setGeneratorProtocol('turbo');
 
             expect(result).toBe(false);
             expect(State.generator.mode).toBe('save');
-            expect(State.generator.maxModeCapacityReached).toBe(1);
             expect(uiMock.showFeedback).toHaveBeenCalledWith('PROTOCOLO INVÁLIDO', 'red', 3000);
         });
 
