@@ -358,6 +358,29 @@ test.describe('dedicated mobile presentation', () => {
     expect(landscapeWidth.dock.display).not.toBe('none');
     expect(landscapeWidth.dock.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 2);
 
+    // Landscape keeps the decision controls visible first; the conversation is
+    // scrollable and must expose its final choice above the persistent dock.
+    await page.locator('#screen-game').evaluate(el => { el.scrollTop = el.scrollHeight; });
+    await page.waitForTimeout(120);
+    await page.screenshot({ path: 'test-results/mobile-game-landscape-scroll-end-844.png', fullPage: false });
+    const landscapeDialogueEnd = await page.evaluate(() => {
+      const screen = document.querySelector('#screen-game');
+      const dock = document.querySelector('#sidebar-left');
+      const buttons = [...document.querySelectorAll('#screen-game #dialogue-options button')]
+        .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
+        .map(el => { const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height, text: el.textContent.trim() }; });
+      const sr = screen.getBoundingClientRect(), dr = dock.getBoundingClientRect();
+      return { scrollTop: screen.scrollTop, scrollHeight: screen.scrollHeight, clientHeight: screen.clientHeight,
+        screenTop: sr.top, screenBottom: sr.bottom, dockTop: dr.top, buttons };
+    });
+    expect(landscapeDialogueEnd.scrollTop, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(0);
+    expect(landscapeDialogueEnd.scrollHeight, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(landscapeDialogueEnd.clientHeight);
+    expect(landscapeDialogueEnd.buttons.length, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(0);
+    expect(landscapeDialogueEnd.buttons.every(button => button.height >= 40), JSON.stringify(landscapeDialogueEnd)).toBe(true);
+    const finalLandscapeChoice = landscapeDialogueEnd.buttons.at(-1);
+    expect(finalLandscapeChoice.bottom, JSON.stringify(landscapeDialogueEnd)).toBeLessThanOrEqual(landscapeDialogueEnd.dockTop - 4);
+    expect(finalLandscapeChoice.top, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThanOrEqual(landscapeDialogueEnd.screenTop - 1);
+
     expect(pageErrors, 'uncaught JavaScript errors during mobile gameplay').toEqual([]);
   });
 });
