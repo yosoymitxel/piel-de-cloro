@@ -983,14 +983,6 @@
 
 /* Portrait game content must size to its controls instead of clipping them in the desktop flex frame. */
 @media (max-width: 640px) and (orientation: portrait) {
-    #screen-game .puesto-container {
-        flex: 0 0 auto !important;
-        height: auto !important;
-        min-height: 0 !important;
-        max-height: none !important;
-        overflow: visible !important;
-    }
-
     #screen-game .dialogue-sidebar {
         flex: 0 0 auto !important;
         height: auto !important;
@@ -1065,6 +1057,15 @@
 
 /* Mobile-only geometry fixes. Desktop rules and visual tokens remain untouched. */
 @media (max-width: 640px), (max-height: 520px) and (orientation: landscape) {
+    /* The original desktop flex frame clips portrait and landscape content on short screens. */
+    #screen-game .puesto-container {
+        flex: 0 0 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
     #screen-game .comp-gen-battery,
     #screen-game .comp-gen-battery .hud-component,
     #screen-game .comp-gen-battery .stat-bar-bg {
