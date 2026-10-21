@@ -80,6 +80,38 @@ describe('Dialogue system', () => {
         expect(conv.currentId).toBe('gs_n3a');
     });
 
+    test('State.reset clears run-scoped dialogue flags', () => {
+        State.setFlag('secret_from_previous_run', true);
+
+        State.reset();
+
+        expect(State.hasFlag('secret_from_previous_run')).toBe(false);
+        expect(State.dialogueFlags).toEqual({});
+    });
+
+    test('broken dialogue target returns an error without recording a choice', () => {
+        const pool = {
+            id: 'broken_target_test',
+            root: 'start',
+            nodes: {
+                start: {
+                    id: 'start',
+                    text: 'Test',
+                    options: [{ id: 'broken', label: 'Continue', next: 'missing_node', sets: ['should_not_be_set'] }]
+                }
+            }
+        };
+        const conv = new Conversation({ name: 'TESTER' }, pool);
+
+        const result = conv.getNextDialogue('broken');
+
+        expect(result.error).toBe('Nodo destino no encontrado: missing_node');
+        expect(conv.currentId).toBe('start');
+        expect(conv.history).toHaveLength(0);
+        expect(State.hasFlag('should_not_be_set')).toBe(false);
+        expect(State.dialogueMemory).toHaveLength(0);
+    });
+
     test('Rumor injection uses dialogue memory and placeholder replaced', () => {
         // Insert a memory
         State.recordDialogueMemory({ npc: 'X', node: 'gs_n1', choice: 'gs_o1', time: Date.now() - 5000 });
@@ -101,28 +133,26 @@ describe('Dialogue system', () => {
         expect(res.error).toBeUndefined(); // gen_leak root options don't have requirements usually
     });
 
-    test('selectDialogueSet avoids recent pools when alternatives exist', async () => {
-        // Temporarily replace pools with minimal deterministic set
+    test('selectDialogueSet avoids recent pools when alternatives exist', () => {
         const originalPools = DialogueData.pools;
-        DialogueData.pools = {
-            a: { id: 'a', root: 'a1', nodes: { a1: { id: 'a1', text: 'A', options: [] } } },
-            b: { id: 'b', root: 'b1', nodes: { b1: { id: 'b1', text: 'B', options: [] } } }
-        };
+        try {
+            DialogueData.pools = {
+                a: { id: 'a', root: 'a1', nodes: { a1: { id: 'a1', text: 'A', options: [] } } },
+                b: { id: 'b', root: 'b1', nodes: { b1: { id: 'b1', text: 'B', options: [] } } }
+            };
 
-        State.reset();
-        State.dialoguesCount = 10;
-        // Mark 'a' as used now (lastUsed = 10)
-        State.markDialogueUsed('a');
+            State.reset();
+            State.dialoguesCount = 10;
+            State.markDialogueUsed('a');
 
-        // Should avoid 'a' within default window (5)
-        const pick = selectDialogueSet();
-        expect(pick.id).toBe('b');
+            const pick = selectDialogueSet();
+            expect(pick.id).toBe('b');
 
-        // Advance past window
-        State.dialoguesCount = 16;
-        const pick2 = selectDialogueSet();
-        expect(['a', 'b']).toContain(pick2.id);
-
-        DialogueData.pools = originalPools;
+            State.dialoguesCount = 16;
+            const pick2 = selectDialogueSet();
+            expect(['a', 'b']).toContain(pick2.id);
+        } finally {
+            DialogueData.pools = originalPools;
+        }
     });
 });
