@@ -1,6 +1,6 @@
 import { NPC } from './NPC.js';
 import { State } from './State.js';
-import { UIManager } from './UIManager.js';
+import { UIManager } from './UIManager.js?v=20261021-avatarfix1';
 import { StatsManager } from './StatsManager.js';
 import { AudioManager } from './AudioManager.js';
 import { GameActionHandler } from './GameActionHandler.js';
