@@ -377,6 +377,10 @@ describe('GameMechanicsManager', () => {
 
             State.generator.power = 100;
             expect(gmm.synthesizeCure().success).toBe(true);
+            expect(State.cureSynthesized).toBe(true);
+            expect(State.admittedNPCs.filter(npc => npc.isInfected)).toHaveLength(0);
+            expect(gameMock.endings.triggerEnding).not.toHaveBeenCalled();
+
             gmm.finishRun();
 
             expect(gameMock.endings.triggerEnding).toHaveBeenCalledWith('final_cure');
