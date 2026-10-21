@@ -1056,6 +1056,15 @@
         margin-bottom: 4px !important;
     }
 
+    /* Decision controls are siblings inside the tools grid, so explicitly span
+       its full row instead of inheriting a single grid cell. */
+    #screen-game #inspection-tools-container > .grid-tools > #game-actions-container,
+    #screen-game #inspection-tools-container > #game-actions-container {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
     #screen-game .center-console {
         display: grid !important;
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
