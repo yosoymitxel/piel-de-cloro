@@ -5,6 +5,23 @@ describe('New-day transition ordering', () => {
     beforeEach(() => State.reset());
     afterEach(() => jest.restoreAllMocks());
 
+    test('ignores a stale continue-day callback outside night resolution', async () => {
+        const game = {
+            ui: { setNavItemStatus: jest.fn(), updateRunStats: jest.fn() },
+            audio: { playAmbientByKey: jest.fn() },
+            events: { switchScreen: jest.fn() },
+            nextTurn: jest.fn(),
+            randomEvents: null
+        };
+        const mechanics = new GameMechanicsManager(game);
+        const startDaySpy = jest.spyOn(State, 'startNextDay');
+
+        await expect(mechanics.continueDay()).resolves.toBe(false);
+
+        expect(startDaySpy).not.toHaveBeenCalled();
+        expect(game.events.switchScreen).not.toHaveBeenCalled();
+    });
+
     test('duplicate continue-day calls share one cycle transition', async () => {
         let resolveScreen;
         const screenTransition = new Promise(resolve => {
