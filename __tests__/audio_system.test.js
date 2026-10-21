@@ -38,6 +38,12 @@ describe('Audio System (AudioManager)', () => {
         expect(am.desiredPlay.lore).toBe(false);
     });
 
+    test('stopLore tolerates null options', () => {
+        const fade = jest.spyOn(am, 'fade').mockImplementation(() => {});
+        expect(() => am.stopLore(null)).not.toThrow();
+        expect(fade).toHaveBeenCalledWith(am.channels.lore, 0, 400, 'lore', expect.any(Function));
+    });
+
     test('Manifest loading', async () => {
         await am.loadManifest('mock_url');
         expect(am.manifest.test_sfx).toBe('path/to/test.mp3');
