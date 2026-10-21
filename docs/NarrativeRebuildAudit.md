@@ -47,6 +47,12 @@ Los NPCs únicos explican conceptos centrales en pocos turnos: origen del organi
 
 Una imagen desagradable no equivale a una pista. Las escenas deben cambiar la lectura de una persona, un sistema o un hecho anterior. Si una anomalía corporal no permite inferir nada, no altera una decisión y no caracteriza al NPC, es candidata a eliminarse.
 
+## Hallazgo crítico adicional: final de cura sin integración
+
+La definición `LoreData.final_cure` contiene texto de victoria y `State.reset()` inicializa `cureProgress`, pero la revisión de `GameMechanicsManager` no encontró una ruta que incremente ese progreso ni un método que sintetice/desbloquee la cura. Por ahora, el final existe como metadato narrativo, no como mecánica comprobada. La prueba correspondiente se ha renombrado para no confundir la existencia del texto con una funcionalidad jugable.
+
+**Pendiente antes de declarar la mecánica terminada:** definir qué acciones producen muestras, cómo se validan, dónde se muestran al jugador, qué condiciones habilitan la síntesis y cómo se llama `triggerEnding('final_cure')`. Después, añadir tests de progresión, requisitos incompletos, duplicados y activación del final.
+
 ## Plan de trabajo
 
 1. **Voces y diálogo:** reescritura inicial de 20 textos en los cuatro NPCs únicos, preservando IDs, rutas, flags, acciones y mecánicas.
