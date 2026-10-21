@@ -80,6 +80,32 @@ describe('Dialogue system', () => {
         expect(conv.currentId).toBe('gs_n3a');
     });
 
+    test('required dialogue options are hidden until their flag is set', () => {
+        const pool = {
+            id: 'gated_option_test',
+            root: 'start',
+            nodes: {
+                start: {
+                    id: 'start',
+                    text: 'Start',
+                    options: [
+                        { id: 'plain', label: 'Continue', next: null },
+                        { id: 'locked', label: 'Secret', next: null, req: ['secret_unlocked'] }
+                    ]
+                }
+            }
+        };
+        const conv = new Conversation({ name: 'TESTER' }, pool);
+
+        expect(conv.getCurrentNode().options.map(option => option.id)).toEqual(['plain']);
+        expect(conv.getNextDialogue('locked').error).toBe('Requisitos no satisfechos');
+        expect(conv.history).toHaveLength(0);
+
+        State.setFlag('secret_unlocked', true);
+        expect(conv.getCurrentNode().options.map(option => option.id)).toEqual(['plain', 'locked']);
+        expect(conv.getNextDialogue('locked').end).toBe(true);
+    });
+
     test('State.reset clears run-scoped dialogue flags', () => {
         State.setFlag('secret_from_previous_run', true);
 
