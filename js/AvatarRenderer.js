@@ -5,9 +5,8 @@ export class AvatarRenderer {
         // Probabilidades dinámicas basadas en estado del jugador
         const paranoiaFactor = (State.paranoia || 0) / 400; // Hasta 0.25 a 100 paranoia
         const sanityFactor = (100 - (State.sanity || 100)) / 400; // Hasta 0.25 a 0 cordura
-        const infectedFactor = npc.isInfected ? 0.1 : 0; // 10% base si está infectado
-        
-        const errorChance = Math.min(0.8, infectedFactor + paranoiaFactor + sanityFactor);
+        // La señal depende de variables visibles del jugador, no de la infección oculta.
+        const errorChance = Math.min(0.5, paranoiaFactor + sanityFactor);
         // Keep the signal stable across rerenders: the same NPC must not flicker
         // between states just because React/jQuery rebuilt the portrait.
         const identity = String(npc.id || npc.name || 'unknown');
@@ -28,8 +27,8 @@ export class AvatarRenderer {
             lore_hive: 'npc_hive',
             lore_patient_zero: 'npc_patient_zero'
         };
-        const portraitName = lorePortraits[npc.loreId] ||
-            (npc.isInfected ? 'npc_infected' : 'npc_human');
+        // Los NPC genéricos comparten retrato neutral: el arte no debe revelar infección.
+        const portraitName = lorePortraits[npc.loreId] || 'npc_human';
         const pixelPortraitHTML = pixelArtEnabled
             ? `<img class="npc-pixel-portrait" src="assets/pixel/npcs/sprites/${portraitName}.png" alt="" aria-hidden="true" onload="this.parentElement.classList.add('has-pixel-portrait')" onerror="this.parentElement.classList.remove('has-pixel-portrait'); this.remove()">`
             : '';
