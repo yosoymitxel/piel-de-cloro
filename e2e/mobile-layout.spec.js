@@ -240,8 +240,17 @@ test.describe('dedicated mobile presentation', () => {
     await page.setViewportSize({ width: 844, height: 390 });
     await page.waitForTimeout(200);
     await page.screenshot({ path: 'test-results/mobile-game-landscape-844.png', fullPage: false });
-    const landscapeWidth = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, document: document.documentElement.scrollWidth }));
+    const landscapeWidth = await page.evaluate(() => ({
+      viewport: document.documentElement.clientWidth,
+      document: document.documentElement.scrollWidth,
+      hudCards: [...document.querySelectorAll('#screen-game > header > div.flex.flex-wrap > *')]
+        .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0).length,
+      dock: (() => { const el = document.querySelector('#sidebar-left'); const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width, display: getComputedStyle(el).display }; })()
+    }));
     expect(landscapeWidth.document, JSON.stringify(landscapeWidth)).toBeLessThanOrEqual(landscapeWidth.viewport + 1);
+    expect(landscapeWidth.hudCards, JSON.stringify(landscapeWidth)).toBe(6);
+    expect(landscapeWidth.dock.display).not.toBe('none');
+    expect(landscapeWidth.dock.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 2);
 
     expect(pageErrors, 'uncaught JavaScript errors during mobile gameplay').toEqual([]);
   });
