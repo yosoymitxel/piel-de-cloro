@@ -38,7 +38,7 @@ export const lore_hive = {
             id: 'lh_n3',
             text: "*Varias voces responden a la vez y se pisan entre sí.* \"Si matas este cuerpo, las otras voces no se van. Pero no sabemos si eso significa que seguimos vivos.\" *Una voz infantil susurra:* \"No le digas que tenemos miedo.\"",
             options: [
-                { id: 'lh_o3a', label: 'Huir', next: null, onclick: act.leave },
+                { id: 'lh_o3a', label: 'Huir', next: null },
                 { id: 'lh_o3b', label: 'Disculparse', next: 'lh_n1' }
             ]
         },
