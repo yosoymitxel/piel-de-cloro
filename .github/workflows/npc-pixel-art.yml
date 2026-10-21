@@ -22,7 +22,7 @@ on:
       - ".github/workflows/npc-pixel-art.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-npc-art:
@@ -36,6 +36,18 @@ jobs:
           node-version: 22.18.0
       - name: Build claude-pxl portraits
         run: npm run build:npc-art
+      - name: Publish generated portraits to the repository
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pixel/npcs/sprites/*.png assets/pixel/npcs/npc_portraits.png
+          if git diff --cached --quiet; then
+            echo "Generated portraits are already up to date."
+          else
+            git commit -m "Publish generated NPC pixel portraits"
+            git push
+          fi
       - name: Upload generated portraits
         uses: actions/upload-artifact@v4
         with:
