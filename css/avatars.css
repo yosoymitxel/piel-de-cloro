@@ -623,16 +623,25 @@
     /* filter: none; */ /* We handle this via states now */
 }
 
-/* Optional claude-pxl portraits: enabled with <html data-art="pixel">.
-   The CSS-built avatar stays as fallback until the generated PNG is present. */
+/* Pixel portraits: procedural identities for generic NPCs; ClaudePXL PNGs for lore characters. */
+.npc-content-wrapper.has-pixel-portrait {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .npc-content-wrapper.has-pixel-portrait .pixel-avatar {
     display: none;
 }
 
 .npc-pixel-portrait {
     display: block;
+    flex: 0 0 auto;
     width: 160px;
     height: 160px;
+    max-width: 100%;
     object-fit: contain;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
@@ -653,25 +662,4 @@
         width: 64px;
         height: 64px;
     }
-}
-
-
-/* Keep generated portraits centered without changing the surrounding viewport. */
-.npc-content-wrapper.has-pixel-portrait {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.npc-pixel-portrait {
-    flex: 0 0 auto;
-    max-width: 100%;
-    object-fit: contain;
-}
-
-.npc-view-container.view-sm .npc-pixel-portrait {
-    width: 64px;
-    height: 64px;
 }
