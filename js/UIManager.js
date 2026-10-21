@@ -2364,11 +2364,9 @@ export class UIManager {
             let assignedName = 'VACANTE';
             let assignedId = null;
 
-            if (sec.id === 'generator') {
-                assignedId = state.generator.assignedGuardId;
-            } else {
-                assignedId = state.sectorAssignments[sec.id]?.[0];
-            }
+            // The structured assignments map is authoritative; generator.assignedGuardId is legacy-only.
+            assignedId = state.assignments?.[sec.id]?.occupants?.[0]
+                ?? (sec.id === 'generator' ? state.generator?.assignedGuardId : null);
 
             if (assignedId) {
                 const npc = state.admittedNPCs.find(n => n.id === assignedId);
