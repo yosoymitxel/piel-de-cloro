@@ -9,7 +9,7 @@ export const gen_pools_1 = {
         nodes: {
             'gs_n1': {
                 id: 'gs_n1',
-"*Se frota el antebrazo hasta dejar la piel roja. «El agua de las duchas me irrita desde ayer. ¿A ustedes también?» La herida no parece reciente, pero sigue húmeda.*""*Se frota el antebrazo hasta dejar la piel roja. «El agua de las duchas me irrita desde ayer. ¿A ustedes también?» La herida no parece reciente, pero sigue húmeda.*",
+                text: "*Se frota el antebrazo hasta dejar la piel roja. «El agua de las duchas me irrita desde ayer. ¿A ustedes también?» La herida no parece reciente, pero sigue húmeda.*",
                 options: [
                     { id: 'gs_o1', label: 'Examinar brazo', next: 'gs_n2a' },
                     { id: 'gs_o3', label: '¡Deja de rascarte!', next: 'gs_n2c' }
