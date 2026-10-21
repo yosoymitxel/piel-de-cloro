@@ -44,28 +44,35 @@ test.describe('dedicated mobile presentation', () => {
     await page.getByRole('button', { name: /INICIAR PARTIDA/i }).click();
     await expect(page.locator('#modal-tutorial')).toBeVisible({ timeout: 45000 });
     await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
+
+    // The first-day intro may show an interlude before gameplay. Close that
+    // intentional narrative screen before asserting the game screen is active.
+    const interludeContinue = page.locator('#btn-lore-continue-screen');
+    await expect(interludeContinue).toBeVisible({ timeout: 6000 }).catch(() => {});
+    if (await interludeContinue.isVisible()) await interludeContinue.click();
     await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
-    await page.screenshot({ path: 'test-results/mobile-inspection-390.png', fullPage: false });
+    // Screenshot is captured after the control-size wait below, once the CRT entrance transition settles.
 
     // The CRT power-on animation scales the entire monitor from a scan line.
     // Wait for actual visible controls to reach their final touch-target size
     // instead of measuring transient animation frames (which caused flaky CI).
     await page.waitForFunction(() => {
-      const controls = [
-        ...document.querySelectorAll('#inspection-tools-container .horror-tool-btn'),
-        ...document.querySelectorAll('#game-actions-container > button')
-      ].filter(el => {
+      const tools = [...document.querySelectorAll('#inspection-tools-container .horror-tool-btn')].filter(el => {
         const style = getComputedStyle(el);
-        return style.display !== 'none'
-          && style.visibility !== 'hidden'
-          && Number(style.opacity) > 0
-          && el.getClientRects().length > 0;
+        return style.display !== 'none' && style.visibility !== 'hidden'
+          && Number(style.opacity) > 0 && el.getClientRects().length > 0;
       });
-      return controls.length > 0 && controls.every(el => {
+      return tools.length > 0 && tools.every(el => {
         const rect = el.getBoundingClientRect();
         return rect.width >= 44 && rect.height >= 44;
       });
+    }, null, { timeout: 12000 });
+
+    await page.waitForFunction(() => {
+      const text = document.querySelector('#npc-dialogue .npc-text');
+      return Boolean(text && text.textContent.trim().length > 0);
     }, null, { timeout: 8000 });
+    await page.screenshot({ path: 'test-results/mobile-inspection-390.png', fullPage: false });
 
     const measurements = await page.evaluate(() => {
       const viewportWidth = document.documentElement.clientWidth;
@@ -78,7 +85,7 @@ test.describe('dedicated mobile presentation', () => {
           && el.getClientRects().length > 0;
       };
       const toolButtons = [...document.querySelectorAll('#inspection-tools-container .horror-tool-btn')].filter(isVisible);
-      const actionButtons = [...document.querySelectorAll('#game-actions-container > button')].filter(isVisible);
+      const actionButtons = [...document.querySelectorAll('#inspection-tools-container > .tool-wrapper.col-span-2 > button')].filter(isVisible);
       const bounds = [...toolButtons, ...actionButtons].map(el => {
         const rect = el.getBoundingClientRect();
         return { width: rect.width, height: rect.height, right: rect.right, label: (el.innerText || el.getAttribute('aria-label') || '').trim().slice(0, 50) };
@@ -95,19 +102,133 @@ test.describe('dedicated mobile presentation', () => {
         const r = el.getBoundingClientRect();
         return { tag: el.className, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
       });
+      const hudRoot = document.querySelector('#screen-game > header > div.flex.flex-wrap');
+      const visibleHud = [...(hudRoot?.children ?? [])].filter(el => {
+        const style = getComputedStyle(el);
+        return style.display !== 'none' && el.getClientRects().length > 0;
+      }).map(el => {
+        const r = el.getBoundingClientRect();
+        return { name: el.className, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
+      });
+      const navButtons = [...document.querySelectorAll('#sidebar-left .nav-sidebar-btn, #sidebar-left .nav-btn')].filter(el => {
+        const style = getComputedStyle(el);
+        return style.display !== 'none' && el.getClientRects().length > 0;
+      }).map(el => {
+        const r = el.getBoundingClientRect();
+        const label = el.querySelector('span');
+        const labelRect = label?.getBoundingClientRect();
+        return { name: (label?.innerText || el.title || '').trim(), left: r.left, right: r.right, width: r.width, labelLeft: labelRect?.left ?? null, labelRight: labelRect?.right ?? null };
+      });
+      const tutorialMonitor = document.querySelector('#screen-game #tutorial-monitor-content');
+      const tutorialMessages = [...(tutorialMonitor?.querySelectorAll('.tutorial-msg span') ?? [])].map(el => {
+        const r = el.getBoundingClientRect();
+        return { text: el.textContent.trim(), left: r.left, right: r.right, width: r.width,
+          scrollWidth: el.scrollWidth, clientWidth: el.clientWidth,
+          animation: getComputedStyle(el.parentElement).animationName };
+      });
+      const batteryCard = document.querySelector('#screen-game .comp-gen-battery .hud-component');
+      const batteryFill = document.querySelector('#screen-game #comp-gen-bat-fill');
+      const rectJSON = el => {
+        if (!el || !el.getClientRects().length) return null;
+        const r = el.getBoundingClientRect();
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
+      };
       return {
-        viewportWidth, documentWidth, bounds, monitors,
+        viewportWidth, documentWidth, bounds, monitors, visibleHud, navButtons, tutorialMessages,
+        batteryCard: rectJSON(batteryCard), batteryFill: rectJSON(batteryFill),
         mainView: rectOf('#screen-game .main-view-area'),
         dialogue: rectOf('#screen-game .dialogue-sidebar'),
         dock: rectOf('#sidebar-left'),
+        dockScrollWidth: document.querySelector('#sidebar-left')?.scrollWidth ?? 0,
+        dockClientWidth: document.querySelector('#sidebar-left')?.clientWidth ?? 0,
+        dockOverflowX: document.querySelector('#sidebar-left') ? getComputedStyle(document.querySelector('#sidebar-left')).overflowX : 'visible',
+        pause: rectOf('#screen-game #btn-pause-mobile'),
+        actionButtons: [...document.querySelectorAll('#inspection-tools-container > .tool-wrapper.col-span-2 > button')].filter(isVisible).map(rectJSON),
+        inspectionTools: rectOf('#screen-game #inspection-tools-container'),
+        dialogueText: rectOf('#screen-game #npc-dialogue'),
         generatorWarning: warningRect ? { height: warningRect.height, width: warningRect.width } : null
       };
     });
 
     expect(measurements.documentWidth, JSON.stringify(measurements)).toBeLessThanOrEqual(measurements.viewportWidth + 1);
     expect(measurements.bounds.length).toBeGreaterThan(0);
+
+    // Six visible status cards must form two complete three-column rows.
+    expect(measurements.visibleHud, JSON.stringify(measurements.visibleHud)).toHaveLength(6);
+    const hudRows = [...new Set(measurements.visibleHud.map(card => Math.round(card.top / 4)))];
+    expect(hudRows.length, JSON.stringify(measurements.visibleHud)).toBe(2);
+    expect(measurements.visibleHud.every(card => card.width >= 44 && card.left >= -1 && card.right <= measurements.viewportWidth + 1)).toBe(true);
+
+    // The battery fill must remain inside its own card at every tested width.
+    expect(measurements.batteryCard, JSON.stringify(measurements)).not.toBeNull();
+    expect(measurements.batteryFill, JSON.stringify(measurements)).not.toBeNull();
+    expect(measurements.batteryFill.left, JSON.stringify(measurements)).toBeGreaterThanOrEqual(measurements.batteryCard.left - 1);
+    expect(measurements.batteryFill.right, JSON.stringify(measurements)).toBeLessThanOrEqual(measurements.batteryCard.right + 1);
+
+    expect(measurements.tutorialMessages.length).toBeGreaterThan(0);
+    for (const message of measurements.tutorialMessages) {
+      expect(message.left, JSON.stringify(message)).toBeGreaterThanOrEqual(-1);
+      expect(message.right, JSON.stringify(message)).toBeLessThanOrEqual(measurements.viewportWidth + 1);
+      expect(message.scrollWidth, JSON.stringify(message)).toBeLessThanOrEqual(message.clientWidth + 1);
+      expect(message.animation, JSON.stringify(message)).toBe('none');
+    }
+
+    // Bottom-dock buttons and labels must stay inside their own viewport.
+    expect(measurements.navButtons.length).toBeGreaterThanOrEqual(2);
+    expect(measurements.dock, JSON.stringify(measurements)).not.toBeNull();
+    expect(measurements.dock.left).toBeGreaterThanOrEqual(-1);
+    expect(measurements.dock.right).toBeLessThanOrEqual(measurements.viewportWidth + 1);
+    expect(['auto', 'scroll']).toContain(measurements.dockOverflowX);
+    expect(measurements.dockScrollWidth).toBeGreaterThanOrEqual(measurements.dockClientWidth);
+    for (const nav of measurements.navButtons) {
+      // The dock intentionally scrolls horizontally when pinned rooms exceed the phone width.
+      expect(nav.width, JSON.stringify(nav)).toBeGreaterThanOrEqual(44);
+      if (nav.labelRight !== null) {
+        expect(nav.labelLeft, JSON.stringify(nav)).toBeGreaterThanOrEqual(nav.left - 1);
+        expect(nav.labelRight, JSON.stringify(nav)).toBeLessThanOrEqual(nav.right + 1);
+      }
+    }
+
+    // Prove the final navigation actions are reachable by scrolling the dock, rather than clipped.
+    await page.locator('#sidebar-left').evaluate(el => { el.scrollLeft = el.scrollWidth; });
+    await page.waitForTimeout(100);
+    await page.screenshot({ path: 'test-results/mobile-dock-end-390.png', fullPage: false });
+    const dockEnd = await page.evaluate(() => {
+      const dock = document.querySelector('#sidebar-left');
+      const buttons = [...dock.querySelectorAll('.nav-sidebar-btn, .nav-btn')].filter(el => getComputedStyle(el).display !== 'none');
+      const last = buttons.at(-1);
+      if (!last) return null;
+      const d = dock.getBoundingClientRect(), b = last.getBoundingClientRect();
+      return { dockLeft: d.left, dockRight: d.right, left: b.left, right: b.right, width: b.width };
+    });
+    expect(dockEnd, JSON.stringify(dockEnd)).not.toBeNull();
+    expect(dockEnd.width).toBeGreaterThanOrEqual(44);
+    expect(dockEnd.left).toBeGreaterThanOrEqual(dockEnd.dockLeft - 1);
+    expect(dockEnd.right).toBeLessThanOrEqual(dockEnd.dockRight + 1);
+    await page.locator('#sidebar-left').evaluate(el => { el.scrollLeft = 0; });
+
+    // The battery fill must remain inside its card, including at 100%.
+    if (measurements.batteryCard && measurements.batteryFill) {
+      expect(measurements.batteryFill.left).toBeGreaterThanOrEqual(measurements.batteryCard.left - 1);
+      expect(measurements.batteryFill.right).toBeLessThanOrEqual(measurements.batteryCard.right + 1);
+    }
+
+    // Decision buttons belong to the dialogue panel by design; validate the panel's
+    // separation from the inspection area instead of comparing parent and child bounds.
+
+    // The pause control may be hidden by game state; when visible it must not cover the dock or actions.
+    const overlaps = (a, b) => Boolean(a && b && a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top);
+    if (measurements.pause && measurements.pause.width > 0) {
+      expect(overlaps(measurements.pause, measurements.dock), JSON.stringify(measurements)).toBe(false);
+      for (const button of measurements.actionButtons) {
+        expect(overlaps(measurements.pause, button), JSON.stringify(measurements)).toBe(false);
+      }
+    }
     if (measurements.mainView && measurements.dialogue) {
       expect(measurements.mainView.bottom, 'inspection area overlaps dialogue panel').toBeLessThanOrEqual(measurements.dialogue.top + 1);
+    }
+    if (measurements.inspectionTools && measurements.dialogue) {
+      expect(measurements.inspectionTools.bottom, 'inspection controls overlap dialogue panel').toBeLessThanOrEqual(measurements.dialogue.top + 1);
     }
     if (measurements.generatorWarning) {
       expect(measurements.generatorWarning.height, 'generator warning overwhelms the mobile inspection view').toBeLessThanOrEqual(76);
@@ -123,10 +244,191 @@ test.describe('dedicated mobile presentation', () => {
       expect(bounds.right, `control ${index} exceeds viewport: ${JSON.stringify(bounds)}`).toBeLessThanOrEqual(measurements.viewportWidth + 1);
     }
 
+    // Capture real gameplay at common phone widths, not just the landing screen.
+    for (const width of MOBILE_WIDTHS) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.evaluate(() => {
+        const screen = document.querySelector('#screen-game');
+        if (screen) screen.scrollTop = 0;
+        window.scrollTo(0, 0);
+      });
+      await page.waitForTimeout(150);
+      const responsive = await page.evaluate(() => ({
+        viewport: document.documentElement.clientWidth,
+        document: document.documentElement.scrollWidth,
+        hudCards: [...document.querySelectorAll('#screen-game > header > div.flex.flex-wrap > *')]
+          .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0).length,
+        navButtons: [...document.querySelectorAll('#sidebar-left .nav-sidebar-btn, #sidebar-left .nav-btn')]
+          .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
+          .map(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width }; })
+      }));
+      await page.screenshot({ path: `test-results/mobile-game-${width}.png`, fullPage: false });
+      if (width === 390) {
+        const dialogue = await page.evaluate(() => {
+          const panel = document.querySelector('#screen-game .dialogue-sidebar');
+          const content = document.querySelector('#screen-game #content-dialogue');
+          const options = document.querySelector('#screen-game #dialogue-options-container');
+          const buttons = [...document.querySelectorAll('#screen-game #dialogue-options button')]
+            .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
+            .map(el => {
+              const r = el.getBoundingClientRect();
+              return { top: r.top, bottom: r.bottom, height: r.height, text: el.textContent.trim() };
+            });
+          const rect = el => { const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height }; };
+          return { panel: rect(panel), content: rect(content), options: rect(options), buttons, scrollHeight: document.querySelector('#screen-game').scrollHeight, clientHeight: document.querySelector('#screen-game').clientHeight };
+        });
+        expect(dialogue.buttons.length, JSON.stringify(dialogue)).toBeGreaterThan(0);
+        expect(dialogue.buttons.every(button => button.height >= 40), JSON.stringify(dialogue)).toBe(true);
+        expect(dialogue.options.bottom, JSON.stringify(dialogue)).toBeGreaterThan(dialogue.panel.top);
+        expect(dialogue.options.bottom, JSON.stringify(dialogue)).toBeLessThanOrEqual(dialogue.panel.bottom + 1);
+        await page.locator('#screen-game').evaluate(el => { el.scrollTop = el.scrollHeight; });
+        await page.waitForTimeout(100);
+        await page.screenshot({ path: 'test-results/mobile-game-dialogue-end-390.png', fullPage: false });
+        const lastButton = await page.locator('#screen-game #dialogue-options button').last().boundingBox();
+        const scrolledViewport = await page.evaluate(() => {
+          const screen = document.querySelector('#screen-game');
+          const r = screen.getBoundingClientRect();
+          return { top: r.top, bottom: r.bottom, scrollTop: screen.scrollTop, scrollHeight: screen.scrollHeight, clientHeight: screen.clientHeight };
+        });
+        expect(lastButton, JSON.stringify({ dialogue, scrolledViewport })).not.toBeNull();
+        expect(lastButton.height).toBeGreaterThanOrEqual(40);
+        expect(lastButton.y + lastButton.height, JSON.stringify({ dialogue, lastButton, scrolledViewport })).toBeLessThanOrEqual(scrolledViewport.bottom + 1);
+        expect(lastButton.y, JSON.stringify({ dialogue, lastButton, scrolledViewport })).toBeGreaterThanOrEqual(scrolledViewport.top - 1);
+        expect(scrolledViewport.scrollHeight, JSON.stringify(scrolledViewport)).toBeGreaterThan(scrolledViewport.clientHeight);
+      }
+      expect(responsive.document, JSON.stringify({ width, ...responsive })).toBeLessThanOrEqual(responsive.viewport + 1);
+      expect(responsive.hudCards, JSON.stringify({ width, ...responsive })).toBe(6);
+      for (const nav of responsive.navButtons) {
+        // Items beyond the visible strip remain reachable through horizontal scrolling.
+        expect(nav.width, JSON.stringify({ width, nav })).toBeGreaterThanOrEqual(44);
+      }
+    }
+
+    // Long mobile gameplay must scroll above the fixed navigation dock; it must not
+    // simply clip telemetry and controls at the bottom of the CRT viewport.
+    await page.setViewportSize({ width: 390, height: 844 });
+    const scrollState = await page.evaluate(() => {
+      const screen = document.querySelector('#screen-game');
+      const dock = document.querySelector('#sidebar-left');
+      return { overflowY: getComputedStyle(screen).overflowY, scrollHeight: screen.scrollHeight, clientHeight: screen.clientHeight,
+        paddingBottom: parseFloat(getComputedStyle(screen).paddingBottom), dockHeight: dock?.getBoundingClientRect().height ?? 0 };
+    });
+    expect(['auto', 'scroll']).toContain(scrollState.overflowY);
+    expect(scrollState.paddingBottom).toBeGreaterThanOrEqual(scrollState.dockHeight);
+    await page.locator('#screen-game').evaluate(el => { el.scrollTop = el.scrollHeight; });
+    await page.waitForTimeout(150);
+    await page.screenshot({ path: 'test-results/mobile-game-scroll-end-390.png', fullPage: false });
+    const scrollEnd = await page.evaluate(() => {
+      const screen = document.querySelector('#screen-game');
+      const dock = document.querySelector('#sidebar-left');
+      const consolePanel = document.querySelector('#screen-game .center-console');
+      const r = consolePanel?.getBoundingClientRect();
+      const d = dock?.getBoundingClientRect();
+      return { scrollTop: screen.scrollTop, maxScroll: screen.scrollHeight - screen.clientHeight,
+        consoleBottom: r?.bottom ?? null, dockTop: d?.top ?? null };
+    });
+    expect(scrollEnd.scrollTop).toBeGreaterThan(0);
+    if (scrollEnd.consoleBottom !== null && scrollEnd.dockTop !== null) {
+      expect(scrollEnd.consoleBottom, JSON.stringify(scrollEnd)).toBeLessThanOrEqual(scrollEnd.dockTop - 4);
+    }
+    await page.locator('#screen-game').evaluate(el => { el.scrollTop = 0; });
+
+    // Landscape phones are a separate constraint: retain viewport bounds and capture it for review.
+    await page.setViewportSize({ width: 844, height: 390 });
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: 'test-results/mobile-game-landscape-844.png', fullPage: false });
+    const landscapeWidth = await page.evaluate(() => ({
+      viewport: document.documentElement.clientWidth,
+      document: document.documentElement.scrollWidth,
+      hud: [...document.querySelectorAll('#screen-game > header > div.flex.flex-wrap > *')]
+        .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
+        .map(el => { const r = el.getBoundingClientRect(); return { top: r.top, width: r.width }; }),
+      tools: [...document.querySelectorAll('#screen-game #inspection-tools-container .horror-tool-btn')]
+        .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
+        .map(el => { const r = el.getBoundingClientRect(); return { width: r.width, height: r.height }; }),
+      decisionButtons: [...document.querySelectorAll('#screen-game #inspection-tools-container > .tool-wrapper.col-span-2 > button')]
+        .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
+        .map(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height, id: el.id }; }),
+      decisionGrid: (() => { const el = document.querySelector('#screen-game #inspection-tools-container'); if (!el || !el.getClientRects().length) return null; const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width }; })(),
+      avatarFrame: (() => { const el = document.querySelector('#game-screen-container'); const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height }; })(),
+      avatar: (() => { const el = document.querySelector('#screen-game #npc-display > .npc-view-container'); if (!el) return null; const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height }; })(),
+      mainView: (() => { const el = document.querySelector('#screen-game .main-view-area'); const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height }; })(),
+      dialogue: (() => { const el = document.querySelector('#screen-game .dialogue-sidebar'); const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height }; })(),
+      dialogueText: (() => { const el = document.querySelector('#npc-dialogue .npc-text'); const d = document.querySelector('#screen-game .dialogue-sidebar'); if (!el || !d) return null; const r = el.getBoundingClientRect(), p = d.getBoundingClientRect(); return { length: el.textContent.trim().length, top: r.top, bottom: r.bottom, visibleHeight: Math.max(0, Math.min(r.bottom, p.bottom) - Math.max(r.top, p.top)) }; })(),
+      centerConsoleDisplay: getComputedStyle(document.querySelector('#screen-game .center-console')).display,
+      dock: (() => { const el = document.querySelector('#sidebar-left'); const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width, display: getComputedStyle(el).display }; })()
+    }));
+    expect(landscapeWidth.document, JSON.stringify(landscapeWidth)).toBeLessThanOrEqual(landscapeWidth.viewport + 1);
+    expect(landscapeWidth.hud, JSON.stringify(landscapeWidth.hud)).toHaveLength(6);
+    expect(new Set(landscapeWidth.hud.map(card => Math.round(card.top / 4))).size, JSON.stringify(landscapeWidth.hud)).toBe(1);
+    expect(landscapeWidth.tools.length, JSON.stringify(landscapeWidth)).toBeGreaterThan(0);
+    expect(landscapeWidth.tools.every(tool => tool.width >= 44 && tool.height >= 44), JSON.stringify(landscapeWidth.tools)).toBe(true);
+    expect(landscapeWidth.centerConsoleDisplay).toBe('none');
+    expect(landscapeWidth.avatar, JSON.stringify(landscapeWidth)).not.toBeNull();
+    expect(landscapeWidth.avatar.height).toBeGreaterThanOrEqual(60);
+    expect(landscapeWidth.avatar.top).toBeGreaterThanOrEqual(landscapeWidth.avatarFrame.top - 1);
+    expect(landscapeWidth.avatar.bottom).toBeLessThanOrEqual(landscapeWidth.avatarFrame.bottom + 1);
+    expect(landscapeWidth.decisionButtons, JSON.stringify(landscapeWidth.decisionButtons)).toHaveLength(2);
+    expect(landscapeWidth.decisionButtons.every(button => button.bottom <= landscapeWidth.mainView.bottom + 1), JSON.stringify(landscapeWidth)).toBe(true);
+    expect(landscapeWidth.mainView.bottom).toBeLessThanOrEqual(landscapeWidth.dialogue.top + 1);
+    expect(landscapeWidth.dialogue.height).toBeGreaterThanOrEqual(94);
+    expect(landscapeWidth.dialogueText, JSON.stringify(landscapeWidth)).not.toBeNull();
+    expect(landscapeWidth.dialogueText.length).toBeGreaterThan(0);
+    expect(landscapeWidth.dialogueText.visibleHeight).toBeGreaterThanOrEqual(10);
+    expect(landscapeWidth.decisionGrid, JSON.stringify(landscapeWidth)).not.toBeNull();
+    // The landscape screen has 4px gutters on both sides.
+    expect(landscapeWidth.decisionGrid.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 12);
+    expect(landscapeWidth.decisionButtons.every(action => action.width >= landscapeWidth.viewport * 0.4 && action.height >= 44), JSON.stringify(landscapeWidth.decisionButtons)).toBe(true);
+    expect(landscapeWidth.decisionButtons[0].left).toBeGreaterThanOrEqual(landscapeWidth.decisionGrid.left - 1);
+    expect(landscapeWidth.decisionButtons[1].right).toBeLessThanOrEqual(landscapeWidth.decisionGrid.right + 1);
+    expect(landscapeWidth.dock.display).not.toBe('none');
+    expect(landscapeWidth.dock.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 2);
+
+    // Landscape keeps the decision controls visible first; the conversation is
+    // scrollable and must expose its final choice above the persistent dock.
+    await page.locator('#screen-game').evaluate(el => { el.scrollTop = el.scrollHeight; });
+    await page.locator('#screen-game .dialogue-sidebar').evaluate(el => { el.scrollTop = el.scrollHeight; });
+    await page.waitForTimeout(120);
+    await page.screenshot({ path: 'test-results/mobile-game-landscape-scroll-end-844.png', fullPage: false });
+    const landscapeDialogueEnd = await page.evaluate(() => {
+      const screen = document.querySelector('#screen-game');
+      const panel = document.querySelector('#screen-game .dialogue-sidebar');
+      const dock = document.querySelector('#sidebar-left');
+      const buttons = [...document.querySelectorAll('#screen-game #dialogue-options button')]
+        .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
+        .map(el => { const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height, text: el.textContent.trim() }; });
+      const sr = screen.getBoundingClientRect(), pr = panel.getBoundingClientRect(), dr = dock.getBoundingClientRect();
+      return { scrollTop: screen.scrollTop, scrollHeight: screen.scrollHeight, clientHeight: screen.clientHeight,
+        panelScrollTop: panel.scrollTop, panelScrollHeight: panel.scrollHeight, panelClientHeight: panel.clientHeight,
+        screenTop: sr.top, screenBottom: sr.bottom, panelTop: pr.top, panelBottom: pr.bottom, dockTop: dr.top, buttons };
+    });
+    expect(landscapeDialogueEnd.scrollTop, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(0);
+    expect(landscapeDialogueEnd.scrollHeight, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(landscapeDialogueEnd.clientHeight);
+    expect(landscapeDialogueEnd.panelScrollHeight, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(landscapeDialogueEnd.panelClientHeight);
+    expect(landscapeDialogueEnd.panelScrollTop, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(0);
+    expect(landscapeDialogueEnd.buttons.length, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(0);
+    expect(landscapeDialogueEnd.buttons.every(button => button.height >= 40), JSON.stringify(landscapeDialogueEnd)).toBe(true);
+    const finalLandscapeChoice = landscapeDialogueEnd.buttons.at(-1);
+    expect(finalLandscapeChoice.bottom, JSON.stringify(landscapeDialogueEnd)).toBeLessThanOrEqual(landscapeDialogueEnd.dockTop - 4);
+    expect(finalLandscapeChoice.top, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThanOrEqual(landscapeDialogueEnd.screenTop - 1);
+
     expect(pageErrors, 'uncaught JavaScript errors during mobile gameplay').toEqual([]);
   });
 });
 
+
+test('short desktop windows retain desktop layout and in-flow pause placement', async ({ page }) => {
+  await page.setViewportSize({ width: 1365, height: 500 });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  const geometry = await page.evaluate(() => ({
+    headerDirection: getComputedStyle(document.querySelector('#screen-game > header')).flexDirection,
+    pausePosition: getComputedStyle(document.querySelector('#btn-pause')).position,
+    viewportWidth: document.documentElement.clientWidth
+  }));
+  expect(geometry.headerDirection, JSON.stringify(geometry)).toBe('row');
+  expect(geometry.pausePosition, JSON.stringify(geometry)).toBe('fixed');
+  expect(geometry.viewportWidth).toBe(1365);
+});
 
 test('global pause control does not cover decision actions or the mobile navigation dock', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -143,8 +445,11 @@ test('global pause control does not cover decision actions or the mobile navigat
   await page.getByRole('button', { name: /INICIAR PARTIDA/i }).click();
   await expect(page.locator('#modal-tutorial')).toBeVisible({ timeout: 45000 });
   await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
+  const interludeContinue = page.locator('#btn-lore-continue-screen');
+  await expect(interludeContinue).toBeVisible({ timeout: 2500 }).catch(() => {});
+  if (await interludeContinue.isVisible()) await interludeContinue.click();
   await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
-  const pause = page.locator('#btn-pause');
+  const pause = page.locator('#btn-pause-mobile');
   // Some mobile states intentionally hide the global pause control; only
   // measure overlap when the control is actually rendered.
   test.skip(!(await pause.isVisible()), 'pause control is hidden in this mobile state');
@@ -155,7 +460,7 @@ test('global pause control does not cover decision actions or the mobile navigat
       const r = el.getBoundingClientRect();
       return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
     };
-    return { pause: rect('#btn-pause'), dock: rect('#sidebar-left'), admit: rect('#btn-admit'), ignore: rect('#btn-ignore') };
+    return { pause: rect('#btn-pause-mobile'), dock: rect('#sidebar-left'), admit: rect('#btn-admit'), ignore: rect('#btn-ignore') };
   });
   const overlaps = (a, b) => Boolean(a && b && a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top);
   expect(overlaps(geometry.pause, geometry.dock), JSON.stringify(geometry)).toBe(false);

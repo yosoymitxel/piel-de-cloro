@@ -644,91 +644,8 @@ export class GameEventManager {
             this.game.mechanics.finishRun();
         });
 
-        // Botón de pausa (Global)
-        $('#btn-pause').on('click', () => {
-            State.paused = true;
-            $('body').addClass('paused');
-            $('#screen-game').addClass('is-paused');
-            $('#modal-pause').removeClass('hidden').addClass('flex');
-            
-            // Sync Pause Sliders with current audio state
-            $('#pause-config-volume-master').val(Math.round(this.audio.master * 100));
-            $('#pause-label-volume-master').text(`${Math.round(this.audio.master * 100)}%`);
-
-            $('#pause-config-volume-ambient').val(Math.round(this.audio.levels.ambient * 100));
-            $('#pause-label-volume-ambient').text(`${Math.round(this.audio.levels.ambient * 100)}%`);
-
-            $('#pause-config-volume-sfx').val(Math.round(this.audio.levels.sfx * 100));
-            $('#pause-label-volume-sfx').text(`${Math.round(this.audio.levels.sfx * 100)}%`);
-
-            $('#pause-config-volume-lore').val(Math.round(this.audio.levels.lore * 100));
-            $('#pause-label-volume-lore').text(`${Math.round(this.audio.levels.lore * 100)}%`);
-
-            $('#pause-config-volume-generator').val(Math.round(this.audio.levels.generator * 100));
-            $('#pause-label-volume-generator').text(`${Math.round(this.audio.levels.generator * 100)}%`);
-
-            $('#toggle-mute-music').prop('checked', !this.audio.mutedChannels.ambient);
-            $('#toggle-mute-sfx').prop('checked', !this.audio.mutedChannels.sfx);
-
-
-            // Menu de Pausa simplificado (sin panel dev duplicado)
-            if (State.debug) {
-                // Si quisieras mantener algo en el menú de pausa, iría aquí, pero el usuario pidió moverlo al settings
-            }
-        });
-
-        $('#btn-resume').on('click', () => {
-            State.paused = false;
-            $('body').removeClass('paused');
-            $('#screen-game').removeClass('is-paused');
-            $('#modal-pause').addClass('hidden').removeClass('flex');
-        });
-
-        // Mute controls in pause menu
-        $('#toggle-mute-music').on('change', (e) => {
-            const muted = !e.target.checked;
-            this.audio.muteChannel('ambient', muted);
-            State.audioSettings.muted.ambient = muted;
-            State.savePersistentData();
-        });
-
-        $('#toggle-mute-sfx').on('change', (e) => {
-            const muted = !e.target.checked;
-            this.audio.muteChannel('sfx', muted);
-            State.audioSettings.muted.sfx = muted;
-            State.savePersistentData();
-        });
-
-        $('#btn-pause-restart-day').on('click', () => {
-            this.ui.showConfirm('¿REINICIAR EL DÍA ACTUAL?<br>SE PERDERÁ TODO EL PROGRESO DE HOY.', () => {
-                this.game.restartDay();
-            }, null, 'warning');
-        });
-
-
-        $('#btn-pause-restart-game').on('click', () => {
-            this.ui.showConfirm('<span class="text-red-400">¿REINICIAR TODA LA PARTIDA?</span><br>SE PERDERÁ EL PROGRESO.', () => {
-                this.game.restartGame();
-            }, null, 'warning');
-        });
-
-
-        $('#btn-pause-to-start').on('click', () => {
-            this.ui.showConfirm('¿VOLVER AL MENÚ PRINCIPAL?<br>SE PERDERÁ EL PROGRESO NO GUARDADO.', () => {
-                this.game.goToStart();
-            }, null, 'warning');
-        });
-
-        // Fullscreen Toggle in Pause
-        $('#btn-pause-fullscreen').on('click', () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.warn(`Error attempting to enable full-screen mode: ${err.message}`);
-                });
-            } else {
-                document.exitFullscreen();
-            }
-        });
+        // Pause controls are owned by Game.bindPauseControls().
+        // Keep one source of truth so the same click cannot pause and immediately resume.
 
         // Inspection Tools (Delegated to document for maximum resilience)
         $(document).on('click', '#inspection-tools-container #tool-thermo', () => {
@@ -807,14 +724,6 @@ export class GameEventManager {
         $('#btn-audio-validate').on('click', async () => {
             const report = await this.audio.validateManifest();
             this.ui.showMessage(report, () => { }, 'normal');
-        });
-
-        $('#btn-pause-close').on('click', () => {
-            this.saveAudioSettings();
-            $('#modal-pause').addClass('hidden').removeClass('flex');
-            State.paused = false;
-            $('body').removeClass('paused');
-            $('#screen-game').removeClass('is-paused');
         });
 
         // Developer Apply Changes (Settings Screen)
