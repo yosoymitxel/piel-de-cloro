@@ -34,7 +34,16 @@ Hacer que cada NPC parezca una persona con intereses, límites y una versión pa
 - Registrar IDs, estructura, claves y referencias entrantes.
 
 ### Pasada B — Diagnóstico
-Para cada línea, evaluar voz, función dramática, naturalidad oral, novedad informativa, subtexto, coherencia con el lore, riesgo de revelar la solución, redundancia y legibilidad en pantalla.
+Para cada línea, evaluar:
+- Voz del personaje.
+- Función dramática.
+- Naturalidad oral.
+- Novedad informativa.
+- Subtexto y tensión.
+- Coherencia con el lore.
+- Riesgo de revelar la solución.
+- Redundancia con líneas cercanas.
+- Longitud y legibilidad en pantalla.
 
 Clasificar: `conservar`, `corregir`, `recortar`, `duplicada`, `contradictoria`, `revela demasiado`, `requiere contexto`.
 

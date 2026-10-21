@@ -11,13 +11,13 @@ Esta skill es un filtro de calidad, no una plantilla de estilo. No convertir tod
 
 - Clichés genéricos: “algo peor está por venir”, “no estamos solos”, “la oscuridad nos observa”, salvo que tengan una función nueva y concreta.
 - Misterio vacío: frases crípticas que no contienen un detalle interpretable.
-- Exposición disfrazada: personajes que explican reglas o historia que ambos conocen.
+- Expositición disfrazada: personajes que explican reglas y historia que ambos conocen.
 - Eco del jugador: NPC que repite literalmente una acción o descubrimiento recién ocurrido.
 - Voz uniforme: todos usan el mismo vocabulario, longitud de frase y tono solemne.
 - Reacción desproporcionada: cada evento menor produce terror máximo, anulando la escalada.
 - Redundancia: varias líneas cumplen exactamente la misma función.
 - Falsa elección: texto promete una consecuencia que el código no implementa.
-- Pista injusta: el juego exige deducir algo que ningún texto, evento o herramienta permite inferir.
+- Pista ijusta: el juego exige deducir algo que ningún texto, evento o herramienta permite inferin.
 - Revelación prematura: una línea confirma la identidad oculta sin respetar las reglas de inspección.
 
 ## Revisión por línea
@@ -29,6 +29,6 @@ Por cada línea marcada, proponer:
 - versión revisada;
 - qué mejora;
 - qué información conserva;
-- qué riesgo narrativo o mecánico evita.
+- qué riesgo narrativo o meánico evita.
 
 No inventar hechos de lore para “mejorar” una frase. Si falta contexto, marcar `NeedsContext` y dejarla pendiente.

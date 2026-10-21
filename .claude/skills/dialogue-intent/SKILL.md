@@ -30,6 +30,7 @@ Antes de reescribir una conversación, completar internamente esta ficha:
 
 ## Prueba de cada línea
 
+Preguntar:
 1. ¿Qué intenta conseguir el hablante?
 2. ¿Qué revela que no se sabía?
 3. ¿Por qué lo dice ahora?

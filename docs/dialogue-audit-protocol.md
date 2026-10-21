@@ -17,7 +17,16 @@ Buscar en `js/`, `docs/`, `index.html` y los datos de NPCs:
 
 ## Entregable de la auditoría
 
-Para cada conjunto de diálogo: ruta y clave/ID, condición de aparición, quién habla y a quién, texto original, problema y gravedad (`bloqueante`, `alto`, `medio`, `bajo`), propuesta, motivo narrativo, riesgo de cambiar la información recibida y confirmación de que no se altera la lógica.
+Para cada conjunto de diálogo:
+1. Ruta y clave/ID.
+2. Condición de aparición.
+3. Quién habla y a quién.
+4. Texto original.
+5. Problema observado y gravedad (`bloqueante`, `alto`, `medio`, `bajo`).
+6. Propuesta de texto.
+7. Motivo narrativo.
+8. Riesgo de cambiar la información que recibe el jugador.
+9. Confirmación de que no se altera lógica ni estructura.
 
 ## Orden de trabajo
 
@@ -38,10 +47,12 @@ Para cada conjunto de diálogo: ruta y clave/ID, condición de aparición, quié
 - Pruebas existentes pasan.
 - La revisión final incluye diff de texto y lista de pruebas ejecutadas.
 
-## Comando de inventario
+## Comandos de inventario
+
+Desde la raíz del repositorio:
 
 ```bash
 rg -n -i 'dialog|dialogue|interrog|npc|suspect|response|question|radio|lore|paranoia|psychosis|sanity|infect' js docs index.html __tests__
 ```
 
-Inspeccionar los módulos de datos antes de cambiar la UI. Ejecutar `npm test` antes y después de cada lote de correcciones.
+Para ubicar cadenas extensas y duplicadas, inspeccionar los módulos de datos antes de cambiar la UI. Ejecutar `npm test` antes y después de cada lote de correcciones.
