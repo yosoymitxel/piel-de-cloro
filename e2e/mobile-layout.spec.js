@@ -237,6 +237,31 @@ test.describe('dedicated mobile presentation', () => {
           .map(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width }; })
       }));
       await page.screenshot({ path: `test-results/mobile-game-${width}.png`, fullPage: false });
+      if (width === 390) {
+        const dialogue = await page.evaluate(() => {
+          const panel = document.querySelector('#screen-game .dialogue-sidebar');
+          const content = document.querySelector('#screen-game #content-dialogue');
+          const options = document.querySelector('#screen-game #dialogue-options-container');
+          const buttons = [...document.querySelectorAll('#screen-game #dialogue-options button')]
+            .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
+            .map(el => {
+              const r = el.getBoundingClientRect();
+              return { top: r.top, bottom: r.bottom, height: r.height, text: el.textContent.trim() };
+            });
+          const rect = el => { const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height }; };
+          return { panel: rect(panel), content: rect(content), options: rect(options), buttons, scrollHeight: document.querySelector('#screen-game').scrollHeight, clientHeight: document.querySelector('#screen-game').clientHeight };
+        });
+        expect(dialogue.buttons.length, JSON.stringify(dialogue)).toBeGreaterThan(0);
+        expect(dialogue.buttons.every(button => button.height >= 40), JSON.stringify(dialogue)).toBe(true);
+        expect(dialogue.options.bottom, JSON.stringify(dialogue)).toBeGreaterThan(dialogue.panel.top);
+        expect(dialogue.options.bottom, JSON.stringify(dialogue)).toBeLessThanOrEqual(dialogue.panel.bottom + 1);
+        await page.locator('#screen-game').evaluate(el => { el.scrollTop = el.scrollHeight; });
+        await page.waitForTimeout(100);
+        await page.screenshot({ path: 'test-results/mobile-game-dialogue-end-390.png', fullPage: false });
+        const lastButton = await page.locator('#screen-game #dialogue-options button').last().boundingBox();
+        expect(lastButton, JSON.stringify(dialogue)).not.toBeNull();
+        expect(lastButton.height).toBeGreaterThanOrEqual(40);
+      }
       expect(responsive.document, JSON.stringify({ width, ...responsive })).toBeLessThanOrEqual(responsive.viewport + 1);
       expect(responsive.hudCards, JSON.stringify({ width, ...responsive })).toBe(6);
       for (const nav of responsive.navButtons) {
