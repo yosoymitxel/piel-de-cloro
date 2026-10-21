@@ -24,7 +24,6 @@ const createGeneratorState = () => ({
     bloodTestId: null,
     bloodTestCountdown: 0,
     emergencyEnergyGranted: false,
-    maxModeCapacityReached: 2,
     assignedGuardId: null,
     guardShiftLogs: []
 });
