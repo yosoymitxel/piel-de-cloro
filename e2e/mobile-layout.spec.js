@@ -378,6 +378,8 @@ test.describe('dedicated mobile presentation', () => {
     });
     expect(landscapeDialogueEnd.scrollTop, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(0);
     expect(landscapeDialogueEnd.scrollHeight, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(landscapeDialogueEnd.clientHeight);
+    expect(landscapeDialogueEnd.panelScrollHeight, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(landscapeDialogueEnd.panelClientHeight);
+    expect(landscapeDialogueEnd.panelScrollTop, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(0);
     expect(landscapeDialogueEnd.buttons.length, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(0);
     expect(landscapeDialogueEnd.buttons.every(button => button.height >= 40), JSON.stringify(landscapeDialogueEnd)).toBe(true);
     const finalLandscapeChoice = landscapeDialogueEnd.buttons.at(-1);
