@@ -80,14 +80,9 @@ function makeHairGallery() {
     image.alt = "";
     image.loading = "lazy";
     image.decoding = "async";
-    image.src = generateAvatarDataUri(`hair-study-${hair}`, {
-      paletteIndex: Number(controls.palette.value),
-      hair,
-      clothes: controls.clothes.value,
-      accessory: "none",
-      eyeType: controls.eyes.value,
-      mouthType: controls.mouth.value
-    });
+    const options = readOptions();
+    const { seed, ...visualOptions } = options;
+    image.src = generateAvatarDataUri(seed, { ...visualOptions, accessory: "none", hair });
     const title = document.createElement("span");
     title.textContent = hairLabels[hair] || hair;
     const key = document.createElement("small");
@@ -102,18 +97,12 @@ function makeHairGallery() {
   });
 }
 function updateHairGallery() {
-  containerState();
+  const options = readOptions();
+  const { seed, ...visualOptions } = options;
   [...byId("hair-gallery").querySelectorAll(".hair-card")].forEach(button => {
     button.setAttribute("aria-pressed", String(button.dataset.hair === controls.hair.value));
     const image = button.querySelector("img");
-    image.src = generateAvatarDataUri(`hair-study-${button.dataset.hair}`, {
-      paletteIndex: Number(controls.palette.value),
-      hair: button.dataset.hair,
-      clothes: controls.clothes.value,
-      accessory: "none",
-      eyeType: controls.eyes.value,
-      mouthType: controls.mouth.value
-    });
+    image.src = generateAvatarDataUri(seed, { ...visualOptions, accessory: "none", hair: button.dataset.hair });
   });
 }
 function containerState() {
@@ -179,10 +168,7 @@ async function copyText(value, successMessage) {
   }
 }
 
-Object.values(controls).forEach(control => {
-  control.addEventListener("input", update);
-  control.addEventListener("change", update);
-});
+Object.values(controls).forEach(control => control.addEventListener("input", update));
 byId("new-seed").addEventListener("click", () => {
   const next = Number((controls.seed.value.match(/(\d+)$/) || [])[1] || 0) + 1;
   controls.seed.value = `npc-subject-${String(next).padStart(3, "0")}`;
