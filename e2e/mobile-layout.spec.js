@@ -412,7 +412,7 @@ test.describe('dedicated mobile presentation', () => {
 });
 
 
-test('short desktop windows retain desktop layout and fixed pause placement', async ({ page }) => {
+test('short desktop windows retain desktop layout and in-flow pause placement', async ({ page }) => {
   await page.setViewportSize({ width: 1365, height: 500 });
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   const geometry = await page.evaluate(() => ({
@@ -421,7 +421,7 @@ test('short desktop windows retain desktop layout and fixed pause placement', as
     viewportWidth: document.documentElement.clientWidth
   }));
   expect(geometry.headerDirection, JSON.stringify(geometry)).toBe('row');
-  expect(geometry.pausePosition, JSON.stringify(geometry)).toBe('fixed');
+  expect(geometry.pausePosition, JSON.stringify(geometry)).toBe('static');
   expect(geometry.viewportWidth).toBe(1365);
 });
 
