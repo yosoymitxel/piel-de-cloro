@@ -15,6 +15,23 @@ test('game shell loads without uncaught JavaScript errors', async ({ page }, tes
   expect(pageErrors, 'uncaught browser JavaScript errors').toEqual([]);
 });
 
+test('a player can enter the tutorial and begin the first day', async ({ page }, testInfo) => {
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
+
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.getByRole('button', { name: /INICIAR PARTIDA/i }).click();
+  await expect(page.locator('#modal-tutorial')).toBeVisible({ timeout: 45000 });
+
+  const tutorialShot = testInfo.outputPath('tutorial-screen.png');
+  await page.screenshot({ path: tutorialShot, fullPage: true });
+  await testInfo.attach('tutorial-screen', { path: tutorialShot, contentType: 'image/png' });
+
+  await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
+  await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
+  expect(pageErrors, 'uncaught browser errors while starting a run').toEqual([]);
+});
+
 test('mobile layout does not create page-level horizontal overflow', async ({ page }, testInfo) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.terminal-chasis')).toBeVisible();
