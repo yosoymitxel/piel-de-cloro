@@ -1,5 +1,5 @@
 import { State } from './State.js';
-import { Game } from './Game.js';
+import { Game } from './Game.js?v=20261021-avatarfix2';
 import { VisualRoomInterface } from './VisualRoomInterface.js';
 
 // Inicialización de la instancia global del juego

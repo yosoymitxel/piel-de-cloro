@@ -48,15 +48,13 @@ describe('AvatarRenderer', () => {
         State.paranoia = 100; // High paranoia increases error chance
 
         // Mock random to be high so we trigger SIGNAL_ERR
-        const spy = jest.spyOn(Math, 'random').mockReturnValue(0.01);
-        npc.id = 'signal-test-identity';
+        npc.id = 'signal-test-1';
 
         AvatarRenderer.render(npc);
 
         expect(global.$).toHaveBeenCalledWith(expect.stringContaining('npc-infected-presence'));
         expect(global.$).toHaveBeenCalledWith(expect.stringContaining('SIGNAL_ERR'));
 
-        spy.mockRestore();
     });
 
     test('infected NPCs get infected class in pixel-avatar', () => {
@@ -76,7 +74,7 @@ describe('AvatarRenderer', () => {
             const npc = new NPC(1);
             AvatarRenderer.render(npc);
             expect(global.$).toHaveBeenCalledWith(expect.stringContaining('npc-pixel-portrait'));
-            expect(global.$).toHaveBeenCalledWith(expect.stringContaining('npc_human.png'));
+            expect(global.$).toHaveBeenCalledWith(expect.stringContaining('data:image/svg+xml;base64,'));
             expect(global.$).toHaveBeenCalledWith(expect.stringContaining('has-pixel-portrait'));
         } finally {
             if (previousDocument === undefined) delete global.document;

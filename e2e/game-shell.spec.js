@@ -58,6 +58,13 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
   const skipDialogue = page.getByRole('button', { name: /OMITIR POR DIÁLOGO/i });
   await expect(skipDialogue).toBeVisible();
 
+  // Check the real portrait node and decoded pixels, not just CSS wrapper markup.
+  const npcPortrait = page.locator('#npc-display .npc-pixel-portrait').first();
+  await expect(npcPortrait).toBeVisible();
+  await expect.poll(() => npcPortrait.evaluate(img => img.naturalWidth)).toBeGreaterThan(0);
+  await expect(npcPortrait.evaluate(img => img.complete)).resolves.toBe(true);
+  await expect(page.locator('#npc-display .npc-content-wrapper').first()).toHaveClass(/has-pixel-portrait/);
+
   // The CRT power-on animation temporarily scales controls below their final
   // hit area. Measure only after that transition has settled on mobile.
   if (await page.evaluate(() => window.innerWidth <= 640)) {

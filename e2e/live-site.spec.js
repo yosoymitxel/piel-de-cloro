@@ -32,6 +32,10 @@ test('deployed GitHub Pages site loads and reaches first-day gameplay on a phone
   if (await interludeContinue.isVisible()) await interludeContinue.click();
 
   await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
+  const portrait = page.locator('#npc-display .npc-pixel-portrait').first();
+  await expect(portrait).toBeVisible({ timeout: 15000 });
+  await expect.poll(() => portrait.evaluate(img => img.naturalWidth)).toBeGreaterThan(0);
+  await expect(portrait.evaluate(img => img.complete)).resolves.toBe(true);
   await page.waitForTimeout(900);
   await page.screenshot({ path: 'test-results/live-production-mobile.png', fullPage: false });
 
