@@ -462,7 +462,6 @@ export class GameMechanicsManager {
 
             // Reinicio de estabilidad tras encendido manual
             State.generator.mode = 'save';
-            State.generator.maxModeCapacityReached = 1;
             State.generator.load = this.calculateTotalLoad();
             State.generator.stability = Math.min(40, State.generator.stability + 10);
 
