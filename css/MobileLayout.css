@@ -977,6 +977,52 @@
     }
 }
 
+/* Portrait game content must size to its controls instead of clipping them in the desktop flex frame. */
+@media (max-width: 640px) and (orientation: portrait) {
+    #screen-game .puesto-container {
+        flex: 0 0 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    #screen-game .dialogue-sidebar {
+        flex: 0 0 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    #screen-game .dialogue-sidebar #content-dialogue {
+        flex: 0 0 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    #screen-game .dialogue-sidebar #content-dialogue > .flex-1.overflow-y-auto {
+        flex: 0 0 auto !important;
+        min-height: 0 !important;
+        max-height: 160px;
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
+    }
+
+    #screen-game .dialogue-sidebar #dialogue-options-container {
+        flex: 0 0 auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+    }
+
+    #screen-game .dialogue-sidebar #dialogue-options {
+        min-height: 0 !important;
+        overflow: visible !important;
+    }
+}
+
 @media (max-width: 380px) {
     #screen-game #inspection-tools-container > #btn-goto-generator {
         font-size: 10px !important;
