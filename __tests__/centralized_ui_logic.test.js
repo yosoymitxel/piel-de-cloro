@@ -57,7 +57,6 @@ describe('Centralized UI Status Logic', () => {
             supplies: { slots: 1, occupants: [] },
             fuel: { slots: 1, occupants: [] }
         };
-        State.sectorAssignments = { security: [], fuel: [], supplies: [], generator: [] };
         
         ui = new UIManager();
     });
