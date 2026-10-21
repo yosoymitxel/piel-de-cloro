@@ -3705,14 +3705,21 @@ export class UIManager {
         // Using dynamic cell height to fit content and aligning to top to avoid empty space
         gridContainer.css({
             'display': 'grid',
-            'grid-template-columns': `repeat(${maxX}, 180px)`,
+            // Keep rooms readable on phones; the map scrolls inside its own viewport.
+            'grid-template-columns': `repeat(${maxX}, minmax(110px, 180px))`,
             'grid-template-rows': `repeat(${maxY}, minmax(50px, auto))`,
-            'gap': '15px',
-            'justify-content': 'center',
+            'gap': 'clamp(4px, 1.5vw, 15px)',
+            'justify-content': 'start',
             'align-content': 'start',
-            'padding': '20px',
+            'box-sizing': 'border-box',
+            'width': '100%',
+            'min-width': '0',
+            'padding': 'clamp(6px, 2vw, 20px)',
+            'overflow-x': 'auto',
             'overflow-y': 'auto',
-            'max-height': '100%'
+            'max-width': '100%',
+            'max-height': '100%',
+            '-webkit-overflow-scrolling': 'touch'
         });
 
         rooms.forEach(room => {
