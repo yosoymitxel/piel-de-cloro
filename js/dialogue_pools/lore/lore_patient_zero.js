@@ -20,7 +20,7 @@ export const lore_patient_zero = {
         },
         'lpz_n2': {
             id: 'lpz_n2',
-            text: "\"En los informes me llamaron Paciente Cero porque fui el primero que sobrevivió a la exposición. No fui el primero en encontrarlo. Esa distinción desapareció cuando quemaron los registros del equipo de perforación.\"",
+            text: "\"En los informes me llamaron Paciente Cero porque fui el primero que sobrevivió a la exposición. No fui el primero en encontrarlo: el registro del equipo de perforación ya mencionaba algo bajo el hielo. Después quemaron esos registros.\"",
             options: [
                 { id: 'lpz_o2a', label: '¿El hielo?', next: 'lpz_n4' },
                 { id: 'lpz_o2b', label: '¿Quién era el Cero?', next: 'lpz_n_zero_origin' }
