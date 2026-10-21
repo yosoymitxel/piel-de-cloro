@@ -4125,10 +4125,11 @@ export class UIManager {
         // Ejecutar el cambio de pantalla directamente
         if (onMidPoint) {
             try {
-                onMidPoint();
+                await onMidPoint();
                 console.log("[TRANSITION] Midpoint callback executed successfully");
             } catch (e) {
                 console.error("[TRANSITION] Error during transition midpoint:", e);
+                throw e;
             }
         }
 
