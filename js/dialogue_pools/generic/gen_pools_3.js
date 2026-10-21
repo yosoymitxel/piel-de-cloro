@@ -17,7 +17,7 @@ export const gen_pools_3 = {
             },
             'gtw_n2a': {
                 id: 'gtw_n2a',
-"*Se masajea el cuello, evitando el lado derecho. «No es un dolor normal. Siento que el músculo se contrae antes de que yo pueda moverlo».*""*Se masajea el cuello, evitando el lado derecho. «No es un dolor normal. Siento que el músculo se contrae antes de que yo pueda moverlo».*",
+text: "*Se masajea el cuello, evitando el lado derecho. «No es un dolor normal. Siento que el músculo se contrae antes de que yo pueda moverlo».*",
                 options: [
                     { id: 'gtw_o2a', label: 'Examinar cuello', next: 'gtw_n3a' },
                     { id: 'gtw_o2l', label: '¿Encontraste esto?', next: null, resultText: "*Te da un vial pequeño.* \"Se le cayó a un médico... antes de que le diera el espasmo.\"", onclick: (g) => act.giveLoreItem(g, 'item_sedative', 'Vial de Sedante') },
@@ -26,7 +26,7 @@ export const gen_pools_3 = {
             },
             'gtw_n2b': {
                 id: 'gtw_n2b',
-"*El espasmo vuelve cuando intenta quedarse quieto. «No sé si es cansancio o algo más. No me duele todo el tiempo».*""*El espasmo vuelve cuando intenta quedarse quieto. «No sé si es cansancio o algo más. No me duele todo el tiempo».*",
+text: "*El espasmo vuelve cuando intenta quedarse quieto. «No sé si es cansancio o algo más. No me duele todo el tiempo».*",
                 options: [{ id: 'gtw_o2c', label: 'Entiendo', next: 'gtw_n3b' }]
             },
             'gtw_n3a': {
