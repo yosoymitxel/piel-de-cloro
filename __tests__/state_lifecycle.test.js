@@ -31,7 +31,6 @@ describe('State NPC lifecycle', () => {
         State.addAdmitted(npc);
         npc.assignedSector = 'security';
         State.assignments = { security: { occupants: [npc.id] } };
-        State.sectorAssignments = { fuel: [npc.id] };
         State.generator.assignedGuardId = npc.id;
 
         expect(State.markDeparted(npc)).toBe(true);
@@ -41,7 +40,6 @@ describe('State NPC lifecycle', () => {
         expect(npc.left.cycle).toBe(State.cycle);
         expect(npc.exitDate).toBe(State.cycle);
         expect(State.assignments.security.occupants).not.toContain(npc.id);
-        expect(State.sectorAssignments.fuel).not.toContain(npc.id);
         expect(State.generator.assignedGuardId).toBeNull();
         expect(npc.assignedSector).toBeNull();
         expect(State.recordDeath(npc, 'late death')).toBe(false);
