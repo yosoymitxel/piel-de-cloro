@@ -90,6 +90,48 @@ function row(cx,y,width,color){return rect(cx-Math.floor(width/2),y,width,1,colo
 function shapeRows(cx,rows,color){return rows.map(([y,w])=>row(cx,y,w,color)).join("");}
 function safeHair(value){return Object.hasOwn(HAIR,value)?value:"short";}
 function safeOption(value,choices,fallback){return choices.includes(value)?value:fallback;}
+function isUnset(value){return value==null||value==="";}
+function seededChoice(seed,channel,choices){
+  const random=makeRandom(hashSeed(`${seed}::${channel}`));
+  return choices[Math.floor(random()*choices.length)];
+}
+
+/**
+ * Resolves cosmetic traits independently from the stable NPC ID. Supplying an
+ * explicit trait overrides only that trait; it never rerolls the other traits.
+ */
+export function resolveAvatarOptions(seed,options={}){
+  const paletteIndexes=PALETTES.map((_,index)=>index);
+  const paletteIndex=Number.isInteger(options.paletteIndex)
+    ? ((options.paletteIndex%PALETTES.length)+PALETTES.length)%PALETTES.length
+    : seededChoice(seed,"palette",paletteIndexes);
+  const palette=PALETTES[paletteIndex];
+  const hairStyles=Object.keys(HAIR);
+  const faceShapes=Object.keys(FACE_SHAPES);
+  const clothesOptions=["worker","civilian","scavenger","suit","rags"];
+  const accessoryOptions=["none","glasses","mask","scar","patch","earring","hood"];
+  const facialHairOptions=["none","beard","stubble","mustache"];
+  const eyeOptions=["normal","narrow","big","tired","squint"];
+  const mouthOptions=["smile","frown","open","tight","crooked"];
+  const choose=(key,channel,choices,fallback)=>isUnset(options[key])
+    ? seededChoice(seed,channel,choices)
+    : safeOption(options[key],choices,fallback);
+  const exactSkin=normalizeSkinColor(options.skinColor);
+  return {
+    paletteIndex,
+    paletteName:palette.name,
+    skinColor:exactSkin||palette.skin,
+    hair:choose("hair","hair",hairStyles,"short"),
+    faceShape:choose("faceShape","face-shape",faceShapes,"oval"),
+    clothes:choose("clothes","clothes",clothesOptions,"civilian"),
+    accessory:choose("accessory","accessory",accessoryOptions,"none"),
+    facialHair:choose("facialHair","facial-hair",facialHairOptions,"none"),
+    eyeType:choose("eyeType","eyes",eyeOptions,"normal"),
+    mouthType:choose("mouthType","mouth",mouthOptions,"tight"),
+    exhausted:options.exhausted===true,
+    anomaly:options.revealed===true&&options.infected===true
+  };
+}
 
 /**
  * @param {string|number} seed Stable NPC ID.
@@ -97,32 +139,23 @@ function safeOption(value,choices,fallback){return choices.includes(value)?value
  * @returns {string} Crisp-edge SVG on a 32×40 logical pixel grid.
  */
 export function generateAvatarSvg(seed,options={}) {
-  const random=makeRandom(hashSeed(seed));
-  const paletteIndex=Number.isInteger(options.paletteIndex)
-    ? ((options.paletteIndex%PALETTES.length)+PALETTES.length)%PALETTES.length
-    : Math.floor(random()*PALETTES.length);
+  const resolved=resolveAvatarOptions(seed,options);
+  // Detail randomness has its own stream so changing one manual override never
+  // shifts another trait or causes unrelated features to change.
+  const detailRandom=makeRandom(hashSeed(`${seed}::face-details`));
+  const paletteIndex=resolved.paletteIndex;
   const basePalette=PALETTES[paletteIndex];
-  const exactSkin=normalizeSkinColor(options.skinColor);
-  const p=exactSkin ? {...basePalette, ...skinShades(exactSkin)} : basePalette;
-  // If the caller does not supply cosmetics, derive them from the seed. This
-  // guarantees that different NPC IDs can produce visibly different designs,
-  // while explicit NPC traits always win and remain stable across rerenders.
-  const hairStyles=Object.keys(HAIR);
-  const clothesOptions=["worker","civilian","scavenger","suit","rags"];
-  const accessoryOptions=["none","glasses","mask","scar","patch","earring","hood"];
-  const eyeOptions=["normal","narrow","big","tired","squint"];
-  const mouthOptions=["smile","frown","open","tight","crooked"];
-  const hairStyle=options.hair == null
-    ? hairStyles[Math.floor(random()*hairStyles.length)]
-    : safeHair(options.hair);
-  const faceShape=options.faceShape == null
-    ? Object.keys(FACE_SHAPES)[Math.floor(random()*Object.keys(FACE_SHAPES).length)]
-    : safeOption(options.faceShape,Object.keys(FACE_SHAPES),"oval");
+  const p=normalizeSkinColor(options.skinColor)
+    ? {...basePalette,...skinShades(normalizeSkinColor(options.skinColor))}
+    : basePalette;
+  const hairStyle=resolved.hair;
+  const faceShape=resolved.faceShape;
   const hair=HAIR[hairStyle];
-  const clothes=safeOption(options.clothes,clothesOptions,clothesOptions[Math.floor(random()*clothesOptions.length)]);
-  const accessory=safeOption(options.accessory,accessoryOptions,accessoryOptions[Math.floor(random()*accessoryOptions.length)]);
-  const eyeType=safeOption(options.eyeType,eyeOptions,eyeOptions[Math.floor(random()*eyeOptions.length)]);
-  const mouthType=safeOption(options.mouthType,mouthOptions,mouthOptions[Math.floor(random()*mouthOptions.length)]);
+  const clothes=resolved.clothes;
+  const accessory=resolved.accessory;
+  const facialHair=resolved.facialHair;
+  const eyeType=resolved.eyeType;
+  const mouthType=resolved.mouthType;
   const shirtMap={
     worker:{base:"#8d4a2e",light:"#c77a48",dark:"#4b2d2a"},
     civilian:{base:"#345a70",light:"#5f899a",dark:"#203744"},
@@ -131,7 +164,7 @@ export function generateAvatarSvg(seed,options={}) {
     rags:{base:"#66675c",light:"#92917c",dark:"#3a403c"}
   };
   const shirt=shirtMap[clothes];
-  const anomaly=options.revealed===true && options.infected===true;
+  const anomaly=resolved.anomaly;
   const cx=16;
   const headOuter=FACE_SHAPES[faceShape];
   // Outline only the face sides and jaw. A complete outline behind the fill
@@ -141,7 +174,7 @@ export function generateAvatarSvg(seed,options={}) {
     const right=left+width;
     return rect(left-1,y,1,1,"#101419")+rect(right,y,1,1,"#101419");
   }).join("")+row(cx,24,8,"#101419");
-  const eyeY=eyeType==="tired"?15:14+Math.floor(random()*2);
+  const eyeY=eyeType==="tired"?15:14+Math.floor(detailRandom()*2);
   const eyeW=eyeType==="big"?4:eyeType==="narrow"||eyeType==="squint"?2:3;
   const leftEye=11,rightEye=18;
   const eyeFill=anomaly?"#d8f3a4":p.eye;
@@ -159,11 +192,11 @@ export function generateAvatarSvg(seed,options={}) {
       :mouthType==="open"?rect(14,21,4,3,"#211a1b")+rect(15,22,2,1,"#9f5b59")
       :mouthType==="crooked"?rect(13,21,5,1,p.skinShadow)+rect(17,22,2,1,p.skinShadow)
       :rect(13,21,6,1,p.skinShadow);
-  const beard=options.facialHair==="beard"
+  const beard=facialHair==="beard"
     ?poly("10,19 12,21 13,24 19,24 21,21 22,19 22,23 19,26 13,26 10,23",p.hair)
-    :options.facialHair==="stubble"
+    :facialHair==="stubble"
       ?rect(11,21,1,1,p.skinShadow)+rect(13,23,1,1,p.skinShadow)+rect(18,22,1,1,p.skinShadow)+rect(20,21,1,1,p.skinShadow)
-      :options.facialHair==="mustache"?rect(12,20,3,1,p.hair)+rect(17,20,3,1,p.hair):"";
+      :facialHair==="mustache"?rect(12,20,3,1,p.hair)+rect(17,20,3,1,p.hair):"";
   const accessoryLayer=accessory==="glasses"
     ?rect(10,eyeY-1,6,4,"none",'stroke="#10161b" stroke-width="1"')+rect(17,eyeY-1,6,4,"none",'stroke="#10161b" stroke-width="1"')+rect(16,eyeY,1,1,"#10161b")
       +rect(11,eyeY,2,1,"#c7dedb") + rect(18,eyeY,2,1,"#c7dedb")
@@ -248,6 +281,7 @@ export const avatarGeneratorOptions = Object.freeze({
   legacySkinColors: LEGACY_SKIN_COLORS,
   faceShapes: Object.freeze(Object.keys(FACE_SHAPES)),
   hairStyles: Object.freeze(Object.keys(HAIR)),
+  facialHairStyles: Object.freeze(["none","beard","stubble","mustache"]),
   clothesStyles: Object.freeze(["worker","civilian","scavenger","suit","rags"]),
   accessories: Object.freeze(["none","glasses","mask","scar","patch","earring","hood"]),
   eyeTypes: Object.freeze(["normal","narrow","big","tired","squint"]),
