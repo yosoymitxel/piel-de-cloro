@@ -297,11 +297,26 @@ export const State = {
         return this.supplies;
     },
 
+    setGeneratorPower(value) {
+        if (!this.generator) return 0;
+        const numericValue = Number(value);
+        const safeValue = Number.isFinite(numericValue) ? numericValue : 0;
+        this.generator.power = Math.min(100, Math.max(0, safeValue));
+        return this.generator.power;
+    },
+
     updateGeneratorPower(amount) {
         if (!this.generator) return 0;
-        const newPower = (this.generator.power || 0) + amount;
-        this.generator.power = Math.min(100, Math.max(0, newPower));
-        return this.generator.power;
+        const numericAmount = Number(amount);
+        if (!Number.isFinite(numericAmount)) return this.generator.power || 0;
+        return this.setGeneratorPower((this.generator.power || 0) + numericAmount);
+    },
+
+    updateFuel(amount) {
+        const numericAmount = Number(amount);
+        if (!Number.isFinite(numericAmount)) return this.fuel || 0;
+        this.fuel = Math.max(0, (Number(this.fuel) || 0) + numericAmount);
+        return this.fuel;
     },
 
     // Seguridad por run
