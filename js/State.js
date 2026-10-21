@@ -522,37 +522,66 @@ export const State = {
     },
 
     addAdmitted(npc) {
-        if (!npc.enterCycle) npc.enterCycle = this.cycle;
+        if (!npc || !npc.id || npc.death || npc.left || npc.escaped) return false;
+        const alreadyAdmitted = this.admittedNPCs.some(candidate => candidate?.id === npc.id);
+        const alreadyDeparted = this.departedNPCs.some(candidate => candidate?.id === npc.id);
+        const alreadyPurged = this.purgedNPCs.some(candidate => candidate?.id === npc.id);
+        if (alreadyAdmitted || alreadyDeparted || alreadyPurged) return false;
+
+        npc.enterCycle ??= this.cycle;
         this.admittedNPCs.push(npc);
+        return true;
+    },
+
+    removeAdmitted(npc) {
+        if (!npc?.id) return false;
+        const before = this.admittedNPCs.length;
+        this.admittedNPCs = this.admittedNPCs.filter(candidate => candidate?.id !== npc.id);
+        if (this.admittedNPCs.length === before) return false;
+        this._unassignFromAll(npc);
+        return true;
+    },
+
+    markDeparted(npc) {
+        if (!npc?.id || this.departedNPCs.some(candidate => candidate?.id === npc.id)) return false;
+        if (!this.removeAdmitted(npc)) return false;
+        npc.left = { cycle: this.cycle };
+        this.departedNPCs.push(npc);
+        return true;
+    },
+
+    recordDeath(npc, reason = 'desconocido') {
+        if (!npc?.id || this.purgedNPCs.some(candidate => candidate?.id === npc.id)) return false;
+        this.removeAdmitted(npc);
+        npc.death = { reason, cycle: this.cycle, revealed: false };
+        this.purgedNPCs.push(npc);
+        return true;
     },
 
     addPurged(npc) {
-        // Prevent duplicates
-        if (this.purgedNPCs.includes(npc)) return;
-
-        // Remove from admitted if present
-        const index = this.admittedNPCs.indexOf(npc);
-        if (index > -1) {
-            this.admittedNPCs.splice(index, 1);
-        }
-
-        // Remove from assignments (logging included)
-        this._unassignFromAll(npc);
-
-        npc.death = { reason: 'purga', cycle: this.cycle, revealed: false };
-        this.purgedNPCs.push(npc);
+        return this.recordDeath(npc, 'purga');
     },
 
     _unassignFromAll(npc) {
-        if (!this.assignments) return;
-        Object.keys(this.assignments).forEach(sector => {
-            const idx = this.assignments[sector].occupants.indexOf(npc.id);
-            if (idx > -1) {
-                this.assignments[sector].occupants.splice(idx, 1);
-                this.addSectorLog(sector, `Personal perdido: ${npc.name} ha dejado el puesto.`, npc.name);
-            }
-        });
-        if (this.generator && this.generator.assignedGuardId === npc.id) {
+        if (!npc?.id) return;
+        if (this.assignments) {
+            Object.keys(this.assignments).forEach(sector => {
+                const occupants = this.assignments[sector]?.occupants;
+                if (!Array.isArray(occupants)) return;
+                let idx;
+                while ((idx = occupants.indexOf(npc.id)) > -1) {
+                    occupants.splice(idx, 1);
+                }
+            });
+        }
+        if (this.sectorAssignments) {
+            Object.keys(this.sectorAssignments).forEach(sector => {
+                const occupants = this.sectorAssignments[sector];
+                if (!Array.isArray(occupants)) return;
+                this.sectorAssignments[sector] = occupants.filter(id => id !== npc.id);
+            });
+        }
+        if (this.generator?.assignedGuardId === npc.id) {
             this.generator.assignedGuardId = null;
         }
     },
@@ -733,12 +762,9 @@ export const State = {
             const leftNames = [];
             for (let i = 0; i < actual; i++) {
                 const idx = Math.floor(Math.random() * this.admittedNPCs.length);
-                const npc = this.admittedNPCs.splice(idx, 1)[0];
-                if (npc) {
-                    npc.left = { cycle: this.cycle };
-                    this.departedNPCs.push(npc);
+                const npc = this.admittedNPCs[idx];
+                if (npc && this.markDeparted(npc)) {
                     leftNames.push(npc.name);
-                    this._unassignFromAll(npc);
                 }
             }
             const msg = actual === 1 ? `Durante la noche, ${leftNames[0]} abandonó la comuna.` : `Durante la noche, ${actual} integrantes abandonaron la comuna.`;
