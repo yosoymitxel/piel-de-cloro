@@ -101,7 +101,7 @@ input:hover, select:hover { border-color: #537879; }
 .hair-card { min-width: 0; border: 1px solid var(--lab-border-dim); background: #0b1418; padding: 7px; cursor: pointer; text-align: left; }
 .hair-card:hover { border-color: #668b88; background: #122126; }
 .hair-card[aria-pressed=true] { border-color: var(--lab-accent); box-shadow: inset 0 0 0 1px rgba(120,207,193,.15); }
-.hair-card img { display: block; width: 100%; height: 116px; object-fit: contain; image-rendering: pixelated; image-rendering: crisp-edges; background: radial-gradient(ellipse, #253a42 0, #101a1f 80%); }
+.hair-card img { display: block; width: 100%; height: 156px; object-fit: contain; image-rendering: pixelated; image-rendering: crisp-edges; background: radial-gradient(ellipse, #253a42 0, #101a1f 80%); }
 .hair-card span { display: block; margin-top: 8px; color: #cbd9d5; font-size: 10px; overflow-wrap: anywhere; }
 .hair-card small { display: block; margin-top: 4px; color: var(--lab-muted); font-size: 8px; }
 .pxl-gallery { display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 8px; }
@@ -141,7 +141,7 @@ input:hover, select:hover { border-color: #537879; }
   .portrait-frame { padding-left: 10px; padding-right: 10px; min-height: 260px; }
   #current-portrait { height: 245px; }
   .hair-gallery { grid-template-columns: repeat(2, minmax(0,1fr)); }
-  .hair-card img { height: 126px; }
+  .hair-card img { height: 144px; }
   .pxl-gallery { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .pxl-frame { min-height: 125px; }
   .pxl-frame img { max-height: 104px; }
