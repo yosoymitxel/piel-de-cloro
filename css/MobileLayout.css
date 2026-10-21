@@ -174,7 +174,7 @@
        into the horizontal dock instead of removing its controls. */
     #sidebar-left > .mt-auto {
         display: flex !important;
-        flex: 2 1 0;
+        flex: 0 0 auto;
         flex-direction: row !important;
         align-items: center;
         gap: 6px !important;
@@ -1097,10 +1097,10 @@
 
     #sidebar-left .nav-sidebar-btn,
     #sidebar-left .nav-btn {
-        flex: 1 1 0 !important;
-        width: 0 !important;
-        min-width: 0 !important;
-        max-width: none !important;
+        flex: 0 0 58px !important;
+        width: 58px !important;
+        min-width: 58px !important;
+        max-width: 58px !important;
         padding-inline: 2px !important;
         overflow: hidden;
     }
