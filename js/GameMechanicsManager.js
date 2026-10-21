@@ -726,7 +726,7 @@ export class GameMechanicsManager {
     }
 
     sleep() {
-        if (State.paused || State.endingTriggered || State.lastNight.resolutionStarted) return false;
+        if (State.paused || State.endingTriggered || !State.isNight || State.lastNight.resolutionStarted) return false;
         State.lastNight.resolutionStarted = true;
 
         // CRITICAL: Check for lore NPC danger FIRST (80% death probability)
