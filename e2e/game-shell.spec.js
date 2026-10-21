@@ -55,6 +55,9 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
   if (await interludeContinue.isVisible()) await interludeContinue.click();
   await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
 
+  const skipDialogue = page.getByRole('button', { name: /OMITIR POR DIÁLOGO/i });
+  await expect(skipDialogue).toBeVisible();
+
   if (await page.evaluate(() => window.innerWidth > 640)) {
     const desktopPause = page.locator('#btn-pause');
     await expect(desktopPause).toBeVisible();
@@ -70,9 +73,6 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
     await expect(page.locator('#btn-pause-mobile')).toBeVisible();
     await expect(page.locator('#btn-pause')).toBeHidden();
   }
-
-  const skipDialogue = page.getByRole('button', { name: /OMITIR POR DIÁLOGO/i });
-  await expect(skipDialogue).toBeVisible();
 
   const pauseButton = page.locator(await page.evaluate(() => window.innerWidth <= 640 ? '#btn-pause-mobile' : '#btn-pause'));
   await pauseButton.click();
