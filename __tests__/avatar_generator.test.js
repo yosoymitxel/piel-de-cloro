@@ -1,9 +1,28 @@
-import { generateAvatarSvg, generateAvatarDataUri, avatarGeneratorOptions } from "../js/avatar/AvatarGenerator.js";
+import { generateAvatarSvg, generateAvatarDataUri, avatarGeneratorOptions, resolveAvatarOptions } from "../js/avatar/AvatarGenerator.js";
 
 describe("AvatarGenerator", () => {
   test("preserva identidad: misma semilla y opciones producen el mismo SVG", () => {
     expect(generateAvatarSvg("npc-004", { hair: "ponytail", paletteIndex: 2 }))
       .toBe(generateAvatarSvg("npc-004", { hair: "ponytail", paletteIndex: 2 }));
+  });
+
+  test("la semilla genera rasgos completos y reproducibles sin fijarlos uno por uno", () => {
+    const first = resolveAvatarOptions("subject-alpha");
+    expect(resolveAvatarOptions("subject-alpha")).toEqual(first);
+    expect(resolveAvatarOptions("subject-beta")).not.toEqual(first);
+    expect(generateAvatarSvg("subject-alpha")).not.toBe(generateAvatarSvg("subject-beta"));
+  });
+
+  test("forzar un rasgo no vuelve a sortear los demás rasgos del mismo NPC", () => {
+    const automatic = resolveAvatarOptions("npc-independent-overrides");
+    const ponytail = resolveAvatarOptions("npc-independent-overrides", { hair: "ponytail" });
+    expect(ponytail.hair).toBe("ponytail");
+    expect(ponytail.paletteIndex).toBe(automatic.paletteIndex);
+    expect(ponytail.faceShape).toBe(automatic.faceShape);
+    expect(ponytail.clothes).toBe(automatic.clothes);
+    expect(ponytail.accessory).toBe(automatic.accessory);
+    expect(ponytail.eyeType).toBe(automatic.eyeType);
+    expect(ponytail.mouthType).toBe(automatic.mouthType);
   });
 
   test("distintas semillas crean identidad visual distinta", () => {
