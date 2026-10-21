@@ -1234,58 +1234,28 @@ export class GameMechanicsManager {
     }
 
     assignNPCToSector(npc, sector) {
-        if (this.game.assignments) {
-            this.game.assignments.assign(npc.id, sector);
-        } else {
-            console.error("AssignmentManager not initialized");
-            // Fallback (legacy)
-            if (!State.sectorAssignments[sector]) State.sectorAssignments[sector] = [];
-            Object.keys(State.sectorAssignments).forEach(s => {
-                const idx = State.sectorAssignments[s].indexOf(npc.id);
-                if (idx > -1) State.sectorAssignments[s].splice(idx, 1);
-            });
-            State.sectorAssignments[sector].push(npc.id);
-            npc.assignedSector = sector;
-            if (sector === 'generator') {
-                State.generator.assignedGuardId = npc.id;
-            } else if (State.generator.assignedGuardId === npc.id) {
-                State.generator.assignedGuardId = null;
-            }
+        const assignmentManager = this.game?.assignments;
+        if (!npc?.id || !assignmentManager || typeof assignmentManager.assign !== 'function') {
+            this.ui.showFeedback('SISTEMA DE ASIGNACIÓN NO DISPONIBLE', 'red', 3000);
+            return false;
         }
+        return assignmentManager.assign(npc.id, sector);
     }
 
     processSectorSabotages() {
         let sabotageHappened = false;
 
-        // Use new Assignments system if available
-        if (State.assignments) {
-            Object.keys(State.assignments).forEach(sector => {
-                const data = State.assignments[sector];
-                // Skip if data is malformed (should contain occupants)
-                if (!data || !data.occupants) return;
-
-                const assignedIds = data.occupants;
-                assignedIds.forEach(id => {
-                    const npc = State.admittedNPCs.find(n => n.id === id);
-                    if (npc && npc.isInfected && Math.random() < 0.15) { // 15% prob de sabotaje por infectado
-                        sabotageHappened = true;
-                        this.triggerSabotage(sector, npc);
-                    }
-                });
+        Object.keys(State.assignments || {}).forEach(sector => {
+            const assignedIds = State.assignments[sector]?.occupants;
+            if (!Array.isArray(assignedIds)) return;
+            assignedIds.forEach(id => {
+                const npc = State.admittedNPCs.find(candidate => candidate.id === id);
+                if (npc?.isInfected && Math.random() < 0.15) {
+                    sabotageHappened = true;
+                    this.triggerSabotage(sector, npc);
+                }
             });
-        } else {
-            // Legacy Fallback
-            Object.keys(State.sectorAssignments).forEach(sector => {
-                const assignedIds = State.sectorAssignments[sector];
-                assignedIds.forEach(id => {
-                    const npc = State.admittedNPCs.find(n => n.id === id);
-                    if (npc && npc.isInfected && Math.random() < 0.15) { // 15% prob de sabotaje por infectado
-                        sabotageHappened = true;
-                        this.triggerSabotage(sector, npc);
-                    }
-                });
-            });
-        }
+        });
 
         return sabotageHappened;
     }
