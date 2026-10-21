@@ -11,16 +11,19 @@ const PALETTES = [
 ];
 
 const HAIR = {
+  // Each entry is authored as a visible silhouette: [x, y, width, height].
+  // Long hair, bob and ponytail retain different lengths below the jaw;
+  // mohawk and punk are separated by height and spike rhythm.
   bald:     { rear:[], top:[], temples:[] },
-  short:    { rear:[], top:[[11,5,10,2],[9,7,14,2],[9,9,4,2],[21,9,3,1]], temples:[[9,10,2,5],[21,10,2,4]] },
-  shaved:   { rear:[], top:[[11,6,10,1],[9,7,14,1]], temples:[] },
-  long:     { rear:[[8,10,3,13],[21,10,3,13],[9,19,2,5],[22,18,2,6]], top:[[11,5,10,2],[9,7,14,2],[9,9,14,1]], temples:[] },
-  bob:      { rear:[[8,10,4,9],[20,10,4,9]], top:[[11,5,10,2],[9,7,14,2],[9,9,14,2]], temples:[] },
-  ponytail: { rear:[[22,9,4,4],[24,12,3,7],[23,19,3,4],[22,22,2,2]], top:[[11,5,10,2],[9,7,14,2],[9,9,12,1]], temples:[[9,10,2,4]] },
-  bun:      { rear:[[21,5,5,5],[22,4,3,2]], top:[[11,5,10,2],[9,7,14,2],[9,9,14,1]], temples:[[9,10,2,4]] },
-  wild:     { rear:[[8,10,3,8],[21,10,3,8]], top:[[10,4,4,4],[14,3,5,5],[18,5,5,4],[8,7,7,4],[10,9,13,2]], temples:[[8,10,3,5],[21,10,3,5]] },
-  mohawk:   { rear:[], top:[[14,2,4,4],[13,5,6,4],[12,8,8,2]], temples:[[9,10,2,3],[21,10,2,3]] },
-  punk:     { rear:[], top:[[9,6,4,4],[12,3,4,6],[16,2,4,7],[19,5,4,5],[9,9,15,2]], temples:[[9,10,2,3],[21,10,2,3]] }
+  short:    { rear:[], top:[[11,4,10,2],[8,6,16,3],[8,9,5,2],[19,9,5,2],[11,10,10,1]], temples:[[7,12,2,7],[23,12,2,6]] },
+  shaved:   { rear:[], top:[[10,7,12,1],[8,8,16,1]], temples:[] },
+  long:     { rear:[[5,10,4,16],[23,10,4,16],[7,22,3,5],[22,23,3,5]], top:[[11,4,10,2],[8,6,16,3],[8,9,16,1]], temples:[[7,12,3,11],[22,12,3,11]] },
+  bob:      { rear:[[6,10,4,12],[22,10,4,12],[8,19,3,5],[21,19,3,5]], top:[[11,4,10,2],[8,6,16,3],[8,9,16,3],[11,11,10,1]], temples:[[7,12,3,8],[22,12,3,8]] },
+  ponytail: { rear:[[22,8,6,4],[25,12,5,7],[26,19,4,7],[25,26,4,5],[23,31,3,2]], top:[[11,4,10,2],[8,6,16,3],[8,9,15,1]], temples:[[7,12,3,6]] },
+  bun:      { rear:[[20,5,6,5],[21,3,4,3],[7,11,3,7],[22,11,3,7]], top:[[11,4,10,2],[8,6,16,3],[8,9,16,1],[19,3,5,4],[20,2,3,2]], temples:[[7,12,3,7],[22,12,3,7]] },
+  wild:     { rear:[[5,11,4,10],[23,11,4,11],[7,19,3,5],[22,19,3,5]], top:[[9,6,4,4],[13,3,4,7],[17,4,4,5],[21,7,4,3],[8,8,16,3],[8,11,3,3],[21,11,3,3]], temples:[[7,12,3,8],[22,12,3,8]] },
+  mohawk:   { rear:[], top:[[14,1,4,4],[13,4,6,4],[12,7,8,3]], temples:[] },
+  punk:     { rear:[[7,11,3,7],[23,11,3,8]], top:[[9,6,4,4],[12,3,4,7],[15,1,4,9],[18,4,4,6],[21,7,4,3],[8,10,16,3]], temples:[[7,12,3,6],[22,12,3,6]] }
 };
 
 // Keep the original CSS avatar skin tokens working, including the exact colors
@@ -87,6 +90,48 @@ function row(cx,y,width,color){return rect(cx-Math.floor(width/2),y,width,1,colo
 function shapeRows(cx,rows,color){return rows.map(([y,w])=>row(cx,y,w,color)).join("");}
 function safeHair(value){return Object.hasOwn(HAIR,value)?value:"short";}
 function safeOption(value,choices,fallback){return choices.includes(value)?value:fallback;}
+function isUnset(value){return value==null||value==="";}
+function seededChoice(seed,channel,choices){
+  const random=makeRandom(hashSeed(`${seed}::${channel}`));
+  return choices[Math.floor(random()*choices.length)];
+}
+
+/**
+ * Resolves cosmetic traits independently from the stable NPC ID. Supplying an
+ * explicit trait overrides only that trait; it never rerolls the other traits.
+ */
+export function resolveAvatarOptions(seed,options={}){
+  const paletteIndexes=PALETTES.map((_,index)=>index);
+  const paletteIndex=Number.isInteger(options.paletteIndex)
+    ? ((options.paletteIndex%PALETTES.length)+PALETTES.length)%PALETTES.length
+    : seededChoice(seed,"palette",paletteIndexes);
+  const palette=PALETTES[paletteIndex];
+  const hairStyles=Object.keys(HAIR);
+  const faceShapes=Object.keys(FACE_SHAPES);
+  const clothesOptions=["worker","civilian","scavenger","suit","rags"];
+  const accessoryOptions=["none","glasses","mask","scar","patch","earring","hood"];
+  const facialHairOptions=["none","beard","stubble","mustache"];
+  const eyeOptions=["normal","narrow","big","tired","squint"];
+  const mouthOptions=["smile","frown","open","tight","crooked"];
+  const choose=(key,channel,choices,fallback)=>isUnset(options[key])
+    ? seededChoice(seed,channel,choices)
+    : safeOption(options[key],choices,fallback);
+  const exactSkin=normalizeSkinColor(options.skinColor);
+  return {
+    paletteIndex,
+    paletteName:palette.name,
+    skinColor:exactSkin||palette.skin,
+    hair:choose("hair","hair",hairStyles,"short"),
+    faceShape:choose("faceShape","face-shape",faceShapes,"oval"),
+    clothes:choose("clothes","clothes",clothesOptions,"civilian"),
+    accessory:choose("accessory","accessory",accessoryOptions,"none"),
+    facialHair:choose("facialHair","facial-hair",facialHairOptions,"none"),
+    eyeType:choose("eyeType","eyes",eyeOptions,"normal"),
+    mouthType:choose("mouthType","mouth",mouthOptions,"tight"),
+    exhausted:options.exhausted===true,
+    anomaly:options.revealed===true&&options.infected===true
+  };
+}
 
 /**
  * @param {string|number} seed Stable NPC ID.
@@ -94,32 +139,23 @@ function safeOption(value,choices,fallback){return choices.includes(value)?value
  * @returns {string} Crisp-edge SVG on a 32×40 logical pixel grid.
  */
 export function generateAvatarSvg(seed,options={}) {
-  const random=makeRandom(hashSeed(seed));
-  const paletteIndex=Number.isInteger(options.paletteIndex)
-    ? ((options.paletteIndex%PALETTES.length)+PALETTES.length)%PALETTES.length
-    : Math.floor(random()*PALETTES.length);
+  const resolved=resolveAvatarOptions(seed,options);
+  // Detail randomness has its own stream so changing one manual override never
+  // shifts another trait or causes unrelated features to change.
+  const detailRandom=makeRandom(hashSeed(`${seed}::face-details`));
+  const paletteIndex=resolved.paletteIndex;
   const basePalette=PALETTES[paletteIndex];
-  const exactSkin=normalizeSkinColor(options.skinColor);
-  const p=exactSkin ? {...basePalette, ...skinShades(exactSkin)} : basePalette;
-  // If the caller does not supply cosmetics, derive them from the seed. This
-  // guarantees that different NPC IDs can produce visibly different designs,
-  // while explicit NPC traits always win and remain stable across rerenders.
-  const hairStyles=Object.keys(HAIR);
-  const clothesOptions=["worker","civilian","scavenger","suit","rags"];
-  const accessoryOptions=["none","glasses","mask","scar","patch","earring","hood"];
-  const eyeOptions=["normal","narrow","big","tired","squint"];
-  const mouthOptions=["smile","frown","open","tight","crooked"];
-  const hairStyle=options.hair == null
-    ? hairStyles[Math.floor(random()*hairStyles.length)]
-    : safeHair(options.hair);
-  const faceShape=options.faceShape == null
-    ? Object.keys(FACE_SHAPES)[Math.floor(random()*Object.keys(FACE_SHAPES).length)]
-    : safeOption(options.faceShape,Object.keys(FACE_SHAPES),"oval");
+  const p=normalizeSkinColor(options.skinColor)
+    ? {...basePalette,...skinShades(normalizeSkinColor(options.skinColor))}
+    : basePalette;
+  const hairStyle=resolved.hair;
+  const faceShape=resolved.faceShape;
   const hair=HAIR[hairStyle];
-  const clothes=safeOption(options.clothes,clothesOptions,clothesOptions[Math.floor(random()*clothesOptions.length)]);
-  const accessory=safeOption(options.accessory,accessoryOptions,accessoryOptions[Math.floor(random()*accessoryOptions.length)]);
-  const eyeType=safeOption(options.eyeType,eyeOptions,eyeOptions[Math.floor(random()*eyeOptions.length)]);
-  const mouthType=safeOption(options.mouthType,mouthOptions,mouthOptions[Math.floor(random()*mouthOptions.length)]);
+  const clothes=resolved.clothes;
+  const accessory=resolved.accessory;
+  const facialHair=resolved.facialHair;
+  const eyeType=resolved.eyeType;
+  const mouthType=resolved.mouthType;
   const shirtMap={
     worker:{base:"#8d4a2e",light:"#c77a48",dark:"#4b2d2a"},
     civilian:{base:"#345a70",light:"#5f899a",dark:"#203744"},
@@ -128,11 +164,17 @@ export function generateAvatarSvg(seed,options={}) {
     rags:{base:"#66675c",light:"#92917c",dark:"#3a403c"}
   };
   const shirt=shirtMap[clothes];
-  const anomaly=options.revealed===true && options.infected===true;
+  const anomaly=resolved.anomaly;
   const cx=16;
   const headOuter=FACE_SHAPES[faceShape];
-  const headInner=headOuter.map(([y,w])=>[y+1,Math.max(2,w-2)]);
-  const eyeY=eyeType==="tired"?15:14+Math.floor(random()*2);
+  // Outline only the face sides and jaw. A complete outline behind the fill
+  // looks like a black cap even when hairStyle is bald.
+  const faceOutline=headOuter.map(([y,width])=>{
+    const left=cx-Math.floor(width/2);
+    const right=left+width;
+    return rect(left-1,y,1,1,"#101419")+rect(right,y,1,1,"#101419");
+  }).join("")+row(cx,24,8,"#101419");
+  const eyeY=eyeType==="tired"?15:14+Math.floor(detailRandom()*2);
   const eyeW=eyeType==="big"?4:eyeType==="narrow"||eyeType==="squint"?2:3;
   const leftEye=11,rightEye=18;
   const eyeFill=anomaly?"#d8f3a4":p.eye;
@@ -150,19 +192,11 @@ export function generateAvatarSvg(seed,options={}) {
       :mouthType==="open"?rect(14,21,4,3,"#211a1b")+rect(15,22,2,1,"#9f5b59")
       :mouthType==="crooked"?rect(13,21,5,1,p.skinShadow)+rect(17,22,2,1,p.skinShadow)
       :rect(13,21,6,1,p.skinShadow);
-  const beard=options.facialHair==="beard"
+  const beard=facialHair==="beard"
     ?poly("10,19 12,21 13,24 19,24 21,21 22,19 22,23 19,26 13,26 10,23",p.hair)
-    :options.facialHair==="stubble"
+    :facialHair==="stubble"
       ?rect(11,21,1,1,p.skinShadow)+rect(13,23,1,1,p.skinShadow)+rect(18,22,1,1,p.skinShadow)+rect(20,21,1,1,p.skinShadow)
-      :options.facialHair==="mustache"?rect(12,20,3,1,p.hair)+rect(17,20,3,1,p.hair):"";
-  // Stable, cosmetic facial marks ensure that different default IDs do not
-  // collapse to the same SVG when several seeded options happen to coincide.
-  const identityDetail = [
-    rect(12,19,1,1,p.skinShadow),
-    rect(21,18,1,1,p.skinShadow)+rect(22,19,1,1,p.skinShadow),
-    poly("20,17 22,17 20,20 19,20",p.accent),
-    rect(20,11,1,2,p.skinShadow)+rect(21,10,1,1,p.skinLight)
-  ][hashSeed(seed)%4];
+      :facialHair==="mustache"?rect(12,20,3,1,p.hair)+rect(17,20,3,1,p.hair):"";
   const accessoryLayer=accessory==="glasses"
     ?rect(10,eyeY-1,6,4,"none",'stroke="#10161b" stroke-width="1"')+rect(17,eyeY-1,6,4,"none",'stroke="#10161b" stroke-width="1"')+rect(16,eyeY,1,1,"#10161b")
       +rect(11,eyeY,2,1,"#c7dedb") + rect(18,eyeY,2,1,"#c7dedb")
@@ -174,8 +208,14 @@ export function generateAvatarSvg(seed,options={}) {
     :accessory==="hood"?poly("8,13 8,9 11,5 21,5 24,10 24,24 21,22 21,10 11,10 11,24 8,25",p.shirtDark)+rect(10,7,2,10,p.shirt):"";
   const facialAnomaly=anomaly
     ?poly("10,12 12,11 13,13 12,16 10,17", "#a43e4b")+poly("21,17 23,17 22,21 20,20","#a43e4b")+rect(15,8,2,1,"#a43e4b"):"";
-  const ponytailTie=hairStyle==="ponytail"?rect(23,12,3,1,p.accent)+rect(24,13,1,1,p.skinLight):"";
-  const hairHighlights=hairStyle==="bald"||hairStyle==="shaved"?"":rect(11,7,4,1,p.hairLight)+rect(16,6,3,1,p.hairLight);
+  const ponytailTie=hairStyle==="ponytail"
+    ?rect(25,12,3,2,p.accent)+rect(26,12,1,2,p.skinLight):"";
+  const hairHighlights=hairStyle==="bald"||hairStyle==="shaved"?""
+    :hairStyle==="mohawk"
+      ?rect(15,3,2,1,p.hairLight)+rect(15,5,2,2,p.hairLight)
+      :hairStyle==="punk"
+        ?rect(16,3,2,2,p.accent)+rect(20,6,2,1,p.hairLight)
+        :rect(11,8,4,1,p.hairLight)+rect(17,7,3,1,p.hairLight);
 
   const parts=[
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40" width="256" height="320" shape-rendering="crispEdges" role="img" aria-label="Retrato pixel art de NPC">',
@@ -184,24 +224,28 @@ export function generateAvatarSvg(seed,options={}) {
     // Shoulder and jacket silhouette, with lit left plane and dark right plane.
     poly("7,29 10,27 13,26 19,26 22,28 26,31 29,40 3,40",shirt.base),
     poly("7,30 11,28 14,28 14,40 4,40",shirt.light),poly("19,28 22,29 26,32 28,40 19,40",shirt.dark),
-    rect(15,29,2,11,shirt.dark),rect(13,29,1,3,p.accent),rect(18,30,1,7,shirt.light),
+    // One jacket closure and seam, instead of unrelated vertical decoration.
+    rect(15,31,1,8,shirt.dark),rect(14,32,1,4,shirt.light),rect(15,34,2,1,p.accent),
     // Neck, ears and rear hair are behind the face.
     rect(13,23,6,7,p.skinShadow),rect(14,24,4,5,p.skin),
     rect(8,15,3,5,p.skinShadow),rect(9,15,2,4,p.skin),rect(21,15,3,5,p.skinShadow),rect(21,15,2,4,p.skin),
-    drawRects(hair.rear,p.hair),drawRects(hair.temples,p.hair),ponytailTie,
-    // Head contour and skin planes; rows create a deliberate stepped silhouette.
-    shapeRows(cx,headOuter.map(([y,w])=>[y,w+2]),"#101419"),
-    shapeRows(cx,headInner,p.skin),
-    row(cx,10,10,p.skinLight),row(cx,11,12,p.skinLight),row(cx,12,12,p.skin),
-    rect(10,16,2,4,p.skinShadow,'opacity="0.55"'),rect(21,16,1,4,p.skinShadow,'opacity="0.65"'),
-    rect(12,10,2,2,p.skinLight),rect(19,10,2,2,p.skinLight),
-    drawRects(hair.top,p.hair),hairHighlights,
+    drawRects(hair.rear,p.hair),
+    // The face itself has a skin-colored crown. Dark contour pixels are placed
+    // on the outer sides/jaw only; this keeps bald and shaved visibly distinct.
+    shapeRows(cx,headOuter,p.skin),
+    faceOutline,
+    // Smaller forehead highlights preserve skin volume without reading as a hairline.
+    row(cx,9,6,p.skinLight),row(cx,10,8,p.skinLight),row(cx,11,10,p.skinLight),
+    poly("10,15 12,16 12,19 10,18",p.skinShadow),
+    poly("20,15 22,16 22,18 20,19",p.skinShadow),
+    // Hair is layered over the face, so temples and long locks stay visible.
+    drawRects(hair.top,p.hair),drawRects(hair.temples,p.hair),ponytailTie,hairHighlights,
     // Hair and clothing are built from discrete color planes, not texture noise.
-    brows,eyes,underEyes,nose,mouth,identityDetail,beard,
+    brows,eyes,underEyes,nose,mouth,beard,
     // Clothes collar, seams and restrained wear.
     poly("11,27 14,29 16,31 18,29 21,27 19,33 13,33",shirt.dark),
     rect(15,31,2,8,shirt.light),rect(10,34,1,4,shirt.dark),rect(22,34,1,4,shirt.light),
-    rect(6,33,2,5,p.bgLight,'opacity="0.5"'),rect(24,33,2,5,p.bgLight,'opacity="0.4"'),
+
     accessoryLayer,facialAnomaly,
     // Sparse CRT accents; no random speckle laid over the face.
     rect(0,25,32,1,"#081115",'opacity="0.2"'),rect(0,37,32,1,"#081115",'opacity="0.45"'),
@@ -237,6 +281,7 @@ export const avatarGeneratorOptions = Object.freeze({
   legacySkinColors: LEGACY_SKIN_COLORS,
   faceShapes: Object.freeze(Object.keys(FACE_SHAPES)),
   hairStyles: Object.freeze(Object.keys(HAIR)),
+  facialHairStyles: Object.freeze(["none","beard","stubble","mustache"]),
   clothesStyles: Object.freeze(["worker","civilian","scavenger","suit","rags"]),
   accessories: Object.freeze(["none","glasses","mask","scar","patch","earring","hood"]),
   eyeTypes: Object.freeze(["normal","narrow","big","tired","squint"]),
