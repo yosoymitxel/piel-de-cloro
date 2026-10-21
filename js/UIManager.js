@@ -4,7 +4,7 @@ import { ROOM_TYPES } from './ShelterModel.js';
 import { LoreData } from './LoreData.js';
 import { LoreManager } from './LoreManager.js';
 import { ModalManager } from './ModalManager.js';
-import { AvatarRenderer } from './AvatarRenderer.js';
+import { AvatarRenderer } from './AvatarRenderer.js?v=20261021-avatarfix2';
 import { ScreenManager } from './ScreenManager.js';
 import { GeneratorManager } from './GeneratorManager.js';
 import { StatsManager } from './StatsManager.js';
