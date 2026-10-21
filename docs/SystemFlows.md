@@ -100,7 +100,7 @@ Se ha implementado un sistema centralizado para gestionar la asignación de NPCs
 1. Usuario clickea "ASIGNAR" en el panel del sector.
 2. Se abre el modal filtrado.
 3. Al seleccionar un NPC:
-   - Se actualiza `State.sectorAssignments[sector]`.
+   - Se actualiza `State.assignments[sector].occupants` mediante `AssignmentManager`.
    - Se reproduce audio `ui_success`.
    - Se cierra el modal y se refresca el panel.
 

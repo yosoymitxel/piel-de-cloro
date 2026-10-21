@@ -9,7 +9,7 @@ export const gen_pools_4 = {
         nodes: {
             'glo_n1': {
                 id: 'glo_n1',
-                text: "*Mira un papel arrugado.* \"Disculpa... ¿es este el acceso al sector 4? Me dijeron que mi hermano estaba aquí.\"",
+                text: "*Consulta un papel doblado hasta casi romperlo. «Me dijeron que mi hermano pasó por el Sector 4. No sé quién lo anotó; el nombre está borroso».*",
                 options: [
                     { id: 'glo_o1', label: 'Esto es el refugio', next: 'glo_n2a' },
                     { id: 'glo_o2', label: 'No hay lista', next: 'glo_n2b' }
@@ -17,12 +17,12 @@ export const gen_pools_4 = {
             },
             'glo_n2a': {
                 id: 'glo_n2a',
-                text: "\"Ya... pero ¿es el 4? Los túneles son todos iguales.\"",
+                text: "*Mira las señales del puesto, buscando una confirmación. «Los túneles se parecen. Si me equivoco de sector, puedo perder horas».*",
                 options: [{ id: 'glo_o2a', label: 'No lo sé', next: 'glo_n3a' }]
             },
             'glo_n2b': {
                 id: 'glo_n2b',
-                text: "*Baja la mirada.* \"Tiene que estar. Prometió esperarme.\"",
+                text: "*Dobla el papel con cuidado. «Prometió esperarme junto a la compuerta. Eso fue antes del corte de energía».*",
                 options: [
                     { id: 'glo_o2b', label: 'Lo siento', next: 'glo_n3b' },
                     { id: 'glo_o2l', label: '¿Es este su ID?', next: null, resultText: "*Te muestra una tarjeta rota.* \"Sí... Sector de Ingeniería. ¿Te sirve?\"", onclick: (g) => act.giveLoreItem(g, 'item_id_card', 'ID de Ingeniería Rota') }

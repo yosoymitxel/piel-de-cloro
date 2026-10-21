@@ -1,37 +1,19 @@
-
 import { State } from '../js/State.js';
-import { GameMechanicsManager } from '../js/GameMechanicsManager.js';
 import { LoreData } from '../js/LoreData.js';
 
-describe('Verification of "Find a Cure" Mechanic', () => {
-    let mechanics;
-    let gameMock;
-
+describe('Find a Cure: progress state and ending content', () => {
     beforeEach(() => {
         State.reset();
-        gameMock = {
-            ui: {
-                showFeedback: jest.fn(),
-                showLore: jest.fn(),
-            },
-            endings: {
-                triggerEnding: jest.fn()
-            }
-        };
-        mechanics = new GameMechanicsManager(gameMock);
     });
 
-    test('State should NOT have cureFragments property (Not Implemented)', () => {
-        // Checking if the property exists in the default state
-        // Based on roadmap, it should be state.cureFragments
-        expect(State).not.toHaveProperty('cureFragments');
+    test('a new run resets cure sample progress', () => {
+        expect(State.cureProgress).toBe(0);
     });
 
-    test('Victory ending should NOT exist in LoreData (Not Implemented)', () => {
-        // Looking for a 'final_victory' or 'final_cure'
-        const victoryEndings = Object.keys(LoreData).filter(k => 
-            k.includes('victory') || k.includes('cure') || k.includes('vaccine')
-        );
-        expect(victoryEndings.length).toBe(0);
+    test('the cure ending has the expected Spanish copy and save classification', () => {
+        expect(LoreData.final_cure).toBeDefined();
+        expect(LoreData.final_cure.title).toBe('Cura Sintetizada');
+        expect(LoreData.final_cure.content).toContain('muestras viables');
+        expect(LoreData.final_cure.type).toBe('save');
     });
 });

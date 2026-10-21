@@ -9,30 +9,13 @@ import { gen_pools_1 } from '../js/dialogue_pools/generic/gen_pools_1.js';
 DialogueData.pools = { ...gen_pools_1 };
 
 describe('Generic Dialogue Features', () => {
-    test('NPC should inherit clue from generic dialogue pool', () => {
-        // We force the NPC to use 'gen_gift' by mocking the selection or just checking the logic if we could force it.
-        // Since we can't easily force random selection in NPC constructor without heavy mocking, 
-        // we will test the logic we added to NPC.js manually by creating an NPC and setting the conversation/set manually 
-        // OR by relying on the fact that we can partial-mock selectDialogueSet? 
-
-        // Let's just create an NPC and manually trigger the logic or verify if we can force a pool.
-        // selectDialogueSet logic filters by tag. 'gen_gift' has tag 'friendly'.
-        // If we create a friendly NPC, it might pick it.
-
-        // Better: Instantiate NPC and manually assign the set to check property propagation, 
-        // mimicking what the constructor does.
-        const npc = new NPC();
+    test('NPC inherits clue and mechanic hint from its selected dialogue pool', () => {
         const giftSet = gen_pools_1.gen_gift;
+        const npc = new NPC(null, { dialogueSet: giftSet });
 
-        // Simulating the constructor logic I added
-        if (giftSet) {
-            if (giftSet.clue) npc.clue = giftSet.clue;
-            if (giftSet.mechanicHint) npc.mechanicHint = giftSet.mechanicHint;
-        }
-
-        expect(npc.clue).toBeDefined();
-        expect(npc.clue).toContain('sobrecargas brevemente');
-        expect(npc.mechanicHint).toContain('DATO:');
+        expect(npc.clue).toBe(giftSet.clue);
+        expect(npc.mechanicHint).toBe(giftSet.mechanicHint);
+        expect(npc.conversation.set).toBe(giftSet);
     });
 
     test('DialogueActions.giveSupplies should update State', () => {

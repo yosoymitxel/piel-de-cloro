@@ -68,6 +68,21 @@ describe('AvatarRenderer', () => {
         expect(global.$).toHaveBeenCalledWith(expect.stringContaining('infected'));
     });
 
+    test('pixel-art mode selects the claude-pxl portrait with CSS avatar fallback', () => {
+        const previousDocument = global.document;
+        global.document = { documentElement: { dataset: { art: 'pixel' } } };
+        try {
+            const npc = new NPC(1);
+            AvatarRenderer.render(npc);
+            expect(global.$).toHaveBeenCalledWith(expect.stringContaining('npc-pixel-portrait'));
+            expect(global.$).toHaveBeenCalledWith(expect.stringContaining('npc_infected.png'));
+            expect(global.$).toHaveBeenCalledWith(expect.stringContaining('has-pixel-portrait'));
+        } finally {
+            if (previousDocument === undefined) delete global.document;
+            else global.document = previousDocument;
+        }
+    });
+
     test('perimeter variant applies correct CSS classes', () => {
         const npc = new NPC(0);
         AvatarRenderer.render(npc, 'lg', 'perimeter');

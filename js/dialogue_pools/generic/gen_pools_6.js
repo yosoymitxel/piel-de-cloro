@@ -9,7 +9,7 @@ export const gen_pools_6 = {
         nodes: {
             'ghn_n1': {
                 id: 'ghn_n1',
-                text: "*Se lame los labios secos constantemente.* \"El olor... aquí huele a comida. A carne caliente.\"",
+                text: "*Se humedece los labios y mira la bandeja de suministros. «Hay comida aquí, ¿verdad? Llevo dos días pensando en el olor de una cocina».*",
                 options: [
                     { id: 'ghn_o1', label: 'No hay comida aquí', next: 'ghn_n2a' },
                     { id: 'ghn_o2', label: '¿Qué hueles?', next: 'ghn_n2b' }
@@ -17,14 +17,14 @@ export const gen_pools_6 = {
             },
             'ghn_n2a': {
                 id: 'ghn_n2a',
-                text: "\"Mientes. Huelo la circulation. La sangre bajo la piel. Es... apetitoso.\"",
+                text: "*Retrocede cuando le preguntas por la sangre, pero no aparta la mirada de tu cuello. «No sé por qué la huelo desde tan lejos. No quiero acercarme».*",
                 options: [
                     { id: 'ghn_o2a', label: 'Amenazar', next: 'ghn_n3a' }
                 ]
             },
             'ghn_n2b': {
                 id: 'ghn_n2b',
-                text: "\"Huelo... vida. Fuera todo está seco. Muerto. Aquí dentro hay jugo.\"",
+                text: "*Aprieta los puños contra el abrigo. «Afuera no queda casi nada comestible. Aquí dentro hay gente, raciones y calor. Estoy intentando no pensar en eso».*",
                 options: [
                     { id: 'ghn_o2b', label: 'Qué asco', next: 'ghn_n3b' },
                     { id: 'ghn_o2r', label: '¿Qué viste fuera?', next: null, resultText: "*Olfatea.* \"Cuerpos secos. Drenados. Cerca de la salida Norte.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Cuerpos drenados hallados en la Salida Norte.') }

@@ -2,6 +2,32 @@ import { CONSTANTS } from './Constants.js';
 import { Shelter, Room } from './ShelterModel.js';
 import { LogManager } from './LogManager.js';
 
+const createGeneratorState = () => ({
+    isOn: true,
+    mode: 'normal',
+    power: 100,
+    capacity: 100,
+    load: 0,
+    baseConsumption: 5,
+    stability: 100,
+    overloadTimer: 0,
+    systems: {
+        security: { load: 8, active: true, label: 'Seguridad' },
+        lighting: { load: 4, active: true, label: 'Iluminación' },
+        lifeSupport: { load: 12, active: true, label: 'Soporte Vital' },
+        shelterLab: { load: 23, active: false, label: 'Laboratorio' }
+    },
+    modeChangedThisTurn: false,
+    blackoutUntil: 0,
+    overclockCooldown: false,
+    restartLock: false,
+    bloodTestId: null,
+    bloodTestCountdown: 0,
+    emergencyEnergyGranted: false,
+    assignedGuardId: null,
+    guardShiftLogs: []
+});
+
 export const State = {
     paranoia: 0,
     sanity: 100,
@@ -144,6 +170,8 @@ export const State = {
     currentNPC: null,
     dialoguesCount: 0,
     verificationsCount: 0,
+    cureProgress: 0,
+    cureSynthesized: false,
     infectedSeenCount: 0,
     interludesShown: 0,
     dayAfter: { testsAvailable: 3 },
@@ -261,10 +289,9 @@ export const State = {
         bgBlack: '#050505' // Added
     },
 
-    updateParanoia(amount) {
-        // Aumentar dificultad: Si se gana paranoia (amount > 0), se gana un 20% más.
-        // Si se reduce paranoia (amount < 0), se reduce un 10% menos.
-        const modifier = amount > 0 ? 1.2 : 0.9;
+    updateParanoia(amount, { applyDifficulty = true } = {}) {
+        // La dificultad modifica efectos normales; costes explícitos pueden optar por valor exacto.
+        const modifier = applyDifficulty ? (amount > 0 ? 1.2 : 0.9) : 1;
         const finalAmount = Math.floor(amount * modifier);
         this.paranoia = Math.max(0, Math.min(100, this.paranoia + finalAmount));
 
@@ -295,11 +322,26 @@ export const State = {
         return this.supplies;
     },
 
+    setGeneratorPower(value) {
+        if (!this.generator) return 0;
+        const numericValue = Number(value);
+        const safeValue = Number.isFinite(numericValue) ? numericValue : 0;
+        this.generator.power = Math.min(100, Math.max(0, safeValue));
+        return this.generator.power;
+    },
+
     updateGeneratorPower(amount) {
         if (!this.generator) return 0;
-        const newPower = (this.generator.power || 0) + amount;
-        this.generator.power = Math.min(100, Math.max(0, newPower));
-        return this.generator.power;
+        const numericAmount = Number(amount);
+        if (!Number.isFinite(numericAmount)) return this.generator.power || 0;
+        return this.setGeneratorPower((this.generator.power || 0) + numericAmount);
+    },
+
+    updateFuel(amount) {
+        const numericAmount = Number(amount);
+        if (!Number.isFinite(numericAmount)) return this.fuel || 0;
+        this.fuel = Math.max(0, (Number(this.fuel) || 0) + numericAmount);
+        return this.fuel;
     },
 
     // Seguridad por run
@@ -320,31 +362,7 @@ export const State = {
         victims: 0,
         message: ''
     },
-    generator: {
-        isOn: true,
-        mode: 'normal',           // Compatibility: 'save', 'normal', 'overload'
-        power: 100,               // Compatibility: 0-100
-        capacity: 100,           // Capacidad total nominal
-        load: 0,                // Carga actual (calculada dinámicamente)
-        baseConsumption: 5,     // Consumo mínimo pasivo
-        stability: 100,         // Salud del núcleo (0-100)
-        overloadTimer: 0,       // Turnos consecutivos en sobrecarga
-        systems: {
-            security: { load: 15, active: true, label: 'Seguridad' },
-            lighting: { load: 10, active: true, label: 'Iluminación' },
-            lifeSupport: { load: 20, active: true, label: 'Soporte Vital' },
-            shelterLab: { load: 25, active: false, label: 'Laboratorio' }
-        },
-        // Flags de control y legacy compatibility
-        blackoutUntil: 0,
-        restartLock: false,
-        bloodTestId: null,
-        bloodTestCountdown: 0,
-        emergencyEnergyGranted: false,
-        maxModeCapacityReached: 2, // Start with Normal
-        assignedGuardId: null,      // NPC assigned as guard
-        guardShiftLogs: []          // Information provided by the guard
-    },
+    generator: createGeneratorState(),
     // Nueva estructura centralizada de asignaciones
     assignments: {
         generator: { slots: 1, occupants: [] },
@@ -355,7 +373,6 @@ export const State = {
         kitchen: { slots: 1, occupants: [] },
         lab: { slots: 1, occupants: [] }
     },
-    // Deprecated: sectorAssignments (se eliminará tras migración)
 
     paused: false,
     debug: true, // Cambiar a false para producción
@@ -367,6 +384,8 @@ export const State = {
         this.paranoia = this.config.initialParanoia || 0;
         this.sanity = 100;
         this.supplies = this.config.initialSupplies || 15;
+        this.fuel = 10; // Fuel is run-scoped; restarting must restore the initial supply.
+        this.fuelRoomCheckedThisTurn = false;
         this.cycle = 1;
         this.dayTime = 1;
         this.secondsElapsed = 0; // Reset clock
@@ -377,7 +396,8 @@ export const State = {
         this.currentNPC = null;
         this.dialoguesCount = 0;
         this.verificationsCount = 0;
-        this.cureProgress = 0; // Added for cure ending
+        this.cureProgress = 0;
+        this.cureSynthesized = false;
         this.infectedSeenCount = 0;
         this.interludesShown = 0;
         this.isNight = false;
@@ -391,30 +411,7 @@ export const State = {
         this.paused = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
-        this.generator = {
-            isOn: true,
-            mode: 'normal',
-            power: 100,
-            capacity: 100,
-            load: 0,
-            baseConsumption: 5,
-            stability: 100,
-            overloadTimer: 0,
-            systems: {
-                security: { load: 8, active: true, label: 'Seguridad' },
-                lighting: { load: 4, active: true, label: 'Iluminación' },
-                lifeSupport: { load: 12, active: true, label: 'Soporte Vital' },
-                shelterLab: { load: 23, active: false, label: 'Laboratorio' }
-            },
-            blackoutUntil: 0,
-            restartLock: false,
-            bloodTestId: null,
-            bloodTestCountdown: 0,
-            emergencyEnergyGranted: false,
-            maxModeCapacityReached: 2,
-            assignedGuardId: null,
-            guardShiftLogs: []
-        };
+        this.generator = createGeneratorState();
         this.playerInfected = Math.random() < this.config.playerInfectedProbability;
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
         this.lastNight = { occurred: false, victims: 0, message: '' };
@@ -422,6 +419,7 @@ export const State = {
         // Reset dialogue trackers and flags
         this.dialoguePoolsUsed = [];
         this.dialoguePoolsLastUsed = {};
+        this.dialogueFlags = {}; // Flags belong to this run; never leak into a new game.
         this.gameLog = [];
         this.rumorLog = [];
         this.loreLog = [];
@@ -467,7 +465,6 @@ export const State = {
         });
 
         // Legacy support during migration (proxies to new system if needed, or just kept empty)
-        this.sectorAssignments = {};
         this.addLogEntry('system', 'Sistema RUTA-01 inicializado. Ciclo 1.');
 
         // NO RESETEAR: unlockedEndings ni audioSettings ya que son persistentes
@@ -501,39 +498,87 @@ export const State = {
     },
 
     addAdmitted(npc) {
-        if (!npc.enterCycle) npc.enterCycle = this.cycle;
+        if (!npc || !npc.id || npc.death || npc.left || npc.escaped) return false;
+        const alreadyAdmitted = this.admittedNPCs.some(candidate => candidate?.id === npc.id);
+        const alreadyDeparted = this.departedNPCs.some(candidate => candidate?.id === npc.id);
+        const alreadyPurged = this.purgedNPCs.some(candidate => candidate?.id === npc.id);
+        const alreadyIgnored = this.ignoredNPCs.some(candidate => candidate?.id === npc.id);
+        if (alreadyAdmitted || alreadyDeparted || alreadyPurged || alreadyIgnored) return false;
+
+        npc.enterCycle ??= this.cycle;
         this.admittedNPCs.push(npc);
+        return true;
+    },
+
+    removeAdmitted(npc) {
+        if (!npc?.id) return false;
+        let removed = false;
+        for (let i = this.admittedNPCs.length - 1; i >= 0; i--) {
+            if (this.admittedNPCs[i]?.id === npc.id) {
+                this.admittedNPCs.splice(i, 1);
+                removed = true;
+            }
+        }
+        if (!removed) return false;
+        this._unassignFromAll(npc);
+        return true;
+    },
+
+    addIgnored(npc) {
+        if (!npc?.id || npc.death || npc.left || npc.escaped) return false;
+        const alreadyRecorded = this.ignoredNPCs.some(candidate => candidate?.id === npc.id);
+        const alreadyAdmitted = this.admittedNPCs.some(candidate => candidate?.id === npc.id);
+        const alreadyPurged = this.purgedNPCs.some(candidate => candidate?.id === npc.id);
+        const alreadyDeparted = this.departedNPCs.some(candidate => candidate?.id === npc.id);
+        if (alreadyRecorded || alreadyAdmitted || alreadyPurged || alreadyDeparted) return false;
+        npc.exitCycle = this.cycle;
+        this.ignoredNPCs.push(npc);
+        return true;
+    },
+
+    markDeparted(npc) {
+        if (!npc?.id || this.departedNPCs.some(candidate => candidate?.id === npc.id)) return false;
+        if (!this.removeAdmitted(npc)) return false;
+        npc.left = { cycle: this.cycle };
+        npc.exitDate = this.cycle;
+        this.departedNPCs.push(npc);
+        return true;
+    },
+
+    recordDeath(npc, reason = 'desconocido', revealed = false) {
+        if (!npc?.id || npc.left || npc.escaped || this.departedNPCs.some(candidate => candidate?.id === npc.id) || this.purgedNPCs.some(candidate => candidate?.id === npc.id)) return false;
+        const wasAdmitted = this.removeAdmitted(npc);
+        if (!wasAdmitted) this._unassignFromAll(npc);
+        this.departedNPCs = this.departedNPCs.filter(candidate => candidate?.id !== npc.id);
+        npc.death = { reason, cycle: this.cycle, revealed: Boolean(revealed) };
+        this.purgedNPCs.push(npc);
+        return true;
     },
 
     addPurged(npc) {
-        // Prevent duplicates
-        if (this.purgedNPCs.includes(npc)) return;
-
-        // Remove from admitted if present
-        const index = this.admittedNPCs.indexOf(npc);
-        if (index > -1) {
-            this.admittedNPCs.splice(index, 1);
-        }
-
-        // Remove from assignments (logging included)
-        this._unassignFromAll(npc);
-
-        npc.death = { reason: 'purga', cycle: this.cycle, revealed: false };
-        this.purgedNPCs.push(npc);
+        return this.recordDeath(npc, 'purga');
     },
 
     _unassignFromAll(npc) {
-        if (!this.assignments) return;
-        Object.keys(this.assignments).forEach(sector => {
-            const idx = this.assignments[sector].occupants.indexOf(npc.id);
-            if (idx > -1) {
-                this.assignments[sector].occupants.splice(idx, 1);
-                this.addSectorLog(sector, `Personal perdido: ${npc.name} ha dejado el puesto.`, npc.name);
-            }
-        });
-        if (this.generator && this.generator.assignedGuardId === npc.id) {
+        if (!npc?.id) return;
+        if (this.assignments) {
+            Object.keys(this.assignments).forEach(sector => {
+                const occupants = this.assignments[sector]?.occupants;
+                if (!Array.isArray(occupants)) return;
+                const hadAssignment = occupants.includes(npc.id);
+                let idx;
+                while ((idx = occupants.indexOf(npc.id)) > -1) {
+                    occupants.splice(idx, 1);
+                }
+                if (hadAssignment) {
+                    this.addSectorLog(sector, `Personal perdido: ${npc.name} ha dejado el puesto.`, npc.name);
+                }
+            });
+        }
+        if (this.generator?.assignedGuardId === npc.id) {
             this.generator.assignedGuardId = null;
         }
+        npc.assignedSector = null;
     },
 
     isShelterFull() {
@@ -547,6 +592,7 @@ export const State = {
     nextSubject() {
         this.dayTime++;
         this.generatorCheckedThisTurn = false;
+        this.generator.modeChangedThisTurn = false;
         if (this.generator.overclockCooldown) {
             this.generator.overclockCooldown = false;
         }
@@ -690,6 +736,7 @@ export const State = {
         this.dayClosed = false;
         this.dayEnded = false;
         this.nightPurgePerformed = false;
+        this.generator.modeChangedThisTurn = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
 
@@ -712,12 +759,9 @@ export const State = {
             const leftNames = [];
             for (let i = 0; i < actual; i++) {
                 const idx = Math.floor(Math.random() * this.admittedNPCs.length);
-                const npc = this.admittedNPCs.splice(idx, 1)[0];
-                if (npc) {
-                    npc.left = { cycle: this.cycle };
-                    this.departedNPCs.push(npc);
+                const npc = this.admittedNPCs[idx];
+                if (npc && this.markDeparted(npc)) {
                     leftNames.push(npc.name);
-                    this._unassignFromAll(npc);
                 }
             }
             const msg = actual === 1 ? `Durante la noche, ${leftNames[0]} abandonó la comuna.` : `Durante la noche, ${actual} integrantes abandonaron la comuna.`;

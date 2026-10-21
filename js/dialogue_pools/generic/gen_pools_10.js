@@ -9,7 +9,7 @@ export const gen_pools_10 = {
         nodes: {
             'gho_n1': {
                 id: 'gho_n1',
-                text: "*Se estremece con un gemido ahogado, mordiéndose el labio inferior hasta sangrar.* \"Ah... se mueven. Se mueven tan profundo...\"",
+                text: "*Se queda rígido y contiene un gemido de dolor. «Se mueven más cuando tengo fiebre. No sé si están creciendo o si mi cuerpo está reaccionando».*",
                 options: [
                     { id: 'gho_o1', label: '¿Qué se mueve?', next: 'gho_n2a' },
                     { id: 'gho_o2', label: 'Estás enfermo', next: 'gho_n2b' }
@@ -17,14 +17,14 @@ export const gen_pools_10 = {
             },
             'gho_n2a': {
                 id: 'gho_n2a',
-                text: "*Arquea la espalda contra el cristal.* \"Ellos. Mis amantes internos. Nadan en mi bilis. Es... exquisito.\"",
+                text: "*Apoya la frente contra el cristal y respira hasta recuperar el control. «Siento movimientos bajo las costillas. El médico dijo que podían ser espasmos; nunca me examinó».*",
                 options: [
                     { id: 'gho_o2a', label: 'Qué asco', next: 'gho_n3a' }
                 ]
             },
             'gho_n2b': {
                 id: 'gho_n2b',
-                text: "\"¿Enfermo? No... estoy lleno. Lleno de vida. Me hacen sentir... usado. Útil.\"",
+                text: "*Se sujeta el vientre sin apartar la mirada. «No estoy diciendo que esto sea bueno. Solo que, cuando se detienen, el dolor empeora».*",
                 options: [
                     { id: 'gho_o2b', label: 'Necesitas ayuda', next: 'gho_n3b' },
                     { id: 'gho_o2l', label: '¿Qué tienes ahí?', next: null, resultText: "*Te da un cuaderno manchado.* \"Dibujos... de lo que me piden.\"", onclick: (g) => act.giveLoreItem(g, 'item_tainted_sketchbook', 'Cuaderno Manchado') }

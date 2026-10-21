@@ -287,12 +287,7 @@ export class GameEventManager {
     }
 
     handleSuppliesClick() {
-        let suppliesNPCId = null;
-        if (State.assignments && State.assignments.supplies) {
-            suppliesNPCId = State.assignments.supplies.occupants[0];
-        } else {
-            suppliesNPCId = State.sectorAssignments?.supplies?.[0];
-        }
+        const suppliesNPCId = State.assignments?.supplies?.occupants?.[0] ?? null;
         const npc = State.admittedNPCs.find(n => n.id === suppliesNPCId);
 
         if (!npc) {
@@ -308,12 +303,7 @@ export class GameEventManager {
     }
 
     handleFuelClick() {
-        let fuelNPCId = null;
-        if (State.assignments && State.assignments.fuel) {
-            fuelNPCId = State.assignments.fuel.occupants[0];
-        } else {
-            fuelNPCId = State.sectorAssignments?.fuel?.[0];
-        }
+        const fuelNPCId = State.assignments?.fuel?.occupants?.[0] ?? null;
         const npc = State.admittedNPCs.find(n => n.id === fuelNPCId);
 
         if (!npc) {

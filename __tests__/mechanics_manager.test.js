@@ -71,6 +71,52 @@ describe('GameMechanicsManager', () => {
     });
 
     describe('Generator Logic', () => {
+        test('setGeneratorProtocol rejects unknown modes without mutating state', () => {
+            State.generator.isOn = true;
+            State.generator.mode = 'save';
+
+            const result = gmm.setGeneratorProtocol('turbo');
+
+            expect(result).toBe(false);
+            expect(State.generator.mode).toBe('save');
+            expect(uiMock.showFeedback).toHaveBeenCalledWith('PROTOCOLO INVÁLIDO', 'red', 3000);
+        });
+
+
+        test('protocol changes are accepted once per subject and reset at the next subject', () => {
+            State.generator.mode = 'normal';
+            State.currentNPC = new NPC();
+            State.currentNPC.scanCount = 0;
+
+            expect(gmm.setGeneratorProtocol('save')).toBe(true);
+            expect(State.generator.modeChangedThisTurn).toBe(true);
+            expect(gmm.setGeneratorProtocol('overload')).toBe(false);
+            expect(State.generator.mode).toBe('save');
+
+            State.nextSubject();
+            expect(State.generator.modeChangedThisTurn).toBe(false);
+            expect(gmm.setGeneratorProtocol('overload')).toBe(true);
+            expect(State.generator.mode).toBe('overload');
+        });
+
+        test('an action already taken prevents raising generator mode', () => {
+            State.generator.mode = 'normal';
+            State.generator.modeChangedThisTurn = false;
+            State.currentNPC = new NPC();
+            State.currentNPC.scanCount = 1;
+
+            expect(gmm.setGeneratorProtocol('overload')).toBe(false);
+            expect(State.generator.mode).toBe('normal');
+        });
+
+        test('low battery rejects overload without silently changing the current mode', () => {
+            State.generator.mode = 'normal';
+            State.generator.power = 10;
+
+            expect(gmm.setGeneratorProtocol('overload')).toBe(false);
+            expect(State.generator.mode).toBe('normal');
+        });
+
         test('triggerGeneratorFailure updates state and UI', () => {
             State.generator.isOn = true;
             const npc = new NPC();
@@ -106,6 +152,62 @@ describe('GameMechanicsManager', () => {
         });
     });
 
+    test('laboratory completion sends one result notification', () => {
+        const addMessage = jest.fn();
+        uiMock.tutorialManager = { addMessage };
+        const npc = new NPC();
+        npc.name = 'Sujeto de prueba';
+        npc.isInfected = true;
+        npc.labAnalysisPending = true;
+        npc.revealedStats = [];
+        State.admittedNPCs = [npc];
+
+        gmm.updateTurnEndSystems();
+        gmm.updateTurnEndSystems(); // Reprocessing the same day must not duplicate the sample or notification.
+
+        expect(npc.labAnalysisPending).toBe(false);
+        expect(npc.labAnalysisComplete).toBe(true);
+        expect(npc.revealedStats).toContain('isInfected');
+        expect(State.cureProgress).toBe(1);
+        expect(npc.cureSampleCollected).toBe(true);
+        expect(addMessage).toHaveBeenCalledTimes(1);
+        expect(addMessage).toHaveBeenCalledWith('ANÁLISIS: Sujeto de prueba: POSITIVO', 'danger-green');
+    });
+
+    describe('Laboratory analysis', () => {
+        test('analysis is blocked while the lab system is off', () => {
+            const npc = new NPC();
+            State.admittedNPCs = [npc];
+            State.generator.power = 100;
+            State.generator.systems.shelterLab.active = false;
+
+            const result = gmm.performLabAnalysis(npc.id);
+
+            expect(result).toEqual({ success: false, message: 'ERROR: LABORATORIO APAGADO' });
+            expect(State.generator.power).toBe(100);
+            expect(npc.labAnalysisPending).not.toBe(true);
+        });
+
+        test('analysis consumes power only when the lab is active', () => {
+            const npc = new NPC();
+            State.admittedNPCs = [npc];
+            State.generator.power = 100;
+            State.generator.systems.shelterLab.active = true;
+
+            const result = gmm.performLabAnalysis(npc.id);
+
+            expect(result).toEqual({
+                success: true,
+                message: "CULTIVO INICIADO. RESULTADOS EN 24H.",
+                isPending: true
+            });
+            expect(result).not.toHaveProperty('isInfected');
+            expect(State.generator.power).toBe(60);
+            expect(npc.labAnalysisPending).toBe(true);
+            expect(npc.labAnalysisComplete).not.toBe(true);
+        });
+    });
+
     describe('Purge Consequences', () => {
         test('purging human increases paranoia and decreases sanity', () => {
             const npc = new NPC();
@@ -135,6 +237,18 @@ describe('GameMechanicsManager', () => {
     });
 
     describe('Night Resolution Deep Logic', () => {
+        test('nightly generator recharge still runs when shelter is empty', () => {
+            State.admittedNPCs = [];
+            State.generator.power = 50;
+            State.fuel = 10;
+
+            gmm.processNightResourcesAndTraits();
+
+            expect(State.generator.power).toBe(75);
+            expect(State.fuel).toBe(8);
+        });
+
+
         test('scavenger trait increases supplies at night', () => {
             const npc = new NPC();
             npc.trait = { id: 'scavenger', name: 'Scavenger' };
@@ -196,6 +310,102 @@ describe('GameMechanicsManager', () => {
 
             expect(uiMock.showFeedback).toHaveBeenCalledWith(expect.stringContaining("SISTEMA BLOQUEADO"), "alert", 4000);
             expect(gameMock.endings.triggerEnding).not.toHaveBeenCalled();
+        });
+
+        test('finishRun triggers final_cure after five viable samples and a clean evacuation', () => {
+            Math.random = () => 0.99;
+            State.admittedNPCs = Array.from({ length: 5 }, () => {
+                const npc = new NPC();
+                npc.isInfected = false;
+                return npc;
+            });
+            State.config.maxShelterCapacity = 5;
+            State.cureProgress = 5;
+            State.cureSynthesized = false;
+            State.playerInfected = false;
+            State.generator.isOn = true;
+            State.generator.systems.shelterLab.active = true;
+            State.generator.power = 100;
+            State.paranoia = 0;
+
+            const synthesis = gmm.synthesizeCure();
+            expect(synthesis.success).toBe(true);
+            expect(State.cureSynthesized).toBe(true);
+
+            gmm.finishRun();
+
+            expect(gameMock.endings.triggerEnding).toHaveBeenCalledWith('final_cure');
+            expect(gameMock.endings.triggerEnding).not.toHaveBeenCalledWith('final_clean');
+        });
+
+        test('five completed infected lab analyses lead to the reachable cure ending after clean evacuation', () => {
+            State.config.maxShelterCapacity = 5;
+            State.generator.isOn = true;
+            State.generator.systems.shelterLab.active = true;
+            State.playerInfected = false;
+            State.paranoia = 0;
+
+            const infectedSubjects = Array.from({ length: 5 }, (_, index) => {
+                const npc = new NPC();
+                npc.name = `Muestra ${index + 1}`;
+                npc.isInfected = true;
+                return npc;
+            });
+            State.admittedNPCs = infectedSubjects;
+
+            for (const npc of infectedSubjects) {
+                // Each subject is tested after sufficient generator power has been restored.
+                State.generator.power = 100;
+                const analysis = gmm.performLabAnalysis(npc.id);
+                expect(analysis.isPending).toBe(true);
+                gmm.updateTurnEndSystems();
+            }
+
+            expect(State.cureProgress).toBe(5);
+            expect(infectedSubjects.every(npc => npc.cureSampleCollected)).toBe(true);
+
+            // Remove the confirmed infected subjects, then fill the shelter with clean civilians.
+            for (const npc of [...infectedSubjects]) {
+                expect(State.recordDeath(npc, 'purga')).toBe(true);
+            }
+            const cleanSurvivors = Array.from({ length: 5 }, () => {
+                const npc = new NPC();
+                npc.isInfected = false;
+                return npc;
+            });
+            cleanSurvivors.forEach(npc => expect(State.addAdmitted(npc)).toBe(true));
+            expect(State.admittedNPCs).toHaveLength(5);
+            expect(State.admittedNPCs.every(npc => npc.isInfected === false)).toBe(true);
+
+            State.generator.power = 100;
+            expect(gmm.synthesizeCure().success).toBe(true);
+            expect(State.cureSynthesized).toBe(true);
+            expect(State.admittedNPCs.filter(npc => npc.isInfected)).toHaveLength(0);
+            expect(gameMock.endings.triggerEnding).not.toHaveBeenCalled();
+
+            gmm.finishRun();
+
+            expect(gameMock.endings.triggerEnding).toHaveBeenCalledWith('final_cure');
+        });
+
+        test('five samples alone do not unlock the cure ending', () => {
+            Math.random = () => 0.99;
+            State.admittedNPCs = Array.from({ length: 5 }, () => {
+                const npc = new NPC();
+                npc.isInfected = false;
+                return npc;
+            });
+            State.config.maxShelterCapacity = 5;
+            State.cureProgress = 5;
+            State.cureSynthesized = false;
+            State.playerInfected = false;
+            State.generator.isOn = true;
+            State.paranoia = 0;
+
+            gmm.finishRun();
+
+            expect(gameMock.endings.triggerEnding).toHaveBeenCalledWith('final_clean');
+            expect(gameMock.endings.triggerEnding).not.toHaveBeenCalledWith('final_cure');
         });
 
         test('finishRun triggers final_clean if all safe', () => {

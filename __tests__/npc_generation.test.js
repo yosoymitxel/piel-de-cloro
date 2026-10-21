@@ -80,4 +80,17 @@ describe('NPC Generation System', () => {
         ];
         expect(paranoiaEpithets).toContain(pEpithet);
     });
+    test('NPC display name stays stable across repeated renders', () => {
+        const npc = new NPC(0.0);
+        const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.9);
+
+        const first = npc.getDisplayName();
+        randomSpy.mockReturnValue(0.0);
+        State.paranoia = 100;
+        const second = npc.getDisplayName();
+
+        expect(second).toBe(first);
+        randomSpy.mockRestore();
+    });
+
 });

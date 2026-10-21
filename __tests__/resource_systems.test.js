@@ -50,6 +50,32 @@ describe('Resource Systems (Food, Paranoia, Sanity)', () => {
         gah = new GameActionHandler(gameMock);
     });
 
+    describe('Centralized resource mutations', () => {
+        test('a new run restores the same canonical generator defaults', () => {
+            const expected = JSON.parse(JSON.stringify(State.generator));
+            State.generator.power = 1;
+            State.generator.systems.shelterLab.active = true;
+
+            State.reset();
+
+            expect(State.generator).toEqual(expected);
+        });
+
+        test('generator power clamps all writes to 0–100', () => {
+            expect(State.setGeneratorPower(140)).toBe(100);
+            expect(State.updateGeneratorPower(-150)).toBe(0);
+            expect(State.updateGeneratorPower(25)).toBe(25);
+            expect(State.updateGeneratorPower(Number.NaN)).toBe(25);
+        });
+
+        test('fuel updates cannot create negative or non-finite stock', () => {
+            State.fuel = 2;
+            expect(State.updateFuel(-5)).toBe(0);
+            expect(State.updateFuel(4)).toBe(4);
+            expect(State.updateFuel(Number.NaN)).toBe(4);
+        });
+    });
+
     describe('Food (Supplies) System', () => {
         test('Initial supplies should be 15', () => {
             expect(State.supplies).toBe(15);
@@ -120,6 +146,7 @@ describe('Resource Systems (Food, Paranoia, Sanity)', () => {
             const spy = jest.spyOn(Math, 'random').mockReturnValue(0.99);
             uiMock.showLore.mockImplementation((key, cb) => cb());
 
+            State.isNight = true; // Sleep is a valid action only during the night phase.
             gmm.sleep();
 
             // Base reduction is 10, bonus is 5 -> Total 15

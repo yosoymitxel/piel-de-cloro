@@ -287,32 +287,68 @@ export class UIManager {
         $('.app-version-full').text(`${CONSTANTS.VERSION_LABEL} v${CONSTANTS.VERSION}`);
     }
 
-    updateTimeDisplay() {
-        if (!this.elements.time || this.elements.time.length === 0) return;
-        
-        const time = State.getGameTime();
-        const icon = time.period === 'day' ? 'fa-sun' : 'fa-moon';
-        const color = time.period === 'day' ? 'text-amber-400' : 'text-indigo-400';
-        
-        // Usar HTML para incluir icono
-        this.elements.time.html(`
-            <i class="fa-solid ${icon} ${color} mr-2"></i>
-            <span class="font-mono tracking-widest">${time.formatted}</span>
-        `);
-    }
-
     resetUI() {
         if (this.consoleUpdateInterval) {
             clearInterval(this.consoleUpdateInterval);
             this.consoleUpdateInterval = null;
         }
+
         this.updateVersionLabels();
-        if (this.screenManager) {
-            this.screenManager.updateEndingsRecord(State);
-        }
+        if (this.screenManager) this.screenManager.updateEndingsRecord(State);
+
+        // Close transient UI before clearing its contents.
+        this.closeModal(true);
+        this.closeRelocationModal();
+        if (this.elements.modalTutorial) this.elements.modalTutorial.addClass('hidden').removeClass('flex');
         this.hideFeedback();
         this.clearModalError();
-        // Reset any other UI states if necessary
+
+        // Reset database navigation.
+        if (this.elements.dbNavBtns) {
+            this.elements.dbNavBtns.removeClass('active');
+            this.elements.dbNavBtns.first().addClass('active');
+        }
+        if (this.elements.dbSections) {
+            this.elements.dbSections.addClass('hidden');
+            this.elements.dbSections.first().removeClass('hidden');
+        }
+
+        // Clear run-specific content.
+        if (this.elements.npcDisplay) this.elements.npcDisplay.empty();
+        if (this.elements.dialogue) this.elements.dialogue.html('Esperando sujeto...');
+        if (this.elements.dialogueOptions) this.elements.dialogueOptions.empty();
+        if (this.elements.logContainer) this.elements.logContainer.empty();
+        if (this.elements.shelterGrid) this.elements.shelterGrid.empty();
+        if (this.elements.morgueGridPurged) this.elements.morgueGridPurged.empty();
+        if (this.elements.morgueGridEscaped) this.elements.morgueGridEscaped.empty();
+        if (this.elements.morgueGridNight) this.elements.morgueGridNight.empty();
+        if (this.elements.securityGrid) this.elements.securityGrid.empty();
+
+        // Reset UI counters and navigation state.
+        if (this.elements.shelterCount) this.elements.shelterCount.text('0/0');
+        if (this.elements.securityCount) this.elements.securityCount.text('0');
+        if (this.elements.dayafterTestsLeft) this.elements.dayafterTestsLeft.text('0');
+        if (this.elements.dayafterPendingCount) this.elements.dayafterPendingCount.text('0');
+        if (this.elements.dayafterValidatedCount) this.elements.dayafterValidatedCount.text('0');
+        this.clearAllNavStatuses();
+        this.updateSecurityNavStatus([]);
+
+        // Reflect the already-reset domain state.
+        this.updateStats(
+            State.paranoia,
+            State.sanity,
+            State.cycle,
+            State.dayTime,
+            State.config.dayLength,
+            null,
+            State.supplies
+        );
+        this.updateInspectionTools(null);
+
+        // Remove effects left by the previous run.
+        $('body').css('filter', 'none');
+        $('.vhs-target').removeClass('vhs-active');
+        $('#screen-game').removeClass('is-paused');
     }
 
     initGlobalEffects() {
@@ -748,7 +784,12 @@ export class UIManager {
     }
 
     showSectorAssignmentModal(sector, state, onAssign) {
-        const candidates = state.admittedNPCs.filter(n => !n.death && !n.left && !n.escaped);
+        const currentCycle = state.cycle || 1;
+        const candidates = (state.admittedNPCs || []).filter(npc => {
+            if (!npc || npc.death || npc.left || npc.escaped) return false;
+            const admittedCycle = npc.enterCycle ?? npc.admittedCycle ?? npc.cycle ?? 0;
+            return admittedCycle < currentCycle;
+        });
         const sectorName = CONSTANTS.SECTOR_CONFIG && CONSTANTS.SECTOR_CONFIG[sector] ? CONSTANTS.SECTOR_CONFIG[sector].name : sector.toUpperCase();
 
         // 1. Ensure Modal Exists (Lazy Creation)
@@ -808,7 +849,10 @@ export class UIManager {
         candidates.forEach(npc => {
             const isAssignedHere = npc.assignedSector === sector;
             const isAssignedElsewhere = npc.assignedSector && npc.assignedSector !== sector;
-            const avatarHTML = this.renderAvatar(npc, 'sm').prop('outerHTML'); // Keep this helper for now, usually returns jQuery obj
+            const avatarElement = this.renderAvatar(npc, 'sm');
+            const avatarHTML = avatarElement && typeof avatarElement.prop === 'function'
+                ? avatarElement.prop('outerHTML')
+                : '<div class="text-xs text-gray-500">?</div>';
 
             htmlContent += `
                 <button class="btn-assign-candidate w-full p-2 border ${isAssignedHere ? 'border-terminal-green bg-terminal-green/20' : 'border-white/10 bg-white/5'} hover:bg-white/10 text-left flex items-center gap-3 transition-all" data-id="${npc.id}">
@@ -1473,62 +1517,6 @@ export class UIManager {
         // para evitar ejecuciones duplicadas y problemas con la recreación de elementos.
     }
 
-    resetUI() {
-        // Cerrar cualquier modal abierto
-        this.closeModal(true);
-        this.closeRelocationModal();
-        if (this.elements.modalTutorial) this.elements.modalTutorial.addClass('hidden').removeClass('flex');
-
-        // Resetear navegación de base de datos
-        this.elements.dbNavBtns.removeClass('active');
-        this.elements.dbNavBtns.first().addClass('active');
-        this.elements.dbSections.addClass('hidden');
-        this.elements.dbSections.first().removeClass('hidden');
-
-        // Limpiar contenedores principales
-        if (this.elements.npcDisplay) this.elements.npcDisplay.empty();
-        if (this.elements.dialogue) this.elements.dialogue.html('Esperando sujeto...');
-        if (this.elements.dialogueOptions) this.elements.dialogueOptions.empty();
-        if (this.elements.logContainer) this.elements.logContainer.empty();
-        if (this.elements.shelterGrid) this.elements.shelterGrid.empty();
-        if (this.elements.morgueGridPurged) this.elements.morgueGridPurged.empty();
-        if (this.elements.morgueGridEscaped) this.elements.morgueGridEscaped.empty();
-        if (this.elements.morgueGridNight) this.elements.morgueGridNight.empty();
-        if (this.elements.securityGrid) this.elements.securityGrid.empty();
-
-        // Resetear contadores de UI
-        if (this.elements.shelterCount) this.elements.shelterCount.text('0/0');
-        if (this.elements.securityCount) this.elements.securityCount.text('0');
-        if (this.elements.dayafterTestsLeft) this.elements.dayafterTestsLeft.text('0');
-        if (this.elements.dayafterPendingCount) this.elements.dayafterPendingCount.text('0');
-        if (this.elements.dayafterValidatedCount) this.elements.dayafterValidatedCount.text('0');
-
-        // Resetear estados visuales de navegación
-        this.clearAllNavStatuses();
-        this.updateSecurityNavStatus([]);
-
-        // Resetear HUD a valores iniciales (usando State ya reseteado)
-        this.updateStats(
-            State.paranoia,
-            State.sanity,
-            State.cycle,
-            State.dayTime,
-            State.config.dayLength,
-            null,
-            State.supplies
-        );
-
-        // Resetear herramientas
-        this.updateInspectionTools(null);
-
-        // Quitar filtros globales y efectos
-        $('body').css('filter', 'none');
-        $('.vhs-target').removeClass('vhs-active');
-        $('#screen-game').removeClass('is-paused');
-
-        // Resetear feedback
-        this.hideFeedback();
-    }
 
     renderNPC(npc) {
         // Stop lore audio on NPC change ONLY if the new NPC is not Lore or has different audio
@@ -2376,11 +2364,9 @@ export class UIManager {
             let assignedName = 'VACANTE';
             let assignedId = null;
 
-            if (sec.id === 'generator') {
-                assignedId = state.generator.assignedGuardId;
-            } else {
-                assignedId = state.sectorAssignments[sec.id]?.[0];
-            }
+            // The structured assignments map is authoritative; generator.assignedGuardId is legacy-only.
+            assignedId = state.assignments?.[sec.id]?.occupants?.[0]
+                ?? (sec.id === 'generator' ? state.generator?.assignedGuardId : null);
 
             if (assignedId) {
                 const npc = state.admittedNPCs.find(n => n.id === assignedId);
@@ -2450,115 +2436,13 @@ export class UIManager {
         });
     }
 
-    showSectorAssignmentModal(sector, state, onAssign) {
-        // Filter eligible NPCs: must have been admitted BEFORE this cycle
-        const currentCycle = state.cycle || 1;
-        const candidates = (state.admittedNPCs || []).filter(npc => {
-            const admittedCycle = npc.admittedCycle || npc.cycle || 0;
-            return admittedCycle < currentCycle;
-        });
-
-        if (candidates.length === 0) {
-            if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
-            this.showFeedback("NO HAY PERSONAL DISPONIBLE (Los NPCs deben esperar un turno)", "orange", 3000);
-            return;
-        }
-
-        const self = this;
-        $('#sector-assignment-modal').remove();
-
-        let candidatesHtml = '';
-        candidates.forEach(npc => {
-            const avatarEl = this.renderAvatar(npc, 'md');
-            const avatarHtml = avatarEl && avatarEl.prop ? avatarEl.prop('outerHTML') : '<div class="text-xs text-gray-500">?</div>';
-
-            // Determine if assigned
-            let isCurrent = false;
-            if (sector === 'generator') {
-                isCurrent = state.generator.assignedGuardId === npc.id;
-            } else {
-                isCurrent = state.sectorAssignments && state.sectorAssignments[sector] && state.sectorAssignments[sector].includes(npc.id);
-            }
-
-            candidatesHtml += `
-                <div class="guard-candidate-item cursor-pointer w-full flex items-center gap-3 p-3 ${isCurrent ? 'bg-terminal-green/10 border-terminal-green/40' : 'bg-white/5 border-white/10'} border hover:bg-terminal-green/20 hover:border-terminal-green/50 transition-all rounded mb-2" data-npcid="${npc.id}">
-                    <div class="w-10 h-10 border border-white/10 bg-black rounded overflow-hidden flex-shrink-0">
-                        ${avatarHtml}
-                    </div>
-                    <div class="flex flex-col flex-1 min-w-0">
-                        <span class="text-sm font-bold text-white truncate">${npc.name}</span>
-                        <span class="text-[10px] opacity-50 font-mono">${npc.uniqueType === 'lore' ? 'Sujeto Especial' : 'Civil Admitido'}</span>
-                    </div>
-                    ${isCurrent ? '<span class="text-[9px] text-terminal-green font-mono uppercase flex-shrink-0">● Actual</span>' : '<i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>'}
-                </div>
-            `;
-        });
-
-        const modalHtml = `
-            <div id="sector-assignment-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-                <div class="horror-panel-modal w-full max-w-sm p-0 overflow-hidden border border-terminal-green/30 bg-[#0a0a0a] rounded animate__animated animate__fadeIn animate__faster">
-                    <div class="p-3 border-b border-terminal-green/20 flex justify-between items-center bg-terminal-green/5">
-                        <h3 class="text-sm font-bold uppercase tracking-widest text-terminal-green">
-                            <i class="fa-solid fa-user-shield mr-2"></i>Asignar a ${sector.toUpperCase()}
-                        </h3>
-                        <button id="sector-modal-close" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fa-solid fa-xmark text-lg"></i>
-                        </button>
-                    </div>
-                    <div class="p-4 max-h-[400px] overflow-y-auto custom-scrollbar">
-                        ${candidatesHtml}
-                    </div>
-                </div>
-            </div>
-        `;
-
-        $('body').append(modalHtml);
-
-        const closeModal = () => {
-            $('#sector-assignment-modal').fadeOut(150, function () { $(this).remove(); });
-        };
-
-        $('#sector-modal-close').on('click', closeModal);
-        $('#sector-assignment-modal').on('click', function (e) { if (e.target === this) closeModal(); });
-
-        $('.guard-candidate-item').on('click', function (e) {
-            e.preventDefault();
-            const selectedId = $(this).attr('data-npcid');
-            const selectedNPC = state.admittedNPCs.find(n => n.id === selectedId);
-
-            if (selectedNPC) {
-                if (onAssign) {
-                    onAssign(selectedNPC);
-                } else {
-                    // Default logic
-                    const game = self.game || window.game;
-                    if (game && game.mechanics) {
-                        game.mechanics.assignNPCToSector(selectedNPC, sector);
-                    }
-                }
-
-                // if (self.audio) self.audio.playSFXByKey('ui_success', { volume: 0.5 }); // Removed in favor of assignment_set
-                self.showFeedback(`✓ ASIGNADO A ${sector.toUpperCase()}: ${selectedNPC.name}`, "green", 2000, { sound: 'assignment_set', volume: 0.5 });
-            }
-            closeModal();
-        });
-    }
-
     renderSectorPanel(containerSelector, sector, state, titleOverride = null) {
         const container = $(containerSelector);
         if (!container.length) return;
 
         container.empty();
 
-        let guardId = null;
-        if (state.assignments && state.assignments[sector]) {
-            // New System
-            guardId = state.assignments[sector].occupants[0];
-        } else if (sector === 'generator') {
-            guardId = state.generator.assignedGuardId;
-        } else {
-            guardId = state.sectorAssignments && state.sectorAssignments[sector] ? state.sectorAssignments[sector][0] : null;
-        }
+        const guardId = state.assignments?.[sector]?.occupants?.[0] ?? null;
 
         const guard = guardId ? state.admittedNPCs.find(n => n.id === guardId) : null;
         const title = titleOverride || (guard ? 'OPERADOR ACTIVO' : 'PUESTO VACANTE');
@@ -3164,6 +3048,7 @@ export class UIManager {
         
         // Update Status
         const isGenOn = state.generator && state.generator.isOn;
+        const isLabActive = Boolean(state.generator?.systems?.shelterLab?.active);
         const statusText = $('#lab-status-text');
         
         if (statusText.length) {
@@ -3209,6 +3094,29 @@ export class UIManager {
                 </option>`;
             });
 
+            const cureActionHtml = state.cureSynthesized
+                ? `
+                    <div class="border border-green-500/30 bg-green-500/5 p-3 text-center">
+                        <div class="text-green-400 text-xs font-bold tracking-widest"><i class="fa-solid fa-check-circle mr-1"></i> CURA SINTETIZADA</div>
+                        <div class="text-[10px] text-gray-400 mt-1">Muestras viables: 5/5 · Coste aplicado: 50% energía</div>
+                    </div>
+                `
+                : (Number(state.cureProgress || 0) >= 5
+                    ? `
+                        <div class="border border-cyan-500/30 bg-cyan-500/5 p-3 flex flex-col gap-2">
+                            <div class="text-cyan-300 text-xs font-bold tracking-widest">MUESTRAS VIABLES: 5/5</div>
+                            <button id="btn-lab-synthesize" class="horror-btn border-cyan-400/50 text-cyan-200 text-xs px-3 py-2 uppercase font-bold tracking-wider" ${(!isLabActive || state.generator.power < 50) ? 'disabled' : ''}>
+                                <i class="fa-solid fa-flask-vial mr-1"></i> SINTETIZAR CURA · 50% ENERGÍA
+                            </button>
+                            ${!isLabActive ? '<span class="text-[10px] text-alert">ACTIVA EL LABORATORIO PARA CONTINUAR</span>' : (state.generator.power < 50 ? '<span class="text-[10px] text-alert">ENERGÍA INSUFICIENTE</span>' : '')}
+                        </div>
+                    `
+                    : `
+                        <div class="border border-white/10 bg-black/30 p-2 text-[10px] text-gray-500 font-mono text-center">
+                            MUESTRAS PARA CURA: ${Math.min(5, Number(state.cureProgress || 0))}/5
+                        </div>
+                    `);
+
             const html = `
                 <div class="flex flex-col gap-4 w-full">
                     <div class="flex items-center gap-2 mb-2">
@@ -3229,6 +3137,8 @@ export class UIManager {
                         <span class="text-[10px] text-blue-500/50 font-mono animate-pulse">ESPERANDO MUESTRA...</span>
                     </div>
 
+                    ${cureActionHtml}
+
                     <div class="text-[9px] text-gray-500 font-mono mt-1 border-t border-white/5 pt-2 flex justify-between">
                         <span>COSTE: 40% ENERGÍA</span>
                         <span>TIEMPO: 24 HORAS</span>
@@ -3239,6 +3149,18 @@ export class UIManager {
             consoleContainer.html(html);
 
             // Bind Events
+            $('#btn-lab-synthesize').off('click').on('click', () => {
+                const result = this.game.mechanics.synthesizeCure();
+                if (result.success) {
+                    if (this.audio) this.audio.playSFXByKey('ui_success', { volume: 0.7 });
+                    this.showFeedback(result.message, 'green', 4000);
+                } else {
+                    this.showFeedback(result.message, 'red', 3000);
+                }
+                this.renderLab(state);
+                this.updateEnergyHUD();
+            });
+
             $('#btn-lab-analyze').off('click').on('click', () => {
                 const subjectId = $('#lab-subject-select').val();
                 if (!subjectId) return;
@@ -3932,13 +3854,7 @@ export class UIManager {
         const indicators = [];
         
         // Helper to count specific assignments
-        const countAssigned = (sector) => {
-            try {
-                if (State.assignments && State.assignments[sector]) return State.assignments[sector].occupants.length;
-                if (State.sectorAssignments && State.sectorAssignments[sector]) return State.sectorAssignments[sector].length;
-            } catch (e) { console.warn("Error counting assigned:", e); }
-            return 0;
-        };
+        const countAssigned = (sector) => State.assignments?.[sector]?.occupants?.length ?? 0;
 
         try {
             switch (typeKey) {

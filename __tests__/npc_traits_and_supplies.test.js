@@ -206,6 +206,7 @@ describe('NPC Traits and Supplies Mechanics', () => {
 
             State.admittedNPCs = [infected, toughCivilian, normalCivilian];
 
+            State.isNight = true; // Sleep is a valid action only during the night phase.
             gmm.sleep();
 
             // Normal guy should be dead, tough guy should be alive

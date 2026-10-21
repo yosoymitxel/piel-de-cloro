@@ -25,23 +25,17 @@ export class GameMechanicsManager {
             if (state.generator.power < 100) {
                 const fuelNeeded = 2;
                 if (state.fuel >= fuelNeeded) {
-                    state.fuel -= fuelNeeded;
-                    // state.generator.power = Math.min(100, state.generator.power + 25);
-                    if (State.updateGeneratorPower) State.updateGeneratorPower(25);
-                    else state.generator.power = Math.min(100, state.generator.power + 25);
+                    state.updateFuel(-fuelNeeded);
+                    state.updateGeneratorPower(25);
                     
                     summary += "Recarga nocturna completada (-2 combustible). ";
                 } else if (state.fuel > 0) {
-                    state.fuel = 0;
-                    // state.generator.power = Math.min(100, state.generator.power + 10);
-                    if (State.updateGeneratorPower) State.updateGeneratorPower(10);
-                    else state.generator.power = Math.min(100, state.generator.power + 10);
+                    state.updateFuel(-state.fuel);
+                    state.updateGeneratorPower(10);
                     
                     summary += "Recarga parcial por falta de combustible. ";
                 } else {
-                    // state.generator.power = Math.min(100, state.generator.power + 5);
-                    if (State.updateGeneratorPower) State.updateGeneratorPower(5);
-                    else state.generator.power = Math.min(100, state.generator.power + 5);
+                    state.updateGeneratorPower(5);
                     
                     summary += "Recarga mínima (sin combustible). ";
                 }
@@ -64,9 +58,7 @@ export class GameMechanicsManager {
                     const deathProbability = 0.5 * deathReduction;
 
                     if (npc.trait && npc.trait.id === 'sickly' && Math.random() < deathProbability) {
-                        admitted.splice(i, 1);
-                        npc.death = { reason: 'fallo_soporte_vital', cycle: state.cycle, revealed: false };
-                        state.purgedNPCs.push(npc);
+                        state.recordDeath(npc, 'fallo_soporte_vital');
                         summary += `${npc.name} ha muerto debido a la falta de soporte vital. `;
                         state.addLogEntry('danger', `CRÍTICO: ${npc.name} falleció por fallo en soporte vital.`, { icon: 'fa-lungs-virus' });
                     }
@@ -109,8 +101,8 @@ export class GameMechanicsManager {
                 const suppliesDrain = anomalies.length * 5;
 
                 state.updateSanity(-sanityDrain);
-                state.fuel = Math.max(0, state.fuel - fuelDrain);
-                state.supplies = Math.max(0, state.supplies - suppliesDrain);
+                state.updateFuel(-fuelDrain);
+                state.updateSupplies(-suppliesDrain);
 
                 summary += `ALERTA DE CONTENCIÓN: ${anomalies.length} anomalía(s) activa(s). Drenaje crítico de recursos y cordura (-${sanityDrain}%). `;
                 state.addLogEntry('danger', `ANOMALÍA EN REFUGIO: Presencia hostil detectada. Drenaje masivo.`, { icon: 'fa-skull' });
@@ -267,8 +259,8 @@ export class GameMechanicsManager {
     updateGenerator() {
         if (State.paused) return;
 
-        // Ensure strictly within bounds
-        State.generator.power = Math.min(100, Math.max(0, State.generator.power));
+        // Normalize through the state API so every mutation follows the same bounds.
+        State.setGeneratorPower(State.generator.power);
 
         if (!State.generator.isOn) {
             State.generator.load = 0;
@@ -288,9 +280,7 @@ export class GameMechanicsManager {
         const baseDrain = totalLoad / 20;
         const batteryDrain = baseDrain * bonuses.consumptionMap;
 
-        // State.generator.power = Math.max(0, State.generator.power - batteryDrain);
-        if (State.updateGeneratorPower) State.updateGeneratorPower(-batteryDrain);
-        else State.generator.power = Math.max(0, State.generator.power - batteryDrain);
+        State.updateGeneratorPower(-batteryDrain);
 
         if (State.generator.power <= 0) {
             // this.audio.playSFXByKey('generator_stop', { volume: 0.6 });
@@ -303,7 +293,6 @@ export class GameMechanicsManager {
         // Fase 1.1 Roadmap: Forzar modo SAVE si batería < 15% y estamos en overload
         if (State.generator.power < 15 && State.generator.mode === 'overload') {
             State.generator.mode = 'save';
-            State.generator.maxModeCapacityReached = 1;
             State.addLogEntry('system', 'ALERTA: Batería crítica. Protocolo forzado a AHORRO.');
             this.ui.showFeedback("¡BATERÍA CRÍTICA! MODO AHORRO FORZADO", "red", 4000);
             this.audio.playSFXByKey('glitch_low', { volume: 0.5 });
@@ -398,7 +387,7 @@ export class GameMechanicsManager {
         State.generator.isOn = false;
         State.generator.load = 0; // Force load to 0
         State.generator.mode = 'normal'; // Reset mode for next start
-        State.generator.power = Math.floor(State.generator.power * 0.4); // Keep 40%
+        State.setGeneratorPower(Math.floor(State.generator.power * 0.4)); // Keep 40%
         if (State.currentNPC) {
             State.currentNPC.scanCount = 99;
         }
@@ -416,48 +405,45 @@ export class GameMechanicsManager {
     }
 
     setGeneratorProtocol(newMode) {
-        if (!State.generator.isOn) return false;
+        const generator = State.generator;
+        if (State.paused || !generator?.isOn) return false;
 
-        const capMap = { 'save': 1, 'normal': 2, 'overload': 3 };
-        const powerMap = { 'save': 32, 'normal': 63, 'overload': 95 };
-        const newCap = capMap[newMode] || 2;
+        const capMap = { save: 1, normal: 2, overload: 3 };
+        if (!Object.prototype.hasOwnProperty.call(capMap, newMode)) {
+            this.ui.showFeedback("PROTOCOLO INVÁLIDO", "red", 3000);
+            return false;
+        }
+        if (newMode === generator.mode) return true;
 
-        const npc = State.currentNPC;
-        const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || State.generator.restartLock;
-        const currentMax = State.generator.maxModeCapacityReached || 2;
-
-        // Validación de Protocolo (No se puede aumentar carga si ya se empezó a actuar)
-        if (actionTaken && newCap > currentMax) {
-            this.ui.showFeedback("PROTOCOLO BLOQUEADO: ACCIÓN EN CURSO", "red", 3000);
+        if (generator.modeChangedThisTurn) {
+            this.ui.showFeedback("PROTOCOLO BLOQUEADO: YA CAMBIÓ ESTE TURNO", "red", 3000);
+            this.audio.playSFXByKey('ui_error', { volume: 0.5 });
             return false;
         }
 
-        // Fase 1.1 Roadmap: Bloquear Overload si batería < 15%
-        if (newMode === 'overload' && State.generator.power < 15) {
+        const newCap = capMap[newMode];
+        const currentCap = capMap[generator.mode] ?? 2;
+        const npc = State.currentNPC;
+        const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || generator.restartLock;
+
+        if (actionTaken && newCap > currentCap) {
+            this.ui.showFeedback("PROTOCOLO BLOQUEADO: SOLO PUEDE DISMINUIR", "red", 3000);
+            return false;
+        }
+
+        if (newMode === 'overload' && generator.power < 15) {
             this.ui.showFeedback("BATERÍA INSUFICIENTE PARA SOBRECARGA (< 15%)", "red", 4000);
             this.audio.playSFXByKey('ui_error', { volume: 0.5 });
-            // Forzar cambio a modo save si estaba intentando overload
-            if (State.generator.mode !== 'save') {
-                State.generator.mode = 'save';
-                State.addLogEntry('system', 'Protocolo forzado a AHORRO por batería crítica.');
-                this.ui.showFeedback("MODO AHORRO ACTIVADO AUTOMÁTICAMENTE", "yellow", 3000);
-            }
             return false;
         }
 
-        State.generator.mode = newMode;
-        // REMOVED: State.generator.power = powerMap[newMode]; // Battery level should not jump visually
-        State.generator.maxModeCapacityReached = Math.max(currentMax, newCap);
+        generator.mode = newMode;
+        generator.modeChangedThisTurn = true;
 
         this.ui.showFeedback(`PROTOCOLO ${newMode.toUpperCase()} CARGADO`, "green", 3000);
-        // Audio click removed to avoid interference with showFeedback (which plays ui_confirm)
-
-        // Sincronizar UI centralmente
         this.ui.updateGeneratorNavStatus();
         this.ui.updateEnergyHUD();
-        if (State.currentScreen === 'generator') {
-            this.ui.renderGeneratorRoom();
-        }
+        if (State.currentScreen === 'generator') this.ui.renderGeneratorRoom();
 
         return true;
     }
@@ -476,13 +462,12 @@ export class GameMechanicsManager {
 
             // Reinicio de estabilidad tras encendido manual
             State.generator.mode = 'save';
-            State.generator.maxModeCapacityReached = 1;
             State.generator.load = this.calculateTotalLoad();
             State.generator.stability = Math.min(40, State.generator.stability + 10);
 
             // Si la batería estaba en 0, dar un poquito para arrancar
             if (State.generator.power <= 0) {
-                State.generator.power = 5;
+                State.setGeneratorPower(5);
             }
 
             State.generator.restartLock = true;
@@ -570,7 +555,7 @@ export class GameMechanicsManager {
             message = lies[Math.floor(Math.random() * lies.length)];
 
             if (!initial) {
-                State.generator.power = Math.max(0, State.generator.power - 2);
+                State.updateGeneratorPower(-2);
             }
         } else {
             message = `Estado nominal. Carga actual: ${Math.floor((State.generator.load / State.generator.capacity) * 100)}%. Batería: ${Math.floor(State.generator.power)}%`;
@@ -595,8 +580,7 @@ export class GameMechanicsManager {
 
         State.updateSupplies(-3);
         
-        if (State.updateGeneratorPower) State.updateGeneratorPower(15);
-        else State.generator.power = Math.min(100, State.generator.power + 15);
+        State.updateGeneratorPower(15);
         
         // this.audio.playSFXByKey('ui_button_click', { volume: 0.8 }); // Removed to rely on feedback sound
         this.ui.showFeedback("CARGA DE EMERGENCIA REALIZADA (+15%)", "green", 3000, { sound: 'refuel_glug', volume: 0.6 });
@@ -635,16 +619,12 @@ export class GameMechanicsManager {
         }
 
         // Consumir 1 bidón de fuel
-        State.fuel = Math.max(0, State.fuel - 1);
+        State.updateFuel(-1);
 
         // Añadir +25% de batería (Estándar Fase 1.1)
         const rechargeAmount = 25;
         
-        if (typeof State.updateGeneratorPower === 'function') {
-            State.updateGeneratorPower(rechargeAmount);
-        } else {
-            State.generator.power = Math.min(100, State.generator.power + rechargeAmount);
-        }
+        State.updateGeneratorPower(rechargeAmount);
 
         // Feedback visual y sonoro
         // if (this.audio) this.audio.playSFXByKey('refuel_glug', { volume: 0.8 }); // Handled by showFeedback
@@ -746,7 +726,8 @@ export class GameMechanicsManager {
     }
 
     sleep() {
-        if (State.paused) return;
+        if (State.paused || State.endingTriggered || !State.isNight || State.lastNight.resolutionStarted) return false;
+        State.lastNight.resolutionStarted = true;
 
         // CRITICAL: Check for lore NPC danger FIRST (80% death probability)
         const loreDanger = this.checkLoreNPCDanger();
@@ -812,9 +793,7 @@ export class GameMechanicsManager {
 
             if (finalVictimIndex > -1) {
                 const victim = admitted[finalVictimIndex];
-                admitted.splice(finalVictimIndex, 1);
-                victim.death = { reason: 'asesinado', cycle: State.cycle, revealed: false };
-                State.purgedNPCs.push(victim);
+                State.recordDeath(victim, 'asesinado');
                 State.lastNight.message = `${resourceSummary}Durante la noche, ${victim.name} fue asesinado. Se sospecha presencia de cloro.`;
                 State.lastNight.victims = 1;
                 this.audio.playSFXByKey('lore_night_civil_death', { volume: 0.5 });
@@ -875,8 +854,8 @@ export class GameMechanicsManager {
         const admitted = State.admittedNPCs;
         let summary = "";
 
-        if (admitted.length === 0) return summary;
-
+        // Nightly system hooks (generator recharge, life support, security, anomalies)
+        // must run even when the shelter has no admitted NPCs.
         let totalConsumption = 0;
         let scavenged = 0;
         let sanityMod = 0;
@@ -1030,11 +1009,7 @@ export class GameMechanicsManager {
 
         // Resolver deserciones
         departed.forEach(npc => {
-            const idx = admitted.indexOf(npc);
-            if (idx > -1) {
-                admitted.splice(idx, 1);
-                npc.exitDate = State.cycle;
-                State.departedNPCs.push(npc);
+            if (State.markDeparted(npc)) {
                 summary += `${npc.name} ha abandonado el refugio por miedo. `;
                 State.addLogEntry('warning', `DESERCIÓN: ${npc.name} ha huido de la instalación.`, { icon: 'fa-person-running' });
             }
@@ -1065,10 +1040,7 @@ export class GameMechanicsManager {
             if (admitted.length > 0) {
                 const victimIndex = Math.floor(Math.random() * admitted.length);
                 const victim = admitted[victimIndex];
-                admitted.splice(victimIndex, 1);
-
-                victim.death = { reason: 'canibalismo', cycle: State.cycle, revealed: true };
-                State.purgedNPCs.push(victim);
+                State.recordDeath(victim, 'canibalismo', true);
                 State.updateSupplies(5);
                 State.updateSanity(-25);
                 summary += `INCIDENTE CRÍTICO: La desesperación absoluta ha resultado en canibalismo. ${victim.name} ha sido sacrificado. `;
@@ -1080,9 +1052,7 @@ export class GameMechanicsManager {
             if (admitted.length > 0) {
                 const index = Math.floor(Math.random() * admitted.length);
                 const leaver = admitted[index];
-                admitted.splice(index, 1);
-                leaver.exitDate = State.cycle;
-                State.departedNPCs.push(leaver);
+                State.markDeparted(leaver);
                 summary += `${leaver.name} ha huido del refugio por falta de comida. `;
                 State.addLogEntry('warning', `DESERCIÓN: ${leaver.name} ha huido por inanición.`, { icon: 'fa-person-running' });
             }
@@ -1102,6 +1072,11 @@ export class GameMechanicsManager {
 
     startNextDay() {
         State.startNextDay();
+        // Reset per-night guards for the new cycle; the next night must run once.
+        State.lastNight.occurred = false;
+        State.lastNight.resolutionStarted = false;
+        State.lastNight.victims = 0;
+        State.lastNight.message = '';
 
         // Fase 1.2 Roadmap: Randomizar cantidad de sujetos diarios (3-6)
         State.config.dayLength = Math.floor(Math.random() * 4) + 3; // 3-6 sujetos
@@ -1168,17 +1143,21 @@ export class GameMechanicsManager {
                 }
                 npc.isBloodValidated = true; // Flag legacy para compatibilidad
 
-                const resultStr = npc.isInfected ? 'POSITIVO' : 'NEGATIVO';
-                
-                // Notification for tutorial/HUD
-                if (this.ui.tutorialManager) {
-                    this.ui.tutorialManager.addMessage(`LAB: Resultados de ${npc.name} listos.`, "info");
+                // Cada sujeto infectado analizado aporta una muestra viable única.
+                if (npc.isInfected && !npc.cureSampleCollected) {
+                    npc.cureSampleCollected = true;
+                    State.cureProgress = Math.min(5, (State.cureProgress || 0) + 1);
+                    State.addLogEntry('system', `MUESTRA VIABLE: ${State.cureProgress}/5 registradas.`, { icon: 'fa-vial' });
                 }
 
-                // Enviar notificación al Tutorial Manager con estilo visual específico
-                if (this.game.ui.tutorialManager) {
+                const resultStr = npc.isInfected ? 'POSITIVO' : 'NEGATIVO';
+                
+                // Una sola notificación por resultado, con severidad explícita.
+                // this.ui y this.game.ui son la misma instancia en el flujo normal.
+                const tutorialManager = this.game?.ui?.tutorialManager ?? this.ui?.tutorialManager;
+                if (tutorialManager) {
                     const type = npc.isInfected ? 'danger-green' : 'neutral-white';
-                    this.game.ui.tutorialManager.addMessage(`ANÁLISIS: ${npc.name}: ${resultStr}`, type);
+                    tutorialManager.addMessage(`ANÁLISIS: ${npc.name}: ${resultStr}`, type);
                 }
                 
                 // También añadir al log general (opcional, pero útil)
@@ -1195,6 +1174,9 @@ export class GameMechanicsManager {
     performLabAnalysis(npcId) {
         if (!State.generator.isOn) {
             return { success: false, message: "ERROR: GENERADOR APAGADO" };
+        }
+        if (!State.generator.systems?.shelterLab?.active) {
+            return { success: false, message: "ERROR: LABORATORIO APAGADO" };
         }
 
         const npc = State.admittedNPCs.find(n => n.id === npcId);
@@ -1217,66 +1199,61 @@ export class GameMechanicsManager {
 
         State.addLogEntry('system', `LABORATORIO: Iniciando cultivo biológico para ${npc.name}.`, { icon: 'fa-vial' });
 
-        return { 
-            success: true, 
+        return {
+            success: true,
             message: "CULTIVO INICIADO. RESULTADOS EN 24H.",
-            isInfected: false // No revelamos nada aún
+            isPending: true
         };
     }
 
-    assignNPCToSector(npc, sector) {
-        if (this.game.assignments) {
-            this.game.assignments.assign(npc.id, sector);
-        } else {
-            console.error("AssignmentManager not initialized");
-            // Fallback (legacy)
-            if (!State.sectorAssignments[sector]) State.sectorAssignments[sector] = [];
-            Object.keys(State.sectorAssignments).forEach(s => {
-                const idx = State.sectorAssignments[s].indexOf(npc.id);
-                if (idx > -1) State.sectorAssignments[s].splice(idx, 1);
-            });
-            State.sectorAssignments[sector].push(npc.id);
-            npc.assignedSector = sector;
-            if (sector === 'generator') {
-                State.generator.assignedGuardId = npc.id;
-            } else if (State.generator.assignedGuardId === npc.id) {
-                State.generator.assignedGuardId = null;
-            }
+    synthesizeCure() {
+        if (!State.generator.isOn) {
+            return { success: false, message: "ERROR: GENERADOR APAGADO" };
         }
+        if (!State.generator.systems?.shelterLab?.active) {
+            return { success: false, message: "ERROR: LABORATORIO APAGADO" };
+        }
+        if ((State.cureProgress || 0) < 5) {
+            return { success: false, message: `MUESTRAS INSUFICIENTES (${State.cureProgress || 0}/5)` };
+        }
+        if (State.cureSynthesized) {
+            return { success: false, message: "LA CURA YA FUE SINTETIZADA" };
+        }
+
+        const ENERGY_COST = 50;
+        if (State.generator.power < ENERGY_COST) {
+            return { success: false, message: `ENERGÍA INSUFICIENTE (REQ: ${ENERGY_COST}%)` };
+        }
+
+        State.updateGeneratorPower(-ENERGY_COST);
+        State.cureSynthesized = true;
+        State.addLogEntry('system', 'LABORATORIO: Cura sintetizada a partir de cinco muestras viables.', { icon: 'fa-flask-vial' });
+        return { success: true, message: 'CURA SINTETIZADA. PROTOCOLO DE EVACUACIÓN DISPONIBLE.' };
+    }
+
+    assignNPCToSector(npc, sector) {
+        const assignmentManager = this.game?.assignments;
+        if (!npc?.id || !assignmentManager || typeof assignmentManager.assign !== 'function') {
+            this.ui.showFeedback('SISTEMA DE ASIGNACIÓN NO DISPONIBLE', 'red', 3000);
+            return false;
+        }
+        return assignmentManager.assign(npc.id, sector);
     }
 
     processSectorSabotages() {
         let sabotageHappened = false;
 
-        // Use new Assignments system if available
-        if (State.assignments) {
-            Object.keys(State.assignments).forEach(sector => {
-                const data = State.assignments[sector];
-                // Skip if data is malformed (should contain occupants)
-                if (!data || !data.occupants) return;
-
-                const assignedIds = data.occupants;
-                assignedIds.forEach(id => {
-                    const npc = State.admittedNPCs.find(n => n.id === id);
-                    if (npc && npc.isInfected && Math.random() < 0.15) { // 15% prob de sabotaje por infectado
-                        sabotageHappened = true;
-                        this.triggerSabotage(sector, npc);
-                    }
-                });
+        Object.keys(State.assignments || {}).forEach(sector => {
+            const assignedIds = State.assignments[sector]?.occupants;
+            if (!Array.isArray(assignedIds)) return;
+            assignedIds.forEach(id => {
+                const npc = State.admittedNPCs.find(candidate => candidate.id === id);
+                if (npc?.isInfected && Math.random() < 0.15) {
+                    sabotageHappened = true;
+                    this.triggerSabotage(sector, npc);
+                }
             });
-        } else {
-            // Legacy Fallback
-            Object.keys(State.sectorAssignments).forEach(sector => {
-                const assignedIds = State.sectorAssignments[sector];
-                assignedIds.forEach(id => {
-                    const npc = State.admittedNPCs.find(n => n.id === id);
-                    if (npc && npc.isInfected && Math.random() < 0.15) { // 15% prob de sabotaje por infectado
-                        sabotageHappened = true;
-                        this.triggerSabotage(sector, npc);
-                    }
-                });
-            });
-        }
+        });
 
         return sabotageHappened;
     }
@@ -1401,7 +1378,7 @@ export class GameMechanicsManager {
     }
 
     handleIntrusionCombat(via, period) {
-        const securityNPCId = State.sectorAssignments?.security?.[0];
+        const securityNPCId = State.assignments?.security?.occupants?.[0] ?? null;
         const guard = State.admittedNPCs.find(n => n.id === securityNPCId);
 
         if (!guard) {
@@ -1441,12 +1418,7 @@ export class GameMechanicsManager {
             const fatal = Math.random() < 0.4;
             if (fatal) {
                 // MUERTE
-                const idx = State.admittedNPCs.indexOf(guard);
-                if (idx > -1) {
-                    State.admittedNPCs.splice(idx, 1);
-                    State._unassignFromAll(guard); // This updates State assignments
-                    guard.death = { reason: `combate contra intruso (${via.type})`, cycle: State.cycle, revealed: true };
-                    State.purgedNPCs.push(guard);
+                if (State.recordDeath(guard, `combate contra intruso (${via.type})`, true)) {
 
                     State.addLogEntry('system', `CRÍTICO: ${guard.name} murió defendiendo el refugio contra una intrusión vía ${via.type}.`, { icon: 'fa-skull' });
                     this.ui.showFeedback(`${guard.name} HA CAÍDO EN COMBATE`, "red", 7000);
@@ -1655,12 +1627,7 @@ export class GameMechanicsManager {
             }, 1500);
         } else {
             // MUERTE
-            const idx = State.admittedNPCs.indexOf(npc);
-            if (idx > -1) {
-                State.admittedNPCs.splice(idx, 1);
-                State._unassignFromAll(npc); // Ensure clean removal from posts
-                npc.death = { reason: 'muerto en expedición externa (suministros)', cycle: State.cycle, revealed: true };
-                State.purgedNPCs.push(npc);
+            if (State.recordDeath(npc, 'muerto en expedición externa (suministros)', true)) {
 
                 State.addLogEntry('system', `PÉRDIDA: La señal de ${npc.name} se perdió permanentemente durante la búsqueda de suministros.`, { icon: 'fa-skull' });
                 this.ui.showFeedback(`${npc.name} NO REGRESÓ DE LA EXPEDICIÓN`, "red", 7000);
@@ -1739,7 +1706,7 @@ export class GameMechanicsManager {
         const survived = Math.random() * 100 > risk;
 
         if (survived) {
-            State.fuel += loot;
+            State.updateFuel(loot);
             State.addLogEntry('system', `COMBUSTIBLE: ${npc.name} recuperó ${loot} bidones.`, { icon: 'fa-gas-pump' });
             this.ui.showFeedback(`EXPEDICIÓN RIESGOSA ÉXITOSA: +${loot} COMBUSTIBLE`, "green", 5000);
 
@@ -1752,12 +1719,7 @@ export class GameMechanicsManager {
                 this.game.events.switchScreen('map', { force: true, lockNav: false });
             }, 1500);
         } else {
-            const idx = State.admittedNPCs.indexOf(npc);
-            if (idx > -1) {
-                State.admittedNPCs.splice(idx, 1);
-                State._unassignFromAll(npc); // Ensure clean removal from posts
-                npc.death = { reason: 'muerto extrayendo combustible (letalidad alta)', cycle: State.cycle, revealed: true };
-                State.purgedNPCs.push(npc);
+            if (State.recordDeath(npc, 'muerto extrayendo combustible (letalidad alta)', true)) {
 
                 State.addLogEntry('system', `BAJA CRÍTICA: La señal de ${npc.name} desapareció en el depósito de combustible.`, { icon: 'fa-radiation' });
                 this.ui.showFeedback(`${npc.name} PERECIÓ EN EL DEPÓSITO`, "red", 7000);
@@ -1840,7 +1802,9 @@ export class GameMechanicsManager {
         }
 
         this.ui.showLore('pre_final', () => {
-            if (infectedCount === 0) {
+            if (infectedCount === 0 && State.cureSynthesized) {
+                this.game.endings.triggerEnding('final_cure');
+            } else if (infectedCount === 0) {
                 this.game.endings.triggerEnding('final_clean');
             } else {
                 this.game.endings.triggerEnding('final_corrupted');
@@ -1893,26 +1857,12 @@ export class GameMechanicsManager {
     }
 
     unassignNPC(npc) {
-        if (this.game.assignments) {
-            // Find current sector and unassign
-            const sector = this.game.assignments.getAssignmentForNPC(npc.id);
-            if (sector) {
-                this.game.assignments.unassign(npc.id, sector);
-            }
-        } else {
-            // Fallback (legacy)
-            if (npc.assignedSector) {
-                if (State.sectorAssignments[npc.assignedSector]) {
-                    const idx = State.sectorAssignments[npc.assignedSector].indexOf(npc.id);
-                    if (idx > -1) State.sectorAssignments[npc.assignedSector].splice(idx, 1);
-                }
-                
-                if (npc.assignedSector === 'generator' && State.generator.assignedGuardId === npc.id) {
-                    State.generator.assignedGuardId = null;
-                }
-                
-                npc.assignedSector = null;
-            }
+        const assignments = this.game?.assignments;
+        if (assignments?.getAssignmentForNPC && assignments?.unassign) {
+            const sector = assignments.getAssignmentForNPC(npc.id);
+            if (sector) return assignments.unassign(npc.id, sector);
         }
+        State._unassignFromAll(npc);
+        return true;
     }
 }

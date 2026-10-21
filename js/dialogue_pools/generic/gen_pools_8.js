@@ -9,7 +9,7 @@ export const gen_pools_8 = {
         nodes: {
             'gco_n1': {
                 id: 'gco_n1',
-                text: "*Te mira fijamente la boca mientras hablas.* \"Tienes... una dentadura excelente. Fuerte. Bien cuidada.\"",
+                text: "*Mientras hablas, mira tus dientes más de lo necesario. «Perdona. Me fijo en las dentaduras. Es un hábito difícil de explicar».*",
                 options: [
                     { id: 'gco_o1', label: 'Gracias, supongo', next: 'gco_n2a' },
                     { id: 'gco_o2', label: '¿Qué miras?', next: 'gco_n2b' }
@@ -17,7 +17,7 @@ export const gen_pools_8 = {
             },
             'gco_n2a': {
                 id: 'gco_n2a',
-                text: "*Sonríe, mostrando varios huecos en su propia boca.* \"Es un cumplido sincero. Valoro las buenas piezas. ¿No te sobra ninguna? A veces se aflojan.\"",
+                text: "*Intenta sonreír y deja a la vista varios huecos. «No te estoy amenazando. Me faltan piezas y empecé a guardar las que encontraba».*",
                 options: [
                     { id: 'gco_o2a', label: '¿Piezas de qué?', next: 'gco_n3a' },
                     { id: 'gco_o2b', label: 'Aléjate de mí', next: 'gco_n3b' }
@@ -25,7 +25,7 @@ export const gen_pools_8 = {
             },
             'gco_n2b': {
                 id: 'gco_n2b',
-                text: "*Señala su propia boca con un dedo sucio.* \"Perdona. Mal hábito. Es que me faltan algunas y siempre estoy buscando repuestos. Para mi colección.\"",
+                text: "*Aparta la vista de tu boca. «Las llamo colección porque suena mejor que decir de dónde salieron. No todas tienen una historia que quiera contar».*",
                 options: [
                     { id: 'gco_o2c', label: '¿Colección?', next: 'gco_n3a' },
                     { id: 'gco_o2l', label: '¿Tienes algo útil?', next: null, resultText: "*Saca un diente de oro.* \"Este no me encaja. Tómalo.\"", onclick: (g) => act.giveLoreItem(g, 'item_gold_tooth', 'Diente de Oro') }

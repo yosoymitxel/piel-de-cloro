@@ -6,6 +6,7 @@ describe('Advanced Dialogue System', () => {
     let mockDialogueSet;
 
     beforeEach(() => {
+        jest.restoreAllMocks();
         State.reset();
         mockNPC = {
             name: 'Test NPC',
@@ -104,6 +105,7 @@ describe('Advanced Dialogue System', () => {
     });
 
     test('Glitch effect triggers at high paranoia', () => {
+        jest.spyOn(Math, 'random').mockReturnValue(0);
         State.paranoia = 90;
         const conv = new Conversation(mockNPC, mockDialogueSet);
         const node = conv.getCurrentNode();

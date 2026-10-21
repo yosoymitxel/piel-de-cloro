@@ -23,7 +23,7 @@ export class NPC {
         this.isLore = opts.isLore || false;
         this.loreId = opts.loreId || null;
 
-        const set = selectDialogueSet({ personality: this.personality, infected: this.isInfected, isLore: this.isLore, loreId: this.loreId });
+        const set = opts.dialogueSet || selectDialogueSet({ personality: this.personality, infected: this.isInfected, isLore: this.isLore, loreId: this.loreId });
         this.conversation = new Conversation(this, set);
 
         // Propagate metadata from the chosen dialogue set (Generic or Lore) to the NPC
@@ -122,10 +122,16 @@ export class NPC {
     }
 
     getDisplayName() {
-        const epithet = this.getEpithet();
-        let displayName = this.name;
-        if (epithet && Math.random() > 0.5) displayName += ` — ${epithet}`;
-        return displayName;
+        // A name must remain stable throughout one encounter. Re-rolls here made
+        // the same NPC appear to change identity whenever the UI rendered again.
+        if (this._displayName === undefined) {
+            const epithet = this.getEpithet();
+            this._displayName = this.name;
+            if (epithet && Math.random() > 0.5) {
+                this._displayName += ` — ${epithet}`;
+            }
+        }
+        return this._displayName;
     }
 
     generateAttributes(infected) {

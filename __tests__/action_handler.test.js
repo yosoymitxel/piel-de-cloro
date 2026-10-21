@@ -164,6 +164,32 @@ describe('Game Action Handler', () => {
             spy.mockRestore();
         });
 
+        test('full shelter rejection releases the decision lock', () => {
+            State.config.maxShelterCapacity = 1;
+            State.admittedNPCs = [new NPC()];
+            const npc = new NPC();
+            npc.scanCount = 1;
+            State.currentNPC = npc;
+
+            gah.handleDecision('admit');
+
+            expect(gah.processingDecision).toBe(false);
+            expect(State.admittedNPCs).not.toContain(npc);
+            expect(gameMock.nextTurn).not.toHaveBeenCalled();
+            expect(uiMock.showMessage).toHaveBeenCalledWith(expect.stringContaining('REFUGIO LLENO'), null, 'warning');
+        });
+
+        test('invalid decisions do not advance the cycle', () => {
+            State.currentNPC = new NPC();
+            State.currentNPC.scanCount = 1;
+
+            gah.handleDecision('maybe');
+
+            expect(gameMock.nextTurn).not.toHaveBeenCalled();
+            expect(State.currentNPC).not.toBeNull();
+            expect(uiMock.showMessage).toHaveBeenCalledWith('DECISIÓN INVÁLIDA.', null, 'warning');
+        });
+
         test('handleDecision blocks if no scan performed', () => {
             const npc = new NPC();
             State.currentNPC = npc;
