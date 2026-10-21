@@ -87,7 +87,8 @@ class Game {
     }
 
     pauseGame() {
-        if (!this.loopManager?.isRunning || State.paused || State.endingTriggered) return;
+        if (!this.loopManager || State.paused || State.endingTriggered) return;
+        if (!this.loopManager.isRunning) this.loopManager.start();
 
         State.paused = true;
         this.loopManager.pause();
@@ -190,6 +191,7 @@ class Game {
         this.ensureMeditationRoom();
         this.mechanics.generateInitialEntrants();
         this.nextTurn();
+        this.loopManager.start();
         this.loopManager.resume();
         this.startClock(); // Ensure clock is running
         this.setPauseControlsVisible(true);
