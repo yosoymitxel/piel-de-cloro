@@ -81,7 +81,7 @@ test.describe('dedicated mobile presentation', () => {
           && el.getClientRects().length > 0;
       };
       const toolButtons = [...document.querySelectorAll('#inspection-tools-container .horror-tool-btn')].filter(isVisible);
-      const actionButtons = [...document.querySelectorAll('#game-actions-container > button')].filter(isVisible);
+      const actionButtons = [...document.querySelectorAll('#inspection-tools-container > .tool-wrapper.col-span-2 > button')].filter(isVisible);
       const bounds = [...toolButtons, ...actionButtons].map(el => {
         const rect = el.getBoundingClientRect();
         return { width: rect.width, height: rect.height, right: rect.right, label: (el.innerText || el.getAttribute('aria-label') || '').trim().slice(0, 50) };
@@ -132,7 +132,7 @@ test.describe('dedicated mobile presentation', () => {
         dockClientWidth: document.querySelector('#sidebar-left')?.clientWidth ?? 0,
         dockOverflowX: document.querySelector('#sidebar-left') ? getComputedStyle(document.querySelector('#sidebar-left')).overflowX : 'visible',
         pause: rectOf('#screen-game #btn-pause'),
-        actionButtons: [...document.querySelectorAll('#game-actions-container > button')].filter(isVisible).map(rectJSON),
+        actionButtons: [...document.querySelectorAll('#inspection-tools-container > .tool-wrapper.col-span-2 > button')].filter(isVisible).map(rectJSON),
         generatorWarning: warningRect ? { height: warningRect.height, width: warningRect.width } : null
       };
     });
