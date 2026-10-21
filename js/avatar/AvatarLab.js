@@ -185,13 +185,13 @@ byId("current-portrait").addEventListener("error", () => {
   byId("render-status").textContent = "ERROR SVG";
   byId("render-status").classList.add("render-error");
 });
-document.querySelectorAll("#pxl-gallery img").forEach(img => {
-  img.addEventListener("load", () => img.closest(".pxl-frame")?.classList.add("asset-loaded"));
-  img.addEventListener("error", () => {
-    img.closest(".pxl-frame")?.classList.add("asset-missing");
-    img.alt = "PNG pendiente de generar: " + img.alt;
-  });
-});
+fetch("art/npcs.px.js")
+  .then(response => {
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.text();
+  })
+  .then(source => { byId("pxl-source").textContent = source; })
+  .catch(() => { byId("pxl-source").textContent = "No se pudo leer art/npcs.px.js. Abrí el archivo desde el enlace de la sección."; });
 
 makePaletteSwatches();
 makeHairGallery();
