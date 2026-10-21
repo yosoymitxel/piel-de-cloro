@@ -349,10 +349,15 @@ export class GeneratorManager {
 
         const npc = state.currentNPC;
         const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || state.generator.restartLock;
-        const currentMax = state.generator.maxModeCapacityReached;
+        const capMap = { save: 1, normal: 2, overload: 3 };
+        const currentCap = capMap[state.generator.mode] ?? 2;
+        const modeLocked = Boolean(state.generator.modeChangedThisTurn);
 
         const updateBtn = (btn, targetCap, isCooldown = false) => {
-            const isBlocked = (actionTaken && targetCap > currentMax) || isCooldown || !state.generator.isOn;
+            const isBlocked = (actionTaken && targetCap > currentCap)
+                || (modeLocked && targetCap !== currentCap)
+                || isCooldown
+                || !state.generator.isOn;
 
             // Remove previous lock overlays
             const overlays = btn.find('.mode-lock-overlay');
