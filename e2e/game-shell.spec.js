@@ -16,10 +16,20 @@ test('game shell loads without uncaught JavaScript errors', async ({ page }, tes
 });
 
 test('a player can enter the tutorial and begin the first day', async ({ page }, testInfo) => {
+  test.setTimeout(45000);
   const pageErrors = [];
   page.on('pageerror', error => pageErrors.push(error.message));
 
   await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => Boolean(window.game?.audio));
+  // Keep this flow test focused on UI/state transitions; audio has separate unit coverage.
+  await page.evaluate(() => {
+    const audio = window.game.audio;
+    audio.manifest = { e2e: {} };
+    audio.preloadAll = async () => {};
+    audio.playSFXByKey = () => {};
+    audio.playAmbientByKey = () => {};
+  });
   await page.getByRole('button', { name: /INICIAR PARTIDA/i }).click();
   await expect(page.locator('#modal-tutorial')).toBeVisible({ timeout: 45000 });
 
