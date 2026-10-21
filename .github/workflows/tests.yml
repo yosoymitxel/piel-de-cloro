@@ -25,5 +25,7 @@ jobs:
         run: npm ci
       - name: Validate dialogue graph and callbacks
         run: npm run validate:dialogues
+      - name: Validate UI method structure
+        run: npm run validate:structure
       - name: Run test suite
         run: npm test
