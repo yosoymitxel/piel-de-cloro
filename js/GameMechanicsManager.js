@@ -1091,7 +1091,7 @@ export class GameMechanicsManager {
         return summary;
     }
 
-    startNextDay() {
+    async startNextDay() {
         State.startNextDay();
         // Reset per-night guards for the new cycle; the next night must run once.
         State.lastNight.occurred = false;
@@ -1122,7 +1122,10 @@ export class GameMechanicsManager {
                 }
             }
         }
-        this.game.events.switchScreen(CONSTANTS.SCREENS.GAME, {
+        // Commit the guard screen before advancing turn logic. nextTurn() can
+        // immediately trigger another phase transition, so running it before
+        // this navigation finishes can leave the main area with no active screen.
+        await this.game.events.switchScreen(CONSTANTS.SCREENS.GAME, {
             force: true,
             lockNav: false
         });
@@ -1340,7 +1343,7 @@ export class GameMechanicsManager {
     }
 
     continueDay() {
-        this.startNextDay();
+        return this.startNextDay();
     }
 
     processIntrusions() {
