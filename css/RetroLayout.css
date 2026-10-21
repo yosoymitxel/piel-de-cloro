@@ -2568,6 +2568,32 @@ body.is-full-ui .crt-monitor {
     }
 }
 
+@media (max-width: 640px) {
+    /* The global modal header is a horizontal flex row; stack the tutorial header on phones. */
+    #modal-tutorial .horror-panel-modal > header {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem !important;
+    }
+
+    #modal-tutorial .horror-panel-modal > header > div:first-child {
+        max-width: 100%;
+        font-size: clamp(1.35rem, 6vw, 2.1rem);
+        letter-spacing: 0.12em;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    #modal-tutorial .horror-panel-modal > header > div:nth-child(2) {
+        max-width: 100%;
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        line-height: 1.5;
+        text-align: center;
+    }
+}
+
 @media (max-width: 380px) {
     .horror-sidebar {
         gap: 4px !important;
