@@ -103,8 +103,8 @@ export class GameMechanicsManager {
                 const suppliesDrain = anomalies.length * 5;
 
                 state.updateSanity(-sanityDrain);
-                state.fuel = Math.max(0, state.fuel - fuelDrain);
-                state.supplies = Math.max(0, state.supplies - suppliesDrain);
+                state.updateFuel(-fuelDrain);
+                state.updateSupplies(-suppliesDrain);
 
                 summary += `ALERTA DE CONTENCIÓN: ${anomalies.length} anomalía(s) activa(s). Drenaje crítico de recursos y cordura (-${sanityDrain}%). `;
                 state.addLogEntry('danger', `ANOMALÍA EN REFUGIO: Presencia hostil detectada. Drenaje masivo.`, { icon: 'fa-skull' });
@@ -1761,7 +1761,7 @@ export class GameMechanicsManager {
         const survived = Math.random() * 100 > risk;
 
         if (survived) {
-            State.fuel += loot;
+            State.updateFuel(loot);
             State.addLogEntry('system', `COMBUSTIBLE: ${npc.name} recuperó ${loot} bidones.`, { icon: 'fa-gas-pump' });
             this.ui.showFeedback(`EXPEDICIÓN RIESGOSA ÉXITOSA: +${loot} COMBUSTIBLE`, "green", 5000);
 
