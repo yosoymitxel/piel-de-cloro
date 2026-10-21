@@ -502,8 +502,14 @@ export class GeneratorManager {
             const npc = state.currentNPC;
             const actionTaken = (npc && (npc.scanCount > 0 || npc.dialogueStarted)) || state.generator.restartLock;
             const currentMax = state.generator.maxModeCapacityReached;
-            const capMap = { 'save': 1, 'normal': 2, 'overload': 3 };
-            const targetCap = capMap[newMode] || 2;
+            const capMap = { save: 1, normal: 2, overload: 3 };
+            if (!Object.prototype.hasOwnProperty.call(capMap, newMode)) {
+                if (this.audio) this.audio.playSFXByKey('ui_error', { volume: 0.5 });
+                if (this.ui) this.ui.showFeedback("PROTOCOLO INVÁLIDO", "red", 3000);
+                this.renderGeneratorRoom(State);
+                return;
+            }
+            const targetCap = capMap[newMode];
 
             // Check if mode is locked
             if (state.generator.modeChangedThisTurn) {
@@ -545,8 +551,7 @@ export class GeneratorManager {
                 const success = game.mechanics.setGeneratorProtocol(newMode);
 
                 if (success) {
-                    // state.generator.modeChangedThisTurn = true; // REMOVED: Allow multiple adjustments as long as they follow ratchet rules
-                    // Full UI Refresh (will also sync true state)
+                    // Full UI refresh follows the validated domain transition.
                     this.renderGeneratorRoom(State);
 
                     // Trigger level change animation
