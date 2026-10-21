@@ -957,13 +957,7 @@
 }
 
 
-/* Keep the global pause control outside the decision row and the mobile dock.
-   The old fixed bottom-8 position covered OMITIR on desktop and the dock on phones. */
-#btn-pause {
-    bottom: 6.5rem !important;
-    right: 1.5rem !important;
-}
-
+/* Pause positioning is mobile-only so desktop keeps its original geometry. */
 @media (max-width: 640px) {
     #btn-pause {
         bottom: calc(68px + 48px + 12px + env(safe-area-inset-bottom, 0px)) !important;
