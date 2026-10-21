@@ -1,11 +1,11 @@
 import { NPC } from './NPC.js';
 import { State } from './State.js';
-import { UIManager } from './UIManager.js?v=20261021-avatarfix2';
+import { UIManager } from './UIManager.js?v=20261021-daytransition1';
 import { StatsManager } from './StatsManager.js';
 import { AudioManager } from './AudioManager.js';
 import { GameActionHandler } from './GameActionHandler.js';
-import { GameMechanicsManager } from './GameMechanicsManager.js';
-import { GameEventManager } from './GameEventManager.js';
+import { GameMechanicsManager } from './GameMechanicsManager.js?v=20261021-daytransition1';
+import { GameEventManager } from './GameEventManager.js?v=20261021-daytransition1';
 import { EventOrchestrator } from './EventOrchestrator.js';
 import { GameEndingManager } from './GameEndingManager.js';
 import { RandomEventManager } from './RandomEventManager.js';
