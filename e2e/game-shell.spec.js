@@ -45,6 +45,11 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
 
   await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
   await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
+  const skipDialogue = page.getByRole('button', { name: /OMITIR POR DIÁLOGO/i });
+  await expect(skipDialogue).toBeVisible();
+  const touchTarget = await skipDialogue.boundingBox();
+  expect(touchTarget?.width ?? 0).toBeGreaterThanOrEqual(44);
+  expect(touchTarget?.height ?? 0).toBeGreaterThanOrEqual(44);
   await page.waitForTimeout(1500); // Let the initial typewriter line settle before capturing the screen.
 
   const gameplayShot = testInfo.outputPath('first-day-screen.png');
