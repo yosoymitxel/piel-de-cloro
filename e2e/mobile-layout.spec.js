@@ -158,6 +158,13 @@ test.describe('dedicated mobile presentation', () => {
     const hudRows = [...new Set(measurements.visibleHud.map(card => Math.round(card.top / 4)))];
     expect(hudRows.length, JSON.stringify(measurements.visibleHud)).toBe(2);
     expect(measurements.visibleHud.every(card => card.width >= 44 && card.left >= -1 && card.right <= measurements.viewportWidth + 1)).toBe(true);
+
+    // The battery fill must remain inside its own card at every tested width.
+    expect(measurements.batteryCard, JSON.stringify(measurements)).not.toBeNull();
+    expect(measurements.batteryFill, JSON.stringify(measurements)).not.toBeNull();
+    expect(measurements.batteryFill.left, JSON.stringify(measurements)).toBeGreaterThanOrEqual(measurements.batteryCard.left - 1);
+    expect(measurements.batteryFill.right, JSON.stringify(measurements)).toBeLessThanOrEqual(measurements.batteryCard.right + 1);
+
     expect(measurements.tutorialMessages.length).toBeGreaterThan(0);
     for (const message of measurements.tutorialMessages) {
       expect(message.left, JSON.stringify(message)).toBeGreaterThanOrEqual(-1);
