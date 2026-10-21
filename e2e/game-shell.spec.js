@@ -74,12 +74,14 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
     await expect(desktopPause).toBeVisible();
     const pauseStyle = await desktopPause.evaluate(el => {
       const rect = el.getBoundingClientRect();
+      const containingArea = document.querySelector('#main-area').getBoundingClientRect();
       return { position: getComputedStyle(el).position, right: rect.right, bottom: rect.bottom,
-        viewportWidth: window.innerWidth, viewportHeight: window.innerHeight };
+        areaRight: containingArea.right, areaBottom: containingArea.bottom };
     });
     expect(pauseStyle.position).toBe('fixed');
-    expect(pauseStyle.right, JSON.stringify(pauseStyle)).toBeCloseTo(pauseStyle.viewportWidth - 24, 0);
-    expect(pauseStyle.bottom, JSON.stringify(pauseStyle)).toBeCloseTo(pauseStyle.viewportHeight - 32, 0);
+    // The original desktop button is fixed to the CRT main-area containing block.
+    expect(pauseStyle.right, JSON.stringify(pauseStyle)).toBeCloseTo(pauseStyle.areaRight - 24, 0);
+    expect(pauseStyle.bottom, JSON.stringify(pauseStyle)).toBeCloseTo(pauseStyle.areaBottom - 32, 0);
   } else {
     await expect(page.locator('#btn-pause-mobile')).toBeVisible();
     await expect(page.locator('#btn-pause')).toBeHidden();
