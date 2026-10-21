@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit",
+    "validate:dialogues": "node tools/validate-dialogue-data.mjs",
     "test:clean": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --silent --no-colors --forceExit",
     "build:npc-art": "node tools/build-npc-pixel-art.mjs"
   },
