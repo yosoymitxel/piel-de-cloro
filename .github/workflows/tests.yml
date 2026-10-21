@@ -22,7 +22,7 @@ jobs:
           node-version: 20
           cache: npm
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Validate dialogue graph and callbacks
         run: npm run validate:dialogues
       - name: Run test suite
