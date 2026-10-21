@@ -41,6 +41,17 @@ describe('ScreenManager transition ordering', () => {
         expect(manager.lastScreen).toBe('game');
     });
 
+    test('an unknown screen is rejected without hiding the current screen', async () => {
+        const { manager, screens } = makeManager();
+        screens.game.classes.delete('hidden');
+
+        await expect(manager.showScreen('missing-screen', {})).resolves.toBe(false);
+
+        expect(screens.game.classes.has('hidden')).toBe(false);
+        expect(screens.night.classes.has('hidden')).toBe(true);
+        expect(manager.lastScreen).toBeUndefined();
+    });
+
     test('a caller can await the actual screen commit', async () => {
         const { manager, screens } = makeManager();
 
