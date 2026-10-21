@@ -3,6 +3,7 @@ import { State } from '../js/State.js';
 
 describe('New-day transition ordering', () => {
     beforeEach(() => State.reset());
+    afterEach(() => jest.restoreAllMocks());
 
     test('duplicate continue-day calls share one cycle transition', async () => {
         let resolveScreen;
@@ -41,7 +42,6 @@ describe('New-day transition ordering', () => {
 
         expect(game.nextTurn).toHaveBeenCalledTimes(1);
         expect(mechanics.updateTurnEndSystems).toHaveBeenCalledTimes(1);
-        startDaySpy.mockRestore();
     });
 
     test('does not advance turn logic until the guard screen is committed', async () => {
