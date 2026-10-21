@@ -4,6 +4,46 @@ import { State } from '../js/State.js';
 describe('New-day transition ordering', () => {
     beforeEach(() => State.reset());
 
+    test('duplicate continue-day calls share one cycle transition', async () => {
+        let resolveScreen;
+        const screenTransition = new Promise(resolve => {
+            resolveScreen = resolve;
+        });
+        const game = {
+            ui: {
+                setNavItemStatus: jest.fn(),
+                updateRunStats: jest.fn()
+            },
+            audio: {
+                playAmbientByKey: jest.fn()
+            },
+            events: {
+                switchScreen: jest.fn(() => screenTransition)
+            },
+            nextTurn: jest.fn(),
+            randomEvents: null
+        };
+        const mechanics = new GameMechanicsManager(game);
+        mechanics.updateTurnEndSystems = jest.fn();
+        const startDaySpy = jest.spyOn(State, 'startNextDay');
+
+        const first = mechanics.startNextDay();
+        const duplicate = mechanics.startNextDay();
+        expect(duplicate).toBe(first);
+
+        await Promise.resolve();
+        expect(startDaySpy).toHaveBeenCalledTimes(1);
+        expect(game.events.switchScreen).toHaveBeenCalledTimes(1);
+        expect(game.nextTurn).not.toHaveBeenCalled();
+
+        resolveScreen(true);
+        await Promise.all([first, duplicate]);
+
+        expect(game.nextTurn).toHaveBeenCalledTimes(1);
+        expect(mechanics.updateTurnEndSystems).toHaveBeenCalledTimes(1);
+        startDaySpy.mockRestore();
+    });
+
     test('does not advance turn logic until the guard screen is committed', async () => {
         let resolveScreen;
         const screenTransition = new Promise(resolve => {
