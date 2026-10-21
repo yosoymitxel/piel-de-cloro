@@ -343,6 +343,7 @@ export class GameActionHandler {
 
         if (action === 'admit') {
             if (State.isShelterFull()) {
+                this.processingDecision = false;
                 this.ui.showMessage("REFUGIO LLENO. Debes purgar a alguien desde la pantalla de Refugio.", null, 'warning');
                 return;
             }
