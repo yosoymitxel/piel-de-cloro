@@ -137,6 +137,8 @@ test.describe('dedicated mobile presentation', () => {
         dockOverflowX: document.querySelector('#sidebar-left') ? getComputedStyle(document.querySelector('#sidebar-left')).overflowX : 'visible',
         pause: rectOf('#screen-game #btn-pause'),
         actionButtons: [...document.querySelectorAll('#inspection-tools-container > .tool-wrapper.col-span-2 > button')].filter(isVisible).map(rectJSON),
+        inspectionTools: rectOf('#screen-game #inspection-tools-container'),
+        dialogueText: rectOf('#screen-game #npc-dialogue'),
         generatorWarning: warningRect ? { height: warningRect.height, width: warningRect.width } : null
       };
     });
@@ -203,6 +205,9 @@ test.describe('dedicated mobile presentation', () => {
     }
     if (measurements.mainView && measurements.dialogue) {
       expect(measurements.mainView.bottom, 'inspection area overlaps dialogue panel').toBeLessThanOrEqual(measurements.dialogue.top + 1);
+    }
+    if (measurements.inspectionTools && measurements.dialogue) {
+      expect(measurements.inspectionTools.bottom, 'inspection controls overlap dialogue panel').toBeLessThanOrEqual(measurements.dialogue.top + 1);
     }
     if (measurements.generatorWarning) {
       expect(measurements.generatorWarning.height, 'generator warning overwhelms the mobile inspection view').toBeLessThanOrEqual(76);
@@ -278,10 +283,10 @@ test.describe('dedicated mobile presentation', () => {
     expect(landscapeWidth.decisionButtons, JSON.stringify(landscapeWidth.decisionButtons)).toHaveLength(2);
     expect(landscapeWidth.decisionButtons.every(button => button.bottom <= landscapeWidth.mainView.bottom + 1), JSON.stringify(landscapeWidth)).toBe(true);
     expect(landscapeWidth.mainView.bottom).toBeLessThanOrEqual(landscapeWidth.dialogue.top + 1);
-    expect(landscapeWidth.dialogue.height).toBeGreaterThanOrEqual(84);
+    expect(landscapeWidth.dialogue.height).toBeGreaterThanOrEqual(94);
     expect(landscapeWidth.dialogueText, JSON.stringify(landscapeWidth)).not.toBeNull();
     expect(landscapeWidth.dialogueText.length).toBeGreaterThan(0);
-    expect(landscapeWidth.dialogueText.visibleHeight).toBeGreaterThan(0);
+    expect(landscapeWidth.dialogueText.visibleHeight).toBeGreaterThanOrEqual(10);
     expect(landscapeWidth.decisionGrid, JSON.stringify(landscapeWidth)).not.toBeNull();
     // The landscape screen has 4px gutters on both sides.
     expect(landscapeWidth.decisionGrid.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 12);
