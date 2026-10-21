@@ -11,7 +11,10 @@ test('game shell loads without uncaught JavaScript errors', async ({ page }, tes
 
   const screenshot = testInfo.outputPath('initial-screen.png');
   await page.screenshot({ path: screenshot, fullPage: true });
-  await testInfo.attach('initial-screen', { path: screenshot, contentType: 'image/png' });
+  await testInfo.attach('initial-screen-full-page', { path: screenshot, contentType: 'image/png' });
+  const viewportScreenshot = testInfo.outputPath('initial-screen-viewport.png');
+  await page.screenshot({ path: viewportScreenshot });
+  await testInfo.attach('initial-screen-viewport', { path: viewportScreenshot, contentType: 'image/png' });
   await page.waitForTimeout(1200);
   expect(pageErrors, 'uncaught browser JavaScript errors').toEqual([]);
 });
@@ -41,7 +44,10 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
 
   const tutorialShot = testInfo.outputPath('tutorial-screen.png');
   await page.screenshot({ path: tutorialShot, fullPage: true });
-  await testInfo.attach('tutorial-screen', { path: tutorialShot, contentType: 'image/png' });
+  await testInfo.attach('tutorial-screen-full-page', { path: tutorialShot, contentType: 'image/png' });
+  const tutorialViewport = testInfo.outputPath('tutorial-screen-viewport.png');
+  await page.screenshot({ path: tutorialViewport });
+  await testInfo.attach('tutorial-screen-viewport', { path: tutorialViewport, contentType: 'image/png' });
 
   await page.getByRole('button', { name: /INICIAR OPERACIONES/i }).click();
   await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
@@ -58,7 +64,10 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
 
   const gameplayShot = testInfo.outputPath('first-day-screen.png');
   await page.screenshot({ path: gameplayShot, fullPage: true });
-  await testInfo.attach('first-day-screen', { path: gameplayShot, contentType: 'image/png' });
+  await testInfo.attach('first-day-screen-full-page', { path: gameplayShot, contentType: 'image/png' });
+  const gameplayViewport = testInfo.outputPath('first-day-screen-viewport.png');
+  await page.screenshot({ path: gameplayViewport });
+  await testInfo.attach('first-day-screen-viewport', { path: gameplayViewport, contentType: 'image/png' });
   expect(pageErrors, 'uncaught browser errors while starting a run').toEqual([]);
 });
 
@@ -74,7 +83,10 @@ test('mobile layout does not create page-level horizontal overflow', async ({ pa
   }));
   const screenshot = testInfo.outputPath('mobile-layout.png');
   await page.screenshot({ path: screenshot, fullPage: true });
-  await testInfo.attach('mobile-layout', { path: screenshot, contentType: 'image/png' });
+  await testInfo.attach('mobile-layout-full-page', { path: screenshot, contentType: 'image/png' });
+  const viewportScreenshot = testInfo.outputPath('mobile-layout-viewport.png');
+  await page.screenshot({ path: viewportScreenshot });
+  await testInfo.attach('mobile-layout-viewport', { path: viewportScreenshot, contentType: 'image/png' });
   await testInfo.attach('mobile-layout-metrics', {
     body: Buffer.from(JSON.stringify(dimensions, null, 2)),
     contentType: 'application/json'
