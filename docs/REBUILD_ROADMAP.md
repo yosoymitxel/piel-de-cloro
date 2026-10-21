@@ -174,3 +174,25 @@ El trabajo no se considera completo hasta que: (a) los flujos críticos tienen p
 **Pendiente de CI:** validar los últimos cambios de recursos y ciclo de vida en la suite completa antes de dar por estable esta fase.
 
 **Pendiente estructural importante:** todavía hay duplicación de configuración del generador entre la inicialización de `State`, `State.reset()` y `Game`; se debe consolidar con una sola fábrica/configuración compartida después de revisar las dependencias y tests. También falta probar la partida completa en navegador y móvil.
+
+
+### P1 — Revisión visual y mobile-first (sin degradar escritorio)
+- [ ] Tratar escritorio como baseline de regresión: no rediseñar ni alterar su composición salvo que una prueba revele un defecto real.
+- [ ] Auditar el flujo móvil real en 320, 360, 390, 412 y 768 px; capturar pantalla de título, tutorial, primer día, diálogo, inspección, generador, laboratorio, expedición, modal de confirmación y final.
+- [ ] Comprobar visualmente cada estado con navegador real mediante Playwright: no basta con compilar ni con medir overflow horizontal.
+- [ ] Priorizar ergonomía táctil: objetivos de toque cómodos, acciones principales accesibles con pulgar, navegación que no tape contenido, scroll dentro de modales y controles que no dependan de hover.
+- [ ] Eliminar conflictos de CSS heredado y reglas `!important` que rompan estados como `hidden`; preferir estilos por componente y estados explícitos.
+- [ ] Definir tokens visuales reutilizables (espaciado, tipografía, contraste, bordes, foco, superficies y movimiento) conservando la identidad de terminal/horror; no convertirlo en un dashboard SaaS genérico.
+- [ ] Hacer una pasada antislop con criterios explícitos: sin gradientes decorativos gratuitos, tarjetas anidadas por defecto, iconos decorativos repetidos, microtexto ilegible, animaciones sin función ni exceso de mayúsculas sin jerarquía.
+- [ ] Revisar legibilidad, contraste, foco visible, teclado, reduced-motion, zoom y textos largos en español.
+- [ ] Capturar comparativas antes/después y revisar las imágenes de escritorio y móvil antes de dar por cerrada cada pantalla.
+- [ ] No introducir dependencias o instalar skills ejecutables a ciegas: adaptar sus criterios al repo, revisar scripts y fijar versiones cuando se incorpore tooling.
+
+#### Referencias de trabajo (criterios, no copia literal)
+- `gamedev-skills/awesome-gamedev-agent-skills`: elegir prácticas por tarea y motor; este proyecto es JavaScript web, por lo que las skills de Unity/Godot no se aplican automáticamente.
+- `Donchitos/Claude-Code-Game-Studios`: documentar sistemas y dependencias antes de rediseñar; no generar GDDs ceremoniales que no reflejen el código.
+- `dietrichgebert/ponytail`: cambios pequeños, concretos y verificables; evitar refactors masivos sin prueba de comportamiento.
+- `Leonxlnx/taste-skill`: dirección visual intencional y diferenciada; usarlo como crítica contra la interfaz genérica, no como permiso para rediseñar todo.
+- `pbakaus/impeccable`: auditoría, adaptación, legibilidad, jerarquía y revisión visual iterativa; aplicar sus anti-patrones con el contexto de un juego de horror/gestión.
+
+**Regla de aceptación:** una corrección móvil solo se considera terminada si pasa pruebas automatizadas y se inspecciona la captura del estado real en móvil. Una captura de título o un test de ancho no certifica toda la interfaz.
