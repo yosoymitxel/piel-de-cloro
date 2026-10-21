@@ -120,6 +120,25 @@ describe('GameMechanicsManager', () => {
         });
     });
 
+    test('laboratory completion sends one result notification', () => {
+        const addMessage = jest.fn();
+        uiMock.tutorialManager = { addMessage };
+        const npc = new NPC();
+        npc.name = 'Sujeto de prueba';
+        npc.isInfected = true;
+        npc.labAnalysisPending = true;
+        npc.revealedStats = [];
+        State.admittedNPCs = [npc];
+
+        gmm.updateTurnEndSystems();
+
+        expect(npc.labAnalysisPending).toBe(false);
+        expect(npc.labAnalysisComplete).toBe(true);
+        expect(npc.revealedStats).toContain('isInfected');
+        expect(addMessage).toHaveBeenCalledTimes(1);
+        expect(addMessage).toHaveBeenCalledWith('ANÁLISIS: Sujeto de prueba: POSITIVO', 'danger-green');
+    });
+
     describe('Purge Consequences', () => {
         test('purging human increases paranoia and decreases sanity', () => {
             const npc = new NPC();
