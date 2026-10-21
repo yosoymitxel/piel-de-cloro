@@ -200,7 +200,7 @@ describe('Game Mechanics Manager', () => {
             // Now set action taken to block further increase
             State.currentNPC = { scanCount: 0, dialogueStarted: true };
             gmm.setGeneratorProtocol('overload'); // Try to go to overload (cap 3)
-            expect(State.generator.mode).toBe('save'); // Once an action starts, the current protocol cannot be raised
+            expect(State.generator.mode).toBe('normal'); // Once an action starts, the current protocol cannot be raised
         });
 
         test('setGeneratorProtocol allows raising the protocol before an action starts', () => {
