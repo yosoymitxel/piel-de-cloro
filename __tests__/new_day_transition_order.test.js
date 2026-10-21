@@ -44,6 +44,44 @@ describe('New-day transition ordering', () => {
         expect(mechanics.updateTurnEndSystems).toHaveBeenCalledTimes(1);
     });
 
+    test('retries a superseded guard-screen request instead of stranding the new cycle', async () => {
+        let resolveRetry;
+        const retryTransition = new Promise(resolve => {
+            resolveRetry = resolve;
+        });
+        const game = {
+            ui: {
+                setNavItemStatus: jest.fn(),
+                updateRunStats: jest.fn()
+            },
+            audio: {
+                playAmbientByKey: jest.fn()
+            },
+            events: {
+                switchScreen: jest.fn()
+                    .mockResolvedValueOnce(false)
+                    .mockImplementationOnce(() => retryTransition)
+            },
+            nextTurn: jest.fn(),
+            randomEvents: null
+        };
+        const mechanics = new GameMechanicsManager(game);
+        mechanics.updateTurnEndSystems = jest.fn();
+
+        const start = mechanics.startNextDay();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(game.events.switchScreen).toHaveBeenCalledTimes(2);
+        expect(game.nextTurn).not.toHaveBeenCalled();
+
+        resolveRetry(true);
+        await start;
+
+        expect(game.nextTurn).toHaveBeenCalledTimes(1);
+        expect(mechanics.updateTurnEndSystems).toHaveBeenCalledTimes(1);
+    });
+
     test('does not advance turn logic until the guard screen is committed', async () => {
         let resolveScreen;
         const screenTransition = new Promise(resolve => {
