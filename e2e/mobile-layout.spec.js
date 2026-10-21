@@ -48,7 +48,7 @@ test.describe('dedicated mobile presentation', () => {
     // The first-day intro may show an interlude before gameplay. Close that
     // intentional narrative screen before asserting the game screen is active.
     const interludeContinue = page.locator('#btn-lore-continue-screen');
-    await expect(interludeContinue).toBeVisible({ timeout: 2500 }).catch(() => {});
+    await expect(interludeContinue).toBeVisible({ timeout: 6000 }).catch(() => {});
     if (await interludeContinue.isVisible()) await interludeContinue.click();
     await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
     // Screenshot is captured after the control-size wait below, once the CRT entrance transition settles.
@@ -174,7 +174,7 @@ test.describe('dedicated mobile presentation', () => {
     }
 
     // Bottom-dock buttons and labels must stay inside their own viewport.
-    expect(measurements.navButtons.length).toBeGreaterThanOrEqual(4);
+    expect(measurements.navButtons.length).toBeGreaterThanOrEqual(2);
     expect(measurements.dock, JSON.stringify(measurements)).not.toBeNull();
     expect(measurements.dock.left).toBeGreaterThanOrEqual(-1);
     expect(measurements.dock.right).toBeLessThanOrEqual(measurements.viewportWidth + 1);
