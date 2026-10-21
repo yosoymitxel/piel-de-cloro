@@ -361,17 +361,20 @@ test.describe('dedicated mobile presentation', () => {
     // Landscape keeps the decision controls visible first; the conversation is
     // scrollable and must expose its final choice above the persistent dock.
     await page.locator('#screen-game').evaluate(el => { el.scrollTop = el.scrollHeight; });
+    await page.locator('#screen-game .dialogue-sidebar').evaluate(el => { el.scrollTop = el.scrollHeight; });
     await page.waitForTimeout(120);
     await page.screenshot({ path: 'test-results/mobile-game-landscape-scroll-end-844.png', fullPage: false });
     const landscapeDialogueEnd = await page.evaluate(() => {
       const screen = document.querySelector('#screen-game');
+      const panel = document.querySelector('#screen-game .dialogue-sidebar');
       const dock = document.querySelector('#sidebar-left');
       const buttons = [...document.querySelectorAll('#screen-game #dialogue-options button')]
         .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
         .map(el => { const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height, text: el.textContent.trim() }; });
-      const sr = screen.getBoundingClientRect(), dr = dock.getBoundingClientRect();
+      const sr = screen.getBoundingClientRect(), pr = panel.getBoundingClientRect(), dr = dock.getBoundingClientRect();
       return { scrollTop: screen.scrollTop, scrollHeight: screen.scrollHeight, clientHeight: screen.clientHeight,
-        screenTop: sr.top, screenBottom: sr.bottom, dockTop: dr.top, buttons };
+        panelScrollTop: panel.scrollTop, panelScrollHeight: panel.scrollHeight, panelClientHeight: panel.clientHeight,
+        screenTop: sr.top, screenBottom: sr.bottom, panelTop: pr.top, panelBottom: pr.bottom, dockTop: dr.top, buttons };
     });
     expect(landscapeDialogueEnd.scrollTop, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(0);
     expect(landscapeDialogueEnd.scrollHeight, JSON.stringify(landscapeDialogueEnd)).toBeGreaterThan(landscapeDialogueEnd.clientHeight);
