@@ -955,3 +955,21 @@
         font-size: 10px !important;
     }
 }
+
+
+/* Keep the global pause control outside the decision row and the mobile dock.
+   The old fixed bottom-8 position covered OMITIR on desktop and the dock on phones. */
+#btn-pause {
+    bottom: 6.5rem !important;
+    right: 1.5rem !important;
+}
+
+@media (max-width: 640px) {
+    #btn-pause {
+        bottom: calc(var(--mobile-content-bottom, 68px) + 12px + env(safe-area-inset-bottom, 0px)) !important;
+        right: 12px !important;
+        width: 48px !important;
+        height: 48px !important;
+        z-index: 60 !important;
+    }
+}
