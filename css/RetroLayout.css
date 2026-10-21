@@ -1631,6 +1631,21 @@ body.is-full-ui .crt-monitor {
     background: rgba(0, 10, 0, 0.2);
 }
 
+/* React-rendered screens must fill the available height so their
+   internal flex centering (justify-center) actually centers vertically.
+   Only non-hidden (active) screens take height; hidden ones collapse. */
+[data-react]:has(> section:not(.hidden)) {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+[data-react] > section:not(.hidden) {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+}
+
 /* Luz Cenital y Puesto de Control */
 .overhead-light {
     position: absolute;

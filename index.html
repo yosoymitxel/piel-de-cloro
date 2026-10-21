@@ -184,7 +184,7 @@
                             <div class="panel-screw screw-bl" style="width:6px;height:6px;bottom:2px;left:2px;"></div>
                             <div class="panel-screw screw-br" style="width:6px;height:6px;bottom:2px;right:2px;"></div>
 
-                            <div class="flex flex-wrap gap-2 items-center justify-center">
+                            <div id="header-hud-stats" class="flex flex-wrap gap-2 items-center justify-center">
                                 <div class="comp-paranoia"></div>
                                 <div class="comp-sanity"></div>
                                 <div class="comp-supplies"></div>
@@ -228,6 +228,11 @@
                             </div>
 
                             <div class="flex gap-4 items-center">
+                                <button id="btn-toggle-header" type="button" aria-label="Mostrar/ocultar panel"
+                                    class="md:hidden flex items-center justify-center w-8 h-8 rounded border border-chlorine/30 text-chlorine-light hover:bg-chlorine/10 transition-colors"
+                                    title="Compactar panel">
+                                    <i class="fa-solid fa-chevron-up text-xs"></i>
+                                </button>
                                 <div class="hud-stat-box text-right border-none !p-0">
                                     <span class="hud-stat-label">CICLO / HORA</span>
                                     <span class="hud-stat-value text-chlorine">
@@ -513,7 +518,7 @@
                                 <div class="panel-screw screw-tr"
                                     style="width:4px; height:4px; top:4px; right:4px; opacity:0.2;"></div>
 
-                                <div class="mini-monitor p-2 flex flex-col justify-center items-center text-center">
+                                <div class="mini-monitor mobile-decorative p-2 flex flex-col justify-center items-center text-center">
                                     <div class="text-[10px] text-chlorine-light opacity-50 uppercase mb-1">
                                         BIO_SIGNAL_MONITOR</div>
                                     <div class="flex items-end gap-1 h-12">
@@ -532,7 +537,7 @@
                                             class="text-glow animate-pulse">Syncing</span></div>
                                 </div>
 
-                                <div class="mini-monitor p-2 flex flex-col justify-center items-center text-center">
+                                <div class="mini-monitor mobile-decorative p-2 flex flex-col justify-center items-center text-center">
                                     <div class="text-[10px] text-blue-400 opacity-50 uppercase mb-1">ENV_DATA_STREAM
                                     </div>
                                     <div class="font-mono text-xs text-blue-300 flex flex-col gap-1 w-full">
@@ -545,7 +550,7 @@
                                     </div>
                                 </div>
 
-                                <div class="analog-controls grid grid-cols-2 gap-2 items-center justify-center ">
+                                <div class="analog-controls mobile-decorative grid grid-cols-2 gap-2 items-center justify-center ">
                                     <div class="knob-container">
                                         <div class="knob" style="transform: rotate(45deg)"></div>
                                         <span class="text-[10px] uppercase opacity-50">SENSITIVITY</span>
@@ -571,7 +576,7 @@
                                     </div>
                                 </div>
 
-                                <div class="mini-monitor p-2 flex flex-col justify-center items-center text-center">
+                                <div class="mini-monitor mobile-decorative p-2 flex flex-col justify-center items-center text-center">
                                     <div class="text-[10px] text-blue-400 opacity-50 uppercase mb-1">SCANNER_STATUS
                                     </div>
                                     <div class="text-xs text-blue-400 font-mono mt-1" id="mini-monitor-status">

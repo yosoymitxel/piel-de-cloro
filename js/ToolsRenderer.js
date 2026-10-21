@@ -24,12 +24,21 @@ export class ToolsRenderer {
         return target;
     }
 
+    _scrollToAvatar(targetContainer) {
+        try {
+            const el = (targetContainer && targetContainer.length) ? targetContainer[0] : (typeof targetContainer === 'string' ? document.querySelector(targetContainer) : targetContainer);
+            const avatar = el ? (el.querySelector ? el.querySelector('.npc-view-container') : null) : null;
+            (avatar || el)?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+        } catch (e) {}
+    }
+
     /**
      * Animates the thermometer tool.
      */
     animateToolThermometer(value, container = null, isInfected = null) {
         const targetContainer = this._getTargetContainer(container);
         if (!targetContainer || targetContainer.length === 0) return;
+        this._scrollToAvatar(targetContainer);
 
         if (isInfected === null) {
             isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
@@ -121,6 +130,7 @@ export class ToolsRenderer {
     animateToolFlashlight(value, container = null, isInfected = null) {
         const targetContainer = this._getTargetContainer(container);
         if (!targetContainer || targetContainer.length === 0) return;
+        this._scrollToAvatar(targetContainer);
 
         if (isInfected === null) {
             isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
@@ -144,10 +154,27 @@ export class ToolsRenderer {
         // Flash effect
         overlay.animate({ opacity: 1 }, 200).delay(500).animate({ opacity: 0 }, 200, () => overlay.remove());
 
+        // Bring the avatar into view so the test animation is visible.
+        const viewContainer = targetContainer.find('.npc-view-container');
+        if (viewContainer.length) {
+            try { viewContainer[0].scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+        }
+
         if (isInfected) {
             const avatar = targetContainer.find('.pixel-avatar');
+            const portrait = targetContainer.find('.npc-pixel-portrait');
+            const wrapper = targetContainer.find('.npc-content-wrapper');
+            const container = targetContainer.find('.npc-view-container');
             avatar.addClass('uv-reveal');
-            setTimeout(() => avatar.removeClass('uv-reveal'), 900);
+            portrait.addClass('uv-reveal');
+            wrapper.addClass('uv-reveal');
+            container.addClass('uv-reveal');
+            setTimeout(() => {
+                avatar.removeClass('uv-reveal');
+                portrait.removeClass('uv-reveal');
+                wrapper.removeClass('uv-reveal');
+                container.removeClass('uv-reveal');
+            }, 900);
         }
     }
 
@@ -157,6 +184,7 @@ export class ToolsRenderer {
     animateToolPupils(type = 'normal', container = null, isInfected = false) {
         const targetContainer = this._getTargetContainer(container);
         if (!targetContainer || targetContainer.length === 0) return;
+        this._scrollToAvatar(targetContainer);
 
         targetContainer.css('position', 'relative');
         targetContainer.find('.pupil-overlay-local').remove();
@@ -270,6 +298,7 @@ export class ToolsRenderer {
     animateToolPulse(bpm, container = null, isInfected = null) {
         const targetContainer = this._getTargetContainer(container);
         if (!targetContainer || targetContainer.length === 0) return;
+        this._scrollToAvatar(targetContainer);
 
         if (isInfected === null) {
             isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;

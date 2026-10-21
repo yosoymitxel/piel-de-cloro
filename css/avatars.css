@@ -24,8 +24,8 @@
 
 /* SIZES */
 .pixel-avatar.lg {
-    width: 130px; /* Reduced from 160px */
-    height: 130px; /* Reduced from 160px */
+    width: 160px;
+    height: 160px;
     border: 2px solid #333;
 }
 
@@ -35,7 +35,7 @@
     border: 1px solid #333;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 900px) {
     .pixel-avatar.lg {
         width: min(52vw, 160px);
         height: min(52vw, 160px);
@@ -118,6 +118,25 @@
 @keyframes pulse-uv {
     from { filter: brightness(1); }
     to { filter: brightness(1.5); }
+}
+
+/* UV REVEAL: also affect the generated pixel portrait and its container. */
+.npc-pixel-portrait.uv-reveal {
+    filter: brightness(1.5) saturate(2) hue-rotate(45deg);
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
+    transition: all 0.3s ease;
+}
+.npc-content-wrapper.uv-reveal .npc-pixel-portrait {
+    filter: brightness(1.5) saturate(2) hue-rotate(45deg);
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
+}
+.npc-view-container.uv-reveal .npc-pixel-portrait {
+    filter: brightness(1.5) saturate(2) hue-rotate(45deg);
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
+}
+.npc-view-container.uv-reveal.infected .npc-pixel-portrait {
+    filter: brightness(1.8) saturate(2.5) hue-rotate(45deg);
+    animation: pulse-uv 0.5s infinite alternate;
 }
 
 
@@ -336,8 +355,8 @@
 
 .npc-view-container {
     position: relative;
-    width: 200px; /* Reduced from 240px */
-    height: 200px; /* Reduced from 240px */
+    width: 240px;
+    height: 240px;
     background: #020402;
     border: 1px solid rgba(45, 90, 37, 0.4);
     box-shadow: 
@@ -557,14 +576,18 @@
 }
 
 /* Mobile Adjustments */
-@media (max-width: 640px) {
+@media (max-width: 900px) {
     .npc-view-container {
-        width: 180px;
-        height: 180px;
+        width: 200px;
+        height: 200px;
     }
     .npc-view-container .pixel-avatar.lg {
-        width: 140px;
-        height: 140px;
+        width: 160px;
+        height: 160px;
+    }
+    .npc-pixel-portrait {
+        width: 170px;
+        height: 170px;
     }
 }
 
@@ -639,8 +662,8 @@
 .npc-pixel-portrait {
     display: block;
     flex: 0 0 auto;
-    width: 160px;
-    height: 160px;
+    width: 200px;
+    height: 200px;
     max-width: 100%;
     object-fit: contain;
     image-rendering: pixelated;
@@ -652,10 +675,10 @@
     height: 64px;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 900px) {
     .npc-pixel-portrait {
-        width: 140px;
-        height: 140px;
+        width: 170px;
+        height: 170px;
     }
 
     .npc-view-container.view-sm .npc-pixel-portrait {

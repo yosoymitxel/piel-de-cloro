@@ -60,6 +60,7 @@ class Game {
 
         bind('btn-pause', () => this.togglePause());
         bind('btn-pause-mobile', () => this.togglePause());
+        bind('btn-toggle-header', () => this.toggleHeaderCollapse());
         bind('btn-pause-close', () => this.resumeGame());
         bind('btn-pause-fullscreen', () => this.toggleFullscreen());
         bind('btn-pause-restart-day', () => this.restartDay());
@@ -75,6 +76,31 @@ class Game {
             if (typeof element?.classList?.toggle === 'function') {
                 element.classList.toggle('hidden', !visible);
             }
+        }
+    }
+
+    toggleHeaderCollapse() {
+        if (typeof document === 'undefined') return;
+        const header = document.querySelector('#screen-game > header');
+        if (!header) return;
+        const collapsed = header.classList.toggle('header-collapsed');
+        const icon = document.querySelector('#btn-toggle-header i');
+        if (icon) {
+            icon.classList.toggle('fa-chevron-up', !collapsed);
+            icon.classList.toggle('fa-chevron-down', collapsed);
+        }
+        try { localStorage.setItem('headerCollapsed', collapsed ? '1' : '0'); } catch (e) {}
+    }
+
+    setHeaderCollapsed(collapsed) {
+        if (typeof document === 'undefined') return;
+        const header = document.querySelector('#screen-game > header');
+        if (!header) return;
+        header.classList.toggle('header-collapsed', collapsed);
+        const icon = document.querySelector('#btn-toggle-header i');
+        if (icon) {
+            icon.classList.toggle('fa-chevron-up', !collapsed);
+            icon.classList.toggle('fa-chevron-down', collapsed);
         }
     }
 
@@ -220,6 +246,7 @@ class Game {
         this.loopManager.resume();
         this.startClock(); // Ensure clock is running
         this.setPauseControlsVisible(true);
+        if (window.innerWidth <= 900) this.setHeaderCollapsed(true);
         this.ui.updateRunStats(State);
     }
 
@@ -287,6 +314,7 @@ class Game {
         this.loopManager.start();
         this.startClock();
         this.setPauseControlsVisible(true);
+        if (window.innerWidth <= 900) this.setHeaderCollapsed(true);
         this.ui.showScreen('game');
         this.ui.updateRunStats(State);
         this.ui.showFeedback("DÍA REINICIADO", "yellow", 3000);

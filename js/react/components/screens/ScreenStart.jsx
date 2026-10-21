@@ -5,16 +5,16 @@ window.RC = window.RC || {};
 window.RC.ScreenStart = function ScreenStart() {
     const PanelScrews = window.RC.PanelScrews;
     return (
-        <section id="screen-start" className="h-full flex flex-col justify-center items-center gap-6 p-4 crt-flicker">
-            <div className="industrial-panel w-full max-w-[600px] flex flex-col items-center py-12">
+        <section id="screen-start" className="h-full flex flex-col justify-center items-center gap-4 p-4 crt-flicker overflow-y-auto">
+            <div className="industrial-panel w-full max-w-[600px] flex flex-col items-center py-6">
                 <PanelScrews />
 
                 <h1 className="text-6xl font-bold text-chlorine text-glow glitch-effect mb-2" data-text="PIEL DE CLORO">
                     PIEL DE CLORO
                 </h1>
-                <h2 className="text-xl tracking-[0.5em] opacity-80 mb-8">PROTOCOLO DE SEGURIDAD</h2>
+                <h2 className="text-xl tracking-[0.5em] opacity-80 mb-4">PROTOCOLO DE SEGURIDAD</h2>
 
-                <div className="italic text-center text-sm opacity-60 font-mono mb-12 max-w-[400px]">
+                <div className="italic text-center text-sm opacity-60 font-mono mb-6 max-w-[400px]">
                     "Identifica a los infectados. Protege el refugio."
                 </div>
 
