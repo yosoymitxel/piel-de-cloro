@@ -363,6 +363,19 @@ test.describe('dedicated mobile presentation', () => {
 });
 
 
+test('short desktop windows retain desktop layout and fixed pause placement', async ({ page }) => {
+  await page.setViewportSize({ width: 1365, height: 500 });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  const geometry = await page.evaluate(() => ({
+    headerDirection: getComputedStyle(document.querySelector('#screen-game > header')).flexDirection,
+    pausePosition: getComputedStyle(document.querySelector('#btn-pause')).position,
+    viewportWidth: document.documentElement.clientWidth
+  }));
+  expect(geometry.headerDirection, JSON.stringify(geometry)).toBe('row');
+  expect(geometry.pausePosition, JSON.stringify(geometry)).toBe('fixed');
+  expect(geometry.viewportWidth).toBe(1365);
+});
+
 test('global pause control does not cover decision actions or the mobile navigation dock', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/', { waitUntil: 'domcontentloaded' });
