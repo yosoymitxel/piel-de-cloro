@@ -1,13 +1,13 @@
 # Criterios de diseño y auditoría mobile
 
-Estado: aplicable a `narrative/rebuild-lore-dialogues`. Este documento adapta ideas de herramientas públicas de diseño de juegos y anti-slop UI; no instala sus scripts ni copia sus archivos ejecutables.
+Estado: aplicable a `narrative/rebuild-lore-dialogues`. La versión desktop es la referencia funcional y visual; la experiencia móvil debe construirse como una presentación específica, no tratarse como una versión ya terminada. Este documento adapta ideas de herramientas públicas de diseño de juegos y anti-slop UI; no instala sus scripts ni copia sus archivos ejecutables.
 
 ## Referencias de trabajo
 
 - [GameDev Agent Skills](https://github.com/gamedev-skills/awesome-gamedev-agent-skills): elegir habilidades por disciplina y tarea; validar compatibilidad con el stack real antes de aplicar una receta.
 - [Claude Code Game Studios — design-system](https://github.com/Donchitos/Claude-Code-Game-Studios/blob/main/.claude/skills/design-system/SKILL.md): diseñar reglas, estados, fórmulas, dependencias, casos límite y criterios de aceptación antes de implementar un sistema.
 - [Ponytail](https://github.com/dietrichgebert/ponytail): revisar como referencia de flujo de trabajo; adoptar solo las partes verificadas que encajen con el repositorio.
-- [Taste Skill](https://github.com/Leonxlnx/taste-skill): usar su enfoque de auditoría/rediseño y dirección visual para mejorar la interfaz móvil existente, no reemplazarla con una plantilla genérica.
+- [Taste Skill](https://github.com/Leonxlnx/taste-skill): usar su enfoque de auditoría/rediseño y dirección visual para construir la experiencia móvil desde cero, sin reemplazar la identidad del juego con una plantilla genérica.
 - [Impeccable](https://github.com/pbakaus/impeccable): revisar tipografía, jerarquía, contraste, densidad, accesibilidad, responsive y patrones visuales repetidos; usar sus detectores como pistas, no como sustituto del criterio.
 - [ChatGPTPlaywright](https://github.com/3mora2/ChatGPTPlaywright): referencia para inspección visual real con navegador. Las capturas y métricas del proyecto deben proceder de ejecuciones Playwright verificables, no de inferencias a partir del CSS.
 
@@ -15,7 +15,8 @@ Estado: aplicable a `narrative/rebuild-lore-dialogues`. Este documento adapta id
 
 La identidad existente es una terminal retro de horror, no un dashboard SaaS. Conservar la estética de CRT/terminal, el lenguaje de color, los marcos industriales y la tensión visual. Eliminar slop significa corregir decisiones sin propósito, no borrar personalidad.
 
-- No rediseñar escritorio por accidente: los cambios responsive deben vivir en reglas mobile acotadas salvo que exista un defecto compartido demostrado.
+- Desktop queda congelado como baseline: los cambios de presentación móvil deben vivir en `css/MobileLayout.css` y limitarse a viewports de móvil. No tocar el layout desktop para compensar limitaciones del teléfono.
+- La capa móvil reutiliza estado, eventos, reglas y datos existentes; no crea un segundo motor de juego ni duplica las mecánicas.
 - No ocultar funciones esenciales para hacer que una captura parezca limpia.
 - No usar tarjetas anidadas, degradados decorativos, iconos en mosaico ni radios grandes por defecto.
 - Tipografía funcional: limitar tracking exagerado en textos largos; reservar la tipografía monoespaciada y el espaciado amplio para etiquetas de terminal.
