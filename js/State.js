@@ -144,6 +144,8 @@ export const State = {
     currentNPC: null,
     dialoguesCount: 0,
     verificationsCount: 0,
+    cureProgress: 0,
+    cureSynthesized: false,
     infectedSeenCount: 0,
     interludesShown: 0,
     dayAfter: { testsAvailable: 3 },
@@ -379,7 +381,8 @@ export const State = {
         this.currentNPC = null;
         this.dialoguesCount = 0;
         this.verificationsCount = 0;
-        this.cureProgress = 0; // Added for cure ending
+        this.cureProgress = 0;
+        this.cureSynthesized = false;
         this.infectedSeenCount = 0;
         this.interludesShown = 0;
         this.isNight = false;
