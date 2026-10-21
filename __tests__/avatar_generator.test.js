@@ -1,41 +1,58 @@
-import { generateAvatarSvg, generateAvatarDataUri } from "../js/avatar/AvatarGenerator.js";
+import { generateAvatarSvg, generateAvatarDataUri, avatarGeneratorOptions } from "../js/avatar/AvatarGenerator.js";
 
 describe("AvatarGenerator", () => {
-  test("mantiene el mismo retrato para la misma semilla", () => {
-    expect(generateAvatarSvg("npc-004")).toBe(generateAvatarSvg("npc-004"));
+  test("preserva identidad: misma semilla y opciones producen el mismo SVG", () => {
+    expect(generateAvatarSvg("npc-004", { hair: "ponytail", paletteIndex: 2 }))
+      .toBe(generateAvatarSvg("npc-004", { hair: "ponytail", paletteIndex: 2 }));
   });
 
-  test("distingue identidades y conserva peinados definidos", () => {
+  test("distintas semillas crean identidad visual distinta", () => {
     expect(generateAvatarSvg("npc-004")).not.toBe(generateAvatarSvg("npc-005"));
-    expect(generateAvatarSvg("same-npc", { hair: "ponytail" }))
-      .not.toBe(generateAvatarSvg("same-npc", { hair: "short" }));
   });
 
-  test("el peinado ponytail incluye una coleta visible fuera de la silueta de la cabeza", () => {
-    const svg = generateAvatarSvg("ponytail-check", { hair: "ponytail" });
-    expect(svg).toContain('<rect x="19" y="10" width="2" height="4"');
-  });
-
-  test("produce un SVG válido con bordes de píxel nítidos", () => {
+  test("genera un retrato de busto con rejilla lógica 32×40", () => {
     const svg = generateAvatarSvg("test-npc");
-    expect(svg).toContain("<svg");
-    expect(svg).toContain('viewBox="0 0 24 24"');
+    expect(svg).toContain('viewBox="0 0 32 40"');
     expect(svg).toContain('shape-rendering="crispEdges"');
+    expect(svg).toContain("<polygon");
     expect(svg).toContain("</svg>");
   });
 
-  test("no revela infección oculta en el retrato normal", () => {
+  test("la coleta es una silueta explícita que sobresale de la cabeza", () => {
+    const svg = generateAvatarSvg("same-npc", { hair: "ponytail", paletteIndex: 1 });
+    expect(svg).toContain('x="24" y="12" width="3" height="7"');
+    expect(svg).toContain('x="23" y="12" width="3" height="1"');
+    expect(svg).not.toBe(generateAvatarSvg("same-npc", { hair: "short", paletteIndex: 1 }));
+  });
+
+  test("el pelo, ropa, accesorios, ojos y expresiones son variantes del generador, no fotos", () => {
+    const base = generateAvatarSvg("skin-editor", { paletteIndex: 2, hair: "short" });
+    expect(generateAvatarSvg("skin-editor", { paletteIndex: 2, hair: "mohawk" })).not.toBe(base);
+    expect(generateAvatarSvg("skin-editor", { paletteIndex: 2, accessory: "glasses" })).not.toBe(base);
+    expect(generateAvatarSvg("skin-editor", { paletteIndex: 2, clothes: "worker" })).not.toBe(base);
+    expect(generateAvatarSvg("skin-editor", { paletteIndex: 2, eyeType: "tired" })).not.toBe(base);
+  });
+
+  test("permite fijar cualquiera de las cinco paletas", () => {
+    expect(avatarGeneratorOptions.palettes).toHaveLength(5);
+    for (let paletteIndex = 0; paletteIndex < 5; paletteIndex += 1) {
+      const svg = generateAvatarSvg("same-npc", { paletteIndex });
+      expect(svg).toContain(avatarGeneratorOptions.palettes[paletteIndex].background);
+    }
+  });
+
+  test("el dato de infección no afecta el retrato normal sin revelación explícita", () => {
     expect(generateAvatarSvg("npc-004", { infected: true }))
       .toBe(generateAvatarSvg("npc-004", { infected: false }));
   });
 
-  test("permite fijar una paleta y respeta cosméticos existentes", () => {
-    expect(generateAvatarSvg("npc-004", { paletteIndex: 2, hair: "bob" }))
-      .toBe(generateAvatarSvg("npc-004", { paletteIndex: 2, hair: "bob" }));
-    expect(generateAvatarSvg("npc-004", { accessory: "glasses" })).toContain("#111318");
+  test("la anomalía solo se dibuja cuando la vista ya la revela", () => {
+    const ordinary = generateAvatarSvg("npc-004", { infected: true });
+    const revealed = generateAvatarSvg("npc-004", { infected: true, revealed: true });
+    expect(revealed).not.toBe(ordinary);
   });
 
-  test("expone el retrato como una data URI local sin petición de red", () => {
+  test("expone un data URI SVG autocontenido", () => {
     expect(generateAvatarDataUri("npc-004")).toMatch(/^data:image\/svg\+xml;base64,/);
   });
 });
