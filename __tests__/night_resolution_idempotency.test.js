@@ -84,9 +84,13 @@ describe('Night resolution idempotency', () => {
 
 
     test('a failed screen transition releases the guard for a retry', async () => {
-        const switchScreen = jest.fn()
-            .mockRejectedValueOnce(new Error('render failed'))
-            .mockResolvedValueOnce(undefined);
+        let attempt = 0;
+        const switchScreen = jest.fn(() => {
+            attempt += 1;
+            return attempt === 1
+                ? Promise.reject(new Error('render failed'))
+                : Promise.resolve();
+        });
         const game = {
             audio: {
                 levels: { ambient: 0.3 },
