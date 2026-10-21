@@ -1005,6 +1005,13 @@
         padding-inline: 0 !important;
     }
 
+    #screen-game #tutorial-monitor-content .tutorial-msg.scrolling span {
+        display: block !important;
+        padding: 0 !important;
+        animation: none !important;
+        transform: none !important;
+    }
+
     #screen-game .dialogue-sidebar {
         padding: 12px !important;
     }
