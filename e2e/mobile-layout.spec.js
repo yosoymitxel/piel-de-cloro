@@ -251,7 +251,7 @@ test.describe('dedicated mobile presentation', () => {
         .map(el => { const r = el.getBoundingClientRect(); return { width: r.width, height: r.height }; }),
       decisionButtons: [...document.querySelectorAll('#screen-game #inspection-tools-container > .tool-wrapper.col-span-2 > button')]
         .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
-        .map(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width, height: r.height, id: el.id }; }),
+        .map(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height, id: el.id }; }),
       decisionGrid: (() => { const el = document.querySelector('#screen-game #inspection-tools-container'); if (!el || !el.getClientRects().length) return null; const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width }; })(),
       avatarFrame: (() => { const el = document.querySelector('#game-screen-container'); const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height }; })(),
       avatar: (() => { const el = document.querySelector('#screen-game #npc-display > .npc-view-container'); if (!el) return null; const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, height: r.height }; })(),
