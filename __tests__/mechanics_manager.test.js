@@ -338,6 +338,48 @@ describe('GameMechanicsManager', () => {
             expect(gameMock.endings.triggerEnding).not.toHaveBeenCalledWith('final_clean');
         });
 
+        test('five completed infected lab analyses lead to the reachable cure ending after clean evacuation', () => {
+            State.config.maxShelterCapacity = 5;
+            State.generator.isOn = true;
+            State.generator.systems.shelterLab.active = true;
+            State.playerInfected = false;
+            State.paranoia = 0;
+
+            const infectedSubjects = Array.from({ length: 5 }, (_, index) => {
+                const npc = new NPC();
+                npc.name = `Muestra ${index + 1}`;
+                npc.isInfected = true;
+                return npc;
+            });
+            State.admittedNPCs = infectedSubjects;
+
+            for (const npc of infectedSubjects) {
+                // Each subject is tested after sufficient generator power has been restored.
+                State.generator.power = 100;
+                const analysis = gmm.performLabAnalysis(npc.id);
+                expect(analysis.isPending).toBe(true);
+                gmm.updateTurnEndSystems();
+            }
+
+            expect(State.cureProgress).toBe(5);
+            expect(infectedSubjects.every(npc => npc.cureSampleCollected)).toBe(true);
+
+            // Remove the confirmed infected subjects, then fill the shelter with clean civilians.
+            infectedSubjects.forEach(npc => expect(State.recordDeath(npc, 'purga')).toBe(true));
+            const cleanSurvivors = Array.from({ length: 5 }, () => {
+                const npc = new NPC();
+                npc.isInfected = false;
+                return npc;
+            });
+            cleanSurvivors.forEach(npc => expect(State.addAdmitted(npc)).toBe(true));
+
+            State.generator.power = 100;
+            expect(gmm.synthesizeCure().success).toBe(true);
+            gmm.finishRun();
+
+            expect(gameMock.endings.triggerEnding).toHaveBeenCalledWith('final_cure');
+        });
+
         test('five samples alone do not unlock the cure ending', () => {
             Math.random = () => 0.99;
             State.admittedNPCs = Array.from({ length: 5 }, () => {
