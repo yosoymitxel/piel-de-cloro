@@ -16,7 +16,7 @@ const HAIR = {
   shaved: { rear: [], top: [[8, 4, 8, 1], [7, 5, 10, 1]] },
   long: { rear: [[6, 7, 2, 9], [16, 7, 2, 9]], top: [[8, 3, 8, 2], [7, 4, 10, 2], [7, 6, 10, 1]] },
   bob: { rear: [[6, 7, 2, 7], [16, 7, 2, 7]], top: [[8, 3, 8, 2], [7, 4, 10, 2], [7, 6, 10, 2]] },
-  ponytail: { rear: [[16, 7, 2, 3], [17, 10, 2, 4], [16, 13, 2, 3]], top: [[8, 3, 8, 2], [7, 4, 10, 2], [7, 6, 9, 1], [7, 7, 2, 3]] },
+  ponytail: { rear: [[17, 7, 3, 3], [19, 10, 2, 4], [18, 13, 2, 3]], top: [[8, 3, 8, 2], [7, 4, 10, 2], [7, 6, 9, 1], [7, 7, 2, 3]] },
   bun: { rear: [[16, 7, 2, 7]], top: [[10, 1, 4, 2], [9, 2, 6, 2], [8, 3, 8, 2], [7, 4, 10, 2], [7, 6, 10, 1]] },
   wild: { rear: [[6, 8, 2, 6], [16, 8, 2, 7]], top: [[9, 1, 3, 3], [13, 2, 3, 3], [7, 3, 4, 3], [10, 3, 7, 3], [7, 6, 10, 2]] },
   mohawk: { rear: [], top: [[10, 1, 4, 2], [10, 3, 4, 3], [11, 6, 2, 2]] },
@@ -73,6 +73,7 @@ export function generateAvatarSvg(seed, options = {}) {
   const p = PALETTES[paletteIndex];
   const hairStyle = normalizeHair(options.hair);
   const hair = HAIR[hairStyle];
+  const ponytailTie = hairStyle === "ponytail" ? rect(17, 8, 3, 1, p.accent) : "";
   const faceWidth = random() > 0.5 ? 9 : 10;
   const faceX = Math.floor((24 - faceWidth) / 2);
   const eyeY = options.eyeType === "tired" ? 10 : 9 + Math.floor(random() * 2);
@@ -125,6 +126,7 @@ export function generateAvatarSvg(seed, options = {}) {
     rect(0, 0, 24, 24, p.background),
     rect(2, 18, 20, 6, "#101416"),
     drawRects(hair.rear, p.hair),
+    ponytailTie,
     rect(5, 17, 14, 7, shirt),
     rect(9, 15, 6, 4, p.skin),
     rect(faceX - 1, 9, 1, 3, p.shadow),
