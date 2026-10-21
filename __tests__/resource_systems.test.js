@@ -51,6 +51,16 @@ describe('Resource Systems (Food, Paranoia, Sanity)', () => {
     });
 
     describe('Centralized resource mutations', () => {
+        test('a new run restores the same canonical generator defaults', () => {
+            const expected = JSON.parse(JSON.stringify(State.generator));
+            State.generator.power = 1;
+            State.generator.systems.shelterLab.active = true;
+
+            State.reset();
+
+            expect(State.generator).toEqual(expected);
+        });
+
         test('generator power clamps all writes to 0–100', () => {
             expect(State.setGeneratorPower(140)).toBe(100);
             expect(State.updateGeneratorPower(-150)).toBe(0);
