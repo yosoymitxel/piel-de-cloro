@@ -535,9 +535,14 @@ export const State = {
 
     removeAdmitted(npc) {
         if (!npc?.id) return false;
-        const before = this.admittedNPCs.length;
-        this.admittedNPCs = this.admittedNPCs.filter(candidate => candidate?.id !== npc.id);
-        if (this.admittedNPCs.length === before) return false;
+        let removed = false;
+        for (let i = this.admittedNPCs.length - 1; i >= 0; i--) {
+            if (this.admittedNPCs[i]?.id === npc.id) {
+                this.admittedNPCs.splice(i, 1);
+                removed = true;
+            }
+        }
+        if (!removed) return false;
         this._unassignFromAll(npc);
         return true;
     },
@@ -553,6 +558,7 @@ export const State = {
     recordDeath(npc, reason = 'desconocido') {
         if (!npc?.id || this.purgedNPCs.some(candidate => candidate?.id === npc.id)) return false;
         this.removeAdmitted(npc);
+        this._unassignFromAll(npc);
         npc.death = { reason, cycle: this.cycle, revealed: false };
         this.purgedNPCs.push(npc);
         return true;
@@ -568,9 +574,13 @@ export const State = {
             Object.keys(this.assignments).forEach(sector => {
                 const occupants = this.assignments[sector]?.occupants;
                 if (!Array.isArray(occupants)) return;
+                const hadAssignment = occupants.includes(npc.id);
                 let idx;
                 while ((idx = occupants.indexOf(npc.id)) > -1) {
                     occupants.splice(idx, 1);
+                }
+                if (hadAssignment) {
+                    this.addSectorLog(sector, `Personal perdido: ${npc.name} ha dejado el puesto.`, npc.name);
                 }
             });
         }
