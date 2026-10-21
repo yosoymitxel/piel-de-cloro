@@ -588,6 +588,7 @@ export const State = {
     nextSubject() {
         this.dayTime++;
         this.generatorCheckedThisTurn = false;
+        this.generator.modeChangedThisTurn = false;
         if (this.generator.overclockCooldown) {
             this.generator.overclockCooldown = false;
         }
@@ -731,6 +732,7 @@ export const State = {
         this.dayClosed = false;
         this.dayEnded = false;
         this.nightPurgePerformed = false;
+        this.generator.modeChangedThisTurn = false;
         this.dayAfter = { testsAvailable: this.config.dayAfterTestsDefault };
         this.securityItems = this.generateSecurityItems();
 
