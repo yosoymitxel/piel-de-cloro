@@ -263,10 +263,9 @@ export const State = {
         bgBlack: '#050505' // Added
     },
 
-    updateParanoia(amount) {
-        // Aumentar dificultad: Si se gana paranoia (amount > 0), se gana un 20% más.
-        // Si se reduce paranoia (amount < 0), se reduce un 10% menos.
-        const modifier = amount > 0 ? 1.2 : 0.9;
+    updateParanoia(amount, { applyDifficulty = true } = {}) {
+        // La dificultad modifica efectos normales; costes explícitos pueden optar por valor exacto.
+        const modifier = applyDifficulty ? (amount > 0 ? 1.2 : 0.9) : 1;
         const finalAmount = Math.floor(amount * modifier);
         this.paranoia = Math.max(0, Math.min(100, this.paranoia + finalAmount));
 
