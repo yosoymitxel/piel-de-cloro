@@ -88,6 +88,7 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
   }
 
   const pauseButton = page.locator(await page.evaluate(() => window.innerWidth <= 640 ? '#btn-pause-mobile' : '#btn-pause'));
+  expect(await page.evaluate(() => window.game.loopManager.isRunning)).toBe(true);
   await pauseButton.click();
   await expect(page.locator('#modal-pause')).toBeVisible();
   await expect(page.locator('body')).toHaveClass(/paused/);
