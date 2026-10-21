@@ -243,12 +243,21 @@ test.describe('dedicated mobile presentation', () => {
     const landscapeWidth = await page.evaluate(() => ({
       viewport: document.documentElement.clientWidth,
       document: document.documentElement.scrollWidth,
-      hudCards: [...document.querySelectorAll('#screen-game > header > div.flex.flex-wrap > *')]
-        .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0).length,
+      hud: [...document.querySelectorAll('#screen-game > header > div.flex.flex-wrap > *')]
+        .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
+        .map(el => { const r = el.getBoundingClientRect(); return { top: r.top, width: r.width }; }),
+      tools: [...document.querySelectorAll('#screen-game #inspection-tools-container .horror-tool-btn')]
+        .filter(el => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)
+        .map(el => { const r = el.getBoundingClientRect(); return { width: r.width, height: r.height }; }),
+      centerConsoleDisplay: getComputedStyle(document.querySelector('#screen-game .center-console')).display,
       dock: (() => { const el = document.querySelector('#sidebar-left'); const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width, display: getComputedStyle(el).display }; })()
     }));
     expect(landscapeWidth.document, JSON.stringify(landscapeWidth)).toBeLessThanOrEqual(landscapeWidth.viewport + 1);
-    expect(landscapeWidth.hudCards, JSON.stringify(landscapeWidth)).toBe(6);
+    expect(landscapeWidth.hud, JSON.stringify(landscapeWidth.hud)).toHaveLength(6);
+    expect(new Set(landscapeWidth.hud.map(card => Math.round(card.top / 4))).size, JSON.stringify(landscapeWidth.hud)).toBe(1);
+    expect(landscapeWidth.tools.length, JSON.stringify(landscapeWidth)).toBeGreaterThan(0);
+    expect(landscapeWidth.tools.every(tool => tool.width >= 44 && tool.height >= 44), JSON.stringify(landscapeWidth.tools)).toBe(true);
+    expect(landscapeWidth.centerConsoleDisplay).toBe('none');
     expect(landscapeWidth.dock.display).not.toBe('none');
     expect(landscapeWidth.dock.width).toBeGreaterThanOrEqual(landscapeWidth.viewport - 2);
 
