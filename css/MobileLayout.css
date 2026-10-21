@@ -510,9 +510,33 @@
         touch-action: manipulation;
     }
 
-    #screen-game button[aria-label*="OMITIR POR DIÁLOGO"],
-    #screen-game button[title*="OMITIR POR DIÁLOGO"] {
+    #screen-game button[aria-label*="OMITIR"],
+    #screen-game button[title*="OMITIR"],
+    #screen-game button:has(.fa-forward),
+    #screen-game button:has(.fa-fast-forward) {
+        min-width: 44px !important;
         min-height: 44px !important;
+    }
+
+    #screen-game .puesto-container,
+    #screen-game .main-view-area,
+    #screen-game .dialogue-sidebar,
+    #screen-game #inspection-tools-container,
+    #screen-game #game-actions-container {
+        flex-shrink: 1 !important;
+        align-self: stretch;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    #screen-game .puesto-container > *,
+    #screen-game .main-view-area > *,
+    #screen-game .dialogue-sidebar > *,
+    #screen-game #inspection-tools-container > *,
+    #screen-game #game-actions-container > * {
+        min-width: 0 !important;
+        max-width: 100% !important;
     }
 
     /* Map: the viewport scrolls; the desktop coordinates remain untouched in JS. */
