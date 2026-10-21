@@ -12,15 +12,15 @@ const PALETTES = [
 
 const HAIR = {
   bald:     { rear:[], top:[], temples:[] },
-  short:    { rear:[], top:[[11,5,10,2],[9,7,14,2],[9,9,4,2],[21,9,3,1]], temples:[[9,10,2,5],[21,10,2,4]] },
-  shaved:   { rear:[], top:[[11,6,10,1],[9,7,14,1]], temples:[] },
-  long:     { rear:[[8,10,3,13],[21,10,3,13],[9,19,2,5],[22,18,2,6]], top:[[11,5,10,2],[9,7,14,2],[9,9,14,1]], temples:[] },
-  bob:      { rear:[[8,10,4,9],[20,10,4,9]], top:[[11,5,10,2],[9,7,14,2],[9,9,14,2]], temples:[] },
-  ponytail: { rear:[[22,9,4,4],[24,12,3,7],[23,19,3,4],[22,22,2,2]], top:[[11,5,10,2],[9,7,14,2],[9,9,12,1]], temples:[[9,10,2,4]] },
-  bun:      { rear:[[21,5,5,5],[22,4,3,2]], top:[[11,5,10,2],[9,7,14,2],[9,9,14,1]], temples:[[9,10,2,4]] },
-  wild:     { rear:[[8,10,3,8],[21,10,3,8]], top:[[10,4,4,4],[14,3,5,5],[18,5,5,4],[8,7,7,4],[10,9,13,2]], temples:[[8,10,3,5],[21,10,3,5]] },
-  mohawk:   { rear:[], top:[[14,2,4,4],[13,5,6,4],[12,8,8,2]], temples:[[9,10,2,3],[21,10,2,3]] },
-  punk:     { rear:[], top:[[9,6,4,4],[12,3,4,6],[16,2,4,7],[19,5,4,5],[9,9,15,2]], temples:[[9,10,2,3],[21,10,2,3]] }
+  short:    { rear:[], top:[[12,4,8,2],[10,6,12,2],[8,8,16,2],[8,10,5,2],[19,10,5,2]], temples:[[7,12,2,7],[23,12,2,6]] },
+  shaved:   { rear:[], top:[[11,7,10,1],[10,8,12,1]], temples:[] },
+  long:     { rear:[[5,10,4,16],[23,10,4,16],[7,22,3,5],[22,23,3,5]], top:[[12,4,8,2],[10,6,12,2],[8,8,16,2],[8,10,16,1]], temples:[[7,12,3,11],[22,12,3,11]] },
+  bob:      { rear:[[6,10,4,12],[22,10,4,12],[8,19,3,5],[21,19,3,5]], top:[[12,4,8,2],[10,6,12,2],[8,8,16,3],[8,11,16,1]], temples:[[7,12,3,8],[22,12,3,8]] },
+  ponytail: { rear:[[23,9,5,4],[25,13,3,6],[24,19,4,6],[23,25,3,4],[22,29,2,2]], top:[[12,4,8,2],[10,6,12,2],[8,8,16,2],[8,10,15,1]], temples:[[7,12,3,6]] },
+  bun:      { rear:[[20,5,6,5],[21,3,4,3],[7,11,3,7],[22,11,3,7]], top:[[12,4,8,2],[10,6,12,2],[8,8,16,2],[8,10,16,1]], temples:[[7,12,3,7],[22,12,3,7]] },
+  wild:     { rear:[[5,11,4,10],[23,11,4,11],[7,19,3,5],[22,19,3,5]], top:[[12,4,4,4],[16,2,4,7],[19,4,4,5],[9,5,4,4],[13,4,5,5],[18,6,5,4],[8,9,16,3]], temples:[[7,12,3,8],[22,12,3,8]] },
+  mohawk:   { rear:[], top:[[14,2,4,4],[13,4,6,4],[12,6,8,3],[12,9,5,2]], temples:[] },
+  punk:     { rear:[[7,11,3,7],[23,11,3,8]], top:[[10,6,4,4],[12,3,4,7],[15,1,4,9],[18,4,4,6],[21,7,4,3],[8,10,16,3]], temples:[[7,12,3,6],[22,12,3,6]] }
 };
 
 const SKIN_PALETTE = {
@@ -86,8 +86,9 @@ export function generateAvatarSvg(seed,options={}) {
   const shirt=shirtMap[clothes];
   const anomaly=options.revealed===true && options.infected===true;
   const cx=16;
-  const headOuter=[[7,6],[8,10],[9,12],[10,14],[11,14],[12,14],[13,14],[14,14],[15,14],[16,14],[17,14],[18,14],[19,14],[20,14],[21,12],[22,10],[23,8]];
-  const headInner=headOuter.map(([y,w])=>[y+1,Math.max(4,w-2)]);
+  // Face silhouette is a stepped dome, not a black rectangle. The crown is
+  // skin-colored when bald/shaved; hair styles provide their own silhouettes.
+  const headProfile=[[7,6],[8,10],[9,14],[10,16],[11,16],[12,16],[13,16],[14,16],[15,16],[16,16],[17,16],[18,16],[19,16],[20,16],[21,14],[22,12],[23,8]];
   const eyeY=eyeType==="tired"?15:14+Math.floor(random()*2);
   const eyeW=eyeType==="big"?4:eyeType==="narrow"||eyeType==="squint"?2:3;
   const leftEye=11,rightEye=18;
@@ -131,7 +132,12 @@ export function generateAvatarSvg(seed,options={}) {
   const facialAnomaly=anomaly
     ?poly("10,12 12,11 13,13 12,16 10,17", "#a43e4b")+poly("21,17 23,17 22,21 20,20","#a43e4b")+rect(15,8,2,1,"#a43e4b"):"";
   const ponytailTie=hairStyle==="ponytail"?rect(23,12,3,1,p.accent)+rect(24,13,1,1,p.skinLight):"";
-  const hairHighlights=hairStyle==="bald"||hairStyle==="shaved"?"":rect(11,7,4,1,p.hairLight)+rect(16,6,3,1,p.hairLight);
+  const hairHighlights=hairStyle==="bald"||hairStyle==="shaved"?""
+    :hairStyle==="mohawk"
+      ?rect(15,3,2,1,p.hairLight)+rect(15,5,2,3,p.hairLight)
+      :hairStyle==="punk"
+        ?rect(16,3,2,2,p.accent)+rect(20,6,2,1,p.hairLight)
+        :rect(11,8,4,1,p.hairLight)+rect(17,7,3,1,p.hairLight);
 
   const parts=[
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40" width="256" height="320" shape-rendering="crispEdges" role="img" aria-label="Retrato pixel art de NPC">',
@@ -144,14 +150,16 @@ export function generateAvatarSvg(seed,options={}) {
     // Neck, ears and rear hair are behind the face.
     rect(13,23,6,7,p.skinShadow),rect(14,24,4,5,p.skin),
     rect(8,15,3,5,p.skinShadow),rect(9,15,2,4,p.skin),rect(21,15,3,5,p.skinShadow),rect(21,15,2,4,p.skin),
-    drawRects(hair.rear,p.hair),drawRects(hair.temples,p.hair),ponytailTie,
-    // Head contour and skin planes; rows create a deliberate stepped silhouette.
-    shapeRows(cx,headOuter.map(([y,w])=>[y,w+2]),"#101419"),
-    shapeRows(cx,headInner,p.skin),
-    row(cx,10,10,p.skinLight),row(cx,11,12,p.skinLight),row(cx,12,12,p.skin),
-    rect(10,16,2,4,p.skinShadow,'opacity="0.55"'),rect(21,16,1,4,p.skinShadow,'opacity="0.65"'),
-    rect(12,10,2,2,p.skinLight),rect(19,10,2,2,p.skinLight),
-    drawRects(hair.top,p.hair),hairHighlights,
+    drawRects(hair.rear,p.hair),
+    // Open crown silhouette and side/jaw outline. Do not draw an artificial
+    // black cap: bald NPCs must actually look bald.
+    shapeRows(cx,headProfile,p.skin),
+    rect(7,11,1,11,"#101419"),rect(24,11,1,11,"#101419"),row(cx,24,8,"#101419"),
+    // Directional face planes: highlight the forehead/cheek, shade the far side.
+    poly("10,11 13,9 15,10 15,17 12,20 10,18",p.skinLight),
+    poly("20,12 22,12 22,20 20,22 19,18",p.skinShadow),
+    rect(10,16,2,4,p.skinShadow,'opacity="0.4"'),
+    drawRects(hair.top,p.hair),drawRects(hair.temples,p.hair),ponytailTie,hairHighlights,
     // Hair and clothing are built from discrete color planes, not texture noise.
     brows,eyes,underEyes,nose,mouth,identityDetail,beard,
     // Clothes collar, seams and restrained wear.
