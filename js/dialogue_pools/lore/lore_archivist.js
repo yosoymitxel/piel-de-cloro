@@ -39,7 +39,7 @@ export const lore_archivist = {
             id: 'la_n3',
             text: "*Toma un trozo de vidrio y se acerca al pecho, pero se detiene antes de cortar.* \"No te voy a obligar a leer. Ya hice eso con otros y solo conseguí que mintieran. Si te vas, al menos no digas que nunca te lo mostré.\"",
             options: [
-                { id: 'la_o3a', label: 'Irse', next: null, onclick: act.leave }
+                { id: 'la_o3a', label: 'Irse', next: null }
             ]
         },
         'la_n4': {
@@ -115,7 +115,7 @@ export const lore_archivist = {
             id: 'la_n9_a',
             text: "\"Alguien llama a esto la Gran Edición: el día en que no quede nadie capaz de corregir los registros. No sé si es una profecía o una amenaza. Desde que empezó el nombre, cada semana desaparece otra carpeta.\"",
             options: [
-                { id: 'la_o9a_1', label: 'Terminar', next: null, onclick: act.leave }
+                { id: 'la_o9a_1', label: 'Terminar', next: null }
             ]
         }
     }
