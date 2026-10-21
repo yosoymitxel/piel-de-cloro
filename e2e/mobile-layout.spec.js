@@ -142,7 +142,7 @@ test.describe('dedicated mobile presentation', () => {
         dockScrollWidth: document.querySelector('#sidebar-left')?.scrollWidth ?? 0,
         dockClientWidth: document.querySelector('#sidebar-left')?.clientWidth ?? 0,
         dockOverflowX: document.querySelector('#sidebar-left') ? getComputedStyle(document.querySelector('#sidebar-left')).overflowX : 'visible',
-        pause: rectOf('#screen-game #btn-pause'),
+        pause: rectOf('#screen-game #btn-pause-mobile'),
         actionButtons: [...document.querySelectorAll('#inspection-tools-container > .tool-wrapper.col-span-2 > button')].filter(isVisible).map(rectJSON),
         inspectionTools: rectOf('#screen-game #inspection-tools-container'),
         dialogueText: rectOf('#screen-game #npc-dialogue'),
@@ -421,7 +421,7 @@ test('short desktop windows retain desktop layout and in-flow pause placement', 
     viewportWidth: document.documentElement.clientWidth
   }));
   expect(geometry.headerDirection, JSON.stringify(geometry)).toBe('row');
-  expect(geometry.pausePosition, JSON.stringify(geometry)).toBe('static');
+  expect(geometry.pausePosition, JSON.stringify(geometry)).toBe('fixed');
   expect(geometry.viewportWidth).toBe(1365);
 });
 
@@ -444,7 +444,7 @@ test('global pause control does not cover decision actions or the mobile navigat
   await expect(interludeContinue).toBeVisible({ timeout: 2500 }).catch(() => {});
   if (await interludeContinue.isVisible()) await interludeContinue.click();
   await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
-  const pause = page.locator('#btn-pause');
+  const pause = page.locator('#btn-pause-mobile');
   // Some mobile states intentionally hide the global pause control; only
   // measure overlap when the control is actually rendered.
   test.skip(!(await pause.isVisible()), 'pause control is hidden in this mobile state');
@@ -455,7 +455,7 @@ test('global pause control does not cover decision actions or the mobile navigat
       const r = el.getBoundingClientRect();
       return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
     };
-    return { pause: rect('#btn-pause'), dock: rect('#sidebar-left'), admit: rect('#btn-admit'), ignore: rect('#btn-ignore') };
+    return { pause: rect('#btn-pause-mobile'), dock: rect('#sidebar-left'), admit: rect('#btn-admit'), ignore: rect('#btn-ignore') };
   });
   const overlaps = (a, b) => Boolean(a && b && a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top);
   expect(overlaps(geometry.pause, geometry.dock), JSON.stringify(geometry)).toBe(false);
