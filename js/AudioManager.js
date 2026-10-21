@@ -400,8 +400,10 @@ export class AudioManager {
         return this.playLore(this.getUrl(key), opts);
     }
     stopLore(options = {}) {
-        const { fadeOut = 400, unduckAmbient = true } =
-            typeof options === 'number' ? { fadeOut: options } : options;
+        const normalizedOptions = typeof options === 'number'
+            ? { fadeOut: options }
+            : (options && typeof options === 'object' ? options : {});
+        const { fadeOut = 400, unduckAmbient = true } = normalizedOptions;
         const ch = this.channels.lore;
         // Cancelar cualquier fade anterior en este canal usando el objeto fadeTimers correcto
         if (this.fadeTimers['lore']) {
