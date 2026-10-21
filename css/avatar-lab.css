@@ -149,3 +149,18 @@ input:hover, select:hover { border-color: #537879; }
   .count-code, .source-link { display: inline-block; margin-top: 11px; }
   .render-status { font-size: 8px; }
 }
+
+
+/* Source-first ClaudePXL preview: inspect the editable DSL, not generated binaries. */
+.pxl-source {
+  margin: 0;
+  max-height: 420px;
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid rgba(112, 188, 178, .24);
+  background: #090f12;
+  color: #a8c9c4;
+  font: 12px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace;
+  white-space: pre;
+  tab-size: 2;
+}
