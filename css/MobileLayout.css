@@ -1038,11 +1038,6 @@
         min-height: 0;
     }
 
-    #screen-game .main-view-area {
-        gap: 10px !important;
-        overflow: visible !important;
-    }
-
 }
 
 /* Landscape phones: prioritize the person, inspection tools and decisions over telemetry. */
