@@ -19,7 +19,7 @@ const HAIR = {
   shaved:   { rear:[], top:[[10,7,12,1],[8,8,16,1]], temples:[] },
   long:     { rear:[[5,10,4,16],[23,10,4,16],[7,22,3,5],[22,23,3,5]], top:[[11,4,10,2],[8,6,16,3],[8,9,16,1]], temples:[[7,12,3,11],[22,12,3,11]] },
   bob:      { rear:[[6,10,4,12],[22,10,4,12],[8,19,3,5],[21,19,3,5]], top:[[11,4,10,2],[8,6,16,3],[8,9,16,3],[11,11,10,1]], temples:[[7,12,3,8],[22,12,3,8]] },
-  ponytail: { rear:[[22,8,6,4],[25,12,5,7],[26,19,4,7],[25,26,4,5],[23,31,3,2]], top:[[11,4,10,2],[8,6,16,3],[8,9,15,1]], temples:[[7,12,3,6]] },
+  ponytail: { rear:[[21,10,4,3],[23,12,3,4],[24,16,3,4],[24,20,2,4],[23,24,2,4],[22,28,2,3],[21,31,2,2]], top:[[11,4,10,2],[8,6,16,3],[8,9,15,1]], temples:[[7,12,3,6]] },
   bun:      { rear:[[20,5,6,5],[21,3,4,3],[7,11,3,7],[22,11,3,7]], top:[[11,4,10,2],[8,6,16,3],[8,9,16,1],[19,3,5,4],[20,2,3,2]], temples:[[7,12,3,7],[22,12,3,7]] },
   wild:     { rear:[[5,11,4,10],[23,11,4,11],[7,19,3,5],[22,19,3,5]], top:[[9,6,4,4],[13,3,4,7],[17,4,4,5],[21,7,4,3],[8,8,16,3],[8,11,3,3],[21,11,3,3]], temples:[[7,12,3,8],[22,12,3,8]] },
   mohawk:   { rear:[], top:[[14,1,4,4],[13,4,6,4],[12,7,8,3]], temples:[] },
@@ -203,13 +203,14 @@ export function generateAvatarSvg(seed,options={}) {
     :accessory==="mask"
       ?rect(10,19,13,5,"#b4c1ba")+rect(11,19,11,1,"#e0e6dc")+rect(12,21,2,1,"#687978")+rect(17,21,2,1,"#687978")+rect(9,20,2,1,p.skinShadow)+rect(22,20,2,1,p.skinShadow)
     :accessory==="patch"?rect(10,12,3,4,p.hair)+rect(11,12,1,2,p.hairLight)
-    :accessory==="scar"?poly("21,13 22,13 20,17 19,17",p.accent)
+    :accessory==="scar"
+      ?poly("22,17 23,17 22,19 20,20 21,19",p.skinShadow)+rect(21,17,1,1,p.skinLight)
     :accessory==="earring"?rect(22,18,1,3,p.accent)+rect(22,20,2,1,p.accent)
     :accessory==="hood"?poly("8,13 8,9 11,5 21,5 24,10 24,24 21,22 21,10 11,10 11,24 8,25",p.shirtDark)+rect(10,7,2,10,p.shirt):"";
   const facialAnomaly=anomaly
     ?poly("10,12 12,11 13,13 12,16 10,17", "#a43e4b")+poly("21,17 23,17 22,21 20,20","#a43e4b")+rect(15,8,2,1,"#a43e4b"):"";
   const ponytailTie=hairStyle==="ponytail"
-    ?rect(25,12,3,2,p.accent)+rect(26,12,1,2,p.skinLight):"";
+    ?rect(23,12,2,2,p.accent)+rect(24,12,1,2,p.skinLight):"";
   const hairHighlights=hairStyle==="bald"||hairStyle==="shaved"?""
     :hairStyle==="mohawk"
       ?rect(15,3,2,1,p.hairLight)+rect(15,5,2,2,p.hairLight)
