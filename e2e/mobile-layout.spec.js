@@ -266,8 +266,8 @@ test.describe('dedicated mobile presentation', () => {
         });
         expect(lastButton, JSON.stringify({ dialogue, scrolledViewport })).not.toBeNull();
         expect(lastButton.height).toBeGreaterThanOrEqual(40);
-        expect(lastButton.bottom, JSON.stringify({ dialogue, lastButton, scrolledViewport })).toBeLessThanOrEqual(scrolledViewport.bottom + 1);
-        expect(lastButton.top, JSON.stringify({ dialogue, lastButton, scrolledViewport })).toBeGreaterThanOrEqual(scrolledViewport.top - 1);
+        expect(lastButton.y + lastButton.height, JSON.stringify({ dialogue, lastButton, scrolledViewport })).toBeLessThanOrEqual(scrolledViewport.bottom + 1);
+        expect(lastButton.y, JSON.stringify({ dialogue, lastButton, scrolledViewport })).toBeGreaterThanOrEqual(scrolledViewport.top - 1);
         expect(scrolledViewport.scrollHeight, JSON.stringify(scrolledViewport)).toBeGreaterThan(scrolledViewport.clientHeight);
       }
       expect(responsive.document, JSON.stringify({ width, ...responsive })).toBeLessThanOrEqual(responsive.viewport + 1);
