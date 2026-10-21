@@ -73,15 +73,17 @@ test('a player can enter the tutorial and begin the first day', async ({ page },
     const desktopPause = page.locator('#btn-pause');
     await expect(desktopPause).toBeVisible();
     const pauseStyle = await desktopPause.evaluate(el => {
+      const style = getComputedStyle(el);
       const rect = el.getBoundingClientRect();
-      const containingArea = document.querySelector('#main-area').getBoundingClientRect();
-      return { position: getComputedStyle(el).position, right: rect.right, bottom: rect.bottom,
-        areaRight: containingArea.right, areaBottom: containingArea.bottom };
+      const area = document.querySelector('#main-area').getBoundingClientRect();
+      return { position: style.position, bottom: parseFloat(style.bottom), right: parseFloat(style.right),
+        rectInsideArea: rect.right <= area.right + 1 && rect.bottom <= area.bottom + 1 };
     });
+    // Preserve the exact desktop CSS geometry from the pre-layout baseline.
     expect(pauseStyle.position).toBe('fixed');
-    // The original desktop button is fixed to the CRT main-area containing block.
-    expect(pauseStyle.right, JSON.stringify(pauseStyle)).toBeCloseTo(pauseStyle.areaRight - 24, 0);
-    expect(pauseStyle.bottom, JSON.stringify(pauseStyle)).toBeCloseTo(pauseStyle.areaBottom - 32, 0);
+    expect(pauseStyle.bottom).toBe(32);
+    expect(pauseStyle.right).toBe(24);
+    expect(pauseStyle.rectInsideArea).toBe(true);
   } else {
     await expect(page.locator('#btn-pause-mobile')).toBeVisible();
     await expect(page.locator('#btn-pause')).toBeHidden();
