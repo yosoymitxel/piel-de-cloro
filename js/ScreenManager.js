@@ -5,9 +5,18 @@ export class ScreenManager {
         this.ui = uiManager;
         this.screens = uiManager.screens;
         this.elements = uiManager.elements;
+        this.pendingScreenTimer = null;
+        this.transitionRequestId = 0;
     }
 
     showScreen(screenName, state) {
+        // A screen switch is delayed for the CRT effect. Cancel older pending
+        // switches so an outdated callback cannot hide the screen requested last.
+        const requestId = ++this.transitionRequestId;
+        if (this.pendingScreenTimer !== null) {
+            clearTimeout(this.pendingScreenTimer);
+            this.pendingScreenTimer = null;
+        }
         // Cancel purge animation if active
         if (this.ui && this.ui.cancelPurgeAnimation) {
             this.ui.cancelPurgeAnimation();
@@ -22,6 +31,8 @@ export class ScreenManager {
 
         // Determine if we need to perform logic update
         const changeLogic = () => {
+            if (requestId !== this.transitionRequestId) return;
+
             Object.values(this.screens).forEach(s => s.addClass('hidden'));
             if (this.screens[screenName]) {
                 this.screens[screenName].removeClass('hidden');
@@ -112,8 +123,13 @@ export class ScreenManager {
 
         if (isDifferentScreen) {
             monitor.removeClass('tube-power-on');
-            // Pequeño delay para simular el cambio de canal
-            setTimeout(changeLogic, 150);
+            // Pequeño delay para simular el cambio de canal. Keep the timer
+            // cancellable because multiple transitions can be requested during
+            // a day/night hand-off (purge, sleep, and next-day initialization).
+            this.pendingScreenTimer = setTimeout(() => {
+                this.pendingScreenTimer = null;
+                changeLogic();
+            }, 150);
         } else {
             changeLogic();
         }
