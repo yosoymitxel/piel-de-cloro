@@ -365,7 +365,9 @@ describe('GameMechanicsManager', () => {
             expect(infectedSubjects.every(npc => npc.cureSampleCollected)).toBe(true);
 
             // Remove the confirmed infected subjects, then fill the shelter with clean civilians.
-            infectedSubjects.forEach(npc => expect(State.recordDeath(npc, 'purga')).toBe(true));
+            for (const npc of [...infectedSubjects]) {
+                expect(State.recordDeath(npc, 'purga')).toBe(true);
+            }
             const cleanSurvivors = Array.from({ length: 5 }, () => {
                 const npc = new NPC();
                 npc.isInfected = false;
