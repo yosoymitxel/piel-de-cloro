@@ -8,7 +8,15 @@ export class AvatarRenderer {
         const infectedFactor = npc.isInfected ? 0.1 : 0; // 10% base si está infectado
         
         const errorChance = Math.min(0.8, infectedFactor + paranoiaFactor + sanityFactor);
-        const statusText = Math.random() < errorChance ? 'SIGNAL_ERR' : 'SIG_STABLE';
+        // Keep the signal stable across rerenders: the same NPC must not flicker
+        // between states just because React/jQuery rebuilt the portrait.
+        const identity = String(npc.id || npc.name || 'unknown');
+        let identityHash = 2166136261;
+        for (let i = 0; i < identity.length; i += 1) {
+            identityHash = Math.imul(identityHash ^ identity.charCodeAt(i), 16777619);
+        }
+        const stableRoll = (identityHash >>> 0) / 4294967296;
+        const statusText = stableRoll < errorChance ? 'SIGNAL_ERR' : 'SIG_STABLE';
 
         // claude-pxl portraits are optional build-time assets. The existing
         // procedural avatar remains the fallback when pixel mode or an asset is absent.
@@ -23,7 +31,7 @@ export class AvatarRenderer {
         const portraitName = lorePortraits[npc.loreId] ||
             (npc.isInfected ? 'npc_infected' : 'npc_human');
         const pixelPortraitHTML = pixelArtEnabled
-            ? `<img class="npc-pixel-portrait" src="assets/pixel/npcs/sprites/${portraitName}.png" alt="" aria-hidden="true" onerror="this.parentElement.classList.remove('has-pixel-portrait'); this.remove()">`
+            ? `<img class="npc-pixel-portrait" src="assets/pixel/npcs/sprites/${portraitName}.png" alt="" aria-hidden="true" onload="this.parentElement.classList.add('has-pixel-portrait')" onerror="this.parentElement.classList.remove('has-pixel-portrait'); this.remove()">`
             : '';
 
         let accessoryHTML = '';
