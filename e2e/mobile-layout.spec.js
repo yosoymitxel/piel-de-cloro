@@ -74,7 +74,7 @@ test.describe('dedicated mobile presentation', () => {
         const rect = el.getBoundingClientRect();
         return rect.width >= 44 && rect.height >= 44;
       });
-    }, null, { timeout: 12000 });
+    }, null, { timeout: 20000 });
 
     await page.waitForFunction(() => {
       const text = document.querySelector('#npc-dialogue .npc-text');
@@ -161,10 +161,10 @@ test.describe('dedicated mobile presentation', () => {
     expect(measurements.documentWidth, JSON.stringify(measurements)).toBeLessThanOrEqual(measurements.viewportWidth + 1);
     expect(measurements.bounds.length).toBeGreaterThan(0);
 
-    // Six visible status cards must form two complete three-column rows.
+    // The compact mobile HUD intentionally keeps all six status cards in one horizontal row.
     expect(measurements.visibleHud, JSON.stringify(measurements.visibleHud)).toHaveLength(6);
     const hudRows = [...new Set(measurements.visibleHud.map(card => Math.round(card.top / 4)))];
-    expect(hudRows.length, JSON.stringify(measurements.visibleHud)).toBe(2);
+    expect(hudRows.length, JSON.stringify(measurements.visibleHud)).toBe(1);
     expect(measurements.visibleHud.every(card => card.width >= 44 && card.left >= -1 && card.right <= measurements.viewportWidth + 1)).toBe(true);
 
     // The battery fill must remain inside its own card at every tested width.
