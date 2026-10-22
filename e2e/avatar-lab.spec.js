@@ -15,6 +15,10 @@ test('avatar lab renders code-generated skins and editable hairstyle variants', 
   await expect(page.locator('#face-gallery .hair-card')).toHaveCount(7);
   await expect(page.locator('#svg-source')).toContainText('<svg');
   await expect(page.locator('#pxl-source')).toContainText('sprite(\"npc_human\"');
+  await expect(page.locator('#hair')).toHaveValue('');
+  await expect(page.locator('#face-shape')).toHaveValue('');
+  await expect(page.locator('#clothes')).toHaveValue('');
+  await expect(page.locator('#facial-hair')).toHaveValue('');
 
   const capture = async (name, fullPage = false) => {
     const path = `test-results/avatar-lab-${testInfo.project.name}-${name}.png`;
@@ -24,12 +28,24 @@ test('avatar lab renders code-generated skins and editable hairstyle variants', 
   await capture('default');
   await capture('full-page', true);
 
+  // With traits on Auto, changing only the ID must create a different seeded NPC.
+  const firstSignature = await portrait.getAttribute('data-generated-signature');
+  await page.locator('#seed').fill('npc-seed-change-0002');
+  await expect(portrait).toHaveAttribute('data-npc-id', 'npc-seed-change-0002');
+  await expect.poll(() => portrait.getAttribute('data-generated-signature')).not.toBe(firstSignature);
+  await capture('new-seed');
+
   const before = await portrait.getAttribute('src');
   await page.getByRole('button', { name: /Elegir peinado Coleta/i }).click();
   await expect(portrait).toHaveAttribute('data-hair-style', 'ponytail');
   await expect(page.locator('#hair')).toHaveValue('ponytail');
-  await expect(page.locator('#svg-source')).toContainText('x="26" y="19" width="4" height="7"');
+  await expect(page.locator('#svg-source')).toContainText('x="24" y="16" width="3" height="4"');
   await capture('ponytail');
+
+  await page.locator('#facial-hair').selectOption('beard');
+  await expect(portrait).toHaveAttribute('data-facial-hair', 'beard');
+  await expect(page.locator('#svg-source')).toContainText('polygon points="10,19 12,21');
+  await capture('beard-override');
 
   await page.locator('#hair-gallery-title').scrollIntoViewIfNeeded();
   await capture('hair-variants');

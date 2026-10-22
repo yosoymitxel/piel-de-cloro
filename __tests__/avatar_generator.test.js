@@ -20,8 +20,8 @@ describe("AvatarGenerator", () => {
 
   test("la coleta es una silueta explícita que sobresale detrás de la cabeza", () => {
     const svg = generateAvatarSvg("same-npc", { hair: "ponytail", paletteIndex: 1 });
-    expect(svg).toContain('x="26" y="19" width="4" height="7"');
-    expect(svg).toContain('x="25" y="12" width="3" height="2"');
+    expect(svg).toContain('x="24" y="16" width="3" height="4"');
+    expect(svg).toContain('x="23" y="12" width="2" height="2"');
     expect(svg).not.toBe(generateAvatarSvg("same-npc", { hair: "short", paletteIndex: 1 }));
   });
 
