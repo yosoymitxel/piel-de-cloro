@@ -15,7 +15,7 @@ test.describe('dedicated mobile presentation', () => {
         viewport: document.documentElement.clientWidth,
         document: document.documentElement.scrollWidth,
         shell: Math.round(document.querySelector('.terminal-chasis')?.getBoundingClientRect().width ?? 0),
-        mobileStylesheetLoaded: [...document.styleSheets].some(sheet => sheet.href?.endsWith('/css/MobileLayout.css'))
+        mobileStylesheetLoaded: [...document.styleSheets].some(sheet => sheet.href && new URL(sheet.href).pathname.endsWith('/css/MobileLayout.css'))
       }));
 
       expect(metrics.mobileStylesheetLoaded, `MobileLayout.css missing at ${width}px`).toBe(true);
@@ -102,7 +102,7 @@ test.describe('dedicated mobile presentation', () => {
         const r = el.getBoundingClientRect();
         return { tag: el.className, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
       });
-      const hudRoot = document.querySelector('#screen-game > header > div.flex.flex-wrap');
+      const hudRoot = document.querySelector('#header-hud-stats');
       const visibleHud = [...(hudRoot?.children ?? [])].filter(el => {
         const style = getComputedStyle(el);
         return style.display !== 'none' && el.getClientRects().length > 0;
