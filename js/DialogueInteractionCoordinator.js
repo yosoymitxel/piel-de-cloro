@@ -39,7 +39,7 @@ export class DialogueInteractionCoordinator {
 
         if (typeof option.onclick === 'function') {
             try {
-                option.onclick(game || window.game);
+                option.onclick(game || (typeof window !== 'undefined' ? window.game : null));
             } catch (error) {
                 console.warn('Dialogue action failed:', error);
             }
