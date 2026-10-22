@@ -261,7 +261,7 @@ text: "*Acepta la venda y se la coloca sin dejar de vigilar el antebrazo. «Grac
                 options: [
                     { id: 'gt_o3a', label: '¡Qué asco! Vete.', next: null, resultText: "*Se va llorando.* \"Mis dientes... mis bonitos dientes...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                     { id: 'gt_o3l', label: '¿Me das ese diente?', next: null, resultText: "*Te lo entrega.* \"Si te sirve... tengo más en casa.\"", onclick: (g) => act.giveLoreItem(g, 'item_rotten_tooth', 'Diente Necrótico') },
-                    { id: 'gt_o3b', label: 'Examinar las encías con luz UV', next: null, resultText: "*Guarda el diente en el bolsillo.* \"Dime que puedes arreglarme.\"", onclick: act.testUV, log: { text: 'Síntoma: Caída de dientes sin dolor ni sangrado. Las encías rechazan el hueso, indicando necrosis estructural.', icon: 'fa-tooth' } },
+                    { id: 'gt_o3b', label: 'Examinar las encías con luz UV', next: null, resultText: "*Guarda el diente en el bolsillo.* \"¿Ves algo en las encías? No deberían verse así.\"", onclick: act.testUV, log: { text: 'Síntoma: Caída de dientes sin dolor ni sangrado. Las encías rechazan el hueso, indicando necrosis estructural.', icon: 'fa-tooth' } },
                     { id: 'gt_o3e', label: 'Abre la boca', next: 'gt_n4b' }
                 ]
             },
@@ -355,7 +355,7 @@ text: "*Acepta la venda y se la coloca sin dejar de vigilar el antebrazo. «Grac
                 id: 'gcm_n2a',
                 text: "*Mira al vacío.* \"Desde que empezaron a aumentar la concentración. El aire tiene gusto a piscina. ¿Tú no lo notas?\"",
                 options: [
-                    { id: 'gcm_o2a', label: 'Medir la temperatura tras la exposición al cloro', next: null, onclick: act.testThermo, resultText: "*Exhala.* \"El cloro nos mantiene puros... pero ¿a qué costo?\"" },
+                    { id: 'gcm_o2a', label: 'Medir la temperatura tras la exposición al cloro', next: null, onclick: act.testThermo, resultText: "*Exhala.* \"La temperatura no dirá cuánto cloro respiré, pero quizá revele una reacción.\"" },
                     { id: 'gcm_o2b', label: 'Interesante', next: 'gcm_n_end' }
                 ]
             },
