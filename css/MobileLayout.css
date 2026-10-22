@@ -299,8 +299,9 @@
         overflow-y: auto !important;
         overscroll-behavior-y: contain;
         -webkit-overflow-scrolling: touch;
-        padding-bottom: 0 !important;
-        scroll-padding-bottom: 0 !important;
+        /* Reserve the fixed bottom navigation dock in the scrollable content. */
+        padding-bottom: var(--mobile-content-bottom) !important;
+        scroll-padding-bottom: var(--mobile-content-bottom) !important;
     }
 
     #screen-game *,
