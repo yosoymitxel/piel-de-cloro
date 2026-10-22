@@ -27,7 +27,11 @@ const requiredPortraits = [
   'npc_archivist.png',
   'npc_kael.png',
   'npc_hive.png',
-  'npc_patient_zero.png'
+  'npc_patient_zero.png',
+  'npc_lore_hive.png',
+  'npc_lore_kael.png',
+  'npc_lore_archivist.png',
+  'npc_lore_patient_zero.png'
 ];
 await access(outputDir);
 const generatedFiles = new Set(await readdir(outputDir));
