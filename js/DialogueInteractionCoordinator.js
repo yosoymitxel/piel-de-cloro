@@ -1,24 +1,19 @@
 import { State } from './State.js';
 
 /**
- * Owns the side effects of a player choice at the inspection post.
- * The conversation engine validates and commits the graph transition first;
- * only accepted choices may trigger logs, sounds, security checks or actions.
+ * Coordinates a dialogue choice with its game effects.
+ * Validation is side-effect-free; the selected action runs while the encounter
+ * is still active, and only then does the conversation commit its transition.
  */
 export class DialogueInteractionCoordinator {
     static choose({ npc, choice, game = null, audio = null, onEvidence = null, onSecurityCheck = null } = {}) {
         if (!npc?.conversation) return { error: 'No hay una conversación activa.' };
 
-        const node = npc.conversation.getCurrentNode();
-        if (!node || !Array.isArray(node.options)) return { error: 'No hay opciones disponibles.' };
+        const validation = npc.conversation.validateChoice(choice);
+        if (validation.error) return { error: validation.error };
+        const option = validation.option;
 
-        const option = node.options[choice];
-        if (!option) return { error: 'Opción inválida' };
-
-        // Validation and transition must happen before any external side effect.
-        const response = npc.conversation.getNextDialogue(choice);
-        if (response.error) return { error: response.error };
-
+        // No effects run until the engine confirms that this exact choice is valid.
         try {
             onSecurityCheck?.();
         } catch (error) {
@@ -37,6 +32,7 @@ export class DialogueInteractionCoordinator {
             audio.playSFXByKey(option.audio, { volume: 0.6 });
         }
 
+        // Inspections and admit/reject actions need the active NPC/encounter.
         if (typeof option.onclick === 'function') {
             try {
                 option.onclick(game || (typeof window !== 'undefined' ? window.game : null));
@@ -45,10 +41,15 @@ export class DialogueInteractionCoordinator {
             }
         }
 
-        return {
-            option,
-            response,
-            interrupted: State.currentNPC !== npc
-        };
+        // Admit/reject may leave the encounter immediately. Do not advance a
+        // conversation whose NPC is no longer active.
+        if (State.currentNPC !== npc) {
+            return { option, interrupted: true };
+        }
+
+        const response = npc.conversation.getNextDialogue(choice);
+        if (response.error) return { error: response.error };
+
+        return { option, response, interrupted: false };
     }
 }
