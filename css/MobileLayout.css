@@ -299,8 +299,9 @@
         overflow-y: auto !important;
         overscroll-behavior-y: contain;
         -webkit-overflow-scrolling: touch;
-        padding-bottom: 0 !important;
-        scroll-padding-bottom: 0 !important;
+        /* Reserve the fixed bottom navigation dock in the scrollable content. */
+        padding-bottom: var(--mobile-content-bottom) !important;
+        scroll-padding-bottom: var(--mobile-content-bottom) !important;
     }
 
     #screen-game *,
@@ -1657,7 +1658,7 @@
     #screen-game > header #header-hud-stats {
         display: none !important;
     }
-    #screen-game > header.header-expanded #header-hud-stats {
+    #screen-game > header:not(.header-collapsed) #header-hud-stats {
         display: flex !important;
     }
     #screen-game > header.header-collapsed .flex.gap-4.items-center {
@@ -1767,3 +1768,21 @@
     }
 }
 
+
+
+@media (max-width: 900px) {
+  #screen-lore:not(.hidden) {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    z-index: 10000 !important;
+    pointer-events: auto !important;
+  }
+  #screen-lore:not(.hidden) > div,
+  #screen-lore:not(.hidden) .lore-panel,
+  #screen-lore:not(.hidden) #btn-lore-continue-screen {
+    pointer-events: auto !important;
+  }
+}

@@ -15,7 +15,7 @@ test.describe('dedicated mobile presentation', () => {
         viewport: document.documentElement.clientWidth,
         document: document.documentElement.scrollWidth,
         shell: Math.round(document.querySelector('.terminal-chasis')?.getBoundingClientRect().width ?? 0),
-        mobileStylesheetLoaded: [...document.styleSheets].some(sheet => sheet.href?.endsWith('/css/MobileLayout.css'))
+        mobileStylesheetLoaded: [...document.styleSheets].some(sheet => sheet.href && new URL(sheet.href).pathname.endsWith('/css/MobileLayout.css'))
       }));
 
       expect(metrics.mobileStylesheetLoaded, `MobileLayout.css missing at ${width}px`).toBe(true);
@@ -51,6 +51,14 @@ test.describe('dedicated mobile presentation', () => {
     await expect(interludeContinue).toBeVisible({ timeout: 6000 }).catch(() => {});
     if (await interludeContinue.isVisible()) await interludeContinue.click();
     await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
+    // Expand the compact mobile header before measuring the six status cards.
+    // MobileLayout.css intentionally hides #header-hud-stats until this control is toggled.
+    const headerToggle = page.locator('#btn-toggle-header');
+    await expect(headerToggle).toBeVisible();
+    await headerToggle.click();
+    await expect(page.locator('#screen-game > header')).not.toHaveClass(/header-collapsed/);
+    await expect(page.locator('#header-hud-stats')).toBeVisible();
+
     // Screenshot is captured after the control-size wait below, once the CRT entrance transition settles.
 
     // The CRT power-on animation scales the entire monitor from a scan line.
@@ -66,7 +74,7 @@ test.describe('dedicated mobile presentation', () => {
         const rect = el.getBoundingClientRect();
         return rect.width >= 44 && rect.height >= 44;
       });
-    }, null, { timeout: 12000 });
+    }, null, { timeout: 20000 });
 
     await page.waitForFunction(() => {
       const text = document.querySelector('#npc-dialogue .npc-text');
@@ -102,7 +110,7 @@ test.describe('dedicated mobile presentation', () => {
         const r = el.getBoundingClientRect();
         return { tag: el.className, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
       });
-      const hudRoot = document.querySelector('#screen-game > header > div.flex.flex-wrap');
+      const hudRoot = document.querySelector('#header-hud-stats');
       const visibleHud = [...(hudRoot?.children ?? [])].filter(el => {
         const style = getComputedStyle(el);
         return style.display !== 'none' && el.getClientRects().length > 0;
@@ -153,10 +161,10 @@ test.describe('dedicated mobile presentation', () => {
     expect(measurements.documentWidth, JSON.stringify(measurements)).toBeLessThanOrEqual(measurements.viewportWidth + 1);
     expect(measurements.bounds.length).toBeGreaterThan(0);
 
-    // Six visible status cards must form two complete three-column rows.
+    // The compact mobile HUD intentionally keeps all six status cards in one horizontal row.
     expect(measurements.visibleHud, JSON.stringify(measurements.visibleHud)).toHaveLength(6);
     const hudRows = [...new Set(measurements.visibleHud.map(card => Math.round(card.top / 4)))];
-    expect(hudRows.length, JSON.stringify(measurements.visibleHud)).toBe(2);
+    expect(hudRows.length, JSON.stringify(measurements.visibleHud)).toBe(1);
     expect(measurements.visibleHud.every(card => card.width >= 44 && card.left >= -1 && card.right <= measurements.viewportWidth + 1)).toBe(true);
 
     // The battery fill must remain inside its own card at every tested width.

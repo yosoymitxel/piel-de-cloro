@@ -14,6 +14,7 @@ import { StatComponent } from './components/StatComponent.js';
 import { GenLoadComponent, GenBatteryComponent, GenStationComponent } from './components/EnergyComponents.js';
 import { UIGlitchComponent } from './components/UIGlitchComponent.js';
 import { TutorialManager } from './TutorialManager.js';
+import { DialogueInteractionCoordinator } from './DialogueInteractionCoordinator.js';
 
 export class UIManager {
     constructor(audio = null, customModules = {}) {
@@ -592,63 +593,43 @@ export class UIManager {
 
     handleDialogueOptionClick(index) {
         const npc = State.currentNPC;
-        if (!npc || !npc.conversation) return;
+        if (!npc?.conversation) return;
 
-        const convNode = npc.conversation.getCurrentNode();
-        if (!convNode || !convNode.options || !convNode.options[index]) return;
-
-        const opt = convNode.options[index];
-
-        // Prevenir clics si ya estamos procesando una decisión
-        if (this.game && this.game.actions && this.game.actions.processingDecision) return;
-
-        // Mark dialogue started and hide omit (tracking interaction)
-        npc.dialogueStarted = true;
-
-        // Riesgo de degradación de seguridad durante el diálogo
         const game = this.game || window.game;
-        if (game && game.mechanics && typeof game.mechanics.checkSecurityDegradation === 'function') {
-            game.mechanics.checkSecurityDegradation();
-        }
+        if (game?.actions?.processingDecision) return;
 
-        // Registrar evidencia en bitácora si la opción lo requiere
-        if (opt.log) {
-            State.addLogEntry('evidence', opt.log.text, { icon: opt.log.icon });
-            this.setNavItemStatus('btn-open-log', 2);
-        }
-
-        // Keep history in sync with accepted choices. Do not record a choice before
-        // the engine confirms that its requirements and destination are valid.
-        if (!npc.history) npc.history = [];
-
-        // Play optional sfx tied to option (prevent lore tracks from playing as sfx)
-        if (opt.audio && this.audio && !opt.audio.startsWith('lore_')) {
-            this.audio.playSFXByKey(opt.audio, { volume: 0.6 });
-        }
-
-        // Execute custom onclick if defined
-        if (opt.onclick) {
-            try {
-                opt.onclick(this.game || window.game);
-            } catch (e) {
-                console.warn("Dialogue onclick failed:", e);
+        const result = DialogueInteractionCoordinator.choose({
+            npc,
+            choice: index,
+            game,
+            audio: this.audio,
+            onEvidence: (entry) => {
+                State.addLogEntry('evidence', entry.text, { icon: entry.icon });
+                this.setNavItemStatus('btn-open-log', 2);
+            },
+            onSecurityCheck: () => {
+                if (typeof game?.mechanics?.checkSecurityDegradation === 'function') {
+                    game.mechanics.checkSecurityDegradation();
+                }
             }
-            if (State.currentNPC !== npc) return;
-        }
+        });
 
-        const res = npc.conversation.getNextDialogue(index);
-
-        if (res.error) {
-            this.showMessage(res.error, () => { }, 'warning');
+        if (result.error) {
+            this.showMessage(result.error, () => {}, 'warning');
             return;
         }
 
-        const cleanLabel = String(opt.label || '').replace(/\*.*?\*/g, '').trim();
-        if (cleanLabel) npc.history.push({ speaker: 'user', text: `> ${cleanLabel}` });
+        npc.dialogueStarted = true;
+        if (result.interrupted) return;
 
+        const { option: opt, response: res } = result;
         if (res.audio && this.audio && !res.audio.startsWith('lore_')) {
             this.audio.playSFXByKey(res.audio, { volume: 0.6 });
         }
+        if (!npc.history) npc.history = [];
+
+        const cleanLabel = String(opt.label || '').replace(/\*.*?\*/g, '').trim();
+        if (cleanLabel) npc.history.push({ speaker: 'user', text: `> ${cleanLabel}` });
 
         const textEl = this.elements.dialogue.find('.npc-text');
 
@@ -670,7 +651,6 @@ export class UIManager {
             return;
         }
 
-        // Otherwise render the next node
         this.updateDialogueBox(npc);
 
         const nextNode = npc.conversation.getCurrentNode();
@@ -679,10 +659,7 @@ export class UIManager {
             if (cleanNext) npc.history.push({ speaker: 'npc', text: cleanNext });
         }
 
-        // Slight VHS effect if paranoia high
-        if (State.paranoia > 60) {
-            this.applyVHS(0.4, 300);
-        }
+        if (State.paranoia > 60) this.applyVHS(0.4, 300);
     }
 
     renderDialogueHistory(npc) {

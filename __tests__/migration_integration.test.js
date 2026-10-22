@@ -251,7 +251,7 @@ describe('Migration Integration Testing Suite', () => {
         expect(game.ui.renderNightScreen).toHaveBeenCalled();
 
         // 7. Start Next Day
-        game.mechanics.startNextDay();
+        await game.mechanics.startNextDay();
         expect(State.cycle).toBe(2);
         expect(State.dayTime).toBe(1);
         expect(State.isNight).toBe(false);

@@ -164,7 +164,7 @@ text: "*Acepta la venda y se la coloca sin dejar de vigilar el antebrazo. «Grac
                 text: "*Se queda quieto.* \"Shhh... si hacemos ruido, nos encontrarán.\"",
                 options: [
                     { id: 'gw_o3c', label: 'No quiero locos aquí. Fuera.', next: null, resultText: "*Se aleja de puntillas.* \"Shhh... nos oirán si corremos.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gw_o3d', label: 'Silencio. Déjame trabajar.', next: null, resultText: "*Se tapa la boca.* \"Seré una tumba. Revisa lo que quieras.\"", onclick: act.testPupils, log: { text: 'Comportamiento: Escuchan voces en las tuberías. Afirman que el sistema de agua \"habla\" con nombres.', icon: 'fa-ear-listen' } },
+                    { id: 'gw_o3d', label: 'Mírame a la luz; voy a revisar tus pupilas.', next: null, resultText: "*Se tapa la boca.* \"Hazlo rápido. A veces veo movimiento detrás de tus ojos.\"", onclick: act.testPupils, log: { text: 'Comportamiento: Escuchan voces en las tuberías. Afirman que el sistema de agua \"habla\" con nombres.', icon: 'fa-ear-listen' } },
                     { id: 'gw_o3f', label: '...', next: 'gw_n4b' }
                 ]
             },
@@ -261,7 +261,7 @@ text: "*Acepta la venda y se la coloca sin dejar de vigilar el antebrazo. «Grac
                 options: [
                     { id: 'gt_o3a', label: '¡Qué asco! Vete.', next: null, resultText: "*Se va llorando.* \"Mis dientes... mis bonitos dientes...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                     { id: 'gt_o3l', label: '¿Me das ese diente?', next: null, resultText: "*Te lo entrega.* \"Si te sirve... tengo más en casa.\"", onclick: (g) => act.giveLoreItem(g, 'item_rotten_tooth', 'Diente Necrótico') },
-                    { id: 'gt_o3b', label: 'Examinar encías (Necrosis)', next: null, resultText: "*Guarda el diente en el bolsillo.* \"Dime que puedes arreglarme.\"", onclick: act.testUV, log: { text: 'Síntoma: Caída de dientes sin dolor ni sangrado. Las encías rechazan el hueso, indicando necrosis estructural.', icon: 'fa-tooth' } },
+                    { id: 'gt_o3b', label: 'Examinar las encías con luz UV', next: null, resultText: "*Guarda el diente en el bolsillo.* \"¿Ves algo en las encías? No deberían verse así.\"", onclick: act.testUV, log: { text: 'Síntoma: Caída de dientes sin dolor ni sangrado. Las encías rechazan el hueso, indicando necrosis estructural.', icon: 'fa-tooth' } },
                     { id: 'gt_o3e', label: 'Abre la boca', next: 'gt_n4b' }
                 ]
             },
@@ -355,7 +355,7 @@ text: "*Acepta la venda y se la coloca sin dejar de vigilar el antebrazo. «Grac
                 id: 'gcm_n2a',
                 text: "*Mira al vacío.* \"Desde que empezaron a aumentar la concentración. El aire tiene gusto a piscina. ¿Tú no lo notas?\"",
                 options: [
-                    { id: 'gcm_o2a', label: 'Revisar exposición química', next: null, onclick: act.testThermo, resultText: "*Exhala.* \"El cloro nos mantiene puros... pero ¿a qué costo?\"" },
+                    { id: 'gcm_o2a', label: 'Medir la temperatura tras la exposición al cloro', next: null, onclick: act.testThermo, resultText: "*Exhala.* \"La temperatura no dirá cuánto cloro respiré, pero quizá revele una reacción.\"" },
                     { id: 'gcm_o2b', label: 'Interesante', next: 'gcm_n_end' }
                 ]
             },

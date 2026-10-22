@@ -214,6 +214,7 @@ test('UIManager renders dialogue markup and plays node audio (no real DOM)', asy
         conversation: {
             getCurrentNode: () => ({ id: 't1', text: '*Se arrastra* "Hola" Se dice que alguien habló.', audio: 'ui_node_audio', options: [{ id: 'o1', label: 'Opt1', audio: 'opt_audio', next: null }] }),
             history: [],
+            validateChoice: jest.fn().mockReturnValue({ option: { id: 'o1', label: 'Opt1', audio: 'opt_audio', next: null } }),
             getNextDialogue: jest.fn().mockReturnValue({ end: true, audio: 'result_audio', message: 'Fin' })
         }
     };

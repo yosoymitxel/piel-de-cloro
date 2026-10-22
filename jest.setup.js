@@ -30,6 +30,7 @@ if (typeof global.jest === 'undefined') {
             f._implsOnce = [];
             f.mockImplementationOnce = (fnimpl) => { f._implsOnce.push(fnimpl); return f; };
             f.mockResolvedValue = (v) => { f._impl = () => Promise.resolve(v); return f; };
+            f.mockResolvedValueOnce = (v) => { f._implsOnce.push(() => Promise.resolve(v)); return f; };
             f.mockRejectedValue = (v) => { f._impl = () => Promise.reject(v); return f; };
             f.mockReturnThis = () => { f._impl = function() { return this; }; return f; };
             return f;

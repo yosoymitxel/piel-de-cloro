@@ -34,7 +34,7 @@ text: "*Habla más bajo, sin apartar la vista del pasillo. «A veces las sombras
                 text: "*Se frota los ojos.* \"Quizás. Llevo tres días caminando a oscuras. La mente juega trucos.\"",
                 options: [
                     { id: 'gsh_o3a', label: 'No aceptamos inestables. Vete.', next: null, resultText: "*Se va mirando atrás.* \"Están ahí... sé que me siguen.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore, paranoia: 2 },
-                    { id: 'gsh_o3b', label: 'Descansa un momento, voy a revisarte.', next: null, resultText: "*Se apoya en la pared.* \"Al menos aquí hay luz... revisa lo que quieras.\"", onclick: act.testPupils, sanity: -1 },
+                    { id: 'gsh_o3b', label: 'Mírame a la luz; voy a comprobar tus pupilas.', next: null, resultText: "*Se apoya en la pared.* \"Dime si reaccionan. A veces la luz llega tarde.\"", onclick: act.testPupils, sanity: -1 },
                     { id: 'gsh_o3e', label: 'Tranquilo', next: 'gsh_n4b' }
                 ]
             },
@@ -43,7 +43,7 @@ text: "*Habla más bajo, sin apartar la vista del pasillo. «A veces las sombras
                 text: "*Se estremece.* \"Solo déjame entrar donde haya luz constante. Por favor.\"",
                 options: [
                     { id: 'gsh_o3c', label: 'Lo siento, no hay espacio.', next: null, resultText: "*Retrocede hacia la oscuridad.* \"No me dejes con ellas...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore, paranoia: 4 },
-                    { id: 'gsh_o3d', label: 'Ponte bajo la luz, déjame ver.', next: null, resultText: "*Se pone bajo el foco.* \"No dejes que se apague la luz mientras miras.\"", onclick: act.testPupils, sanity: -1, log: { text: 'Comportamiento: Fobia a la oscuridad. Afirman que las sombras persisten incluso bajo luz directa.', icon: 'fa-eye-slash' } },
+                    { id: 'gsh_o3d', label: 'Ponte bajo la luz; voy a revisar tus pupilas.', next: null, resultText: "*Se pone bajo el foco.* \"No dejes que se apague la luz mientras las revisas.\"", onclick: act.testPupils, sanity: -1, log: { text: 'Comportamiento: Fobia a la oscuridad. Afirman que las sombras persisten incluso bajo luz directa.', icon: 'fa-eye-slash' } },
                     { id: 'gsh_o3f', label: 'Acércate', next: 'gsh_n4b' }
                 ]
             },
