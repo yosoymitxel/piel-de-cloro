@@ -176,3 +176,43 @@ input:hover, select:hover { border-color: #537879; }
   .skin-editor-row { grid-template-columns: minmax(0, 1fr) 50px; }
   #skin-color { width: 50px; min-width: 50px; }
 }
+
+
+/* Fixed lore sprite cards are selectable in the hero inspector. */
+.lore-pxl-card {
+  display: block;
+  width: 100%;
+  padding: 0 0 10px;
+  color: var(--lab-text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.lore-pxl-card .pxl-frame img {
+  max-width: 100%;
+  max-height: 150px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  object-fit: contain;
+}
+.lore-pxl-card strong {
+  display: block;
+  margin: 9px 10px 4px;
+  font-size: 11px;
+}
+.lore-pxl-card small {
+  display: block;
+  margin: 0 10px;
+  color: var(--lab-muted);
+  font: 11px/1.4 system-ui, sans-serif;
+}
+.lore-pxl-card[aria-pressed="true"] {
+  border-color: var(--lab-accent);
+  box-shadow: inset 0 0 0 1px rgba(120,207,193,.2);
+}
+.lore-pxl-card.lore-pxl-missing .pxl-frame::after {
+  content: "PNG PENDIENTE DE BUILD";
+  color: var(--lab-warn);
+  font-size: 8px;
+  text-align: center;
+}
