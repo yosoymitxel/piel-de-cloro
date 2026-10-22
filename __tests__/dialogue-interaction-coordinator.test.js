@@ -25,7 +25,7 @@ describe('DialogueInteractionCoordinator', () => {
         expect(sideEffect).not.toHaveBeenCalled();
     });
 
-    test('runs option side effects only after the conversation accepts the choice', () => {
+    test('runs option side effects only after the choice validates', () => {
         const calls = [];
         const npc = {
             conversation: {
