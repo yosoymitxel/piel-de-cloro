@@ -56,7 +56,8 @@ test.describe('dedicated mobile presentation', () => {
     const headerToggle = page.locator('#btn-toggle-header');
     await expect(headerToggle).toBeVisible();
     await headerToggle.click();
-    await expect(page.locator('#screen-game > header')).toHaveClass(/header-expanded/);
+    await expect(page.locator('#screen-game > header')).not.toHaveClass(/header-collapsed/);
+    await expect(page.locator('#header-hud-stats')).toBeVisible();
 
     // Screenshot is captured after the control-size wait below, once the CRT entrance transition settles.
 
