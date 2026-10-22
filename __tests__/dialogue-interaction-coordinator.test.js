@@ -9,7 +9,8 @@ describe('DialogueInteractionCoordinator', () => {
         const npc = {
             conversation: {
                 getCurrentNode: () => ({ options: [{ id: 'valid', label: 'Valid' }] }),
-                getNextDialogue: () => ({ error: 'Opción inválida' })
+                validateChoice: () => ({ error: 'Opción inválida' }),
+                getNextDialogue: () => { throw new Error('No debe intentar una transición inválida'); }
             }
         };
 
@@ -36,6 +37,7 @@ describe('DialogueInteractionCoordinator', () => {
                         onclick: () => calls.push('action')
                     }]
                 }),
+                validateChoice: () => ({ option: { id: 'inspect', label: 'Examinar pupilas', log: { text: 'Reflejo pupilar anómalo', icon: 'fa-eye' }, onclick: () => calls.push('action') } }),
                 getNextDialogue: () => {
                     calls.push('transition');
                     return { end: true, id: 'inspect' };
@@ -52,7 +54,7 @@ describe('DialogueInteractionCoordinator', () => {
         });
 
         expect(result.error).toBeUndefined();
-        expect(calls).toEqual(['transition', 'security', 'evidence', 'action']);
+        expect(calls).toEqual(['security', 'evidence', 'action', 'transition']);
         expect(result.interrupted).toBe(false);
     });
 
@@ -62,7 +64,8 @@ describe('DialogueInteractionCoordinator', () => {
                 getCurrentNode: () => ({
                     options: [{ id: 'reject', label: 'Rechazar', onclick: () => { State.currentNPC = null; } }]
                 }),
-                getNextDialogue: () => ({ end: true, id: 'reject' })
+                validateChoice: () => ({ option: { id: 'reject', label: 'Rechazar', onclick: () => { State.currentNPC = null; } } }),
+                getNextDialogue: () => { throw new Error('No debe avanzar después de salir del encuentro'); }
             }
         };
         State.currentNPC = npc;
