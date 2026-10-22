@@ -106,6 +106,34 @@ describe('Dialogue system', () => {
         expect(conv.getNextDialogue('locked').end).toBe(true);
     });
 
+    test('validateChoice checks a choice without mutating conversation state', () => {
+        const pool = {
+            id: 'side_effect_free_validation_test',
+            root: 'start',
+            nodes: {
+                start: {
+                    id: 'start',
+                    text: 'Start',
+                    options: [
+                        { id: 'plain', label: 'Continue', next: 'next' },
+                        { id: 'locked', label: 'Locked', next: null, req: ['secret_unlocked'], sets: ['should_not_set'] }
+                    ]
+                },
+                next: { id: 'next', text: 'Next', options: [] }
+            }
+        };
+        const conv = new Conversation({ name: 'TESTER' }, pool);
+
+        const valid = conv.validateChoice('plain');
+        const invalid = conv.validateChoice('locked');
+
+        expect(valid.option.id).toBe('plain');
+        expect(invalid.error).toBe('Requisitos no satisfechos');
+        expect(conv.currentId).toBe('start');
+        expect(conv.history).toEqual([]);
+        expect(State.hasFlag('should_not_set')).toBe(false);
+    });
+
     test('next-node response also hides options whose requirements are unmet', () => {
         const pool = {
             id: 'gated_next_node_test',
