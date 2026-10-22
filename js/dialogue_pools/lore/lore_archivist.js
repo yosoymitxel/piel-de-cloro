@@ -11,7 +11,7 @@ export const lore_archivist = {
     nodes: {
         'la_n1': {
             id: 'la_n1',
-            text: "*No levanta la vista de las marcas del brazo. Las cuenta con el pulgar y vuelve a empezar cuando pierde la cuenta.* \"Puse una fecha junto a cada corte. No siempre anoté quién lo hizo. Si buscas una historia ordenada, no la vas a encontrar aquí. Hay nombres tachados y fechas que no coinciden.\"",
+            text: "*No levanta la vista de las marcas del brazo. Las cuenta con el pulgar; al perder la cuenta, empieza de nuevo.* \"Puse una fecha junto a cada corte. No siempre anoté quién lo hizo. Si buscas una historia ordenada, te equivocaste de brazo. Hay nombres tachados. Algunas fechas no cierran.\"",
             audio: 'lore_interlude_seen',
             options: [
                 { id: 'la_o1', label: 'Leer brazo izquierdo', next: 'la_n2' },
@@ -44,7 +44,7 @@ export const lore_archivist = {
         },
         'la_n4': {
             id: 'la_n4',
-            text: "*Se limpia la mejilla con la manga. La sangre deja una línea sobre una fecha.* \"Kystra bebió del pozo después de que el filtro dio la alarma. Dijo que alguien la llamaba desde la tubería. Yo escribí 'fiebre' porque era lo único que el informe aceptaba. Firmé abajo.\"",
+            text: "*Se limpia la mejilla con la manga. La sangre cruza una fecha.* \"Kystra bebió del pozo después de la alarma del filtro. Decía que alguien la llamaba desde la tubería. Puse 'fiebre' en el informe. Era la única palabra que iban a aceptar. Mi firma sigue abajo.\"",
             options: [
                 { id: 'la_o4a', label: '¿Qué pozo?', next: 'la_n4_a' },
                 { id: 'la_o4b', label: 'Volver', next: 'la_n1' }

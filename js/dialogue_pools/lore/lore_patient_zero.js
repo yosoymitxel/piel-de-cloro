@@ -76,7 +76,7 @@ export const lore_patient_zero = {
         },
         'lpz_n5': {
             id: 'lpz_n5',
-            text: "\"No conozco una cura. Algunas intervenciones retrasan los síntomas; otras aceleran el deterioro. Quemar el tejido no lo elimina de forma segura: las muestras del filtro mostraron partículas después de la combustión. Yo aprobé ese procedimiento antes de revisar los resultados.\"",
+            text: "\"No conozco una cura. Algunas intervenciones retrasan los síntomas; otras los empeoran. Quemar el tejido tampoco lo elimina: encontramos partículas en el filtro después de la combustión. Aprobé ese procedimiento antes de revisar los resultados.\"",
             options: [
                 { id: 'lpz_o5a', label: 'No te dejaré entrar.', next: null, resultText: "*Asiente lentamente.* \"Ya estoy dentro. En el aire que respiras.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                 { id: 'lpz_o5b', label: 'Te debo revisar primero.', next: null, resultText: "\"Sí, necesito que me revises.\"" },

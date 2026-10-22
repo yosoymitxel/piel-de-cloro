@@ -234,7 +234,7 @@ export class Conversation {
         this.currentId = opt.next;
         const nextNodeRaw = this.set.nodes[this.currentId];
         const text = this._injectTemplate(nextNodeRaw.text, nextNodeRaw.id);
-        return { node: { id: nextNodeRaw.id, text, options: (nextNodeRaw.options || []).map(o => ({ id: o.id, label: o.label })) }, audio };
+        return { node: { id: nextNodeRaw.id, text, options: (nextNodeRaw.options || []).filter(o => this._isOptionAvailable(o)).map(o => ({ id: o.id, label: o.label })) }, audio };
     }
 }
 
