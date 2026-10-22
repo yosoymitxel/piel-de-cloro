@@ -75,7 +75,7 @@ export const lore_kael = {
         },
         'lk_n4_b': {
             id: 'lk_n4_b',
-            text: "\"Cuando la gente corre, el generador recibe más carga. No porque el miedo produzca electricidad: las bombas se activan, las puertas se bloquean y el sistema intenta compensar. La estación consume más justo cuando todos creen que está ganando fuerza.\"",
+            text: "\"Cuando empiezan a correr, sube la carga del generador. Se activan las bombas, se bloquean las puertas y el sistema intenta compensar. Todo se enciende a la vez. Después dicen que la estación está despertando.\"",
             options: [
                 { id: 'lk_o4b_1', label: 'Perturbador', next: 'lk_n1' }
             ]
