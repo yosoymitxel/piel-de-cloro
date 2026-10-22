@@ -82,6 +82,14 @@ describe('AvatarRenderer', () => {
         }
     });
 
+    test('fixed lore characters select their dedicated ClaudePXL portrait', () => {
+        const npc = new NPC(0);
+        npc.loreId = 'lore_hive';
+        AvatarRenderer.render(npc);
+        expect(global.$).toHaveBeenCalledWith(expect.stringContaining('assets/pixel/npcs/sprites/npc_lore_hive.png'));
+        expect(global.$).toHaveBeenCalledWith(expect.stringContaining('data-fallback="data:image/svg+xml;base64,'));
+    });
+
     test('perimeter variant applies correct CSS classes', () => {
         const npc = new NPC(0);
         AvatarRenderer.render(npc, 'lg', 'perimeter');

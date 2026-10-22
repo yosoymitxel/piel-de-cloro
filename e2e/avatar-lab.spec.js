@@ -66,3 +66,15 @@ test('ClaudePXL authoring source is visible in the repository lab without binary
   await expect(source).toContainText('sprite("npc_archivist"');
   await expect(page.locator('#pxl-gallery img')).toHaveCount(0);
 });
+
+
+test('avatar lab exposes the four fixed lore portraits for visual inspection', async ({ page }) => {
+  await page.goto('/avatar-lab.html', { waitUntil: 'domcontentloaded' });
+  const gallery = page.locator('#lore-gallery');
+  await expect(gallery.locator('.lore-pxl-card')).toHaveCount(4);
+  await page.getByRole('button', { name: /Inspeccionar La Colmena/i }).click();
+  await expect(page.locator('#current-portrait')).toHaveAttribute('src', /npc_lore_hive\.png$/);
+  await expect(page.locator('#preview-id')).toHaveText('LA COLMENA');
+  await expect(page.locator('#source-summary')).toContainText('sprite("lore_hive")');
+  await expect(page.locator('#portrait-size')).toHaveText('CLAUDEPXL / PNG');
+});

@@ -83,4 +83,69 @@ sprite("npc_infected", { w:24, h:32, outline:"k" },
   rect(7,24,3,4,"k"), rect(14,24,3,4,"k"), rect(10,26,4,4,"r")
 )
 
-sheet("npc_portraits", ["npc_human", "npc_infected", "npc_archivist", "npc_kael", "npc_hive", "npc_patient_zero"], { cols:3, pad:1 })
+// Lore portraits are deliberately separate from cosmetic civilian skins.
+// La Colmena: three partial faces sharing one child-sized body and throat.
+sprite("npc_lore_hive", { w:40, h:40, outline:"k" },
+  rect(8,27,24,13,"s"), rect(11,29,18,11,"u"), rect(17,25,6,5,"b"),
+  // left, child face
+  rect(4,9,13,15,"k"), rect(6,11,10,11,"F"), rect(5,8,11,4,"s"),
+  rect(7,14,3,2,"w"), rect(12,14,3,2,"w"), rect(8,14,1,2,"e"), rect(13,14,1,2,"e"),
+  rect(8,19,6,2,"r"), rect(9,20,4,1,"R"),
+  // central face, pushed forward
+  rect(14,5,13,18,"k"), rect(16,7,9,14,"p"), rect(15,5,11,4,"s"),
+  rect(17,11,3,2,"e"), rect(22,11,3,2,"e"), rect(17,11,2,1,"w"), rect(22,11,2,1,"w"),
+  rect(18,16,6,3,"k"), rect(19,17,4,1,"r"),
+  // right face, partially fused and looking away
+  rect(25,10,11,14,"k"), rect(27,12,7,10,"F"), rect(26,9,9,4,"s"),
+  rect(28,15,2,2,"w"), rect(32,14,2,2,"w"), rect(29,15,1,2,"e"), rect(33,14,1,2,"e"),
+  rect(29,19,5,1,"r"),
+  // shared throat, dark tendrils and black ichor
+  rect(12,23,17,5,"r"), rect(15,25,3,5,"k"), rect(22,24,2,7,"k"),
+  rect(18,29,3,4,"R"), rect(24,30,2,3,"k"), rect(10,31,2,4,"c"), rect(29,31,2,4,"c")
+)
+
+// Kael: face and shoulder fused into a concrete panel; cable exits the jaw.
+sprite("npc_lore_kael", { w:32, h:40, outline:"k" },
+  rect(0,0,7,40,"s"), rect(2,2,3,36,"b"), rect(6,3,22,35,"h"),
+  rect(9,29,18,11,"u"), rect(12,30,12,10,"s"), rect(15,26,6,5,"F"),
+  rect(10,8,15,18,"k"), rect(12,10,11,14,"F"),
+  rect(11,7,14,5,"h"), rect(13,5,5,3,"h"), rect(19,6,5,4,"h"),
+  rect(13,14,3,2,"w"), rect(20,14,3,2,"w"), rect(14,14,1,2,"e"), rect(21,14,1,2,"e"),
+  rect(17,16,2,4,"f"), rect(14,21,8,2,"r"), rect(16,22,5,2,"R"),
+  // metal staple and cable disappear into the wall
+  rect(23,19,4,2,"p"), rect(25,20,3,2,"b"), rect(26,21,2,7,"k"),
+  rect(25,27,4,2,"s"), rect(27,29,3,3,"k"), rect(29,31,3,2,"c"),
+  rect(7,4,2,5,"p"), rect(7,14,2,6,"p"), rect(7,27,2,5,"p"),
+  rect(11,33,4,2,"b"), rect(19,34,5,2,"b")
+)
+
+// Archivist: scarred skin, silver side-part, square lenses and brass ID tag.
+sprite("npc_lore_archivist", { w:32, h:40, outline:"k" },
+  rect(5,28,22,12,"s"), rect(8,30,16,10,"b"), rect(12,25,8,6,"F"),
+  rect(8,8,16,18,"k"), rect(10,10,12,15,"F"),
+  rect(8,6,16,5,"p"), rect(7,8,4,8,"p"), rect(22,8,3,7,"p"),
+  rect(10,14,5,4,"w"), rect(18,14,5,4,"w"),
+  rect(10,15,5,1,"k"), rect(18,15,5,1,"k"),
+  rect(11,15,2,2,"e"), rect(19,15,2,2,"e"), rect(15,16,3,1,"y"),
+  rect(15,18,3,4,"f"), rect(12,23,9,1,"r"), rect(14,24,6,1,"f"),
+  // irregular scars, not decorative freckles
+  rect(10,19,2,1,"r"), rect(11,20,3,1,"R"), rect(21,21,2,1,"r"),
+  rect(8,31,3,3,"U"), rect(21,31,3,3,"U"), rect(15,32,3,6,"p"),
+  rect(16,34,2,2,"y")
+)
+
+// Patient Zero: older scientist, translucent pallor, dark veins and torn clinical collar.
+sprite("npc_lore_patient_zero", { w:32, h:40, outline:"k" },
+  rect(5,28,22,12,"p"), rect(8,30,16,10,"w"), rect(12,25,8,6,"M"),
+  rect(9,7,14,19,"k"), rect(11,9,10,15,"F"),
+  rect(9,6,14,5,"M"), rect(8,8,4,8,"p"), rect(21,8,3,8,"p"),
+  rect(11,13,4,2,"b"), rect(18,13,4,2,"b"),
+  rect(12,15,2,2,"e"), rect(19,15,2,2,"e"),
+  rect(15,17,3,4,"f"), rect(13,23,7,1,"f"), rect(14,24,5,1,"r"),
+  // translucent-looking vessel lines and damaged medical collar
+  rect(11,17,1,4,"r"), rect(12,20,3,1,"r"), rect(21,17,1,3,"r"),
+  rect(9,30,5,3,"U"), rect(18,30,5,3,"U"), rect(14,31,5,6,"s"),
+  rect(16,32,2,4,"r"), rect(14,36,6,2,"p"), rect(8,34,3,3,"w"), rect(22,34,3,3,"w")
+)
+
+sheet("npc_portraits", ["npc_human", "npc_infected", "npc_archivist", "npc_kael", "npc_hive", "npc_patient_zero", "npc_lore_hive", "npc_lore_kael", "npc_lore_archivist", "npc_lore_patient_zero"], { cols:5, pad:1 })
