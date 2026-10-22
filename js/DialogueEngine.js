@@ -155,53 +155,58 @@ export class Conversation {
     }
 
     /**
+     * Resolve a choice without mutating conversation or game state.
+     * This lets the interaction layer validate a choice before running its action.
+     */
+    validateChoice(choice) {
+        const node = this.set.nodes[this.currentId];
+        if (!node) return { error: 'Nodo no encontrado' };
+
+        const allNodeOptions = node.options || [];
+        const nodeOptions = allNodeOptions.filter(option => this._isOptionAvailable(option));
+        let option = null;
+
+        if (typeof choice === 'number') {
+            if (nodeOptions.length === 0 && choice === 0) {
+                option = { id: 'auto_end', label: 'Entendido', next: null };
+            } else if (choice === nodeOptions.length && nodeOptions.length > 0 && nodeOptions.every(item => item.onclick)) {
+                option = { id: 'exit_conversation', label: 'Terminar diálogo', next: null, resultText: 'El sujeto asiente y espera en silencio.' };
+            } else if (choice >= nodeOptions.length) {
+                if (nodeOptions.length === 0) {
+                    option = { id: 'exit_conversation', label: 'Terminar diálogo', next: null, resultText: 'El sujeto asiente y espera en silencio.' };
+                }
+            } else {
+                option = nodeOptions[choice];
+            }
+        } else {
+            option = nodeOptions.find(item => item.id === choice);
+            if (!option && allNodeOptions.some(item => item.id === choice)) {
+                return { error: 'Requisitos no satisfechos' };
+            }
+            if (!option && (choice === 'auto_end' || choice === 'exit_conversation')) {
+                option = { id: choice, label: 'Terminar diálogo', next: null, resultText: 'El sujeto asiente y espera en silencio.' };
+            }
+        }
+
+        if (!option) return { error: 'Opción inválida' };
+        if (option.next && !this.set.nodes[option.next]) {
+            return { error: `Nodo destino no encontrado: ${option.next}` };
+        }
+        if (!this._isOptionAvailable(option)) return { error: 'Requisitos no satisfechos' };
+
+        return { option };
+    }
+
+    /**
      * choice can be choiceID (string) or index (number)
      */
     getNextDialogue(choice) {
         const node = this.set.nodes[this.currentId];
         if (!node) return { error: 'Nodo no encontrado' };
 
-        let opt = null;
-        const allNodeOptions = node.options || [];
-        const nodeOptions = allNodeOptions.filter(o => this._isOptionAvailable(o));
-
-        if (typeof choice === 'number') {
-            if (nodeOptions.length === 0 && choice === 0) {
-                opt = { id: 'auto_end', label: 'Entendido', next: null };
-            } else if (choice === nodeOptions.length && nodeOptions.length > 0 && nodeOptions.every(o => o.onclick)) {
-                // Caso especial: opción de salida inyectada dinámicamente SI todas las opciones son acciones
-                opt = { id: 'exit_conversation', label: 'Terminar diálogo', next: null, resultText: 'El sujeto asiente y espera en silencio.' };
-            } else if (choice >= nodeOptions.length) {
-                // Otros casos de salida (compatibilidad)
-                if (nodeOptions.length === 0) {
-                    opt = { id: 'exit_conversation', label: 'Terminar diálogo', next: null, resultText: 'El sujeto asiente y espera en silencio.' };
-                }
-            } else {
-                opt = nodeOptions[choice];
-            }
-        } else {
-            opt = nodeOptions.find(o => o.id === choice);
-            if (!opt && allNodeOptions.some(o => o.id === choice)) {
-                return { error: 'Requisitos no satisfechos' };
-            }
-            if (!opt) {
-                if (choice === 'auto_end' || choice === 'exit_conversation') {
-                    opt = { id: choice, label: 'Terminar diálogo', next: null, resultText: 'El sujeto asiente y espera en silencio.' };
-                }
-            }
-        }
-
-        if (!opt) return { error: 'Opción inválida' };
-
-        // Reject broken graph edges before applying flags, impacts, history, or memory.
-        if (opt.next && !this.set.nodes[opt.next]) {
-            return { error: `Nodo destino no encontrado: ${opt.next}` };
-        }
-
-        // Defense in depth: requirements must hold at selection time too.
-        if (!this._isOptionAvailable(opt)) {
-            return { error: 'Requisitos no satisfechos' };
-        }
+        const validation = this.validateChoice(choice);
+        if (validation.error) return validation;
+        const opt = validation.option;
 
         // Apply impacts: Sanity and Paranoia
         if (opt.sanity) {
