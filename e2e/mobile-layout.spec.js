@@ -51,6 +51,13 @@ test.describe('dedicated mobile presentation', () => {
     await expect(interludeContinue).toBeVisible({ timeout: 6000 }).catch(() => {});
     if (await interludeContinue.isVisible()) await interludeContinue.click();
     await expect(page.locator('#screen-game')).toBeVisible({ timeout: 15000 });
+    // Expand the compact mobile header before measuring the six status cards.
+    // MobileLayout.css intentionally hides #header-hud-stats until this control is toggled.
+    const headerToggle = page.locator('#btn-toggle-header');
+    await expect(headerToggle).toBeVisible();
+    await headerToggle.click();
+    await expect(page.locator('#screen-game > header')).toHaveClass(/header-expanded/);
+
     // Screenshot is captured after the control-size wait below, once the CRT entrance transition settles.
 
     // The CRT power-on animation scales the entire monitor from a scan line.
