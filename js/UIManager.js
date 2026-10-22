@@ -617,10 +617,9 @@ export class UIManager {
             this.setNavItemStatus('btn-open-log', 2);
         }
 
-        // Log choice to NPC history - Filtrar acciones (*texto*) para el historial
+        // Keep history in sync with accepted choices. Do not record a choice before
+        // the engine confirms that its requirements and destination are valid.
         if (!npc.history) npc.history = [];
-        const cleanLabel = opt.label.replace(/\*.*?\*/g, '').trim();
-        npc.history.push({ speaker: 'user', text: `> ${cleanLabel}` });
 
         // Play optional sfx tied to option (prevent lore tracks from playing as sfx)
         if (opt.audio && this.audio && !opt.audio.startsWith('lore_')) {
@@ -643,6 +642,9 @@ export class UIManager {
             this.showMessage(res.error, () => { }, 'warning');
             return;
         }
+
+        const cleanLabel = String(opt.label || '').replace(/\*.*?\*/g, '').trim();
+        if (cleanLabel) npc.history.push({ speaker: 'user', text: `> ${cleanLabel}` });
 
         if (res.audio && this.audio && !res.audio.startsWith('lore_')) {
             this.audio.playSFXByKey(res.audio, { volume: 0.6 });
@@ -694,14 +696,15 @@ export class UIManager {
 
         npc.history.forEach(entry => {
             const isUser = entry.speaker === 'user';
-            const item = $(`
-                <div class="flex flex-col ${isUser ? 'items-end' : 'items-start'}">
-                    <span class="text-[10px] uppercase tracking-tighter opacity-40 mb-1">${isUser ? 'TÚ' : (npc.name || 'SUJETO')}</span>
-                    <div class="p-2 rounded ${isUser ? 'bg-chlorine/20 border border-chlorine/30 text-chlorine-light' : 'bg-white/5 border border-white/10 text-gray-300'} max-w-[90%]">
-                        ${entry.text}
-                    </div>
-                </div>
-            `);
+            const item = $('<div>').addClass(`flex flex-col ${isUser ? 'items-end' : 'items-start'}`);
+            $('<span>')
+                .addClass('text-[10px] uppercase tracking-tighter opacity-40 mb-1')
+                .text(isUser ? 'TÚ' : (npc.name || 'SUJETO'))
+                .appendTo(item);
+            $('<div>')
+                .addClass(`p-2 rounded ${isUser ? 'bg-chlorine/20 border border-chlorine/30 text-chlorine-light' : 'bg-white/5 border border-white/10 text-gray-300'} max-w-[90%]`)
+                .text(String(entry.text ?? ''))
+                .appendTo(item);
             this.elements.dialogueHistory.append(item);
         });
 
