@@ -628,7 +628,7 @@ export class UIManager {
         }
         if (!npc.history) npc.history = [];
 
-        const cleanLabel = String(opt.label || '').replace(/\\*.*?\\*/g, '').trim();
+        const cleanLabel = String(opt.label || '').replace(/\*.*?\*/g, '').trim();
         if (cleanLabel) npc.history.push({ speaker: 'user', text: `> ${cleanLabel}` });
 
         const textEl = this.elements.dialogue.find('.npc-text');
@@ -644,7 +644,7 @@ export class UIManager {
             if (res.message) {
                 const parsedMsg = (typeof parseDialogueMarkup === 'function') ? parseDialogueMarkup(res.message) : res.message;
                 this.typeText(textEl, parsedMsg, 18);
-                const cleanMsg = res.message.replace(/\\*.*?\\*/g, '').trim();
+                const cleanMsg = res.message.replace(/\*.*?\*/g, '').trim();
                 if (cleanMsg) npc.history.push({ speaker: 'npc', text: cleanMsg });
             }
             this.updateInspectionTools(npc);
@@ -655,7 +655,7 @@ export class UIManager {
 
         const nextNode = npc.conversation.getCurrentNode();
         if (nextNode) {
-            const cleanNext = nextNode.text.replace(/\\*.*?\\*/g, '').trim();
+            const cleanNext = nextNode.text.replace(/\*.*?\*/g, '').trim();
             if (cleanNext) npc.history.push({ speaker: 'npc', text: cleanNext });
         }
 
