@@ -201,7 +201,7 @@ export const gen_pools_5 = {
                 options: [
                     { id: 'gso_o3a', label: 'Mentira. Estás contaminado.', next: null, resultText: "*Aprieta los dientes.* \"Error táctico. Se arrepentirá de perder a un combatiente.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
                     { id: 'gso_o3r', label: '¿Dónde cayeron?', next: null, resultText: "*Señala el mapa.* \"Perímetro 4. No vaya allí.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: El Perímetro 4 ha sido superado por una nube tóxica.') },
-                    { id: 'gso_o3b', label: 'Comprobar pulso y ritmo cardíaco', next: null, resultText: "*Levanta la barbilla.* \"Proceda. Mis pulmones son de acero.\"", onclick: act.testPulse, log: { text: 'Lore: Hostiles gaseosos. La infección se mueve con el viento y vuelve a los aliados en contra.', icon: 'fa-mask' } },
+                    { id: 'gso_o3b', label: 'Comprobar pulso y ritmo cardíaco', next: null, resultText: "*Levanta la barbilla.* \"Proceda. El pulso no debería delatarme.\"", onclick: act.testPulse, log: { text: 'Lore: Hostiles gaseosos. La infección se mueve con el viento y vuelve a los aliados en contra.', icon: 'fa-mask' } },
                     { id: 'gso_o3e', label: 'Proceda', next: 'gso_n4b' }
                 ]
             },
