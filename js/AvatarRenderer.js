@@ -1,6 +1,14 @@
 import { State } from './State.js';
 import { generateAvatarDataUri } from './avatar/AvatarGenerator.js';
 
+// Fixed lore identities use authored ClaudePXL sprites. Generic NPCs remain procedural.
+const LORE_PORTRAITS = Object.freeze({
+    lore_archivist: 'npc_lore_archivist.png',
+    lore_kael: 'npc_lore_kael.png',
+    lore_hive: 'npc_lore_hive.png',
+    lore_patient_zero: 'npc_lore_patient_zero.png'
+});
+
 export class AvatarRenderer {
     static render(npc, sizeClass = 'lg', modifier = 'normal') {
         // Probabilidades dinámicas basadas en estado del jugador
@@ -18,9 +26,9 @@ export class AvatarRenderer {
         const stableRoll = (identityHash >>> 0) / 4294967296;
         const statusText = stableRoll < errorChance ? 'SIGNAL_ERR' : 'SIG_STABLE';
 
-        // Keep portraits visible even when the page's art-mode flag is stale.
-        // ClaudePXL PNGs are used for fixed lore characters; generic NPCs get a
-        // deterministic portrait from their stable ID and existing cosmetic traits.
+        // Lore characters have authored anatomy that the cosmetic SVG generator
+        // cannot express (e.g. the Hive's multiple faces or Kael fused into a wall).
+        // Generic NPCs keep their deterministic SVG portraits.
         const features = npc.visualFeatures || {};
         const generatedPortrait = generateAvatarDataUri(npc.id || npc.name || 'unknown-npc', {
             hair: features.hair,
@@ -32,9 +40,10 @@ export class AvatarRenderer {
             mouthType: features.mouthType,
             skinColor: features.skinColor
         });
-        // The generator is the single runtime source for every NPC, including lore.
-        // ClaudePXL remains an authoring tool; no generated PNG or network request is required.
-        const pixelPortraitHTML = `<img class="npc-pixel-portrait" src="${generatedPortrait}" alt="" aria-hidden="true" decoding="async" onload="this.parentElement.classList.add('has-pixel-portrait')" onerror="this.parentElement.classList.remove('has-pixel-portrait');this.remove()">`;
+        const loreSprite = LORE_PORTRAITS[npc.loreId];
+        const portraitSrc = loreSprite ? `assets/pixel/npcs/sprites/${loreSprite}` : generatedPortrait;
+        const fallbackAttribute = loreSprite ? `data-fallback="${generatedPortrait}"` : '';
+        const pixelPortraitHTML = `<img class="npc-pixel-portrait" src="${portraitSrc}" ${fallbackAttribute} alt="" aria-hidden="true" decoding="async" onload="this.parentElement.classList.add('has-pixel-portrait')" onerror="if(this.dataset.fallback){this.onerror=null;this.src=this.dataset.fallback;this.parentElement.classList.add('has-pixel-portrait')}else{this.parentElement.classList.remove('has-pixel-portrait');this.remove()}">`;
 
         let accessoryHTML = '';
         if (npc.visualFeatures.accessory !== 'none') {
