@@ -160,7 +160,63 @@ function containerState() {
     button.setAttribute("aria-pressed", String(Number(button.dataset.palette) === paletteIndex));
   });
 }
+let selectedLorePortrait = null;
+const lorePortraits = [
+  { id: "lore_hive", name: "La Colmena", file: "npc_lore_hive.png", detail: "Tres rostros, garganta compartida e icor negro" },
+  { id: "lore_kael", name: "Kael", file: "npc_lore_kael.png", detail: "Rostro y cable fusionados con la pared" },
+  { id: "lore_archivist", name: "El Archivista", file: "npc_lore_archivist.png", detail: "Cicatrices fechadas, lentes y placa de latón" },
+  { id: "lore_patient_zero", name: "Paciente Cero", file: "npc_lore_patient_zero.png", detail: "Científico anciano, venas oscuras y cuello clínico" }
+];
+
+function makeLoreGallery() {
+  const container = byId("lore-gallery");
+  container.replaceChildren();
+  lorePortraits.forEach((item) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "pxl-card lore-pxl-card";
+    button.dataset.loreId = item.id;
+    button.setAttribute("aria-label", `Inspeccionar ${item.name}`);
+    button.setAttribute("aria-pressed", "false");
+    const frame = document.createElement("span");
+    frame.className = "pxl-frame";
+    const image = document.createElement("img");
+    image.src = `assets/pixel/npcs/sprites/${item.file}`;
+    image.alt = "";
+    image.loading = "lazy";
+    image.decoding = "async";
+    image.onerror = () => {
+      image.alt = "PNG pendiente de compilar";
+      button.classList.add("lore-pxl-missing");
+    };
+    const title = document.createElement("strong");
+    title.textContent = item.name;
+    const detail = document.createElement("small");
+    detail.textContent = item.detail;
+    frame.append(image);
+    button.append(frame, title, detail);
+    button.addEventListener("click", () => {
+      selectedLorePortrait = item;
+      [...container.querySelectorAll(".lore-pxl-card")].forEach(card => {
+        card.setAttribute("aria-pressed", String(card.dataset.loreId === item.id));
+      });
+      portrait.src = `assets/pixel/npcs/sprites/${item.file}`;
+      portrait.dataset.npcId = item.id;
+      byId("preview-id").textContent = item.name.toUpperCase();
+      byId("preview-state").textContent = "LORE / SPRITE FIJO";
+      byId("portrait-size").textContent = "CLAUDEPXL / PNG";
+      byId("source-summary").textContent = `sprite("${item.id}")`;
+      svgSource.textContent = `Sprite ClaudePXL: ${item.id}\nArchivo compilado: assets/pixel/npcs/sprites/${item.file}\n\nRasgos narrativos: ${item.detail}\n\nLa fuente editable está en art/npcs.px.js.`;
+      byId("render-status").textContent = "LORE PNG";
+      byId("render-status").classList.remove("render-error");
+    });
+    container.append(button);
+  });
+}
+
 function update() {
+  selectedLorePortrait = null;
+  [...byId("lore-gallery").querySelectorAll(".lore-pxl-card")].forEach(card => card.setAttribute("aria-pressed", "false"));
   const options = readOptions();
   const { seed, ...visualOptions } = options;
   const svg = generateAvatarSvg(seed, visualOptions);
@@ -251,6 +307,7 @@ fetch("art/npcs.px.js")
   .catch(() => { byId("pxl-source").textContent = "No se pudo leer art/npcs.px.js. Abrí el archivo desde el enlace de la sección."; });
 
 makePaletteSwatches();
+makeLoreGallery();
 makeHairGallery();
 makeFaceGallery();
 update();
