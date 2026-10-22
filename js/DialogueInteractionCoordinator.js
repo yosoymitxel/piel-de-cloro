@@ -12,6 +12,7 @@ export class DialogueInteractionCoordinator {
         const validation = npc.conversation.validateChoice(choice);
         if (validation.error) return { error: validation.error };
         const option = validation.option;
+        npc.dialogueStarted = true;
 
         // No effects run until the engine confirms that this exact choice is valid.
         try {
