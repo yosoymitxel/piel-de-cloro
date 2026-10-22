@@ -10,15 +10,21 @@ describe('DialogueActions domain dispatch', () => {
         expect(handleDecision.mock.calls).toEqual([['admit'], ['ignore']]);
     });
 
-    test('does not click DOM buttons when no decision handler exists', () => {
-        const click = jest.fn();
-        document.body.innerHTML = '<button id="btn-admit"></button><button id="btn-ignore"></button>';
-        document.getElementById('btn-admit').addEventListener('click', click);
-        document.getElementById('btn-ignore').addEventListener('click', click);
+    test('does not query or click DOM buttons when no decision handler exists', () => {
+        const previousDocument = globalThis.document;
+        const getElementById = jest.fn();
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        globalThis.document = { getElementById };
 
-        expect(DialogueActions.admit({})).toBe(false);
-        expect(DialogueActions.ignore({})).toBe(false);
-        expect(click).not.toHaveBeenCalled();
+        try {
+            expect(DialogueActions.admit({})).toBe(false);
+            expect(DialogueActions.ignore({})).toBe(false);
+            expect(getElementById).not.toHaveBeenCalled();
+        } finally {
+            warn.mockRestore();
+            if (previousDocument === undefined) delete globalThis.document;
+            else globalThis.document = previousDocument;
+        }
     });
 
     test('dispatches inspections through the shared game API', () => {
