@@ -618,9 +618,14 @@ export class UIManager {
             this.showMessage(result.error, () => {}, 'warning');
             return;
         }
+
+        npc.dialogueStarted = true;
         if (result.interrupted) return;
 
         const { option: opt, response: res } = result;
+        if (res.audio && this.audio && !res.audio.startsWith('lore_')) {
+            this.audio.playSFXByKey(res.audio, { volume: 0.6 });
+        }
         if (!npc.history) npc.history = [];
 
         const cleanLabel = String(opt.label || '').replace(/\\*.*?\\*/g, '').trim();
