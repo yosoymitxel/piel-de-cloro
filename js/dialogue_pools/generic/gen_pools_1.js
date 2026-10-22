@@ -164,7 +164,7 @@ text: "*Acepta la venda y se la coloca sin dejar de vigilar el antebrazo. «Grac
                 text: "*Se queda quieto.* \"Shhh... si hacemos ruido, nos encontrarán.\"",
                 options: [
                     { id: 'gw_o3c', label: 'No quiero locos aquí. Fuera.', next: null, resultText: "*Se aleja de puntillas.* \"Shhh... nos oirán si corremos.\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gw_o3d', label: 'Silencio. Déjame trabajar.', next: null, resultText: "*Se tapa la boca.* \"Seré una tumba. Revisa lo que quieras.\"", onclick: act.testPupils, log: { text: 'Comportamiento: Escuchan voces en las tuberías. Afirman que el sistema de agua \"habla\" con nombres.', icon: 'fa-ear-listen' } },
+                    { id: 'gw_o3d', label: 'Mírame a la luz; voy a revisar tus pupilas.', next: null, resultText: "*Se tapa la boca.* \"Hazlo rápido. A veces veo movimiento detrás de tus ojos.\"", onclick: act.testPupils, log: { text: 'Comportamiento: Escuchan voces en las tuberías. Afirman que el sistema de agua \"habla\" con nombres.', icon: 'fa-ear-listen' } },
                     { id: 'gw_o3f', label: '...', next: 'gw_n4b' }
                 ]
             },
