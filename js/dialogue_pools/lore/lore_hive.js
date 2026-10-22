@@ -21,7 +21,7 @@ export const lore_hive = {
         },
         'lh_n2': {
             id: 'lh_n2',
-            text: "*Abre la boca. Sale la voz ronca de un hombre.* \"Avisé que el agua olía a cobre.\" *Una voz pequeña lo interrumpe:* \"Tú no estabas allí.\" *El niño parpadea.* \"¿Quién dijo eso? Yo solo recuerdo el ruido de la bomba.\"",
+            text: "*Abre la boca. Sale la voz ronca de un hombre.* \"Avisé que el agua olía a cobre.\" *Una voz pequeña se mete entre las palabras:* \"Tú no estabas allí.\" *El niño se queda quieto.* \"¿Quién dijo eso? Yo me acuerdo de la bomba. Nada más.\"",
             options: [
                 { id: 'lh_o2a', label: 'Preguntar por el anciano', next: 'lh_n2_a' },
                 { id: 'lh_o2b', label: 'Preguntar por el propósito', next: 'lh_n4' }
