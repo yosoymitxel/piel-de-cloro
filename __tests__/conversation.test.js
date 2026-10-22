@@ -106,6 +106,34 @@ describe('Dialogue system', () => {
         expect(conv.getNextDialogue('locked').end).toBe(true);
     });
 
+    test('next-node response also hides options whose requirements are unmet', () => {
+        const pool = {
+            id: 'gated_next_node_test',
+            root: 'start',
+            nodes: {
+                start: {
+                    id: 'start',
+                    text: 'Start',
+                    options: [{ id: 'continue', label: 'Continue', next: 'next' }]
+                },
+                next: {
+                    id: 'next',
+                    text: 'Next',
+                    options: [
+                        { id: 'public', label: 'Public option', next: null },
+                        { id: 'secret', label: 'Secret option', next: null, req: ['secret_unlocked'] }
+                    ]
+                }
+            }
+        };
+        const conv = new Conversation({ name: 'TESTER' }, pool);
+
+        const result = conv.getNextDialogue('continue');
+
+        expect(result.node.options.map(option => option.id)).toEqual(['public']);
+        expect(conv.getCurrentNode().options.map(option => option.id)).toEqual(['public']);
+    });
+
     test('State.reset clears run-scoped dialogue flags', () => {
         State.setFlag('secret_from_previous_run', true);
 
