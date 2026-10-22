@@ -36,7 +36,7 @@ export const gen_pools_7 = {
                 text: "*Se toca la garganta.* \"Aún pica. Como si tuviera polvo en el esófago. ¿Me dejas entrar al baño?\"",
                 options: [
                     { id: 'gth_o3a', label: 'No. Vete a buscar agua fuera.', next: null, resultText: "*Se arrastra.* \"Agua... necesito agua...\"", cssClass: 'horror-btn-dismiss', onclick: act.ignore },
-                    { id: 'gth_o3b', label: 'Espera. Voy a comprobar tu pulso; la deshidratación puede alterarlo.', next: null, resultText: "*Asiente débilmente.* \"Rápido... me estoy secando.\"", onclick: act.testPulse, paranoia: 1 },
+                    { id: 'gth_o3b', label: 'Espera. Voy a comprobar tu pulso; la deshidratación puede alterarlo.', next: null, resultText: "*Asiente débilmente.* \"Rápido... el corazón me golpea raro desde que dejé de sudar.\"", onclick: act.testPulse, paranoia: 1 },
                     { id: 'gth_o3e', label: 'Espera', next: 'gth_n4b' }
                 ]
             },
