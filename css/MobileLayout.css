@@ -1657,7 +1657,7 @@
     #screen-game > header #header-hud-stats {
         display: none !important;
     }
-    #screen-game > header.header-expanded #header-hud-stats {
+    #screen-game > header:not(.header-collapsed) #header-hud-stats {
         display: flex !important;
     }
     #screen-game > header.header-collapsed .flex.gap-4.items-center {
