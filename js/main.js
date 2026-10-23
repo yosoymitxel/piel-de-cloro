@@ -1,5 +1,5 @@
 import { State } from './State.js';
-import { Game } from './Game.js?v=20261021-daytransition1';
+import { Game } from './Game.js?v=20261022-mobilefix2';
 import { VisualRoomInterface } from './VisualRoomInterface.js';
 
 // Inicialización de la instancia global del juego

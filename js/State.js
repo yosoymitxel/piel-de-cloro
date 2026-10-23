@@ -365,6 +365,7 @@ export const State = {
     lastNight: {
         occurred: false,
         transitionStarted: false,
+        resolutionStarted: false,
         victims: 0,
         message: ''
     },
@@ -420,7 +421,7 @@ export const State = {
         this.generator = createGeneratorState();
         this.playerInfected = Math.random() < this.config.playerInfectedProbability;
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
-        this.lastNight = { occurred: false, transitionStarted: false, victims: 0, message: '' };
+        this.lastNight = { occurred: false, transitionStarted: false, resolutionStarted: false, victims: 0, message: '' };
 
         // Reset dialogue trackers and flags
         this.dialoguePoolsUsed = [];
@@ -578,6 +579,13 @@ export const State = {
                 }
                 if (hadAssignment) {
                     this.addSectorLog(sector, `Personal perdido: ${npc.name} ha dejado el puesto.`, npc.name);
+                }
+            });
+        }
+        if (this.currentShelter) {
+            this.currentShelter.getAllRooms().forEach(room => {
+                if (typeof room.removeOccupant === 'function') {
+                    room.removeOccupant(npc.id);
                 }
             });
         }
@@ -752,7 +760,13 @@ export const State = {
         this.generator.restartLock = false;
 
         this.nextIntrusionAt = this.dayTime + this.randomIntrusionInterval();
-        this.lastNight.occurred = true;
+        this.lastNight = {
+            occurred: false,
+            transitionStarted: false,
+            resolutionStarted: false,
+            victims: 0,
+            message: ''
+        };
         this.addLogEntry('system', `Inicio del Ciclo ${this.cycle}.`);
 
         this.purgedNPCs.forEach(n => {

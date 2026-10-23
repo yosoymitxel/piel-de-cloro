@@ -85,11 +85,20 @@ export class AssignmentManager {
     }
 
     /**
-     * Unassigns an NPC from a specific sector.
+     * Unassigns an NPC from a specific sector (or from any sector if sectorId is omitted).
      * @param {string} npcId 
-     * @param {string} sectorId 
+     * @param {string} [sectorId=null] 
      */
-    unassign(npcId, sectorId) {
+    unassign(npcId, sectorId = null) {
+        if (!sectorId) {
+            sectorId = this.getAssignmentForNPC(npcId);
+        }
+        if (!sectorId) {
+            const npc = State.admittedNPCs?.find(n => n.id === npcId);
+            if (npc?.assignedSector) sectorId = npc.assignedSector;
+        }
+        if (!sectorId) return;
+
         const sector = State.assignments[sectorId];
         if (!sector) return;
 
@@ -134,11 +143,19 @@ export class AssignmentManager {
      * @param {string} npcId 
      */
     removeFromAllSectors(npcId) {
-        for (const [sId, data] of Object.entries(State.assignments)) {
-            if (data.occupants.includes(npcId)) {
-                this.unassign(npcId, sId);
+        let removed = false;
+        if (State.assignments) {
+            for (const [sId, data] of Object.entries(State.assignments)) {
+                if (data.occupants && data.occupants.includes(npcId)) {
+                    this.unassign(npcId, sId);
+                    removed = true;
+                }
             }
         }
+        const npc = State.admittedNPCs?.find(n => n.id === npcId);
+        if (npc) npc.assignedSector = null;
+        if (State.generator?.assignedGuardId === npcId) State.generator.assignedGuardId = null;
+        return removed;
     }
 
     /**
@@ -225,28 +242,39 @@ export class AssignmentManager {
         return template.replace(/{sector}/g, sector.toUpperCase()).replace(/{npc}/g, npc.name);
     }
 
-    updateUI(sectorId) {
-        if (!this.game || !this.game.events) return;
+    updateUI(sectorId = null) {
+        if (!this.game) return;
 
-        // Refresh specific panels based on active screen or generic listeners
-        // We can check if specific UIManager methods exist for updating sectors
-
-        if (this.ui.renderSectorPanel) {
-            // Try to find the container for this sector
-            const map = {
-                'generator': '#generator-guard-panel',
-                'security': '#security-guard-display', // Fixed: target the inner display container, not the wrapper
-                'supplies': '#supplies-guard-panel',
-                'fuel': '#fuel-guard-panel'
-            };
-            const selector = map[sectorId];
-            if (selector && $(selector).length) {
-                this.ui.renderSectorPanel(selector, sectorId, State);
+        const refreshSector = (sId) => {
+            if (sId === 'generator' && this.game.generatorManager?.renderGuardPanel) {
+                this.game.generatorManager.renderGuardPanel(State);
+                return;
             }
+
+            if (this.ui?.renderSectorPanel) {
+                const map = {
+                    'generator': '#generator-guard-panel',
+                    'security': '#security-guard-display',
+                    'supplies': '#supplies-guard-panel',
+                    'fuel': '#fuel-guard-panel',
+                    'lab': '#lab-guard-panel'
+                };
+                const selector = map[sId];
+                if (selector && $(selector).length) {
+                    const titleOverride = sId === 'lab' ? 'INVESTIGADOR JEFE' : null;
+                    this.ui.renderSectorPanel(selector, sId, State, titleOverride);
+                }
+            }
+        };
+
+        if (!sectorId || sectorId === 'all') {
+            ['generator', 'security', 'supplies', 'fuel', 'lab'].forEach(refreshSector);
+        } else {
+            refreshSector(sectorId);
         }
 
         // Also refresh Shelter grid if visible, as availability changes
-        if ($('#screen-shelter').is(':visible')) {
+        if ($('#screen-shelter').is(':visible') && this.game.events?.navigateToShelter) {
             this.game.events.navigateToShelter();
         }
     }

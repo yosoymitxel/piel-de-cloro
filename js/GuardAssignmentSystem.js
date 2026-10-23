@@ -65,16 +65,8 @@ export class GuardAssignmentSystem {
 
     // Get eligible NPCs for guard duty (exclude first-turn NPCs)
     getEligibleNPCs() {
-        const currentCycle = this.state.cycle || 1;
-
-        return this.state.admittedNPCs.filter(npc => {
-            // Exclude if admitted this cycle
-            const admittedCycle = npc.admittedCycle || npc.cycle || 0;
-            if (admittedCycle >= currentCycle) return false;
-
-            // Optionally exclude already assigned guard
-            // if (npc.id === this.state.generator.assignedGuardId) return false;
-
+        return (this.state.admittedNPCs || []).filter(npc => {
+            if (!npc || npc.death || npc.left || npc.escaped) return false;
             return true;
         });
     }

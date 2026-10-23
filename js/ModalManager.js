@@ -573,11 +573,10 @@ export class ModalManager {
                         } else if (game && game.mechanics) {
                             game.mechanics.assignNPCToSector(npc, sector);
                         }
-                        this.ui.showFeedback(`ASIGNADO A ${sector.toUpperCase()}`, "green");
                     } else {
                         // Unassign
                         if (game && game.assignments) {
-                            game.assignments.unassign(npc.id);
+                            game.assignments.removeFromAllSectors(npc.id);
                         } else if (game && game.mechanics) {
                             game.mechanics.unassignNPC(npc);
                         }

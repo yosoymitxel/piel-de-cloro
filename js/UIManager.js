@@ -8,7 +8,7 @@ import { AvatarRenderer } from './AvatarRenderer.js?v=20261021-avatarfix2';
 import { ScreenManager } from './ScreenManager.js?v=20261021-daytransition1';
 import { GeneratorManager } from './GeneratorManager.js';
 import { StatsManager } from './StatsManager.js';
-import { ToolsRenderer } from './ToolsRenderer.js';
+import { ToolsRenderer } from './ToolsRenderer.js?v=20261022-mobilefix2';
 import { parseDialogueMarkup, escapeHtml } from './markup.js';
 import { StatComponent } from './components/StatComponent.js';
 import { GenLoadComponent, GenBatteryComponent, GenStationComponent } from './components/EnergyComponents.js';
@@ -636,10 +636,7 @@ export class UIManager {
         if (res.end) {
             this.showFeedback('FIN DE DIÁLOGO', 'green', 2500);
             this.elements.dialogueOptions.empty();
-
-            if (res.id === 'exit_conversation' || res.id === 'auto_end') {
-                this.handleOmitTest(npc);
-            }
+            npc.dialogueStarted = true;
 
             if (res.message) {
                 const parsedMsg = (typeof parseDialogueMarkup === 'function') ? parseDialogueMarkup(res.message) : res.message;
@@ -764,11 +761,10 @@ export class UIManager {
     }
 
     showSectorAssignmentModal(sector, state, onAssign) {
-        const currentCycle = state.cycle || 1;
-        const candidates = (state.admittedNPCs || []).filter(npc => {
+        const pool = (state && state.admittedNPCs) ? state.admittedNPCs : (State.admittedNPCs || []);
+        const candidates = pool.filter(npc => {
             if (!npc || npc.death || npc.left || npc.escaped) return false;
-            const admittedCycle = npc.enterCycle ?? npc.admittedCycle ?? npc.cycle ?? 0;
-            return admittedCycle < currentCycle;
+            return true;
         });
         const sectorName = CONSTANTS.SECTOR_CONFIG && CONSTANTS.SECTOR_CONFIG[sector] ? CONSTANTS.SECTOR_CONFIG[sector].name : sector.toUpperCase();
 
@@ -796,8 +792,8 @@ export class UIManager {
             this.elements.sectorAssignmentModal.on('click', '.btn-assign-candidate', (e) => {
                 const btn = $(e.currentTarget);
                 const id = btn.data('id');
-                // 'null' string or empty for unassign
-                const npc = (id === 'unassign') ? null : State.admittedNPCs.find(n => n.id === id);
+                const currentPool = this.game?.state?.admittedNPCs || State.admittedNPCs || [];
+                const npc = (String(id) === 'unassign') ? null : currentPool.find(n => String(n.id) === String(id));
 
                 if (this.assignSectorCallback) {
                     this.assignSectorCallback(npc);
@@ -827,22 +823,26 @@ export class UIManager {
         `;
 
         candidates.forEach(npc => {
-            const isAssignedHere = npc.assignedSector === sector;
-            const isAssignedElsewhere = npc.assignedSector && npc.assignedSector !== sector;
+            const assignedSector = npc.assignedSector
+                || (State.assignments?.[sector]?.occupants?.map(String).includes(String(npc.id)) ? sector : null)
+                || (Object.keys(State.assignments || {}).find(s => State.assignments[s]?.occupants?.map(String).includes(String(npc.id))))
+                || (sector === 'generator' && String(State.generator?.assignedGuardId) === String(npc.id) ? 'generator' : null);
+            const isAssignedHere = assignedSector === sector;
+            const isAssignedElsewhere = assignedSector && assignedSector !== sector;
             const avatarElement = this.renderAvatar(npc, 'sm');
             const avatarHTML = avatarElement && typeof avatarElement.prop === 'function'
                 ? avatarElement.prop('outerHTML')
                 : '<div class="text-xs text-gray-500">?</div>';
 
             htmlContent += `
-                <button class="btn-assign-candidate w-full p-2 border ${isAssignedHere ? 'border-terminal-green bg-terminal-green/20' : 'border-white/10 bg-white/5'} hover:bg-white/10 text-left flex items-center gap-3 transition-all" data-id="${npc.id}">
-                    <div class="w-10 h-10 bg-black border border-white/10 overflow-hidden relative rounded">
+                <button class="btn-assign-candidate w-full p-2 border ${isAssignedHere ? 'border-terminal-green bg-terminal-green/20' : 'border-white/10 bg-white/5'} hover:bg-white/10 text-left flex items-center gap-3 transition-all mb-1" data-id="${npc.id}">
+                    <div class="w-10 h-10 bg-black border border-white/10 overflow-hidden relative rounded flex-shrink-0">
                          ${avatarHTML}
                     </div>
-                    <div class="flex flex-col flex-grow">
-                        <span class="font-bold text-sm text-white ${isAssignedHere ? 'text-terminal-green' : ''}">${npc.name}</span>
+                    <div class="flex flex-col flex-grow min-w-0">
+                        <span class="font-bold text-sm text-white truncate ${isAssignedHere ? 'text-terminal-green' : ''}">${npc.name}</span>
                         <span class="text-[10px] text-gray-400 uppercase">
-                            ${isAssignedHere ? '● ASIGNADO ACTUALMENTE' : (isAssignedElsewhere ? `EN: ${npc.assignedSector.toUpperCase()}` : 'DISPONIBLE')}
+                            ${isAssignedHere ? '● ASIGNADO ACTUALMENTE' : (isAssignedElsewhere ? `EN: ${String(assignedSector).toUpperCase()}` : 'DISPONIBLE')}
                         </span>
                     </div>
                     ${isAssignedHere ? '<i class="fa-solid fa-check text-terminal-green"></i>' : ''}
@@ -2479,26 +2479,25 @@ export class UIManager {
             container.html(html);
         }
 
-        container.find('.guard-card, .btn-assign-guard, .btn-reassign-guard').one('click', () => {
-            this.showSectorAssignmentModal(sector, state, (npc) => {
+        const btns = container.find('.guard-card, .btn-assign-guard, .btn-reassign-guard');
+        if (typeof btns.off === 'function') btns.off('click');
+        const bindFn = typeof btns.on === 'function' ? btns.on.bind(btns) : btns.one.bind(btns);
+        bindFn('click', () => {
+            const currentState = this.game?.state || state || State;
+            this.showSectorAssignmentModal(sector, currentState, (npc) => {
                 const game = this.game || window.game;
                 if (game && game.assignments) {
                     if (npc) {
                         game.assignments.assign(npc.id, sector);
                     } else {
-                        // Logic to unassign current if no NPC selected (though modal usually returns an NPC)
-                        // If we support unassigning via modal, we'd need to handle it.
-                        // For now, assuming replacement.
-                        // To be safe:
                         const current = game.assignments.getFirstAssigned(sector);
                         if (current) game.assignments.unassign(current.id, sector);
                     }
                 } else if (game && game.mechanics) {
-                    // Fallback
                     game.mechanics.assignNPCToSector(npc, sector);
                 }
                 // Re-render self
-                this.renderSectorPanel(containerSelector, sector, state, titleOverride);
+                this.renderSectorPanel(containerSelector, sector, currentState, titleOverride);
             });
         });
     }

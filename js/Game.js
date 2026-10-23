@@ -1,6 +1,6 @@
 import { NPC } from './NPC.js';
 import { State } from './State.js';
-import { UIManager } from './UIManager.js?v=20261021-daytransition1';
+import { UIManager } from './UIManager.js?v=20261022-mobilefix2';
 import { StatsManager } from './StatsManager.js';
 import { AudioManager } from './AudioManager.js';
 import { GameActionHandler } from './GameActionHandler.js';
@@ -88,6 +88,12 @@ class Game {
         if (icon) {
             icon.classList.toggle('fa-chevron-up', !collapsed);
             icon.classList.toggle('fa-chevron-down', collapsed);
+        }
+        // Expanding used to leave the panel above the current scroll offset,
+        // so only a clipped slice was visible. Bring the guard post back to
+        // the top whenever the full panel is opened.
+        if (!collapsed) {
+            document.getElementById('screen-game')?.scrollTo?.({ top: 0, behavior: 'smooth' });
         }
         try { localStorage.setItem('headerCollapsed', collapsed ? '1' : '0'); } catch (e) {}
     }
@@ -246,7 +252,7 @@ class Game {
         this.loopManager.resume();
         this.startClock(); // Ensure clock is running
         this.setPauseControlsVisible(true);
-        if (window.innerWidth <= 900) this.setHeaderCollapsed(true);
+        if (window.innerWidth <= 1100) this.setHeaderCollapsed(true);
         this.ui.updateRunStats(State);
     }
 
@@ -314,7 +320,7 @@ class Game {
         this.loopManager.start();
         this.startClock();
         this.setPauseControlsVisible(true);
-        if (window.innerWidth <= 900) this.setHeaderCollapsed(true);
+        if (window.innerWidth <= 1100) this.setHeaderCollapsed(true);
         this.ui.showScreen('game');
         this.ui.updateRunStats(State);
         this.ui.showFeedback("DÍA REINICIADO", "yellow", 3000);

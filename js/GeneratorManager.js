@@ -203,8 +203,9 @@ export class GeneratorManager {
                     .toggleClass('text-alert', !state.generator.isOn)
                     .toggleClass(colorClass, state.generator.isOn);
 
-                if (state.generator.isOn && state.generator.assignedGuardId) {
-                    const guard = state.admittedNPCs.find(n => n.id === state.generator.assignedGuardId);
+                const currentGuardId = state.generator.assignedGuardId || state.assignments?.generator?.occupants?.[0];
+                if (state.generator.isOn && currentGuardId) {
+                    const guard = state.admittedNPCs.find(n => n.id === currentGuardId);
                     if (guard) {
                         guardEl.removeClass('hidden');
                         guardNameEl.text(guard.name);
@@ -375,7 +376,7 @@ export class GeneratorManager {
                      btn.append(`<div class="mode-lock-overlay absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                         <i class="fa-solid fa-clock text-xs text-alert/70"></i>
                     </div>`);
-                } else if (actionTaken && targetCap > currentMax) {
+                } else if (actionTaken && targetCap > currentCap) {
                     // Restart lock gets a simple lock but GRAY/Neutral, not red alert
                     btn.append(`<div class="mode-lock-overlay absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                         <i class="fa-solid fa-lock text-xs text-gray-500/70"></i>
@@ -761,17 +762,22 @@ export class GeneratorManager {
             }
 
             // Attach event
-            container.find('.btn-reassign-guard').one('click', () => {
-                this.ui.showSectorAssignmentModal('generator', state, (npc) => {
-                    if (this.game.assignments) {
+            const reassignBtn = container.find('.btn-reassign-guard');
+            if (typeof reassignBtn.off === 'function') reassignBtn.off('click');
+            const bindReassign = typeof reassignBtn.on === 'function' ? reassignBtn.on.bind(reassignBtn) : reassignBtn.one.bind(reassignBtn);
+            bindReassign('click', () => {
+                const currentState = this.game?.state || state || State;
+                this.ui.showSectorAssignmentModal('generator', currentState, (npc) => {
+                    const game = this.game || window.game;
+                    if (game && game.assignments) {
                         if (npc) {
-                            this.game.assignments.assign(npc.id, 'generator');
+                            game.assignments.assign(npc.id, 'generator');
                         } else {
-                            const currentGuardId = state.generator.assignedGuardId || state.assignments?.generator?.occupants?.[0];
-                            if (currentGuardId) this.game.assignments.unassign(currentGuardId, 'generator');
+                            const currentGuardId = currentState.generator.assignedGuardId || currentState.assignments?.generator?.occupants?.[0];
+                            if (currentGuardId) game.assignments.unassign(currentGuardId, 'generator');
                         }
                     }
-                    this.renderGuardPanel(state);
+                    this.renderGuardPanel(currentState);
                 });
             });
 
@@ -797,17 +803,22 @@ export class GeneratorManager {
             container.html(html);
 
             // Both card and button trigger assignment
-            container.find('.guard-card, .btn-assign-guard').one('click', () => {
-                this.ui.showSectorAssignmentModal('generator', state, (npc) => {
-                    if (this.game.assignments) {
+            const assignBtns = container.find('.guard-card, .btn-assign-guard');
+            if (typeof assignBtns.off === 'function') assignBtns.off('click');
+            const bindAssign = typeof assignBtns.on === 'function' ? assignBtns.on.bind(assignBtns) : assignBtns.one.bind(assignBtns);
+            bindAssign('click', () => {
+                const currentState = this.game?.state || state || State;
+                this.ui.showSectorAssignmentModal('generator', currentState, (npc) => {
+                    const game = this.game || window.game;
+                    if (game && game.assignments) {
                         if (npc) {
-                            this.game.assignments.assign(npc.id, 'generator');
+                            game.assignments.assign(npc.id, 'generator');
                         } else {
-                            const currentGuardId = state.generator.assignedGuardId || state.assignments?.generator?.occupants?.[0];
-                            if (currentGuardId) this.game.assignments.unassign(currentGuardId, 'generator');
+                            const currentGuardId = currentState.generator.assignedGuardId || currentState.assignments?.generator?.occupants?.[0];
+                            if (currentGuardId) game.assignments.unassign(currentGuardId, 'generator');
                         }
                     }
-                    this.renderGuardPanel(state);
+                    this.renderGuardPanel(currentState);
                 });
             });
         }

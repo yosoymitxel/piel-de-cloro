@@ -2638,3 +2638,68 @@ body.is-full-ui .crt-monitor {
         flex-basis: 54px;
     }
 }
+
+/* Medium Screen (e.g. 1249x741) Proportional Layout & Anti-Collision */
+@media (max-height: 850px) and (min-width: 641px) {
+    .center-console {
+        gap: 0.4rem !important;
+        padding: 0.5rem !important;
+    }
+
+    .center-console .mini-monitor {
+        height: auto !important;
+        min-height: 70px !important;
+        padding: 0.4rem !important;
+    }
+
+    .center-console .analog-controls {
+        gap: 0.4rem !important;
+        padding: 0.4rem !important;
+        min-height: 70px !important;
+    }
+
+    .center-console .knob {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    #tutorial-monitor-content {
+        min-height: 40px !important;
+        max-height: 70px !important;
+        overflow: hidden !important;
+    }
+
+    .horror-sidebar {
+        padding: 8px 6px !important;
+        gap: 5px !important;
+    }
+
+    .nav-sidebar-btn {
+        height: 58px !important;
+    }
+
+    .nav-sidebar-btn i {
+        font-size: 1.15rem !important;
+        margin-bottom: 2px !important;
+    }
+
+    .nav-sidebar-btn span {
+        font-size: 0.75rem !important;
+    }
+
+    #inspection-tools-container {
+        padding-right: 4.5rem !important;
+        margin-top: 0.35rem !important;
+        gap: 0.4rem !important;
+    }
+
+    .horror-tool-btn--main {
+        height: 52px !important;
+        font-size: 0.8rem !important;
+    }
+
+    #game-actions-container {
+        padding-right: 4.5rem !important;
+    }
+}
+

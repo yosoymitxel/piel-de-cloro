@@ -186,7 +186,8 @@ export class GameMechanicsManager {
         let base = State.generator.baseConsumption || 0;
         
         // Efecto del Guardia
-        if (State.generator.assignedGuardId) {
+        const guardId = State.generator.assignedGuardId || State.assignments?.generator?.occupants?.[0];
+        if (guardId) {
             base = Math.max(0, base - 5);
         }
 
@@ -288,6 +289,8 @@ export class GameMechanicsManager {
             State.generator.load = 0;
             return;
         }
+
+        this.processGuardEffects(false);
 
         const totalLoad = this.calculateTotalLoad();
         const capacity = State.generator.capacity;
@@ -527,20 +530,24 @@ export class GameMechanicsManager {
 
     assignGuardToGenerator(npcId) {
         if (!npcId) {
-            // Unassign logic handled by AssignmentManager if we use it directly, 
-            // but for backward compatibility/direct call:
+            // Unassign current generator guard
             if (this.game && this.game.assignments) {
-                this.game.assignments.unassign('generator');
+                const currentGuardId = State.assignments?.generator?.occupants?.[0]
+                    || State.generator.assignedGuardId;
+                if (currentGuardId) {
+                    this.game.assignments.unassign(currentGuardId, 'generator');
+                }
             } else {
                 State.generator.assignedGuardId = null;
-                this.ui.showFeedback("GENERADOR SIN GUARDIA", "yellow");
             }
+            this.ui.showFeedback("GENERADOR SIN GUARDIA", "yellow");
             return;
         }
 
         if (this.game && this.game.assignments) {
             // Fix: pass ID string, not object
             this.game.assignments.assign(npcId, 'generator');
+            this.processGuardEffects(true);
         } else {
             // Fallback
             const npc = State.admittedNPCs.find(n => n.id === npcId);
@@ -554,12 +561,15 @@ export class GameMechanicsManager {
     }
 
     processGuardEffects(initial = false) {
-        const guardId = State.generator.assignedGuardId;
+        const guardId = State.generator.assignedGuardId || State.assignments?.generator?.occupants?.[0];
         if (!guardId) return;
 
         const npc = State.admittedNPCs.find(n => n.id === guardId);
         if (!npc) {
             State.generator.assignedGuardId = null;
+            if (State.assignments?.generator?.occupants) {
+                State.assignments.generator.occupants = State.assignments.generator.occupants.filter(id => id !== guardId);
+            }
             return;
         }
 
@@ -1289,11 +1299,15 @@ export class GameMechanicsManager {
 
     assignNPCToSector(npc, sector) {
         const assignmentManager = this.game?.assignments;
-        if (!npc?.id || !assignmentManager || typeof assignmentManager.assign !== 'function') {
+        const npcId = typeof npc === 'string' ? npc : npc?.id;
+        if (!npcId || !assignmentManager || typeof assignmentManager.assign !== 'function') {
             this.ui.showFeedback('SISTEMA DE ASIGNACIÓN NO DISPONIBLE', 'red', 3000);
             return false;
         }
-        return assignmentManager.assign(npc.id, sector);
+        if (!sector) {
+            return assignmentManager.removeFromAllSectors(npcId);
+        }
+        return assignmentManager.assign(npcId, sector);
     }
 
     processSectorSabotages() {
@@ -1919,12 +1933,14 @@ export class GameMechanicsManager {
     }
 
     unassignNPC(npc) {
-        const assignments = this.game?.assignments;
-        if (assignments?.getAssignmentForNPC && assignments?.unassign) {
-            const sector = assignments.getAssignmentForNPC(npc.id);
-            if (sector) return assignments.unassign(npc.id, sector);
+        const assignmentManager = this.game?.assignments;
+        const npcId = typeof npc === 'string' ? npc : npc?.id;
+        if (!npcId) return false;
+        if (assignmentManager?.removeFromAllSectors) {
+            assignmentManager.removeFromAllSectors(npcId);
         }
-        State._unassignFromAll(npc);
+        const npcObj = typeof npc === 'object' && npc !== null ? npc : State.admittedNPCs?.find(n => n.id === npcId);
+        if (npcObj) State._unassignFromAll(npcObj);
         return true;
     }
 }

@@ -25,11 +25,66 @@ export class ToolsRenderer {
     }
 
     _scrollToAvatar(targetContainer) {
-        try {
-            const el = (targetContainer && targetContainer.length) ? targetContainer[0] : (typeof targetContainer === 'string' ? document.querySelector(targetContainer) : targetContainer);
-            const avatar = el ? (el.querySelector ? el.querySelector('.npc-view-container') : null) : null;
-            (avatar || el)?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-        } catch (e) {}
+        const resolveElement = () => {
+            const el = (targetContainer && targetContainer.length)
+                ? targetContainer[0]
+                : (typeof targetContainer === 'string' ? document.querySelector(targetContainer) : targetContainer);
+            if (!el) return null;
+            return el.querySelector ? (el.querySelector('.npc-view-container') || el) : el;
+        };
+
+        const scroll = () => {
+            const avatar = resolveElement();
+            if (!avatar || !avatar.getBoundingClientRect) return;
+
+            // Walk up to the first ancestor that actually scrolls. Walking
+            // instead of relying on scrollIntoView avoids dragging inner
+            // overflow:hidden avatar frames and works inside the NPC modal.
+            let scroller = avatar.parentElement;
+            while (scroller && scroller !== document.body && scroller !== document.documentElement) {
+                const style = getComputedStyle(scroller);
+                if (/(auto|scroll)/.test(style.overflowY) && scroller.scrollHeight > scroller.clientHeight + 2) break;
+                scroller = scroller.parentElement;
+            }
+
+            const rect = avatar.getBoundingClientRect();
+            let margin = 12;
+
+            // On the game screen the header is sticky and paints over the
+            // scrolled content. Keep the avatar below it instead of behind it.
+            if (scroller && scroller.querySelector) {
+                const stickyHeader = scroller.querySelector(':scope > header');
+                if (stickyHeader) {
+                    const position = getComputedStyle(stickyHeader).position;
+                    if (position === 'sticky' || position === 'fixed') {
+                        margin += stickyHeader.getBoundingClientRect().height;
+                    }
+                }
+            }
+
+            if (scroller && scroller !== document.body) {
+                const frame = scroller.getBoundingClientRect();
+                const delta = rect.top - frame.top - margin;
+                if (Math.abs(delta) > 8) {
+                    try {
+                        scroller.scrollTo({ top: Math.max(0, scroller.scrollTop + delta), behavior: 'smooth' });
+                    } catch (e) {
+                        scroller.scrollTop = Math.max(0, scroller.scrollTop + delta);
+                    }
+                }
+                return;
+            }
+
+            try {
+                avatar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } catch (e) {}
+        };
+
+        // Run once immediately and again after the tool grid/feedback has been
+        // rebuilt: those reflows used to cancel the first smooth scroll.
+        requestAnimationFrame(scroll);
+        setTimeout(scroll, 180);
+        setTimeout(scroll, 520);
     }
 
     /**

@@ -13,9 +13,9 @@ window.RC.ModalNPC = function ModalNPC() {
                     <span className="close-modal absolute top-2 right-6 text-3xl cursor-pointer text-gray-500 hover:text-white z-30 leading-none">&times;</span>
                 </header>
 
-                <div className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-hidden">
+                <div id="modal-npc-body" className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-hidden">
                     {/* Columna Izquierda: Identidad y Visual */}
-                    <div className="lg:w-2/5 flex flex-col border-r border-white/10 bg-black/20 shrink-0">
+                    <div id="modal-npc-identity" className="lg:w-2/5 flex flex-col border-r border-white/10 bg-black/20 shrink-0">
                         {/* Visual Feed */}
                         <div id="modal-visual-container" className="relative w-full h-[220px] bg-black flex justify-center items-end border-b border-white/5 overflow-hidden shrink-0">
                             <div className="absolute top-3 left-6 text-sm font-mono text-gray-400 z-20 flex items-center gap-2">
@@ -56,7 +56,7 @@ window.RC.ModalNPC = function ModalNPC() {
                     </div>
 
                     {/* Columna Derecha: Análisis y Datos */}
-                    <div className="lg:w-3/5 flex flex-col overflow-y-auto custom-scrollbar p-6 gap-6 bg-[#050505]">
+                    <div id="modal-npc-analysis" className="lg:w-3/5 flex flex-col overflow-y-auto custom-scrollbar p-6 gap-6 bg-[#050505]">
                         {/* Test Grid */}
                         <div className="flex flex-col gap-3">
                             <div className="flex justify-between items-center border-b border-white/5 pb-2">
