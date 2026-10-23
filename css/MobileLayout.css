@@ -1673,15 +1673,15 @@
         width: auto !important;
         min-width: 0 !important;
         max-width: none !important;
-        height: 38px !important;
-        min-height: 38px !important;
-        max-height: 38px !important;
-        padding: 3px !important;
+        height: 48px !important;
+        min-height: 48px !important;
+        max-height: 48px !important;
+        padding: 0 !important;
         gap: 1px !important;
     }
     #screen-game > header .hud-component {
-        height: 38px !important;
-        min-height: 38px !important;
+        height: 48px !important;
+        min-height: 48px !important;
         padding: 3px !important;
         gap: 1px !important;
     }
@@ -1977,14 +1977,14 @@
     #screen-game > header > div.flex.flex-wrap > .comp-gen-station {
         width: auto !important;
         max-width: none !important;
-        height: 50px !important;
-        min-height: 50px !important;
-        max-height: 50px !important;
+        height: 60px !important;
+        min-height: 60px !important;
+        max-height: 60px !important;
     }
 
     #screen-game > header .hud-component {
-        height: 50px !important;
-        min-height: 50px !important;
+        height: 60px !important;
+        min-height: 60px !important;
     }
 
     #screen-game > header .hud-stat-label {
