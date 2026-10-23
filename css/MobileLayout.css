@@ -6,7 +6,7 @@
  * and must not change as a side effect of the mobile implementation.
  */
 
-@media (max-width: 1100px), (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 1280px), (max-width: 1280px) and (max-height: 520px) and (orientation: landscape) {
     :root {
         --mobile-dock-height: 56px;
         --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -891,7 +891,7 @@
     }
 }
 
-@media (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 1280px) and (max-height: 520px) and (orientation: landscape) {
     .terminal-chasis,
     body.is-full-ui .terminal-chasis {
         height: 100dvh;
@@ -932,7 +932,7 @@
 
 
 /* Visual hierarchy pass: mobile-specific overrides for dynamic inspection states. */
-@media (max-width: 1100px), (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 1280px), (max-width: 1280px) and (max-height: 520px) and (orientation: landscape) {
     /* updateInspectionTools() rebuilds this node dynamically; its direct grid
        children are not always wrapped in .grid-tools. Match both render paths. */
     #screen-game #inspection-tools-container.grid {
@@ -1106,7 +1106,7 @@
 }
 
 /* Portrait game content must size to its controls instead of clipping them in the desktop flex frame. */
-@media (max-width: 1100px) and (orientation: portrait) {
+@media (max-width: 1280px) and (orientation: portrait) {
     #screen-game .dialogue-sidebar {
         flex: 0 0 auto !important;
         height: auto !important;
@@ -1179,7 +1179,7 @@
     display: none !important;
 }
 
-@media (max-width: 1100px), (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 1280px), (max-width: 1280px) and (max-height: 520px) and (orientation: landscape) {
     #btn-pause {
         display: none !important;
     }
@@ -1201,7 +1201,7 @@
 
 
 /* Mobile-only geometry fixes. Desktop rules and visual tokens remain untouched. */
-@media (max-width: 1100px), (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 1280px), (max-width: 1280px) and (max-height: 520px) and (orientation: landscape) {
     #screen-game .comp-gen-battery,
     #screen-game .comp-gen-battery .hud-component,
     #screen-game .comp-gen-battery .stat-bar-bg {
@@ -1243,7 +1243,7 @@
 }
 
 /* Landscape phones: prioritize the person, inspection tools and decisions over telemetry. */
-@media (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 1280px) and (max-height: 520px) and (orientation: landscape) {
     #screen-game {
         gap: 4px !important;
         padding: 4px !important;
@@ -1495,7 +1495,7 @@
 }
 
 
-@media (max-width: 1100px), (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 1280px), (max-width: 1280px) and (max-height: 520px) and (orientation: landscape) {
     /* Dialogue tabs: tappable height in portrait and landscape. */
     #screen-game .dialogue-sidebar > .flex.text-xs.border-b {
         flex: 0 0 auto !important;
@@ -1563,7 +1563,7 @@
 }
 
 /* Generator: mobile-friendly layout. */
-@media (max-width: 1100px), (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 1280px), (max-width: 1280px) and (max-height: 520px) and (orientation: landscape) {
     #screen-generator {
         padding: 8px !important;
         gap: 8px !important;
@@ -1599,7 +1599,7 @@
 }
 
 /* Game header: sticky so it stays visible while content scrolls. */
-@media (max-width: 1100px), (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 1280px), (max-width: 1280px) and (max-height: 520px) and (orientation: landscape) {
     #screen-game > header {
         position: sticky !important;
         top: 0 !important;
@@ -1632,7 +1632,7 @@
 }
 
 /* Touch integration: disable sticky hover effects and tap delay on touch devices. */
-@media (max-width: 1100px), (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 1280px), (max-width: 1280px) and (max-height: 520px) and (orientation: landscape) {
     button, a, [role="button"] {
         touch-action: manipulation;
         -webkit-tap-highlight-color: rgba(112, 166, 102, 0.2);
@@ -1649,7 +1649,7 @@
 
 /* Game header: compact; stats wrap into a readable grid instead of a
    horizontally clipped strip on portrait phones. */
-@media (max-width: 1100px), (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 1280px), (max-width: 1280px) and (max-height: 520px) and (orientation: landscape) {
     #screen-game > header {
         padding: 4px 6px !important;
         gap: 4px !important;
@@ -1708,7 +1708,7 @@
 }
 
 /* Short landscape phones keep the single-line strip to save height. */
-@media (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 1280px) and (max-height: 520px) and (orientation: landscape) {
     #screen-game > header > div.flex.flex-wrap {
         display: flex !important;
         flex-wrap: nowrap !important;
@@ -1741,7 +1741,7 @@
 }
 
 /* Collapsible game header: compact single line by default on mobile. */
-@media (max-width: 1100px), (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 1280px), (max-width: 1280px) and (max-height: 520px) and (orientation: landscape) {
     #screen-game > header #header-hud-stats {
         display: none !important;
     }
@@ -1758,7 +1758,7 @@
 }
 
 /* Mobile scroll ownership: each active screen owns its vertical overflow. */
-@media (max-width: 1100px) {
+@media (max-width: 1280px) {
     #main-area,
     #main-area.main-area-fixed {
         flex: 1 1 0%;
@@ -1857,7 +1857,7 @@
 
 
 
-@media (max-width: 1100px) {
+@media (max-width: 1280px) {
   #screen-lore:not(.hidden) {
     position: fixed !important;
     inset: 0 !important;
@@ -1876,7 +1876,7 @@
 
 
 /* Hide decorative panels on mobile: only keep functional ones (notifications). */
-@media (max-width: 1100px), (max-width: 1100px) and (max-height: 520px) and (orientation: landscape) {
+@media (max-width: 1280px), (max-width: 1280px) and (max-height: 520px) and (orientation: landscape) {
     .mobile-decorative {
         display: none !important;
     }
@@ -1885,7 +1885,7 @@
 /* NPC dossier: one scroll column on phones. The split layout kept the
    identity column at full height and left the analysis column with ~48px,
    so the biometric test buttons were unreachable. */
-@media (max-width: 1100px) {
+@media (max-width: 1280px) {
     #modal-npc .horror-panel-modal {
         width: 100% !important;
         max-height: calc(100dvh - 16px) !important;
@@ -1946,7 +1946,7 @@
 
 /* Tablets: use the width for a larger avatar, a single tool row and a
    readable header instead of stretching the phone layout. */
-@media (min-width: 701px) and (max-width: 1100px) {
+@media (min-width: 701px) and (max-width: 1280px) {
     :root {
         --mobile-dock-height: 64px;
         --mobile-gutter: 14px;
@@ -2098,7 +2098,7 @@
 
 /* Tablet landscape: avatar and dialogue share one row instead of stacking
    into a column that forces the whole guard post to scroll. */
-@media (min-width: 701px) and (max-width: 1100px) and (orientation: landscape) {
+@media (min-width: 701px) and (max-width: 1280px) and (orientation: landscape) {
     #screen-game .puesto-container {
         flex-direction: row !important;
         flex-wrap: wrap !important;
@@ -2143,6 +2143,13 @@
     #screen-game #npc-display .npc-pixel-portrait {
         width: 200px !important;
         height: 200px !important;
+    }
+
+    /* Tighten the two gaps so the action row still clears the fixed dock
+       when the header is expanded at 714px tall. */
+    #screen-game #inspection-tools-container.grid,
+    #inspection-tools-container > .grid-tools {
+        gap: 8px !important;
     }
 
     #inspection-tools-container > .grid-tools {

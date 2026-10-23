@@ -252,7 +252,7 @@ class Game {
         this.loopManager.resume();
         this.startClock(); // Ensure clock is running
         this.setPauseControlsVisible(true);
-        if (window.innerWidth <= 1100) this.setHeaderCollapsed(true);
+        if (window.innerWidth <= 1280) this.setHeaderCollapsed(true);
         this.ui.updateRunStats(State);
     }
 
@@ -320,7 +320,7 @@ class Game {
         this.loopManager.start();
         this.startClock();
         this.setPauseControlsVisible(true);
-        if (window.innerWidth <= 1100) this.setHeaderCollapsed(true);
+        if (window.innerWidth <= 1280) this.setHeaderCollapsed(true);
         this.ui.showScreen('game');
         this.ui.updateRunStats(State);
         this.ui.showFeedback("DÍA REINICIADO", "yellow", 3000);
