@@ -17,7 +17,7 @@ export const gen_pools_5 = {
             },
             'gsi_n2a': {
                 id: 'gsi_n2a',
-                text: "*La nota dice: «NO ME CALLES TÚ. ME LA SELLÉ PORQUE ALGO RESPONDE CUANDO HABLO». La última palabra está repasada varias veces.*",
+                text: "*La nota dice: \"NO ME CALLES TÚ. ME LA SELLÉ PORQUE ALGO RESPONDE CUANDO HABLO\". La última palabra está repasada varias veces.*",
                 options: [
                     { id: 'gsi_o2a', label: '¿Quiénes?', next: 'gsi_n3a' },
                     { id: 'gsi_o2l', label: 'Guardar nota', next: null, resultText: "*Te deja quedarte el papel.* \"(Asiente agradecido)\"", onclick: (g) => act.giveLoreItem(g, 'item_silent_note', 'Nota de "Los Silenciosos"') },

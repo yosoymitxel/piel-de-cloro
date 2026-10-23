@@ -17,14 +17,14 @@ export const gen_pools_9 = {
             },
             'gbre_n2a': {
                 id: 'gbre_n2a',
-                text: "*«No es uno», dice después de una pausa. «No sé cuántos son. Al principio pensé que era una infección; ahora se mueven cuando tengo hambre».*",
+                text: "*\"No es uno\", dice después de una pausa. \"No sé cuántos son. Al principio pensé que era una infección; ahora se mueven cuando tengo hambre\".*",
                 options: [
                     { id: 'gbre_o2a', label: 'Eso son parásitos', next: 'gbre_n3a' }
                 ]
             },
             'gbre_n2b': {
                 id: 'gbre_n2b',
-                text: "*Se encoge cuando algo vuelve a empujar desde dentro. «No los llamo hijos porque sepa qué son. Los llamo así porque, si no, tendría que admitir que estoy solo con esto».*",
+                text: "*Se encoge cuando algo vuelve a empujar desde dentro. \"No los llamo hijos porque sepa qué son. Los llamo así porque, si no, tendría que admitir que estoy solo con esto\".*",
                 options: [
                     { id: 'gbre_o2b', label: 'Qué asco', next: 'gbre_n3b' },
                     { id: 'gbre_o2r', label: '¿Has visto a otros así?', next: null, resultText: "*Sonríe.* \"Hay un nido en la Morgue. Lo sentí latir al pasar.\"", onclick: (g) => act.unlockRumor(g, 'Rumor: Posible nido parasitario en la Morgue.') }

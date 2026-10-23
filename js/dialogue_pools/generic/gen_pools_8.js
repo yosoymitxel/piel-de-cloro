@@ -9,7 +9,7 @@ export const gen_pools_8 = {
         nodes: {
             'gco_n1': {
                 id: 'gco_n1',
-                text: "*Mientras hablas, mira tus dientes más de lo necesario. «Perdona. Me fijo en las dentaduras. Es un hábito difícil de explicar».*",
+                text: "*Mientras hablas, mira tus dientes más de lo necesario. \"Perdona. Me fijo en las dentaduras. Es un hábito difícil de explicar\".*",
                 options: [
                     { id: 'gco_o1', label: 'Gracias, supongo', next: 'gco_n2a' },
                     { id: 'gco_o2', label: '¿Qué miras?', next: 'gco_n2b' }
@@ -17,7 +17,7 @@ export const gen_pools_8 = {
             },
             'gco_n2a': {
                 id: 'gco_n2a',
-                text: "*Intenta sonreír y deja a la vista varios huecos. «No te estoy amenazando. Me faltan piezas y empecé a guardar las que encontraba».*",
+                text: "*Intenta sonreír y deja a la vista varios huecos. \"No te estoy amenazando. Me faltan piezas y empecé a guardar las que encontraba\".*",
                 options: [
                     { id: 'gco_o2a', label: '¿Piezas de qué?', next: 'gco_n3a' },
                     { id: 'gco_o2b', label: 'Aléjate de mí', next: 'gco_n3b' }
@@ -25,7 +25,7 @@ export const gen_pools_8 = {
             },
             'gco_n2b': {
                 id: 'gco_n2b',
-                text: "*Aparta la vista de tu boca. «Las llamo colección porque suena mejor que decir de dónde salieron. No todas tienen una historia que quiera contar».*",
+                text: "*Aparta la vista de tu boca. \"Las llamo colección porque suena mejor que decir de dónde salieron. No todas tienen una historia que quiera contar\".*",
                 options: [
                     { id: 'gco_o2c', label: '¿Colección?', next: 'gco_n3a' },
                     { id: 'gco_o2l', label: '¿Tienes algo útil?', next: null, resultText: "*Saca un diente de oro.* \"Este no me encaja. Tómalo.\"", onclick: (g) => act.giveLoreItem(g, 'item_gold_tooth', 'Diente de Oro') }

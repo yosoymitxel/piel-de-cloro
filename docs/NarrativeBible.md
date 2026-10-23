@@ -4,7 +4,7 @@ Este documento fija reglas para la siguiente reescritura. No sustituye el canon 
 
 ## Premisa dramática
 
-El jugador no es un héroe omnisciente: es una persona con autoridad limitada que decide quién entra en un refugio cuya seguridad depende de instrumentos imperfectos, recursos escasos y testimonios incompletos. El conflicto central no es «adivinar quién es el monstruo», sino decidir cuánto riesgo es aceptable cuando las pruebas pueden fallar y el rechazo también puede matar.
+El jugador no es un héroe omnisciente: es una persona con autoridad limitada que decide quién entra en un refugio cuya seguridad depende de instrumentos imperfectos, recursos escasos y testimonios incompletos. El conflicto central no es "adivinar quién es el monstruo", sino decidir cuánto riesgo es aceptable cuando las pruebas pueden fallar y el rechazo también puede matar.
 
 ## Contrato con el jugador
 
@@ -26,7 +26,7 @@ El jugador no es un héroe omnisciente: es una persona con autoridad limitada qu
 ### Colmena
 - No explica su naturaleza en un monólogo ordenado.
 - Las voces se contradicen, se corrigen, recuerdan experiencias ajenas o usan pronombres incompatibles.
-- La rareza debe surgir de la conversación y de sus errores, no de decir repetidamente «somos muchos».
+- La rareza debe surgir de la conversación y de sus errores, no de decir repetidamente "somos muchos".
 
 ### Kael
 - Se expresa mediante sistemas, fallos, secuencias y consecuencias prácticas.
