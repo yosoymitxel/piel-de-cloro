@@ -1006,18 +1006,10 @@
         overflow-wrap: anywhere;
     }
 
-    /* Telemetry is secondary to the person and inspection decisions.
-       Use a real grid on phones: desktop flex sizing makes monitors collide
-       with analog controls at narrow widths. */
+    /* Telemetry is decorative on mobile/tablet: hide the whole console
+       instead of leaving an empty padded band (all children are .mobile-decorative). */
     #screen-game .center-console {
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        align-content: start;
-        align-items: stretch;
-        gap: 6px !important;
-        padding: 6px !important;
-        overflow: visible !important;
-        box-sizing: border-box !important;
+        display: none !important;
     }
 
     #screen-game .center-console > .mini-monitor {
