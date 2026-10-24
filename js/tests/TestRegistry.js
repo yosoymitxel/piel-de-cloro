@@ -110,8 +110,8 @@ export const TESTS = [
         hallucination: { infected: () => 97 + Math.floor(Math.random() * 3), human: () => 88 + Math.floor(Math.random() * 5) },
         generate: (infected) => infected ? Math.floor(85 + Math.random() * 6) : Math.floor(96 + Math.random() * 4),
         formatStat: (v) => `${v}%`,
-        formatResult: (v) => `O₂: ${v}%`,
-        colorFn: (v) => (parseInt(v) < 92) ? 'red' : null,
+        formatResult: (v) => (parseInt(v) < 92) ? 'O₂: COMPROMETIDO' : 'O₂: ESTABLE',
+        formatStat: (v) => (parseInt(v) < 92) ? 'COMPROMETIDO' : 'ESTABLE',
         vhs: 0.3
     },
     {
@@ -132,7 +132,7 @@ export const TESTS = [
         hallucination: { infected: () => 'normal', human: () => 'slow' },
         generate: (infected) => infected ? (Math.random() > 0.6 ? 'slow' : 'normal') : 'normal',
         formatStat: (v) => (v === 'slow' ? 'LENTO' : 'NORMAL'),
-        formatResult: (v) => `TURGOR: ${v === 'slow' ? 'LENTO' : 'NORMAL'}`,
+        formatResult: (v) => (v === 'slow' ? 'TURGOR: LENTO' : 'TURGOR: NORMAL'),
         vhs: 0.3
     },
     {
@@ -153,8 +153,8 @@ export const TESTS = [
         unit: 'mg/dL',
         hallucination: { infected: () => 90 + Math.floor(Math.random() * 25), human: () => 160 + Math.floor(Math.random() * 45) },
         generate: (infected) => infected ? Math.floor(180 + Math.random() * 40) : Math.floor(80 + Math.random() * 30),
-        formatStat: (v) => `${v} mg/dL`,
-        formatResult: (v) => `GLU: ${v} mg/dL`,
+        formatStat: (v) => (parseInt(v) > 140) ? 'ELEVADA' : 'NORMAL',
+        formatResult: (v) => (parseInt(v) > 140) ? 'GLUCOSA: ELEVADA' : 'GLUCOSA: NORMAL',
         colorFn: (v) => (parseInt(v) > 140) ? 'red' : null,
         vhs: 0.4
     }

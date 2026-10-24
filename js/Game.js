@@ -1,9 +1,9 @@
-import { NPC } from './NPC.js?v=20261022-mobilefix5';
+import { NPC } from './NPC.js?v=20261022-mobilefix6';
 import { State } from './State.js';
-import { UIManager } from './UIManager.js?v=20261022-mobilefix5';
+import { UIManager } from './UIManager.js?v=20261022-mobilefix6';
 import { StatsManager } from './StatsManager.js';
 import { AudioManager } from './AudioManager.js';
-import { GameActionHandler } from './GameActionHandler.js?v=20261022-mobilefix5';
+import { GameActionHandler } from './GameActionHandler.js?v=20261022-mobilefix6';
 import { GameMechanicsManager } from './GameMechanicsManager.js?v=20261021-daytransition1';
 import { GameEventManager } from './GameEventManager.js?v=20261021-daytransition1';
 import { EventOrchestrator } from './EventOrchestrator.js';

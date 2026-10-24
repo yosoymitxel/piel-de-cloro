@@ -468,7 +468,7 @@ export class ToolsRenderer {
     }
 
     /**
-     * Oximeter: finger clip with pulsing red light and SpO2 readout.
+     * Oximeter: large finger clip with flickering light + ECG trace. Analog, no numeric readout.
      */
     animateToolOximeter(value, container = null, isInfected = null) {
         const targetContainer = this._getTargetContainer(container);
@@ -479,31 +479,55 @@ export class ToolsRenderer {
         targetContainer.css('position', 'relative');
         targetContainer.find('.tool-oximeter').remove();
 
-        const overlay = $('<div>', { class: 'tool-oximeter', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
+        const overlay = $('<div>', { class: 'tool-oximeter', css: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10, gap: '10px' } });
 
-        const clip = $('<div>', { css: { width: '60px', height: '30px', background: '#1a1a1a', border: '2px solid #555', borderRadius: '6px', position: 'relative', boxShadow: 'inset 0 0 6px #000' } });
-        const light = $('<div>', { css: { position: 'absolute', top: '8px', left: '8px', width: '14px', height: '14px', borderRadius: '50%', background: isInfected ? State.colors.chlorine : '#ff3b3b', boxShadow: `0 0 10px ${isInfected ? State.colors.chlorine : '#ff3b3b'}` } });
-        const readout = $('<div>', { css: { position: 'absolute', top: '4px', right: '6px', fontFamily: 'monospace', fontSize: '11px', color: isInfected ? State.colors.chlorine : '#00ff41', fontWeight: 'bold' }, text: '0%' });
+        const clip = $('<div>', { css: { width: '150px', height: '60px', background: '#0a0a0a', border: '3px solid #444', borderRadius: '10px', position: 'relative', boxShadow: 'inset 0 0 12px #000, 0 0 20px rgba(0,0,0,0.5)' } });
+        const light = $('<div>', { css: { position: 'absolute', top: '18px', left: '20px', width: '24px', height: '24px', borderRadius: '50%', background: isInfected ? State.colors.chlorine : '#ff2a2a', boxShadow: `0 0 18px ${isInfected ? State.colors.chlorine : '#ff2a2a'}` } });
+        const label = $('<div>', { css: { position: 'absolute', top: '8px', right: '12px', fontFamily: 'monospace', fontSize: '9px', color: '#888', letterSpacing: '0.1em' }, text: 'ESCANEANDO' });
 
-        clip.append(light, readout);
+        clip.append(light, label);
         overlay.append(clip);
+
+        // ECG trace
+        const trace = $('<canvas>', { css: { width: '150px', height: '40px', background: 'rgba(0,0,0,0.4)', border: '1px solid #333', borderRadius: '4px' } });
+        const ctx = trace[0].getContext('2d');
+        trace[0].width = 150; trace[0].height = 40;
+        overlay.append(trace);
+
         targetContainer.append(overlay);
 
         const start = Date.now();
-        const target = Math.max(0, Math.min(100, parseInt(value) || 0));
+        const duration = 2500;
         const step = () => {
-            const t = Math.min(1, (Date.now() - start) / 1500);
-            readout.text(`${Math.floor(target * t)}%`);
-            light.css('opacity', 0.4 + 0.6 * Math.abs(Math.sin((Date.now() - start) / 200)));
+            const now = Date.now();
+            const elapsed = now - start;
+            const t = Math.min(1, elapsed / duration);
+            // flicker the light
+            const flicker = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(elapsed / 120) * Math.sin(elapsed / 37));
+            light.css('opacity', flicker);
+            // draw ECG
+            ctx.clearRect(0, 0, 150, 40);
+            ctx.strokeStyle = isInfected ? State.colors.chlorine : '#00ff41';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            for (let x = 0; x < 150; x++) {
+                const phase = (x + elapsed * 0.15) % 150;
+                let y = 20;
+                if (phase > 60 && phase < 75) y = 20 - 12 * Math.sin((phase - 60) / 15 * Math.PI);
+                else if (phase > 75 && phase < 90) y = 20 + 6 * Math.sin((phase - 75) / 15 * Math.PI);
+                y += (Math.random() - 0.5) * (isInfected ? 4 : 1.5);
+                if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
             if (t < 1) requestAnimationFrame(step);
         };
         requestAnimationFrame(step);
 
-        setTimeout(() => overlay.fadeOut(300, () => overlay.remove()), 2000);
+        setTimeout(() => overlay.fadeOut(400, () => overlay.remove()), duration + 300);
     }
 
     /**
-     * Skin turgor: pinch that returns slowly.
+     * Skin turgor: large skin patch pinched, returns slowly. Analog, no text readout.
      */
     animateToolSkinTurgor(value, container = null, isInfected = null) {
         const targetContainer = this._getTargetContainer(container);
@@ -515,29 +539,40 @@ export class ToolsRenderer {
         targetContainer.find('.tool-turgor').remove();
 
         const overlay = $('<div>', { class: 'tool-turgor', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
-        const skin = $('<div>', { css: { width: '80px', height: '40px', background: 'rgba(200,160,120,0.35)', border: '1px solid rgba(200,160,120,0.6)', borderRadius: '20px', position: 'relative', overflow: 'hidden' } });
-        const fold = $('<div>', { css: { position: 'absolute', top: '10px', left: '30px', width: '20px', height: '20px', background: 'rgba(180,140,100,0.6)', borderRadius: '50%', transform: 'scaleY(1)' } });
+        const skin = $('<div>', { css: { width: '170px', height: '90px', background: 'linear-gradient(135deg, rgba(210,170,130,0.4), rgba(180,140,100,0.25))', border: '2px solid rgba(200,160,120,0.7)', borderRadius: '40px', position: 'relative', overflow: 'hidden', boxShadow: 'inset 0 0 16px rgba(0,0,0,0.4)' } });
+        const fold = $('<div>', { css: { position: 'absolute', top: '20px', left: '60px', width: '50px', height: '50px', background: 'rgba(170,130,90,0.55)', borderRadius: '50%', transform: 'scaleY(1) scaleX(1)', transformOrigin: 'center' } });
+        const label = $('<div>', { css: { position: 'absolute', bottom: '6px', left: '0', width: '100%', textAlign: 'center', fontFamily: 'monospace', fontSize: '9px', color: '#aaa', letterSpacing: '0.1em' }, text: 'PINZANDO' });
 
-        skin.append(fold);
+        skin.append(fold, label);
         overlay.append(skin);
         targetContainer.append(overlay);
 
         const slow = value === 'slow';
-        const duration = slow ? 1200 : 400;
+        const duration = slow ? 2200 : 700;
         const start = Date.now();
         const step = () => {
             const t = Math.min(1, (Date.now() - start) / duration);
-            const scale = slow ? 1 - 0.6 * (1 - Math.pow(1 - t, 3)) : 1 - 0.6 * Math.sin(t * Math.PI);
-            fold.css('transform', `scaleY(${Math.max(0.4, scale)})`);
+            // pinch in (0-0.3), hold (0.3-0.4), return (0.4-1)
+            let scale = 1;
+            if (t < 0.3) scale = 1 - 0.55 * (t / 0.3);
+            else if (t < 0.4) scale = 0.45;
+            else {
+                const rt = (t - 0.4) / 0.6;
+                const ease = 1 - Math.pow(1 - rt, 3);
+                scale = 0.45 + 0.55 * ease;
+                // wobble on return for infected
+                if (isInfected && rt < 0.9) scale += 0.05 * Math.sin(rt * Math.PI * 6);
+            }
+            fold.css('transform', `scaleY(${Math.max(0.4, scale)}) scaleX(${1 - (1 - scale) * 0.3})`);
             if (t < 1) requestAnimationFrame(step);
         };
         requestAnimationFrame(step);
 
-        setTimeout(() => overlay.fadeOut(300, () => overlay.remove()), duration + 400);
+        setTimeout(() => overlay.fadeOut(400, () => overlay.remove()), duration + 400);
     }
 
     /**
-     * Glucose: glucometer with strip and numeric readout.
+     * Glucose: large colorimetric strip that shifts color. Analog, no numeric readout.
      */
     animateToolGlucose(value, container = null, isInfected = null) {
         const targetContainer = this._getTargetContainer(container);
@@ -548,24 +583,55 @@ export class ToolsRenderer {
         targetContainer.css('position', 'relative');
         targetContainer.find('.tool-glucose').remove();
 
-        const overlay = $('<div>', { class: 'tool-glucose', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
-        const device = $('<div>', { css: { width: '90px', height: '50px', background: '#0d1117', border: '2px solid #333', borderRadius: '8px', position: 'relative', boxShadow: 'inset 0 0 8px #000' } });
-        const strip = $('<div>', { css: { position: 'absolute', bottom: '-12px', left: '30px', width: '30px', height: '20px', background: '#e8e0d0', border: '1px solid #999', borderRadius: '2px' } });
-        const readout = $('<div>', { css: { position: 'absolute', top: '12px', left: '0', width: '100%', textAlign: 'center', fontFamily: 'monospace', fontSize: '14px', color: isInfected ? State.colors.chlorine : '#00ff41', fontWeight: 'bold' }, text: '0' });
+        const overlay = $('<div>', { class: 'tool-glucose', css: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10, gap: '12px' } });
 
-        device.append(readout);
-        overlay.append(device, strip);
+        // color chart reference
+        const chart = $('<div>', { css: { display: 'flex', gap: '6px', alignItems: 'center' } });
+        const swatches = [
+            { color: '#e8d9a0', label: 'BAJO' },
+            { color: '#d4a84b', label: 'NORMAL' },
+            { color: '#b85c3a', label: 'ALTO' },
+            { color: '#8a2a1a', label: 'CRÍTICO' }
+        ];
+        swatches.forEach(s => {
+            const sw = $('<div>', { css: { width: '28px', height: '18px', background: s.color, border: '1px solid #555', borderRadius: '3px' } });
+            const lb = $('<div>', { css: { fontSize: '7px', color: '#888', textAlign: 'center', marginTop: '2px' }, text: s.label });
+            const col = $('<div>', { css: { display: 'flex', flexDirection: 'column', alignItems: 'center' } });
+            col.append(sw, lb);
+            chart.append(col);
+        });
+        overlay.append(chart);
+
+        const strip = $('<div>', { css: { width: '160px', height: '36px', background: '#e8d9a0', border: '2px solid #555', borderRadius: '6px', position: 'relative', boxShadow: 'inset 0 0 8px rgba(0,0,0,0.4)', transition: 'background 0.1s linear' } });
+        const label = $('<div>', { css: { position: 'absolute', top: '8px', left: '0', width: '100%', textAlign: 'center', fontFamily: 'monospace', fontSize: '9px', color: '#222', letterSpacing: '0.1em', mixBlendMode: 'difference' }, text: 'REACCIONANDO' });
+        strip.append(label);
+        overlay.append(strip);
+
         targetContainer.append(overlay);
 
         const start = Date.now();
+        const duration = 2200;
         const target = Math.max(0, parseInt(value) || 0);
+        // map value to color: low glucose -> pale, high -> deep red
+        const colorFor = (v) => {
+            if (v < 100) return [232, 217, 160];
+            if (v < 140) return [212, 168, 75];
+            if (v < 180) return [184, 92, 58];
+            return [138, 42, 26];
+        };
         const step = () => {
-            const t = Math.min(1, (Date.now() - start) / 1200);
-            readout.text(Math.floor(target * t));
+            const t = Math.min(1, (Date.now() - start) / duration);
+            const eased = 1 - Math.pow(1 - t, 2);
+            const [r, g, b] = colorFor(target);
+            // interpolate from pale (232,217,160) to target color
+            const rr = Math.round(232 + (r - 232) * eased);
+            const gg = Math.round(217 + (g - 217) * eased);
+            const bb = Math.round(160 + (b - 160) * eased);
+            strip.css('background', `rgb(${rr},${gg},${bb})`);
             if (t < 1) requestAnimationFrame(step);
         };
         requestAnimationFrame(step);
 
-        setTimeout(() => overlay.fadeOut(300, () => overlay.remove()), 1800);
+        setTimeout(() => overlay.fadeOut(400, () => overlay.remove()), duration + 300);
     }
 }
