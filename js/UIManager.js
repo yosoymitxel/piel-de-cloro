@@ -4,6 +4,7 @@ import { ROOM_TYPES } from './ShelterModel.js';
 import { LoreData } from './LoreData.js';
 import { LoreManager } from './LoreManager.js';
 import { ModalManager } from './ModalManager.js?v=20261022-mobilefix6';
+import { TESTS } from './tests/TestRegistry.js?v=20261022-mobilefix6';
 import { AvatarRenderer } from './AvatarRenderer.js?v=20261021-avatarfix2';
 import { ScreenManager } from './ScreenManager.js?v=20261021-daytransition1';
 import { GeneratorManager } from './GeneratorManager.js';
@@ -1439,40 +1440,34 @@ export class UIManager {
                 <i class="fa-solid fa-bolt mr-1"></i> ${modeLabel}
             </div>`;
 
+            // Build test buttons dynamically from State.puestoTests (lab selection)
+            const selectedIds = (State.puestoTests && State.puestoTests.length) ? State.puestoTests : ['thermometer', 'flashlight', 'pupils', 'pulse'];
+            const testButtonsHtml = selectedIds.map(id => {
+                const t = TESTS.find(x => x.id === id);
+                if (!t) return '';
+                const disabled = npc && npc.revealedStats && npc.revealedStats.includes(t.key) ? 'btn-disabled opacity-20 grayscale' : '';
+                return `
+                    <div class="tool-wrapper col-span-1">
+                        <div class="spiral-cable"></div>
+                        <button id="tool-${t.id}" class="horror-tool-btn horror-tool-btn--main btn-interactive ${disabled}" data-test="${t.id}">
+                            <i class="fa-solid ${t.icon} ${t.color || ''}"></i> ${t.toolLabel || t.label}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
             this.elements.inspectionToolsContainer.html(`
                 ${extraLabel}
-                <div class="tool-wrapper col-span-1">
-                    <div class="spiral-cable"></div>
-                    <button id="tool-thermo" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('temperature') ? 'btn-disabled opacity-20 grayscale' : ''}">
-                        <i class="fa-solid fa-temperature-half"></i> TERMÓMETRO
-                    </button>
-                </div>
-                <div class="tool-wrapper col-span-1">
-                    <div class="spiral-cable"></div>
-                    <button id="tool-flash" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('skinTexture') ? 'btn-disabled opacity-20 grayscale' : ''}">
-                        <i class="fa-solid fa-lightbulb"></i> LINTERNA UV
-                    </button>
-                </div>
-                <div class="tool-wrapper col-span-1">
-                    <div class="spiral-cable"></div>
-                    <button id="tool-pulse" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('pulse') ? 'btn-disabled opacity-20 grayscale' : ''}">
-                        <i class="fa-solid fa-heart-pulse"></i> PULSO
-                    </button>
-                </div>
-                <div class="tool-wrapper col-span-1">
-                    <div class="spiral-cable"></div>
-                    <button id="tool-pupils" class="horror-tool-btn horror-tool-btn--main btn-interactive ${npc && npc.revealedStats.includes('pupils') ? 'btn-disabled opacity-20 grayscale' : ''}">
-                        <i class="fa-solid fa-eye"></i> PUPILAS
-                    </button>
-                </div>
+                ${testButtonsHtml}
                 ${admitBtn}
                 ${ignoreBtn}
             `);
 
-            // Forzar layout de grid y gap
+            // Forzar layout de grid y gap (dinámico según tests seleccionados)
+            const cols = (selectedIds.length <= 2) ? 2 : (selectedIds.length <= 4) ? 4 : 3;
             this.elements.inspectionToolsContainer.css({
                 'display': 'grid',
-                'grid-template-columns': 'repeat(4, minmax(0, 1fr))',
+                'grid-template-columns': `repeat(${cols}, minmax(0, 1fr))`,
                 'gap': '0.75rem'
             });
 
@@ -1481,12 +1476,8 @@ export class UIManager {
     }
 
     refreshToolsReferences() {
-        this.elements.tools = [
-            $('#tool-thermo'),
-            $('#tool-flash'),
-            $('#tool-pulse'),
-            $('#tool-pupils')
-        ];
+        const ids = (State.puestoTests && State.puestoTests.length) ? State.puestoTests : ['thermometer', 'flashlight', 'pupils', 'pulse'];
+        this.elements.tools = ids.map(id => $(`#tool-${id}`)).filter($el => $el.length);
 
         if (!this.game) return;
         const events = this.game.events;
@@ -3025,6 +3016,7 @@ export class UIManager {
     renderLab(state) {
         // Render Guard Panel (Worker)
         this.renderSectorPanel('#lab-guard-panel', 'lab', state, 'INVESTIGADOR JEFE');
+        this.renderLabPuestoTests(state);
         
         // Update Status
         const isGenOn = state.generator && state.generator.isOn;
@@ -3195,6 +3187,60 @@ export class UIManager {
                 }
             });
         }
+    }
+
+    renderLabPuestoTests(state) {
+        const container = $('#lab-puesto-tests');
+        const status = $('#lab-puesto-tests-status');
+        if (!container.length) return;
+
+        const tests = TESTS.filter(t => t.puestoSelectable);
+
+        container.empty();
+        const selected = new Set(state.puestoTests || []);
+
+        tests.forEach(t => {
+            const row = $(`
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-blue-500/5 p-1 rounded transition-colors">
+                    <input type="checkbox" class="lab-puesto-test-cb" data-test="${t.id}" ${selected.has(t.id) ? 'checked' : ''}>
+                    <i class="fa-solid ${t.icon} ${t.color || 'text-blue-400'} w-4 text-center"></i>
+                    <span class="text-xs font-mono text-blue-200">${t.label}</span>
+                </label>
+            `);
+            container.append(row);
+        });
+
+        const updateStatus = () => {
+            const count = container.find('.lab-puesto-test-cb:checked').length;
+            const even = count % 2 === 0;
+            status.text(`Seleccionados: ${count} ${even ? '(par ✓)' : '(impar ✗)'}`)
+                .toggleClass('text-alert', !even)
+                .toggleClass('text-blue-400', even);
+        };
+        updateStatus();
+
+        container.off('change', '.lab-puesto-test-cb').on('change', '.lab-puesto-test-cb', (e) => {
+            const cb = $(e.currentTarget);
+            const id = cb.data('test');
+            const checked = cb.is(':checked');
+            const current = new Set(State.puestoTests || []);
+
+            if (checked) current.add(id);
+            else current.delete(id);
+
+            // Enforce even count: if odd, block the change
+            if (current.size % 2 !== 0) {
+                cb.prop('checked', !checked);
+                if (checked) current.delete(id); else current.add(id);
+                this.showFeedback('Los protocolos de puesto deben ser en pares (cantidad par)', 'yellow', 2000);
+                updateStatus();
+                return;
+            }
+
+            State.puestoTests = Array.from(current);
+            State.savePersistentData();
+            updateStatus();
+        });
     }
 
     // Modal management delegators

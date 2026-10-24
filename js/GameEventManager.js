@@ -651,29 +651,11 @@ export class GameEventManager {
         // Keep one source of truth so the same click cannot pause and immediately resume.
 
         // Inspection Tools (Delegated to document for maximum resilience)
-        $(document).on('click', '#inspection-tools-container #tool-thermo', () => {
-            if (State.paused) {
-                return;
-            }
-            this.game.actions.inspect('thermometer');
-        });
-        $(document).on('click', '#inspection-tools-container #tool-flash', () => {
-            if (State.paused) {
-                return;
-            }
-            this.game.actions.inspect('flashlight');
-        });
-        $(document).on('click', '#inspection-tools-container #tool-pulse', () => {
-            if (State.paused) {
-                return;
-            }
-            this.game.actions.inspect('pulse');
-        });
-        $(document).on('click', '#inspection-tools-container #tool-pupils', () => {
-            if (State.paused) {
-                return;
-            }
-            this.game.actions.inspect('pupils');
+        // Inspection tools (dynamic, driven by lab selection)
+        $(document).on('click', '#inspection-tools-container button[data-test]', (e) => {
+            if (State.paused) return;
+            const testId = $(e.currentTarget).data('test');
+            if (testId) this.game.actions.inspect(testId);
         });
 
         $(document).on('click', '#inspection-tools-container #btn-goto-generator', () => {

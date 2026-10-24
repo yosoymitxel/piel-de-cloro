@@ -191,6 +191,7 @@ export const State = {
         muted: { ambient: false, lore: false, sfx: false, generator: false, heartbeat: false }
     },
     pinnedRooms: ['generator', 'shelter', 'room'], // Salas pineadas por defecto: Generador, Refugio, Vigilancia
+    puestoTests: ['thermometer', 'flashlight', 'pupils', 'pulse'], // Tests seleccionados para el puesto (siempre en pares)
     currentLayoutKey: null, // Guarda el layout actual del mapa
     lastRenderedShelterId: null, // Para detectar cambios de refugio
     shelter: {
@@ -222,7 +223,8 @@ export const State = {
             audioSettings: this.audioSettings,
             pinnedRooms: this.pinnedRooms, // Save pinned rooms
             currentLayoutKey: this.currentLayoutKey, // Save current layout
-            lastRenderedShelterId: this.lastRenderedShelterId // Save shelter ID to prevent rotation on reload
+            lastRenderedShelterId: this.lastRenderedShelterId, // Save shelter ID to prevent rotation on reload
+            puestoTests: this.puestoTests // Save selected puesto tests
         };
         const serialized = JSON.stringify(data);
         localStorage.setItem('ruta01_persistence', serialized);
@@ -247,6 +249,7 @@ export const State = {
                 }
                 if (data.currentLayoutKey) this.currentLayoutKey = data.currentLayoutKey;
                 if (data.lastRenderedShelterId) this.lastRenderedShelterId = data.lastRenderedShelterId;
+            if (Array.isArray(data.puestoTests) && data.puestoTests.length) this.puestoTests = data.puestoTests;
                 if (data.audioSettings) {
                     // Merge with defaults to ensure structure integrity
                     this.audioSettings = { ...this.audioSettings, ...data.audioSettings };
