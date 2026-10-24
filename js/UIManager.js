@@ -1445,12 +1445,13 @@ export class UIManager {
             const testButtonsHtml = selectedIds.map(id => {
                 const t = TESTS.find(x => x.id === id);
                 if (!t) return '';
+                const bid = t.buttonId || `tool-${t.id}`;
                 const disabled = npc && npc.revealedStats && npc.revealedStats.includes(t.key) ? 'btn-disabled opacity-20 grayscale' : '';
                 return `
                     <div class="tool-wrapper col-span-1">
                         <div class="spiral-cable"></div>
-                        <button id="tool-${t.id}" class="horror-tool-btn horror-tool-btn--main btn-interactive ${disabled}" data-test="${t.id}">
-                            <i class="fa-solid ${t.icon} ${t.color || ''}"></i> ${t.toolLabel || t.label}
+                        <button id="${bid}" class="horror-tool-btn horror-tool-btn--main btn-interactive ${disabled}" data-test="${t.id}">
+                            <i class="fa-solid ${t.icon}"></i> ${t.toolLabel || t.label}
                         </button>
                     </div>
                 `;
@@ -3228,18 +3229,16 @@ export class UIManager {
             if (checked) current.add(id);
             else current.delete(id);
 
-            // Enforce even count: if odd, block the change
+            updateStatus();
+
+            // Enforce even count: only save when even; otherwise warn but keep selection
             if (current.size % 2 !== 0) {
-                cb.prop('checked', !checked);
-                if (checked) current.delete(id); else current.add(id);
-                this.showFeedback('Los protocolos de puesto deben ser en pares (cantidad par)', 'yellow', 2000);
-                updateStatus();
+                this.showFeedback('Selección impar: el puesto usará la última selección válida (debe ser par)', 'yellow', 2500);
                 return;
             }
 
             State.puestoTests = Array.from(current);
             State.savePersistentData();
-            updateStatus();
         });
     }
 

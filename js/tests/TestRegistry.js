@@ -4,6 +4,7 @@ export const TESTS = [
     // --- Core field tests (also used during inspection at the puesto) ---
     {
         id: 'thermometer',
+        buttonId: 'tool-thermo',
         key: 'temperature',
         label: 'TEMP',
         statLabel: 'Temperatura',
@@ -28,6 +29,7 @@ export const TESTS = [
     },
     {
         id: 'flashlight',
+        buttonId: 'tool-flash',
         key: 'skinTexture',
         label: 'DERMIS',
         statLabel: 'Dermis',
@@ -50,6 +52,7 @@ export const TESTS = [
     },
     {
         id: 'pupils',
+        buttonId: 'tool-pupils',
         key: 'pupils',
         label: 'PUPILAS',
         statLabel: 'Pupilas',
@@ -72,6 +75,7 @@ export const TESTS = [
     },
     {
         id: 'pulse',
+        buttonId: 'tool-pulse',
         key: 'pulse',
         label: 'PULSO',
         statLabel: 'Pulso',

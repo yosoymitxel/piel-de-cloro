@@ -714,6 +714,39 @@ body.is-full-ui .crt-monitor {
     box-shadow: 0 0 20px rgba(133, 77, 14, 0.4), 2px 2px 0 #000;
 }
 
+#tool-oximetry {
+    border-color: #0e7490 !important;
+    color: #22d3ee !important;
+}
+
+#tool-oximetry:hover {
+    background: rgba(14, 116, 144, 0.2) !important;
+    border-color: #67e8f9 !important;
+    box-shadow: 0 0 20px rgba(14, 116, 144, 0.4), 2px 2px 0 #000;
+}
+
+#tool-skinTurgor {
+    border-color: #92400e !important;
+    color: #fbbf24 !important;
+}
+
+#tool-skinTurgor:hover {
+    background: rgba(146, 64, 14, 0.2) !important;
+    border-color: #fde68a !important;
+    box-shadow: 0 0 20px rgba(146, 64, 14, 0.4), 2px 2px 0 #000;
+}
+
+#tool-glucose {
+    border-color: #9d174d !important;
+    color: #f472b6 !important;
+}
+
+#tool-glucose:hover {
+    background: rgba(157, 23, 77, 0.2) !important;
+    border-color: #f9a8d4 !important;
+    box-shadow: 0 0 20px rgba(157, 23, 77, 0.4), 2px 2px 0 #000;
+}
+
 /* Spiral Cables for Tools */
 .spiral-cable {
     position: absolute;
