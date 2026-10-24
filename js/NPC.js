@@ -1,6 +1,7 @@
 import { DialogueData } from './DialogueData.js';
 import { selectDialogueSet, Conversation } from './DialogueEngine.js';
 import { State } from './State.js';
+import { TESTS } from './tests/TestRegistry.js';
 
 export class NPC {
     constructor(infectedChance = null, opts = {}) {
@@ -56,6 +57,8 @@ export class NPC {
         this.dialogueStarted = false;
         this.history = []; // Initialize history array
         this.revealedStats = []; // Tracks which stats (temperature, pulse, etc) have been scanned
+        // Tests selectable from the puesto (logic only, no UI yet)
+        this.puestoSelectableTests = TESTS.filter(t => t.puestoSelectable).map(t => t.id);
         this.dayAfter = null; // Will be initialized if admitted
         this.assignedSector = null; // Current job assignment (e.g., 'generator', 'security')
 
@@ -135,12 +138,11 @@ export class NPC {
     }
 
     generateAttributes(infected) {
-        return {
-            temperature: infected ? (32 + Math.random() * 2).toFixed(1) : (36.5 + Math.random() * 1).toFixed(1),
-            pulse: infected ? Math.floor(Math.random() * 20) : Math.floor(60 + Math.random() * 40),
-            skinTexture: infected ? (Math.random() > 0.5 ? 'dry' : 'normal') : 'normal',
-            pupils: infected ? (Math.random() > 0.7 ? 'dilated' : 'normal') : 'normal'
-        };
+        const attrs = {};
+        for (const t of TESTS) {
+            attrs[t.key] = t.generate(infected);
+        }
+        return attrs;
     }
 
     generateVisualFeatures(infected, gender) {
@@ -224,7 +226,10 @@ export class NPC {
                     temperature: '31.2',
                     pulse: 12,
                     skinTexture: 'translucent',
-                    pupils: 'dilated'
+                    pupils: 'dilated',
+                    oxygen: 88,
+                    skinTurgor: 'slow',
+                    glucose: 195
                 },
                 visual: {
                     hair: 'wild',
@@ -243,7 +248,10 @@ export class NPC {
                     temperature: '28.5',
                     pulse: 8,
                     skinTexture: 'metallic',
-                    pupils: 'narrow'
+                    pupils: 'narrow',
+                    oxygen: 84,
+                    skinTurgor: 'slow',
+                    glucose: 210
                 },
                 visual: {
                     hair: 'short',
@@ -262,7 +270,10 @@ export class NPC {
                     temperature: '33.0',
                     pulse: 15,
                     skinTexture: 'moving',
-                    pupils: 'dilated'
+                    pupils: 'dilated',
+                    oxygen: 90,
+                    skinTurgor: 'slow',
+                    glucose: 175
                 },
                 visual: {
                     hair: 'short',
@@ -281,7 +292,10 @@ export class NPC {
                     temperature: '32.8',
                     pulse: 18,
                     skinTexture: 'scarred',
-                    pupils: 'normal'
+                    pupils: 'normal',
+                    oxygen: 93,
+                    skinTurgor: 'normal',
+                    glucose: 110
                 },
                 visual: {
                     hair: 'bald',
@@ -337,20 +351,13 @@ export class NPC {
     }
 
     initDayAfterStatus() {
-        this.dayAfter = {
-            dermis: false,
-            pupils: false,
-            temperature: false,
-            pulse: false,
-            usedNightTests: 0,
-            validated: false,
-            result: null // 'clean' | 'infected'
-        };
+        this.dayAfter = { usedNightTests: 0, validated: false, result: null };
+        for (const t of TESTS) this.dayAfter[t.key] = false;
     }
 
     checkDayAfterValidation() {
         if (!this.dayAfter) return false;
-        const complete = this.dayAfter.dermis && this.dayAfter.pupils && this.dayAfter.temperature && this.dayAfter.pulse;
+        const complete = TESTS.filter(t => t.requiredForValidation).every(t => this.dayAfter[t.key]);
         this.dayAfter.validated = complete;
         if (complete) {
             this.dayAfter.result = this.isInfected ? 'infected' : 'clean';

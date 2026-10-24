@@ -1,5 +1,6 @@
 import { State } from './State.js';
 import { CONSTANTS } from './Constants.js';
+import { TESTS, getTest } from './tests/TestRegistry.js';
 
 export class GameActionHandler {
     constructor(game) {
@@ -32,12 +33,8 @@ export class GameActionHandler {
             return { allowed: false, reason: "GENERADOR APAGADO", code: "POWER_OFF" };
         }
 
-        const statMap = {
-            'thermometer': 'temperature',
-            'flashlight': 'skinTexture',
-            'pupils': 'pupils',
-            'pulse': 'pulse'
-        };
+        const statMap = {};
+        for (const t of TESTS) { if (!t.shelterOnly) statMap[t.id] = t.key; }
         const statKey = statMap[tool];
 
         if (npc.revealedStats.includes(statKey)) {
@@ -209,70 +206,34 @@ export class GameActionHandler {
                 const sanityHallucinationChance = State.sanity < 40 ? (40 - State.sanity) / 100 : 0;
                 const isHallucination = Math.random() < sanityHallucinationChance;
 
+                const test = getTest(tool);
                 let toolValue = npc.attributes[statKey];
 
-                if (isHallucination) {
+                if (isHallucination && test && test.hallucination) {
                     State.log("[GameActionHandler] ALUCINACIÓN activada");
-                    // Generar un valor falso (si es humano, mostrar infectado; si es infectado, mostrar humano)
-                    if (npc.isInfected) {
-                        // Falso negativo (peligroso!)
-                        if (statKey === 'temperature') toolValue = (36.5 + Math.random() * 0.5).toFixed(1);
-                        else if (statKey === 'pulse') toolValue = 70 + Math.floor(Math.random() * 20);
-                        else toolValue = 'normal';
-                    } else {
-                        // Falso positivo (paranoia!)
-                        if (statKey === 'temperature') toolValue = (34 + Math.random() * 1).toFixed(1);
-                        else if (statKey === 'pulse') toolValue = 10 + Math.floor(Math.random() * 10);
-                        else toolValue = statKey === 'skinTexture' ? 'dry' : 'dilated';
-                    }
+                    const fn = npc.isInfected ? test.hallucination.infected : test.hallucination.human;
+                    toolValue = typeof fn === 'function' ? fn() : fn;
                     this.ui.applyVHS(0.8, 2000); // Efecto visual de "distorsión mental"
                 }
 
                 State.log(`[GameActionHandler] Ejecutando inspección con '${tool}'. Valor: ${toolValue}, Alucinación: ${isHallucination}`);
 
-                const animMap = {
-                    'thermometer': 'animateToolThermometer',
-                    'flashlight': 'animateToolFlashlight',
-                    'pupils': 'animateToolPupils',
-                    'pulse': 'animateToolPulse'
-                };
-
-                const animMethod = animMap[tool];
+                const animMethod = (test && test.animMethod) ? test.animMethod : null;
                 if (this.ui[animMethod]) {
                     this.ui[animMethod](toolValue, null, npc.isInfected);
                 }
 
-                switch (tool) {
-                    case 'thermometer':
-                        animDuration = 2200;
-                        result = `TEMP: ${toolValue}°C`;
-                        if (parseFloat(toolValue) < 35) color = State.colors.textGreen;
-                        if (!npc.revealedStats.includes('temperature')) npc.revealedStats.push('temperature');
-                        this.ui.applyVHS(0.4, 700);
-                        this.audio.playSFXByKey('tool_thermometer_beep', { volume: 0.6, priority: 2, lockMs: 2000 });
-                        break;
-                    case 'flashlight':
-                        animDuration = 900;
-                        result = `DERMIS: ${this.ui.translateValue('skinTexture', toolValue)}`;
-                        if (!npc.revealedStats.includes('skinTexture')) npc.revealedStats.push('skinTexture');
-                        this.ui.applyVHS(0.7, 900);
-                        this.audio.playSFXByKey('tool_uv_toggle', { volume: 0.6, priority: 2, lockMs: 800 });
-                        break;
-                    case 'pupils':
-                        animDuration = 2700;
-                        result = `PUPILAS: ${this.ui.translateValue('pupils', toolValue)}`;
-                        if (!npc.revealedStats.includes('pupils')) npc.revealedStats.push('pupils');
-                        this.ui.applyVHS(0.6, 800);
-                        this.audio.playSFXByKey('tool_pupils_lens', { volume: 0.6, priority: 2, lockMs: 2500 });
-                        break;
-                    case 'pulse':
-                        animDuration = 2200;
-                        result = `PULSO: ${toolValue} PPM`;
-                        if (parseInt(toolValue) < 40) color = State.colors.textRed;
-                        if (!npc.revealedStats.includes('pulse')) npc.revealedStats.push('pulse');
-                        this.ui.applyVHS(0.5, 700);
-                        this.audio.playSFXByKey('tool_pulse_sensor', { volume: 0.6, priority: 2, lockMs: 2000 });
-                        break;
+                if (test) {
+                    animDuration = test.duration || 1000;
+                    result = test.formatResult ? test.formatResult(toolValue) : `${test.label}: ${toolValue}`;
+                    if (test.colorFn) {
+                        const c = test.colorFn(toolValue);
+                        if (c === 'green') color = State.colors.textGreen;
+                        else if (c === 'red') color = State.colors.textRed;
+                    }
+                    if (!npc.revealedStats.includes(test.key)) npc.revealedStats.push(test.key);
+                    this.ui.applyVHS(test.vhs || 0.5, 800);
+                    if (test.audioKey) this.audio.playSFXByKey(test.audioKey, { volume: 0.6, priority: 2, lockMs: Math.min(test.duration || 1000, 2500) });
                 }
 
                 if (isHallucination) {

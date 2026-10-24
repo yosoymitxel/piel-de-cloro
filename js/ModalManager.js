@@ -1,4 +1,5 @@
 import { State } from './State.js';
+import { TESTS, getTest } from './tests/TestRegistry.js';
 import { CONSTANTS } from './Constants.js';
 
 export class ModalManager {
@@ -324,7 +325,8 @@ export class ModalManager {
     renderModalStats(npc, allowPurge, state, onPurgeConfirm) {
         if (!this.modalAnimating) this.modalAnimating = false;
         if (!npc.dayAfter) {
-            npc.dayAfter = { dermis: false, pupils: false, temperature: false, pulse: false, usedNightTests: 0, validated: false };
+            npc.dayAfter = { usedNightTests: 0, validated: false };
+            for (const t of TESTS) npc.dayAfter[t.key] = false;
         }
 
         const currentScreen = this.ui.screenManager ? this.ui.screenManager.lastScreen : 'game';
@@ -356,10 +358,10 @@ export class ModalManager {
             `);
         };
 
-        renderStat('Dermis', this.ui.translateValue('skinTexture', npc.attributes.skinTexture), 'skinTexture');
-        renderStat('Pupilas', this.ui.translateValue('pupils', npc.attributes.pupils), 'pupils');
-        renderStat('Temperatura', `${npc.attributes.temperature}°C`, 'temperature');
-        renderStat('Pulso', `${npc.attributes.pulse} BPM`, 'pulse');
+        for (const t of TESTS) {
+            const val = (t.formatStat) ? t.formatStat(npc.attributes[t.key]) : (npc.attributes[t.key] ?? '');
+            renderStat(t.statLabel || t.label, val, t.key);
+        }
 
         if (showTests) {
             testsGrid.removeClass('hidden');
@@ -451,35 +453,16 @@ export class ModalManager {
                         let duration = 1000;
 
                         if (typeof this.ui[animMethod] === 'function') {
-                            // Mapeo de valores para la animación
-                            let val = null;
-                            if (key === 'temperature') {
-                                val = npc.attributes.temperature;
-                                duration = 2200;
-                            }
-                            if (key === 'skinTexture') {
-                                val = npc.attributes.skinTexture;
-                                duration = 900;
-                            }
-                            if (key === 'pulse') {
-                                val = npc.attributes.pulse;
-                                duration = 2600;
-                            }
-                            if (key === 'pupils') {
-                                val = npc.attributes.pupils;
-                                duration = 2700;
-                            }
+                            // Mapeo de valores para la animación (modular via registry)
+                            const test = getTest(key);
+                            let val = (test && npc.attributes) ? npc.attributes[test.key] : null;
+                            if (test && test.duration) duration = test.duration;
 
                             // Llamar a la animación pasando el contenedor del modal e infección
                             this.ui[animMethod](val, visualContainer, npc.isInfected);
 
-                            // Audio feedback
-                            const audioKey = {
-                                'temperature': 'tool_thermometer_beep',
-                                'skinTexture': 'tool_uv_toggle',
-                                'pulse': 'tool_pulse_beep',
-                                'pupils': 'tool_pupils_lens'
-                            }[key];
+                            // Audio feedback (modular via registry)
+                            const audioKey = test ? test.audioKey : null;
                             if (this.audio && audioKey) this.audio.playSFXByKey(audioKey, { volume: 0.6 });
                         } else {
                             console.error(`ModalManager Error: El método de animación '${animMethod}' no existe en UIManager.`);
@@ -509,7 +492,7 @@ export class ModalManager {
                             }
 
                             // Re-render stats
-                            const complete = npc.dayAfter.skinTexture && npc.dayAfter.pupils && npc.dayAfter.temperature && npc.dayAfter.pulse;
+                            const complete = TESTS.filter(t => t.requiredForValidation).every(t => npc.dayAfter[t.key]);
                             npc.dayAfter.validated = complete;
                             this.ui.updateDayAfterSummary(state.admittedNPCs);
 
@@ -521,12 +504,7 @@ export class ModalManager {
                     return btn;
                 };
 
-                testsGrid.append(
-                    makeSlot('skinTexture', 'DERMIS', 'fa-lightbulb', 'animateToolFlashlight'),
-                    makeSlot('pupils', 'PUPILAS', 'fa-eye', 'animateToolPupils'),
-                    makeSlot('temperature', 'TEMP', 'fa-temperature-half', 'animateToolThermometer'),
-                    makeSlot('pulse', 'PULSO', 'fa-heart-pulse', 'animateToolPulse')
-                );
+                testsGrid.append(...TESTS.map(t => makeSlot(t.key, t.label, t.icon, t.animMethod)));
             }
             
             // --- SECCIÓN DE ASIGNACIÓN (SELECT LIST) ---

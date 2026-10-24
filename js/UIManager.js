@@ -3470,6 +3470,18 @@ export class UIManager {
         this.toolsRenderer.animateToolPulse(bpm, container, isInfected);
     }
 
+    animateToolOximeter(value, container = null, isInfected = null) {
+        this.toolsRenderer.animateToolOximeter(value, container, isInfected);
+    }
+
+    animateToolSkinTurgor(value, container = null, isInfected = null) {
+        this.toolsRenderer.animateToolSkinTurgor(value, container, isInfected);
+    }
+
+    animateToolGlucose(value, container = null, isInfected = null) {
+        this.toolsRenderer.animateToolGlucose(value, container, isInfected);
+    }
+
     // --- SISTEMA DE MAPA Y PINES ---
 
     setMapNodeStatus(nodeId, level) {

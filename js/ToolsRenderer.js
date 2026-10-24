@@ -466,4 +466,106 @@ export class ToolsRenderer {
         };
         requestAnimationFrame(bStep);
     }
+
+    /**
+     * Oximeter: finger clip with pulsing red light and SpO2 readout.
+     */
+    animateToolOximeter(value, container = null, isInfected = null) {
+        const targetContainer = this._getTargetContainer(container);
+        if (!targetContainer || targetContainer.length === 0) return;
+        this._scrollToAvatar(targetContainer);
+        if (isInfected === null) isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
+
+        targetContainer.css('position', 'relative');
+        targetContainer.find('.tool-oximeter').remove();
+
+        const overlay = $('<div>', { class: 'tool-oximeter', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
+
+        const clip = $('<div>', { css: { width: '60px', height: '30px', background: '#1a1a1a', border: '2px solid #555', borderRadius: '6px', position: 'relative', boxShadow: 'inset 0 0 6px #000' } });
+        const light = $('<div>', { css: { position: 'absolute', top: '8px', left: '8px', width: '14px', height: '14px', borderRadius: '50%', background: isInfected ? State.colors.chlorine : '#ff3b3b', boxShadow: `0 0 10px ${isInfected ? State.colors.chlorine : '#ff3b3b'}` } });
+        const readout = $('<div>', { css: { position: 'absolute', top: '4px', right: '6px', fontFamily: 'monospace', fontSize: '11px', color: isInfected ? State.colors.chlorine : '#00ff41', fontWeight: 'bold' }, text: '0%' });
+
+        clip.append(light, readout);
+        overlay.append(clip);
+        targetContainer.append(overlay);
+
+        const start = Date.now();
+        const target = Math.max(0, Math.min(100, parseInt(value) || 0));
+        const step = () => {
+            const t = Math.min(1, (Date.now() - start) / 1500);
+            readout.text(`${Math.floor(target * t)}%`);
+            light.css('opacity', 0.4 + 0.6 * Math.abs(Math.sin((Date.now() - start) / 200)));
+            if (t < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+
+        setTimeout(() => overlay.fadeOut(300, () => overlay.remove()), 2000);
+    }
+
+    /**
+     * Skin turgor: pinch that returns slowly.
+     */
+    animateToolSkinTurgor(value, container = null, isInfected = null) {
+        const targetContainer = this._getTargetContainer(container);
+        if (!targetContainer || targetContainer.length === 0) return;
+        this._scrollToAvatar(targetContainer);
+        if (isInfected === null) isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
+
+        targetContainer.css('position', 'relative');
+        targetContainer.find('.tool-turgor').remove();
+
+        const overlay = $('<div>', { class: 'tool-turgor', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
+        const skin = $('<div>', { css: { width: '80px', height: '40px', background: 'rgba(200,160,120,0.35)', border: '1px solid rgba(200,160,120,0.6)', borderRadius: '20px', position: 'relative', overflow: 'hidden' } });
+        const fold = $('<div>', { css: { position: 'absolute', top: '10px', left: '30px', width: '20px', height: '20px', background: 'rgba(180,140,100,0.6)', borderRadius: '50%', transform: 'scaleY(1)' } });
+
+        skin.append(fold);
+        overlay.append(skin);
+        targetContainer.append(overlay);
+
+        const slow = value === 'slow';
+        const duration = slow ? 1200 : 400;
+        const start = Date.now();
+        const step = () => {
+            const t = Math.min(1, (Date.now() - start) / duration);
+            const scale = slow ? 1 - 0.6 * (1 - Math.pow(1 - t, 3)) : 1 - 0.6 * Math.sin(t * Math.PI);
+            fold.css('transform', `scaleY(${Math.max(0.4, scale)})`);
+            if (t < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+
+        setTimeout(() => overlay.fadeOut(300, () => overlay.remove()), duration + 400);
+    }
+
+    /**
+     * Glucose: glucometer with strip and numeric readout.
+     */
+    animateToolGlucose(value, container = null, isInfected = null) {
+        const targetContainer = this._getTargetContainer(container);
+        if (!targetContainer || targetContainer.length === 0) return;
+        this._scrollToAvatar(targetContainer);
+        if (isInfected === null) isInfected = (State && State.currentNPC && State.currentNPC.isInfected) ? true : false;
+
+        targetContainer.css('position', 'relative');
+        targetContainer.find('.tool-glucose').remove();
+
+        const overlay = $('<div>', { class: 'tool-glucose', css: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 } });
+        const device = $('<div>', { css: { width: '90px', height: '50px', background: '#0d1117', border: '2px solid #333', borderRadius: '8px', position: 'relative', boxShadow: 'inset 0 0 8px #000' } });
+        const strip = $('<div>', { css: { position: 'absolute', bottom: '-12px', left: '30px', width: '30px', height: '20px', background: '#e8e0d0', border: '1px solid #999', borderRadius: '2px' } });
+        const readout = $('<div>', { css: { position: 'absolute', top: '12px', left: '0', width: '100%', textAlign: 'center', fontFamily: 'monospace', fontSize: '14px', color: isInfected ? State.colors.chlorine : '#00ff41', fontWeight: 'bold' }, text: '0' });
+
+        device.append(readout);
+        overlay.append(device, strip);
+        targetContainer.append(overlay);
+
+        const start = Date.now();
+        const target = Math.max(0, parseInt(value) || 0);
+        const step = () => {
+            const t = Math.min(1, (Date.now() - start) / 1200);
+            readout.text(Math.floor(target * t));
+            if (t < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+
+        setTimeout(() => overlay.fadeOut(300, () => overlay.remove()), 1800);
+    }
 }
