@@ -256,3 +256,89 @@ html[data-art="pixel"] .panel-screw {
         transition: none;
     }
 }
+
+
+/* At 390px the expanded guard HUD keeps all six live metrics in one row.
+   Compact the nested components rather than hiding telemetry or allowing the
+   battery/station cards to wrap onto a second line. */
+@media (min-width: 381px) and (max-width: 700px) {
+    html[data-art="pixel"] #screen-game > header:not(.header-collapsed) #header-hud-stats {
+        display: grid !important;
+        grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+        grid-auto-flow: row;
+        gap: 4px !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        flex-wrap: initial !important;
+    }
+
+    html[data-art="pixel"] #screen-game > header #header-hud-stats > .comp-fuel {
+        display: none !important;
+    }
+
+    html[data-art="pixel"] #screen-game > header:not(.header-collapsed) #header-hud-stats > :is(
+        .comp-paranoia, .comp-sanity, .comp-supplies,
+        .comp-gen-load, .comp-gen-battery, .comp-gen-station
+    ) {
+        grid-column: auto / span 1 !important;
+        flex: initial !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: 48px !important;
+        min-height: 48px !important;
+        max-height: 48px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden;
+    }
+
+    html[data-art="pixel"] #screen-game > header #header-hud-stats .hud-component {
+        box-sizing: border-box;
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 48px !important;
+        min-height: 48px !important;
+        padding: 3px !important;
+        gap: 2px !important;
+    }
+
+    html[data-art="pixel"] #screen-game > header #header-hud-stats .stat-header {
+        gap: 1px !important;
+        min-width: 0 !important;
+        padding-bottom: 1px !important;
+        margin-bottom: 0 !important;
+    }
+
+    html[data-art="pixel"] #screen-game > header #header-hud-stats .stat-label {
+        font-size: 6px !important;
+        line-height: 1.05 !important;
+        letter-spacing: 0 !important;
+        overflow-wrap: anywhere;
+    }
+
+    html[data-art="pixel"] #screen-game > header #header-hud-stats .stat-icon {
+        font-size: 8px !important;
+    }
+
+    html[data-art="pixel"] #screen-game > header #header-hud-stats .stat-body {
+        gap: 3px !important;
+        min-width: 0 !important;
+    }
+
+    html[data-art="pixel"] #screen-game > header #header-hud-stats .stat-value {
+        font-size: 9px !important;
+        line-height: 1 !important;
+    }
+
+    html[data-art="pixel"] #screen-game > header #header-hud-stats .comp-gen-load .text-2xl {
+        font-size: 11px !important;
+        line-height: 1 !important;
+    }
+
+    html[data-art="pixel"] #screen-game > header #header-hud-stats .comp-gen-battery .relative.w-16.h-8 {
+        width: 100% !important;
+        height: 10px !important;
+        min-width: 0 !important;
+    }
+}

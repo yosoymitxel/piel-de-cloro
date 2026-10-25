@@ -32,6 +32,7 @@ describe('environment pixel art', () => {
     for (const asset of manifest.assets) expect(css).toContain(asset.file);
     expect(css).toContain('image-rendering: pixelated');
     expect(css).toContain('prefers-reduced-motion');
+    expect(css).toContain('grid-template-columns: repeat(6, minmax(0, 1fr)) !important');
   });
 
   it('does not introduce the Phaser-only selectors or fake generator visibility rules', () => {
