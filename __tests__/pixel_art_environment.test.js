@@ -28,6 +28,7 @@ describe('environment pixel art', () => {
       expect(reference.startsWith('../assets/pixel/environment/')).toBe(true);
       expect(existsSync(resolve(process.cwd(), 'css', reference))).toBe(true);
     }
+    for (const asset of manifest.assets) expect(css).toContain(asset.file);
     expect(css).toContain('image-rendering: pixelated');
     expect(css).toContain('prefers-reduced-motion');
   });
