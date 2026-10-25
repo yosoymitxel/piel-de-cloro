@@ -13,7 +13,7 @@ html[data-art="pixel"] {
 html[data-art="pixel"] .terminal-chasis {
     border-color: #222d21;
     background-color: #080b08;
-    background-image: linear-gradient(rgba(4, 7, 4, .94), rgba(4, 7, 4, .97)), url("../assets/pixel/environment/floor-cracked.png");
+    background-image: linear-gradient(rgba(4, 7, 4, .84), rgba(4, 7, 4, .90)), url("../assets/pixel/environment/floor-cracked.png");
     background-size: auto, 32px 32px;
     background-repeat: no-repeat, repeat;
 }
@@ -21,6 +21,22 @@ html[data-art="pixel"] .terminal-chasis {
 html[data-art="pixel"] .crt-monitor {
     background-color: var(--pdc-pixel-ink);
     border-color: #273125;
+}
+
+/* Shared pixel-grid finish for screens and report cards; layout remains owned by the original CSS. */
+html[data-art="pixel"] :is(.industrial-panel, .horror-panel-inner, .horror-panel-modal, .stat-card-retro, .night-stat-item, .dayafter-card, .morgue-card, .security-item-card, .security-visual-box) {
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1px rgba(181, 196, 157, .035), 0 3px 0 #030503;
+}
+
+/* The supporting screens use the same material palette without replacing their content or behavior. */
+html[data-art="pixel"] :is(#screen-lab, #screen-database, #screen-settings, #screen-lore) {
+    background-color: #050705;
+    background-image:
+        linear-gradient(rgba(4, 7, 4, .86), rgba(4, 7, 4, .92)),
+        url("../assets/pixel/environment/floor-cracked.png");
+    background-repeat: no-repeat, repeat;
+    background-size: auto, 32px 32px;
 }
 
 html[data-art="pixel"] :is(.npc-pixel-portrait, #npc-display img, .dossier-visual-feed img) {
@@ -34,7 +50,7 @@ html[data-art="pixel"] #screen-start .industrial-panel {
     border-radius: 2px;
     background-color: #070a07;
     background-image:
-        linear-gradient(rgba(4, 7, 4, .90), rgba(4, 7, 4, .95)),
+        linear-gradient(rgba(4, 7, 4, .76), rgba(4, 7, 4, .82)),
         url("../assets/pixel/environment/biohazard-sign.png"),
         url("../assets/pixel/environment/shelter-room.png");
     background-position: center, center 14px, center;
@@ -101,7 +117,7 @@ html[data-art="pixel"] #screen-game .dialogue-sidebar {
     border-radius: 0;
     background-color: #080c08;
     background-image:
-        linear-gradient(rgba(5, 8, 5, .96), rgba(5, 8, 5, .94)),
+        linear-gradient(rgba(5, 8, 5, .84), rgba(5, 8, 5, .88)),
         url("../assets/pixel/environment/pipe-junction.png");
     background-repeat: no-repeat, no-repeat;
     background-position: center, right 8px bottom 8px;
@@ -113,7 +129,7 @@ html[data-art="pixel"] #screen-game .center-console {
     border-radius: 0;
     background-color: #070a07;
     background-image:
-        linear-gradient(rgba(5, 8, 5, .95), rgba(5, 8, 5, .96)),
+        linear-gradient(rgba(5, 8, 5, .82), rgba(5, 8, 5, .88)),
         url("../assets/pixel/environment/wall-vent.png"),
         url("../assets/pixel/environment/cable-coil.png");
     background-repeat: no-repeat, no-repeat, no-repeat;
@@ -164,7 +180,7 @@ html[data-art="pixel"] #screen-generator #generator-panel {
     border-color: #3b4b35;
     background-color: #070a07;
     background-image:
-        linear-gradient(rgba(7, 10, 7, .90), rgba(7, 10, 7, .92)),
+        linear-gradient(rgba(7, 10, 7, .82), rgba(7, 10, 7, .86)),
         url("../assets/pixel/environment/terminal-cracked.png"),
         url("../assets/pixel/environment/generator.png");
     background-repeat: no-repeat, no-repeat, no-repeat;
@@ -176,7 +192,7 @@ html[data-art="pixel"] #screen-generator #generator-panel {
 html[data-art="pixel"] #screen-generator .generator-right-panel {
     background-color: #070a07;
     background-image:
-        linear-gradient(rgba(5, 8, 5, .96), rgba(5, 8, 5, .96)),
+        linear-gradient(rgba(5, 8, 5, .84), rgba(5, 8, 5, .84)),
         url("../assets/pixel/environment/bio-canister.png");
     background-repeat: no-repeat, no-repeat;
     background-position: center, right 6px bottom 6px;
@@ -187,7 +203,7 @@ html[data-art="pixel"] #screen-generator .generator-right-panel {
 html[data-art="pixel"] #screen-night {
     background-color: #050705;
     background-image:
-        linear-gradient(rgba(3, 6, 3, .78), rgba(3, 6, 3, .86)),
+        linear-gradient(rgba(3, 6, 3, .72), rgba(3, 6, 3, .80)),
         url("../assets/pixel/environment/floor-cracked.png"),
         url("../assets/pixel/environment/toxic-fog.png");
     background-repeat: no-repeat, repeat, repeat-x;
@@ -199,7 +215,7 @@ html[data-art="pixel"] #screen-night > .horror-panel-modal {
     border-radius: 2px;
     background-color: #070a07;
     background-image:
-        linear-gradient(rgba(5, 8, 5, .94), rgba(5, 8, 5, .96)),
+        linear-gradient(rgba(5, 8, 5, .82), rgba(5, 8, 5, .88)),
         url("../assets/pixel/environment/ceiling-light.png"),
         url("../assets/pixel/environment/medkit.png");
     background-repeat: no-repeat, no-repeat, no-repeat;
@@ -212,7 +228,7 @@ html[data-art="pixel"] #screen-final-stats .industrial-panel {
     border-color: #394833;
     background-color: #070907;
     background-image:
-        linear-gradient(rgba(5, 7, 5, .95), rgba(5, 7, 5, .97)),
+        linear-gradient(rgba(5, 7, 5, .82), rgba(5, 7, 5, .88)),
         url("../assets/pixel/environment/floor-cracked.png");
     background-repeat: no-repeat, repeat;
     background-size: auto, 32px 32px;

@@ -16,7 +16,7 @@ describe('environment pixel art', () => {
     expect(manifest.assets).toHaveLength(18);
     for (const asset of manifest.assets) {
       const path = resolve(process.cwd(), asset.path);
-      expect(existsSync(path), 'Missing pixel-art asset: ' + asset.path).toBe(true);
+      expect(existsSync(path)).toBe(true);
       expect(pngDimensions(readFileSync(path))).toEqual(asset.size);
     }
   });
@@ -26,7 +26,7 @@ describe('environment pixel art', () => {
     expect(references.length).toBeGreaterThanOrEqual(10);
     for (const reference of new Set(references)) {
       expect(reference.startsWith('../assets/pixel/environment/')).toBe(true);
-      expect(existsSync(resolve(process.cwd(), 'css', reference)), 'Broken CSS asset path: ' + reference).toBe(true);
+      expect(existsSync(resolve(process.cwd(), 'css', reference))).toBe(true);
     }
     expect(css).toContain('image-rendering: pixelated');
     expect(css).toContain('prefers-reduced-motion');
