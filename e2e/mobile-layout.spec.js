@@ -106,10 +106,16 @@ test.describe('dedicated mobile presentation', () => {
       };
       const generatorWarning = document.querySelector('#inspection-tools-container > #btn-goto-generator');
       const warningRect = generatorWarning?.getClientRects().length ? generatorWarning.getBoundingClientRect() : null;
-      const monitors = [...document.querySelectorAll('#screen-game .center-console > .mini-monitor, #screen-game .center-console > .analog-controls')].map(el => {
-        const r = el.getBoundingClientRect();
-        return { tag: el.className, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
-      });
+      const monitors = [...document.querySelectorAll('#screen-game .center-console > .mini-monitor, #screen-game .center-console > .analog-controls')]
+        .filter(el => {
+          const style = getComputedStyle(el);
+          return style.display !== 'none' && style.visibility !== 'hidden'
+            && Number(style.opacity) > 0 && el.getClientRects().length > 0;
+        })
+        .map(el => {
+          const r = el.getBoundingClientRect();
+          return { tag: el.className, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
+        });
       const hudRoot = document.querySelector('#header-hud-stats');
       const visibleHud = [...(hudRoot?.children ?? [])].filter(el => {
         const style = getComputedStyle(el);
