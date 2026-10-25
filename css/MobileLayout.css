@@ -1344,6 +1344,8 @@
         flex: 0 0 180px !important;
         width: 180px !important;
         height: 180px !important;
+        position: relative;
+        top: 7px;
         transform: scale(0.35) !important;
         transform-origin: center center !important;
     }

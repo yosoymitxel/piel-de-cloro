@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "project": "Piel de Cloro",
+  "style": "industrial analog-horror pixel art",
+  "format": "PNG/RGBA",
+  "filtering": "nearest",
+  "palette": [
+    "#050705",
+    "#11180f",
+    "#283324",
+    "#526149",
+    "#879477",
+    "#b5c49d",
+    "#4a0e0e",
+    "#d6a858"
+  ],
+  "characterArt": "Reuses existing ClaudePXL character portraits in assets/pixel/npcs/sprites/. This manifest contains environmental assets only.",
+  "assets": [
+    {
+      "file": "bio-canister.png",
+      "path": "assets/pixel/environment/bio-canister.png",
+      "size": [
+        24,
+        32
+      ],
+      "role": "Canister / generator status detail",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "biohazard-sign.png",
+      "path": "assets/pixel/environment/biohazard-sign.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Warning insignia for start terminal",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "blood-speck.png",
+      "path": "assets/pixel/environment/blood-speck.png",
+      "size": [
+        16,
+        16
+      ],
+      "role": "Small non-interactive scene accent",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "cable-coil.png",
+      "path": "assets/pixel/environment/cable-coil.png",
+      "size": [
+        32,
+        24
+      ],
+      "role": "Cable detail on console background",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "ceiling-light.png",
+      "path": "assets/pixel/environment/ceiling-light.png",
+      "size": [
+        32,
+        24
+      ],
+      "role": "Night screen ceiling lamp",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "chemical-puddle.png",
+      "path": "assets/pixel/environment/chemical-puddle.png",
+      "size": [
+        48,
+        24
+      ],
+      "role": "Low-contrast stain inside inspection feed",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "floor-cracked.png",
+      "path": "assets/pixel/environment/floor-cracked.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Floor tile for shelter and report screens",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "generator.png",
+      "path": "assets/pixel/environment/generator.png",
+      "size": [
+        32,
+        48
+      ],
+      "role": "Generator prop in generator view",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "hazard-stripes.png",
+      "path": "assets/pixel/environment/hazard-stripes.png",
+      "size": [
+        32,
+        16
+      ],
+      "role": "Small safety marking in workstation panel",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "medkit.png",
+      "path": "assets/pixel/environment/medkit.png",
+      "size": [
+        24,
+        20
+      ],
+      "role": "Night-screen supply prop",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "pipe-junction.png",
+      "path": "assets/pixel/environment/pipe-junction.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Pipe junction detail on dialogue panel",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "rusted-door.png",
+      "path": "assets/pixel/environment/rusted-door.png",
+      "size": [
+        32,
+        48
+      ],
+      "role": "Room visual prop",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "security-camera.png",
+      "path": "assets/pixel/environment/security-camera.png",
+      "size": [
+        32,
+        24
+      ],
+      "role": "Workstation detail",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "shelter-room.png",
+      "path": "assets/pixel/environment/shelter-room.png",
+      "size": [
+        160,
+        96
+      ],
+      "role": "Industrial shelter room tiling",
+      "format": "PNG",
+      "source": "hand-authored-pixel-grid",
+      "status": "integrated"
+    },
+    {
+      "file": "static-fragment.png",
+      "path": "assets/pixel/environment/static-fragment.png",
+      "size": [
+        16,
+        16
+      ],
+      "role": "CRT interference accent in inspection feed",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "terminal-cracked.png",
+      "path": "assets/pixel/environment/terminal-cracked.png",
+      "size": [
+        48,
+        40
+      ],
+      "role": "Cracked terminal detail in generator view",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "toxic-fog.png",
+      "path": "assets/pixel/environment/toxic-fog.png",
+      "size": [
+        96,
+        32
+      ],
+      "role": "Low-contrast fog layer on night screen",
+      "format": "PNG",
+      "source": "authored-for-project",
+      "status": "integrated"
+    },
+    {
+      "file": "wall-vent.png",
+      "path": "assets/pixel/environment/wall-vent.png",
+      "size": [
+        32,
+        24
+      ],
+      "role": "Vent detail on inspection console",
+      "format": "PNG",
+      "source": "hand-authored-pixel-grid",
+      "status": "integrated"
+    }
+  ],
+  "notYetComplete": [
+    "Full screenshot review at desktop and 320/360/390/430px",
+    "Review asset contrast in all room/inspection states",
+    "Additional tile atlas and multi-frame environment animations",
+    "Production-grade dedicated spritesheets for industrial rooms and props"
+  ]
+}
