@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 const root = resolve(process.cwd(), 'assets/pixel/environment');
 const manifest = JSON.parse(readFileSync(resolve(root, 'manifest.json'), 'utf8'));
 const css = readFileSync(resolve(process.cwd(), 'css/PixelArtEnvironment.css'), 'utf8');
+const html = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8');
 
 function pngDimensions(buffer) {
   expect(buffer.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a');
@@ -34,6 +35,9 @@ describe('environment pixel art', () => {
   });
 
   it('does not introduce the Phaser-only selectors or fake generator visibility rules', () => {
+    expect(html).toContain('id="game-screen-container"');
+    expect(css).toContain('#game-screen-container');
+    expect(css).not.toContain('#screen-game-container');
     expect(css).not.toContain('.game-stage');
     expect(css).not.toContain('.generator-panel::after');
     expect(css).not.toContain('display: block !important');
