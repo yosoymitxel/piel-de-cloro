@@ -4,6 +4,8 @@
 
 **Piel de Cloro** es un juego de terror analógico, gestión de recursos y deducción social ambientado en un búnker post-apocalíptico. Como guardia del **Puesto de Control Ruta-01**, tu deber es decidir quién entra, quién se queda fuera y quién debe ser purgado, mientras mantienes la energía del generador y tu propia cordura.
 
+**Pixel art ambiental:** [inventario, tamaños y validación](docs/PIXEL_ART_ENVIRONMENT.md). Se conservan los retratos de personajes existentes generados con ClaudePXL.
+
 ## 🌑 Sinopsis
 
 El mundo exterior ha sido consumido por una "niebla" y una infección parasitaria conocida como **Piel de Cloro**. Los infectados imitan a los humanos, pero presentan anomalías fisiológicas sutiles: hipotermia, piel reactiva a la luz UV, pupilas dilatadas y falta de pulso.

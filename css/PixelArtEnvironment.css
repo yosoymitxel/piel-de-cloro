@@ -1,0 +1,242 @@
+/* Piel de Cloro — environmental pixel-art layer.
+   Native PNG assets are pixel-grid raster art; character portraits and gameplay logic stay untouched. */
+html[data-art="pixel"] {
+    --pdc-pixel-ink: #050705;
+    --pdc-pixel-panel: #0a0f0a;
+    --pdc-pixel-line: #394833;
+    --pdc-pixel-light: #b5c49d;
+    --pdc-pixel-rust: #75402b;
+    --pdc-pixel-alert: #a63a3a;
+}
+
+/* Preserve the existing CRT shell while giving its panels hard, deliberate edges. */
+html[data-art="pixel"] .terminal-chasis {
+    border-color: #222d21;
+    background-color: #080b08;
+    background-image: linear-gradient(rgba(4, 7, 4, .94), rgba(4, 7, 4, .97)), url("../assets/pixel/environment/floor-cracked.png");
+    background-size: auto, 32px 32px;
+    background-repeat: no-repeat, repeat;
+}
+
+html[data-art="pixel"] .crt-monitor {
+    background-color: var(--pdc-pixel-ink);
+    border-color: #273125;
+}
+
+html[data-art="pixel"] :is(.npc-pixel-portrait, #npc-display img, .dossier-visual-feed img) {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+/* Start terminal: the warning insignia sits in its own reserved area, not on top of text. */
+html[data-art="pixel"] #screen-start .industrial-panel {
+    border: 2px solid #3d5234;
+    border-radius: 2px;
+    background-color: #070a07;
+    background-image:
+        linear-gradient(rgba(4, 7, 4, .90), rgba(4, 7, 4, .95)),
+        url("../assets/pixel/environment/biohazard-sign.png"),
+        url("../assets/pixel/environment/shelter-room.png");
+    background-position: center, center 14px, center;
+    background-size: 100% 100%, 32px 32px, 160px 96px;
+    background-repeat: no-repeat, no-repeat, repeat;
+    box-shadow: inset 0 0 0 2px #0b100a, 0 5px 0 #030503;
+    padding-top: 3.75rem !important;
+}
+
+html[data-art="pixel"] #screen-start h1 {
+    color: #c4e3ad;
+    text-shadow: 2px 2px 0 #20321b, 0 0 10px rgba(126, 181, 100, .18);
+}
+
+html[data-art="pixel"] #screen-start #btn-start-game {
+    border: 2px solid #536d43;
+    border-radius: 2px;
+    background: #152015;
+    box-shadow: inset 0 0 0 1px #080c07, 0 3px 0 #030503;
+    transition: filter .12s steps(2), transform .12s steps(2);
+}
+
+html[data-art="pixel"] #screen-start #btn-start-game:hover {
+    filter: brightness(1.15);
+    transform: translateY(-1px);
+}
+
+/* The existing applicant art stays in front; the room image is a subdued environmental backing. */
+html[data-art="pixel"] #screen-game-container {
+    background-color: #050805;
+    background-image:
+        linear-gradient(rgba(3, 6, 3, .40), rgba(3, 6, 3, .58)),
+        url("../assets/pixel/environment/shelter-room.png"),
+        url("../assets/pixel/environment/chemical-puddle.png"),
+        url("../assets/pixel/environment/static-fragment.png");
+    background-repeat: no-repeat, repeat, no-repeat, no-repeat;
+    background-position: center, center, right 8px bottom 8px, right 8px top 8px;
+    background-size: 100% 100%, 160px 96px, 48px 24px, 16px 16px;
+}
+
+html[data-art="pixel"] #screen-game > header.horror-panel-modal {
+    border-radius: 2px;
+    border-top-color: #536d43;
+    background-color: #090d09;
+    box-shadow: inset 0 -2px 0 #030503, 0 3px 0 #030503;
+}
+
+html[data-art="pixel"] #screen-game .workstation-status-panel {
+    background-color: #070907;
+    background-image:
+        url("../assets/pixel/environment/security-camera.png"),
+        url("../assets/pixel/environment/hazard-stripes.png");
+    background-repeat: no-repeat, repeat-x;
+    background-position: right 4px top 4px, left bottom;
+    background-size: 24px 18px, 32px 8px;
+    border-color: #293728;
+}
+
+html[data-art="pixel"] #screen-game .puesto-container {
+    border-color: var(--pdc-pixel-line);
+}
+
+html[data-art="pixel"] #screen-game .dialogue-sidebar {
+    border-radius: 0;
+    background-color: #080c08;
+    background-image:
+        linear-gradient(rgba(5, 8, 5, .96), rgba(5, 8, 5, .94)),
+        url("../assets/pixel/environment/pipe-junction.png");
+    background-repeat: no-repeat, no-repeat;
+    background-position: center, right 8px bottom 8px;
+    background-size: 100% 100%, 32px 32px;
+    border-color: #34442e;
+}
+
+html[data-art="pixel"] #screen-game .center-console {
+    border-radius: 0;
+    background-color: #070a07;
+    background-image:
+        linear-gradient(rgba(5, 8, 5, .95), rgba(5, 8, 5, .96)),
+        url("../assets/pixel/environment/wall-vent.png"),
+        url("../assets/pixel/environment/cable-coil.png");
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-position: center, right 8px top 8px, right 8px bottom 8px;
+    background-size: 100% 100%, 32px 24px, 32px 24px;
+    border-color: #34442e;
+}
+
+html[data-art="pixel"] #screen-game .horror-tool-btn--main,
+html[data-art="pixel"] #screen-game #game-actions-container .horror-btn {
+    border-radius: 2px;
+    image-rendering: pixelated;
+}
+
+html[data-art="pixel"] #screen-game .horror-tool-btn--main {
+    border-color: #3d5234;
+    box-shadow: inset 0 0 0 1px #080c07, 0 2px 0 #020302;
+}
+
+html[data-art="pixel"] #screen-game #btn-admit,
+html[data-art="pixel"] #screen-game #btn-ignore {
+    min-height: 44px;
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5), 0 2px 0 #020302;
+}
+
+/* Environment screens use tile-scale assets without replacing their information hierarchy. */
+html[data-art="pixel"] #screen-shelter,
+html[data-art="pixel"] #screen-room {
+    background-color: #050705;
+    background-image: linear-gradient(rgba(4, 7, 4, .94), rgba(4, 7, 4, .96)), url("../assets/pixel/environment/floor-cracked.png");
+    background-repeat: no-repeat, repeat;
+    background-size: auto, 32px 32px;
+}
+
+html[data-art="pixel"] #screen-room .room-visual-bg {
+    background-color: #050705;
+    background-image: linear-gradient(rgba(3, 6, 3, .42), rgba(3, 6, 3, .62)), url("../assets/pixel/environment/rusted-door.png");
+    background-repeat: no-repeat, no-repeat;
+    background-position: center, right 10px bottom 10px;
+    background-size: 100% 100%, 32px 48px;
+    image-rendering: pixelated;
+}
+
+/* Generator keeps its existing controls and state logic; these are background-only layers. */
+html[data-art="pixel"] #screen-generator #generator-panel {
+    border-radius: 2px;
+    border-color: #3b4b35;
+    background-color: #070a07;
+    background-image:
+        linear-gradient(rgba(7, 10, 7, .90), rgba(7, 10, 7, .92)),
+        url("../assets/pixel/environment/terminal-cracked.png"),
+        url("../assets/pixel/environment/generator.png");
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-position: center, right 10px top 10px, right 10px bottom 10px;
+    background-size: 100% 100%, 48px 40px, 32px 48px;
+}
+
+/* Supplies the existing generator room with a native-grid canister detail. */
+html[data-art="pixel"] #screen-generator .generator-right-panel {
+    background-color: #070a07;
+    background-image:
+        linear-gradient(rgba(5, 8, 5, .96), rgba(5, 8, 5, .96)),
+        url("../assets/pixel/environment/bio-canister.png");
+    background-repeat: no-repeat, no-repeat;
+    background-position: center, right 6px bottom 6px;
+    background-size: 100% 100%, 24px 32px;
+}
+
+/* Night and final report retain their existing DOM and event-owned data. */
+html[data-art="pixel"] #screen-night {
+    background-color: #050705;
+    background-image:
+        linear-gradient(rgba(3, 6, 3, .78), rgba(3, 6, 3, .86)),
+        url("../assets/pixel/environment/floor-cracked.png"),
+        url("../assets/pixel/environment/toxic-fog.png");
+    background-repeat: no-repeat, repeat, repeat-x;
+    background-position: center, center, left bottom;
+    background-size: 100% 100%, 32px 32px, 96px 32px;
+}
+
+html[data-art="pixel"] #screen-night > .horror-panel-modal {
+    border-radius: 2px;
+    background-color: #070a07;
+    background-image:
+        linear-gradient(rgba(5, 8, 5, .94), rgba(5, 8, 5, .96)),
+        url("../assets/pixel/environment/ceiling-light.png"),
+        url("../assets/pixel/environment/medkit.png");
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-position: center, right 12px top 12px, right 12px bottom 12px;
+    background-size: 100% 100%, 32px 24px, 24px 20px;
+}
+
+html[data-art="pixel"] #screen-final-stats .industrial-panel {
+    border-radius: 2px;
+    border-color: #394833;
+    background-color: #070907;
+    background-image:
+        linear-gradient(rgba(5, 7, 5, .95), rgba(5, 7, 5, .97)),
+        url("../assets/pixel/environment/floor-cracked.png");
+    background-repeat: no-repeat, repeat;
+    background-size: auto, 32px 32px;
+}
+
+html[data-art="pixel"] #screen-final-stats .final-outcome-box {
+    background-image: url("../assets/pixel/environment/blood-speck.png");
+    background-repeat: no-repeat;
+    background-position: right 8px top 8px;
+    background-size: 16px 16px;
+}
+
+html[data-art="pixel"] :is(#screen-shelter, #screen-room, #screen-night, #screen-final-stats) .industrial-panel,
+html[data-art="pixel"] :is(#screen-shelter, #screen-room, #screen-night, #screen-final-stats) .horror-panel-modal {
+    border-radius: 2px;
+}
+
+html[data-art="pixel"] .panel-screw {
+    border-radius: 0;
+    box-shadow: inset 1px 1px 0 rgba(255,255,255,.14), inset -1px -1px 0 rgba(0,0,0,.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-art="pixel"] #screen-start #btn-start-game {
+        transition: none;
+    }
+}
