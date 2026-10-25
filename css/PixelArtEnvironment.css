@@ -438,3 +438,128 @@ html[data-art="pixel"] #screen-lore .horror-panel-modal {
     border-radius: 2px;
     box-shadow: inset 0 0 0 1px rgba(181, 196, 157, .035), 0 3px 0 #030503;
 }
+
+
+/* Cross-screen environment pass: all selectors below exist in the Vanilla/React
+   game. Background props remain decorative; each screen keeps its original DOM. */
+html[data-art="pixel"] :is(
+    #screen-map, #screen-lab, #screen-database, #screen-settings, #screen-lore,
+    #screen-log, #screen-morgue, #screen-meditation, #screen-supplies-hub,
+    #screen-expedition, #screen-fuel-room
+) {
+    background-color: #050705;
+    background-image:
+        linear-gradient(rgba(4, 7, 4, .88), rgba(4, 7, 4, .92)),
+        url("../assets/pixel/environment/floor-cracked.png");
+    background-repeat: no-repeat, repeat;
+    background-size: 100% 100%, 32px 32px;
+}
+
+html[data-art="pixel"] :is(#screen-map, #screen-shelter) > :is(.industrial-panel, .horror-panel-modal) {
+    background-image:
+        linear-gradient(rgba(5, 8, 5, .82), rgba(5, 8, 5, .88)),
+        url("../assets/pixel/environment/shelter-room.png");
+    background-repeat: no-repeat, repeat;
+    background-size: 100% 100%, 160px 96px;
+}
+
+html[data-art="pixel"] #screen-database :is(.industrial-panel, .horror-panel-inner, .horror-panel-modal) {
+    background-color: #070a07;
+    background-image:
+        linear-gradient(rgba(5, 8, 5, .88), rgba(5, 8, 5, .92)),
+        url("../assets/pixel/environment/terminal-cracked.png");
+    background-repeat: no-repeat, no-repeat;
+    background-position: center, right 8px top 8px;
+    background-size: 100% 100%, 48px 40px;
+}
+
+html[data-art="pixel"] #screen-settings .horror-panel-modal {
+    background-color: #070a07;
+    background-image:
+        linear-gradient(rgba(5, 8, 5, .86), rgba(5, 8, 5, .90)),
+        url("../assets/pixel/environment/security-camera.png");
+    background-repeat: no-repeat, no-repeat;
+    background-position: center, right 10px top 10px;
+    background-size: 100% 100%, 32px 24px;
+}
+
+html[data-art="pixel"] #screen-lore .lore-panel {
+    background-color: #070a07;
+    background-image:
+        linear-gradient(rgba(5, 8, 5, .90), rgba(5, 8, 5, .94)),
+        url("../assets/pixel/environment/static-fragment.png");
+    background-repeat: no-repeat, no-repeat;
+    background-position: center, right 8px top 8px;
+    background-size: 100% 100%, 16px 16px;
+    border-radius: 2px;
+}
+
+html[data-art="pixel"] #screen-log :is(.industrial-panel, .horror-panel-modal, .log-panel) {
+    background-color: #070a07;
+    background-image:
+        linear-gradient(rgba(5, 8, 5, .90), rgba(5, 8, 5, .94)),
+        url("../assets/pixel/environment/static-fragment.png");
+    background-repeat: no-repeat, no-repeat;
+    background-position: center, right 8px top 8px;
+    background-size: 100% 100%, 16px 16px;
+}
+
+html[data-art="pixel"] #screen-morgue .industrial-panel {
+    background-color: #070907;
+    background-image:
+        linear-gradient(rgba(5, 7, 5, .88), rgba(5, 7, 5, .92)),
+        url("../assets/pixel/environment/blood-speck.png");
+    background-repeat: no-repeat, no-repeat;
+    background-position: center, right 8px top 8px;
+    background-size: 100% 100%, 16px 16px;
+}
+
+html[data-art="pixel"] #screen-meditation :is(.industrial-panel, .horror-panel-inner, .horror-panel-modal) {
+    background-color: #070a07;
+    background-image:
+        linear-gradient(rgba(5, 8, 5, .90), rgba(5, 8, 5, .93)),
+        url("../assets/pixel/environment/chemical-puddle.png");
+    background-repeat: no-repeat, no-repeat;
+    background-position: center, right 8px bottom 8px;
+    background-size: 100% 100%, 48px 24px;
+}
+
+html[data-art="pixel"] #screen-supplies-hub .industrial-panel {
+    background-color: #070a07;
+    background-image:
+        linear-gradient(rgba(5, 8, 5, .84), rgba(5, 8, 5, .90)),
+        url("../assets/pixel/environment/medkit.png"),
+        url("../assets/pixel/environment/bio-canister.png");
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-position: center, right 8px top 8px, left 8px bottom 8px;
+    background-size: 100% 100%, 24px 20px, 24px 32px;
+}
+
+html[data-art="pixel"] #screen-expedition .industrial-panel {
+    background-color: #070a07;
+    background-image:
+        linear-gradient(rgba(5, 8, 5, .84), rgba(5, 8, 5, .90)),
+        url("../assets/pixel/environment/rusted-door.png");
+    background-repeat: no-repeat, no-repeat;
+    background-position: center, right 8px bottom 8px;
+    background-size: 100% 100%, 32px 48px;
+}
+
+html[data-art="pixel"] #screen-fuel-room .industrial-panel {
+    background-color: #070a07;
+    background-image:
+        linear-gradient(rgba(5, 8, 5, .84), rgba(5, 8, 5, .90)),
+        url("../assets/pixel/environment/generator.png"),
+        url("../assets/pixel/environment/cable-coil.png");
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-position: center, right 8px top 8px, left 8px bottom 8px;
+    background-size: 100% 100%, 32px 48px, 32px 24px;
+}
+
+/* Keep card borders on the same pixel grid throughout React-rendered dashboards. */
+html[data-art="pixel"] :is(
+    #screen-map, #screen-database, #screen-log, #screen-morgue, #screen-meditation,
+    #screen-supplies-hub, #screen-expedition, #screen-fuel-room, #screen-final-stats
+) :is(.industrial-panel, .horror-panel-inner, .horror-panel-modal, .stat-card-retro, .final-outcome-box) {
+    border-radius: 2px;
+}

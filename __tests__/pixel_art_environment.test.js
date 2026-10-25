@@ -94,6 +94,7 @@ describe('environment pixel art', () => {
     }
     for (const asset of manifest.assets) expect(css).toContain(asset.file);
     expect(css).toContain('image-rendering: pixelated');
+    for (const screen of ['#screen-map', '#screen-database', '#screen-settings', '#screen-log', '#screen-morgue', '#screen-meditation', '#screen-supplies-hub', '#screen-expedition', '#screen-fuel-room']) expect(css).toContain(screen);
     expect(css).toContain('prefers-reduced-motion');
     expect(css).toContain('grid-template-columns: repeat(6, minmax(0, 1fr)) !important');
   });
