@@ -75,7 +75,13 @@ describe('environment pixel art', () => {
     for (const asset of manifest.assets) {
       const path = resolve(process.cwd(), asset.path);
       expect(existsSync(path)).toBe(true);
-      expect(inspectPng(readFileSync(path))).toEqual(asset.size);
+      let actualSize;
+      try {
+        actualSize = inspectPng(readFileSync(path));
+      } catch (error) {
+        throw new Error('Invalid PNG ' + asset.path + ': ' + error.message);
+      }
+      expect(actualSize).toEqual(asset.size);
     }
   });
 
