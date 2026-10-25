@@ -109,6 +109,8 @@ describe('environment pixel art', () => {
     expect(css).toContain('#screen-final-stats .final-outcome-box');
     expect(css).not.toContain('.game-stage');
     expect(css).not.toContain('.generator-panel::after');
+    expect(css).not.toContain('.room-visual-bg');
+    expect(css).not.toContain('.generator-right-panel');
     expect(css).not.toContain('display: block !important');
   });
 });
