@@ -324,11 +324,28 @@ test.describe('dedicated mobile presentation', () => {
     const scrollState = await page.evaluate(() => {
       const screen = document.querySelector('#screen-game');
       const dock = document.querySelector('#sidebar-left');
-      return { overflowY: getComputedStyle(screen).overflowY, scrollHeight: screen.scrollHeight, clientHeight: screen.clientHeight,
-        paddingBottom: parseFloat(getComputedStyle(screen).paddingBottom), dockHeight: dock?.getBoundingClientRect().height ?? 0 };
+      const main = document.querySelector('#main-area');
+      const mainRect = main?.getBoundingClientRect();
+      const dockRect = dock?.getBoundingClientRect();
+      return {
+        overflowY: getComputedStyle(screen).overflowY,
+        scrollHeight: screen.scrollHeight,
+        clientHeight: screen.clientHeight,
+        paddingBottom: parseFloat(getComputedStyle(screen).paddingBottom),
+        dockHeight: dockRect?.height ?? 0,
+        mainBottom: mainRect?.bottom ?? null,
+        dockTop: dockRect?.top ?? null,
+        dockPosition: dock ? getComputedStyle(dock).position : null
+      };
     });
     expect(['auto', 'scroll']).toContain(scrollState.overflowY);
-    expect(scrollState.paddingBottom).toBeGreaterThanOrEqual(scrollState.dockHeight);
+    // The dock is an in-flow sibling of #main-area, so reserve its height in flex layout
+    // rather than doubling it as padding inside the independently scrolling game screen.
+    expect(scrollState.dockPosition).toBe('relative');
+    expect(scrollState.mainBottom, JSON.stringify(scrollState)).not.toBeNull();
+    expect(scrollState.dockTop, JSON.stringify(scrollState)).not.toBeNull();
+    expect(Math.abs(scrollState.mainBottom - scrollState.dockTop), JSON.stringify(scrollState)).toBeLessThanOrEqual(2);
+    expect(scrollState.paddingBottom).toBeGreaterThanOrEqual(0);
     await page.locator('#screen-game').evaluate(el => { el.scrollTop = el.scrollHeight; });
     await page.waitForTimeout(150);
     await page.screenshot({ path: 'test-results/mobile-game-scroll-end-390.png', fullPage: false });
