@@ -49,6 +49,22 @@
 </head>
 
 <body class="flex justify-center items-center min-h-screen">
+    <!-- Loading overlay shown until React mounts -->
+    <div id="boot-loading" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black text-chlorine font-mono">
+        <h1 class="text-4xl md:text-6xl font-bold text-glow glitch-effect mb-2" data-text="PIEL DE CLORO">PIEL DE CLORO</h1>
+        <p class="text-xs opacity-60 tracking-widest animate-pulse">INICIALIZANDO SISTEMA...</p>
+    </div>
+    <script>
+        document.addEventListener('react-ready', () => {
+            const el = document.getElementById('boot-loading');
+            if (el) el.style.display = 'none';
+        });
+        // Fallback: hide after 15s
+        setTimeout(() => {
+            const el = document.getElementById('boot-loading');
+            if (el) el.style.display = 'none';
+        }, 15000);
+    </script>
     <div class="terminal-chasis">
         <div class="chasis-screw screw-tl"></div>
         <div class="chasis-screw screw-tr"></div>
@@ -984,7 +1000,7 @@
                                 INTRUSIONES NOCTURNAS.
                             </div>
 
-                            <div class="flex flex-1 gap-4 overflow-hidden z-20">
+                            <div class="flex flex-1 flex-col md:flex-row gap-4 overflow-hidden z-20">
                                 <!-- Grid de Items (Cámaras/Sensores) -->
                                 <div id="security-grid"
                                     class="flex-grow grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4 overflow-y-auto p-2 custom-scrollbar">
@@ -993,7 +1009,7 @@
 
                                 <!-- Panel del Guardia -->
                                 <div id="security-guard-panel"
-                                    class="hidden md:flex w-64 border-l border-green-500/20 pl-4 flex-col gap-4">
+                                    class="flex w-full md:w-64 border-t md:border-t-0 md:border-l border-green-500/20 pt-4 md:pt-0 md:pl-4 flex-col gap-4">
                                     <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">PERSONAL
                                         DE SEGURIDAD</div>
 
