@@ -51,7 +51,8 @@
 <body class="flex justify-center items-center min-h-screen">
     <!-- Loading overlay shown until React mounts -->
     <div id="boot-loading" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black text-chlorine font-mono">
-        <h1 class="text-4xl md:text-6xl font-bold text-glow glitch-effect mb-2" data-text="PIEL DE CLORO">PIEL DE CLORO</h1>
+        <!-- div y no h1: el título real es el de #screen-start; dos h1 iguales confunden a lectores de pantalla y tests -->
+        <div class="text-4xl md:text-6xl font-bold text-glow glitch-effect mb-2" data-text="PIEL DE CLORO" aria-hidden="true">PIEL DE CLORO</div>
         <p class="text-xs opacity-60 tracking-widest animate-pulse">INICIALIZANDO SISTEMA...</p>
     </div>
     <script>
