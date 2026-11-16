@@ -106,10 +106,13 @@ test.describe('dedicated mobile presentation', () => {
       };
       const generatorWarning = document.querySelector('#inspection-tools-container > #btn-goto-generator');
       const warningRect = generatorWarning?.getClientRects().length ? generatorWarning.getBoundingClientRect() : null;
-      const monitors = [...document.querySelectorAll('#screen-game .center-console > .mini-monitor, #screen-game .center-console > .analog-controls')].map(el => {
-        const r = el.getBoundingClientRect();
-        return { tag: el.className, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
-      });
+      // La consola central es decorativa en móvil y se oculta (1da3852); solo se miden paneles visibles.
+      const monitors = [...document.querySelectorAll('#screen-game .center-console > .mini-monitor, #screen-game .center-console > .analog-controls')]
+        .filter(isVisible)
+        .map(el => {
+          const r = el.getBoundingClientRect();
+          return { tag: el.className, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
+        });
       const hudRoot = document.querySelector('#header-hud-stats');
       const visibleHud = [...(hudRoot?.children ?? [])].filter(el => {
         const style = getComputedStyle(el);
@@ -318,11 +321,28 @@ test.describe('dedicated mobile presentation', () => {
     const scrollState = await page.evaluate(() => {
       const screen = document.querySelector('#screen-game');
       const dock = document.querySelector('#sidebar-left');
-      return { overflowY: getComputedStyle(screen).overflowY, scrollHeight: screen.scrollHeight, clientHeight: screen.clientHeight,
-        paddingBottom: parseFloat(getComputedStyle(screen).paddingBottom), dockHeight: dock?.getBoundingClientRect().height ?? 0 };
+      const main = document.querySelector('#main-area');
+      const mainRect = main?.getBoundingClientRect();
+      const dockRect = dock?.getBoundingClientRect();
+      return {
+        overflowY: getComputedStyle(screen).overflowY,
+        scrollHeight: screen.scrollHeight,
+        clientHeight: screen.clientHeight,
+        paddingBottom: parseFloat(getComputedStyle(screen).paddingBottom),
+        dockHeight: dockRect?.height ?? 0,
+        mainBottom: mainRect?.bottom ?? null,
+        dockTop: dockRect?.top ?? null,
+        dockPosition: dock ? getComputedStyle(dock).position : null
+      };
     });
     expect(['auto', 'scroll']).toContain(scrollState.overflowY);
-    expect(scrollState.paddingBottom).toBeGreaterThanOrEqual(scrollState.dockHeight);
+    // El dock es un hermano en flujo de #main-area (98e87e6): su altura se reserva en el
+    // layout flex, no como padding dentro de la pantalla de juego que hace scroll aparte.
+    expect(scrollState.dockPosition).toBe('relative');
+    expect(scrollState.mainBottom, JSON.stringify(scrollState)).not.toBeNull();
+    expect(scrollState.dockTop, JSON.stringify(scrollState)).not.toBeNull();
+    expect(Math.abs(scrollState.mainBottom - scrollState.dockTop), JSON.stringify(scrollState)).toBeLessThanOrEqual(2);
+    expect(scrollState.paddingBottom).toBeGreaterThanOrEqual(0);
     await page.locator('#screen-game').evaluate(el => { el.scrollTop = el.scrollHeight; });
     await page.waitForTimeout(150);
     await page.screenshot({ path: 'test-results/mobile-game-scroll-end-390.png', fullPage: false });

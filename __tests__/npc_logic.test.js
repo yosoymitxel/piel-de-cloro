@@ -70,7 +70,8 @@ describe('NPC Logic', () => {
         
         expect(npc.checkDayAfterValidation()).toBe(false);
         
-        npc.dayAfter.dermis = true;
+        // La linterna registra 'skinTexture' (clave del TestRegistry desde d9cc601).
+        npc.dayAfter.skinTexture = true;
         npc.dayAfter.pupils = true;
         npc.dayAfter.temperature = true;
         npc.dayAfter.pulse = true;
