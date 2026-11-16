@@ -22,6 +22,9 @@
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/e2e/"
-    ]
+    ],
+    "testEnvironmentOptions": {
+      "globalsCleanup": "off"
+    }
   }
 }
