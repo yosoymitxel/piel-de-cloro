@@ -32,7 +32,7 @@ jobs:
       - name: Install project dependencies
         run: npm ci
       - name: Install Playwright test runner
-        run: npm install --no-save @playwright/test@1.55.0
+        run: npm install --no-save @playwright/test@1.63.0
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run desktop and mobile browser checks
