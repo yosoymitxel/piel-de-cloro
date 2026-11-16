@@ -4,7 +4,7 @@ import { ROOM_TYPES } from './ShelterModel.js';
 import { LoreData } from './LoreData.js';
 import { LoreManager } from './LoreManager.js';
 import { ModalManager } from './ModalManager.js?v=20261022-mobilefix6';
-import { TESTS } from './tests/TestRegistry.js?v=20261022-mobilefix6';
+import { TESTS } from './tests/TestRegistry.js';
 import { AvatarRenderer } from './AvatarRenderer.js?v=20261021-avatarfix2';
 import { ScreenManager } from './ScreenManager.js?v=20261021-daytransition1';
 import { GeneratorManager } from './GeneratorManager.js';
