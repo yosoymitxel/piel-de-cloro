@@ -11,7 +11,7 @@
     "test:e2e": "playwright test"
   },
   "devDependencies": {
-    "jest": "^29.6.0"
+    "jest": "^30.5.2"
   },
   "jest": {
     "testEnvironment": "node",
@@ -22,6 +22,13 @@
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/e2e/"
-    ]
+    ],
+    "testEnvironmentOptions": {
+      "globalsCleanup": "off"
+    }
+  },
+  "overrides": {
+    "glob": "^14.0.2",
+    "minimatch": "^11.0.1"
   }
 }
