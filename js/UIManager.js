@@ -1905,8 +1905,8 @@ export class UIManager {
             if (node.nodeType === 3 || node.nodeType === undefined) {
                 // Text node or fallback plain string
                 const txt = (node.textContent || node.nodeValue || node).toString();
-                // textContent viene decodificado: se escapa al volver a insertarlo como HTML (XSS)
-                nodeTokens.push({ type: 'text', value: txt, escape: true });
+                // textContent viene decodificado: se escapa aquí para que todo token 'text' sea HTML seguro (XSS)
+                nodeTokens.push({ type: 'text', value: escapeHtml(txt) });
                 return nodeTokens;
             }
             if (node.nodeType === 1) {
@@ -2011,9 +2011,11 @@ export class UIManager {
                     const elapsed = now - start;
                     const shouldBe = Math.floor(elapsed / minStep);
                     while (charIdx <= shouldBe && charIdx < t.value.length) {
-                        const ch = t.value.charAt(charIdx);
-                        acc += t.escape ? escapeHtml(ch) : ch;
-                        charIdx++;
+                        // Una entidad (&lt;) se añade entera para no mostrarla a medias
+                        const ent = t.value[charIdx] === '&' ? t.value.slice(charIdx).match(/^&#?\w+;/) : null;
+                        const piece = ent ? ent[0] : t.value.charAt(charIdx);
+                        acc += piece;
+                        charIdx += piece.length;
                     }
                     el.html(acc);
                     if (charIdx >= t.value.length) {
