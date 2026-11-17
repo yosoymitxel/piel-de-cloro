@@ -1,5 +1,5 @@
 import { State } from './State.js';
-import { Game } from './Game.js?v=20261116-npcdedupe1';
+import { Game } from './Game.js?v=20261117-xss1';
 import { VisualRoomInterface } from './VisualRoomInterface.js';
 
 // Inicialización de la instancia global del juego
