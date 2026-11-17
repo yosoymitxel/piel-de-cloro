@@ -1891,67 +1891,63 @@ export class UIManager {
             return;
         }
 
-        // If we received HTML, render it but animate text nodes; actions (.action) will be shown instantly
-        // Build tokens from HTML. Prefer DOM parsing if available for accuracy
-        let tokens = [];
-        const buildTokensFromNode = (node) => {
-            const nodeTokens = [];
-            // Node can be text or element
-            if (typeof node === 'string') {
-                // fallback string content
-                nodeTokens.push({ type: 'text', value: node });
-                return nodeTokens;
-            }
-            if (node.nodeType === 3 || node.nodeType === undefined) {
-                // Text node or fallback plain string
-                const txt = (node.textContent || node.nodeValue || node).toString();
-                // textContent viene decodificado: se escapa aquí para que todo token 'text' sea HTML seguro (XSS)
-                nodeTokens.push({ type: 'text', value: escapeHtml(txt) });
-                return nodeTokens;
-            }
-            if (node.nodeType === 1) {
-                const cls = (node.getAttribute && node.getAttribute('class')) || '';
-                // If action, add as instant outerHTML
-                if (/\baction\b/.test(cls) || /npc-epithet|epithet/.test(cls)) {
-                    nodeTokens.push({ type: 'instant', html: node.outerHTML || (`<span class="action">${escapeHtml(node.textContent)}</span>`) });
-                    return nodeTokens;
-                }
-                // For other elements, construct token with open/close and children tokens
-                const openTag = (() => {
-                    let tag = `<${node.tagName.toLowerCase()}`;
-                    for (const attr of node.attributes || []) {
-                        tag += ` ${attr.name}="${escapeHtml(attr.value)}"`;
+        // Navegador: se mueven nodos en vez de re-serializar strings con .html() (evita XSS/mXSS).
+        // El texto se escribe en Text.data, que nunca se interpreta como HTML.
+        const host = el && el[0];
+        if (typeof document !== 'undefined' && host && host.nodeType === 1 && typeof host.replaceChildren === 'function') {
+            const tpl = document.createElement('template');
+            tpl.innerHTML = text; // markup propio: parseDialogueMarkup ya escapa el contenido
+            host.replaceChildren();
+            const isInstant = (n) => /\b(action|npc-epithet|epithet)\b/.test(n.getAttribute('class') || '');
+            const steps = [];
+            const build = (src, parent) => {
+                for (const n of Array.from(src.childNodes)) {
+                    if (n.nodeType === 3) {
+                        const t = document.createTextNode('');
+                        parent.appendChild(t);
+                        steps.push({ text: t, full: n.data });
+                    } else if (n.nodeType === 1) {
+                        if (isInstant(n)) {
+                            // Acciones/epítetos aparecen enteros al llegar su turno
+                            const slot = document.createComment('');
+                            parent.appendChild(slot);
+                            steps.push({ slot, node: n.cloneNode(true) });
+                        } else {
+                            const shell = n.cloneNode(false);
+                            parent.appendChild(shell);
+                            build(n, shell);
+                        }
                     }
-                    tag += '>';
-                    return tag;
-                })();
-                nodeTokens.push({ type: 'open', html: openTag });
-                // children
-                const children = node.childNodes || [];
-                for (let i = 0; i < children.length; i++) {
-                    nodeTokens.push(...buildTokensFromNode(children[i]));
                 }
-                nodeTokens.push({ type: 'close', html: `</${node.tagName.toLowerCase()}>` });
-                return nodeTokens;
-            }
-            return nodeTokens;
-        };
+            };
+            build(tpl.content, host);
 
-        if (typeof document !== 'undefined' && document.createElement) {
-            try {
-                const cont = document.createElement('div');
-                cont.innerHTML = text;
-                for (let i = 0; i < cont.childNodes.length; i++) {
-                    tokens.push(...buildTokensFromNode(cont.childNodes[i]));
+            const minStep = Math.max(5, speed);
+            const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+            let stepIdx = 0, typed = 0, budgetUsed = 0;
+            const frame = (now) => {
+                const budget = Math.floor((now - start) / minStep) + 1;
+                while (stepIdx < steps.length) {
+                    const s = steps[stepIdx];
+                    if (s.slot) { s.slot.replaceWith(s.node); stepIdx++; continue; }
+                    const take = Math.min(s.full.length - typed, budget - budgetUsed);
+                    if (take > 0) {
+                        typed += take; budgetUsed += take;
+                        s.text.data = s.full.slice(0, typed);
+                    }
+                    if (typed >= s.full.length) { stepIdx++; typed = 0; continue; }
+                    break;
                 }
-            } catch (e) {
-                // Fallback to naive tokenization if DOM parsing fails
-                tokens = text.split(/(<span[^>]*>.*?<\/span>)/g).filter(Boolean).map(seg => {
-                    if (/^<span/.test(seg)) return { type: 'instant', html: seg };
-                    return { type: 'text', value: seg };
-                });
-            }
-        } else {
+                if (stepIdx >= steps.length) { finish(); return; }
+                this.typingTimer = requestAnimationFrame(frame);
+            };
+            this.typingTimer = requestAnimationFrame(frame);
+            return;
+        }
+
+        // Entorno sin DOM real (tests en Node): tokenización por regex sobre el markup propio.
+        let tokens = [];
+        {
             // Node environment (tests), use simple regex tokenization
             const parts = text.split(/(<span[^>]*>.*?<\/span>)/g).filter(Boolean);
             for (const p of parts) {
