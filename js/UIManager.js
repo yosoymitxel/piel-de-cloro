@@ -1905,21 +1905,22 @@ export class UIManager {
             if (node.nodeType === 3 || node.nodeType === undefined) {
                 // Text node or fallback plain string
                 const txt = (node.textContent || node.nodeValue || node).toString();
-                nodeTokens.push({ type: 'text', value: txt });
+                // textContent viene decodificado: se escapa al volver a insertarlo como HTML (XSS)
+                nodeTokens.push({ type: 'text', value: txt, escape: true });
                 return nodeTokens;
             }
             if (node.nodeType === 1) {
                 const cls = (node.getAttribute && node.getAttribute('class')) || '';
                 // If action, add as instant outerHTML
                 if (/\baction\b/.test(cls) || /npc-epithet|epithet/.test(cls)) {
-                    nodeTokens.push({ type: 'instant', html: node.outerHTML || (`<span class="action">${node.textContent}</span>`) });
+                    nodeTokens.push({ type: 'instant', html: node.outerHTML || (`<span class="action">${escapeHtml(node.textContent)}</span>`) });
                     return nodeTokens;
                 }
                 // For other elements, construct token with open/close and children tokens
                 const openTag = (() => {
                     let tag = `<${node.tagName.toLowerCase()}`;
                     for (const attr of node.attributes || []) {
-                        tag += ` ${attr.name}="${attr.value}"`;
+                        tag += ` ${attr.name}="${escapeHtml(attr.value)}"`;
                     }
                     tag += '>';
                     return tag;
@@ -2010,7 +2011,8 @@ export class UIManager {
                     const elapsed = now - start;
                     const shouldBe = Math.floor(elapsed / minStep);
                     while (charIdx <= shouldBe && charIdx < t.value.length) {
-                        acc += t.value.charAt(charIdx);
+                        const ch = t.value.charAt(charIdx);
+                        acc += t.escape ? escapeHtml(ch) : ch;
                         charIdx++;
                     }
                     el.html(acc);
@@ -2024,7 +2026,7 @@ export class UIManager {
                 // rumor handling: if token has type 'rumor' use fade-in (tokenization should treat rumor as open/text/close or instant in fallback)
                 if (t.type === 'rumor') {
                     // append container with zero opacity and then animate
-                    acc += `<span class="rumor" style="opacity:0; transition:opacity 360ms ease">${t.text}</span>`;
+                    acc += `<span class="rumor" style="opacity:0; transition:opacity 360ms ease">${escapeHtml(String(t.text))}</span>`;
                     el.html(acc);
                     // trigger fade
                     const fadeIndex = tokenIdx;
